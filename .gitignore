@@ -16,4 +16,4 @@ todos.json
 crates/*/target/
 
 # Generated Wasm binary (built from Rust)
-src/durable-objects/wunstart-hasher.wasm
+src/durable-objects/argon2-do-hasher.wasm

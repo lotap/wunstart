@@ -1,0 +1,22 @@
+[package]
+name = "argon2-do-hasher"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+argon2 = { version = "0.5", default-features = false, features = [
+	"alloc",
+	"password-hash",
+] }
+getrandom = { version = "0.2", features = ["js"] }
+subtle = "2.6"
+unicode-normalization = "0.1"
+
+[profile.release]
+lto = true
+opt-level = "s"
+strip = true

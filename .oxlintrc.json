@@ -1,0 +1,140 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"ignorePatterns": ["*.gen.ts", "./tools/linters/**", "src/components/ui/**"],
+	"options": {
+		"typeAware": true,
+		"typeCheck": true
+	},
+	"plugins": ["eslint", "typescript", "unicorn", "oxc", "import"],
+	"jsPlugins": [
+		{"name": "anti-slop", "specifier": "./tools/linters/anti-slop/index.ts"},
+		{"name": "anti-slop-effect", "specifier": "./tools/linters/anti-slop/effect/index.ts"},
+	],
+	"categories": {
+		"correctness": "error",
+		"suspicious": "warn",
+		"pedantic": "allow",
+		"perf": "error",
+		"style": "allow",
+		"restriction": "allow",
+		"nursery": "warn"
+	},
+	"rules": {
+		"eslint/no-underscore-dangle": "off", // used to mark "internal"
+		"typescript/consistent-return": "off", // handled by noImplicitReturns in tsconfig
+		"typescript/no-unsafe-type-assertion": "off", // too many false positives to be useful as a rule
+		"typescript/no-unnecessary-type-assertion": "off", // too many false positives to be useful as a rule
+		"import/extensions": ["error", "ignorePackages"],
+		"anti-slop/no-chained-type-assertions": "error",
+		"anti-slop/no-conditional-empty-object-spread": "error",
+		"anti-slop/no-known-value-widening": "error",
+		"anti-slop/no-module-mocking": "error",
+		"anti-slop/no-object-parameters": "error",
+		"anti-slop/no-reflect-apply": "error",
+		"anti-slop/no-reflect-get": "error",
+		"anti-slop/no-runtime-typeof": "error",
+		"anti-slop/no-shape-in-symbol-names": "error",
+		"anti-slop/no-unknown-parameters": "error",
+		"anti-slop/no-unknown-returns": "error",
+		"anti-slop/no-unknown-type-aliases": "error",
+		"anti-slop/no-unsafe-dictionary-type": "error",
+		"anti-slop/no-widen-then-assert": "error",
+		"anti-slop/require-safety-comment-for-type-assertion": "error"
+	},
+	"overrides": [
+
+		/// REACT ///
+
+		{
+			"files": [
+				"src/components/**/*.{ts,tsx}",
+				"src/contexts/**/*.{ts,tsx}",
+				"src/hooks/**/*.{ts,tsx}",
+				"src/integrations/**/*.{ts,tsx}",
+				"src/routes/**/*.{ts,tsx}",
+				"src/*.tsx"
+			],
+			"excludeFiles": ["src/components/ui/**"],
+			"env": {"browser": true},
+			"plugins": ["react", "jsx-a11y"],
+			"jsPlugins": [
+				{"name": "react-doctor", "specifier": "oxlint-plugin-react-doctor"},
+				{"name": "tanstack-query", "specifier": "@tanstack/eslint-plugin-query"}
+			],
+			"rules": {
+				// Built-in plugin rules
+				"react/react-in-jsx-scope": "off", // Tanstack Start & vite handle this automatically
+				"react/no-object-type-as-default-prop": "off", // React Compiler handles prop stability
+				// TanstackQuery rules
+				"tanstack-query/exhaustive-deps": [
+					"error",
+					{"allowlist": {"variables": ["serverFn", "schema"]}}
+				],
+				"tanstack-query/no-rest-destructuring": "warn",
+				"tanstack-query/stable-query-client": "error",
+				"tanstack-query/no-unstable-deps": "error",
+				"tanstack-query/infinite-query-property-order": "error",
+				"tanstack-query/no-void-query-fn": "error",
+				"tanstack-query/mutation-property-order": "error",
+				"tanstack-query/prefer-query-options": "warn"
+			}
+		},
+
+		/// EMAIL ///
+
+		{
+			"files": ["src/email/templates/**/*.tsx"],
+			"plugins": ["react"],
+			"jsPlugins": [{"name": "react-doctor", "specifier": "oxlint-plugin-react-doctor"}],
+			"rules": {
+				"react/react-in-jsx-scope": "off", // Tanstack Start & vite handle this automatically
+				"react/no-object-type-as-default-prop": "off" // React Compiler handles prop stability
+			}
+		},
+
+		/// DB ///
+
+		{
+			"files": ["src/db/**.*.ts"],
+			"jsPlugins": [{"name": "drizzle", "specifier": "eslint-plugin-drizzle"}],
+			"rules": {
+				"drizzle/enforce-delete-with-where": "error",
+				"drizzle/enforce-update-with-where": "error"
+			}
+		},
+
+		/// SERVER ///
+
+		{
+			"files": [
+				"src/db/**/*.ts",
+				"src/durable-objects/**/*.ts",
+				"src/email/*.ts",
+				"src/email/transports/**/*.ts",
+				"src/middleware/**/*.ts",
+				"src/server-fns/**/*.ts"
+			],
+			"env": {"node": true}
+		},
+
+		/// CLI SCRIPTS ///
+
+		{
+			"files": ["src/scripts/**/*.ts"],
+			"env": {"node": true},
+			"rules": {
+				"eslint/no-console": "off" // CLI scripts need console output and process.exit
+			}
+		},
+
+		/// ISOMORPHIC ///
+
+		{
+			"files": ["src/isomorphic/**/*.ts"],
+			"env": {"es2022": true},
+			"globals": {
+				"TextEncoder": "readonly"
+			}
+		}
+	]
+}

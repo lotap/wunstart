@@ -1,0 +1,18 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"ignorePatterns": ["*.gen.ts", "**/db/migrations/**/snapshot.json", "worker-configuration.d.ts"],
+	"bracketSpacing": false,
+	"quoteProps": "consistent",
+	"semi": false,
+	"singleQuote": true,
+	"sortImports": true,
+	"useTabs": true,
+	"sortTailwindcss": {
+		"stylesheet": "./src/styles.css",
+		"functions": ["clsx", "cn"],
+		"preserveWhitespace": true
+	},
+	"sortPackageJson": {
+		"sortScripts": true
+	}
+}

@@ -1,0 +1,61 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "tanstack-start-app",
+	"compatibility_date": "2026-06-16",
+	"compatibility_flags": ["nodejs_compat"],
+	"main": "src/server.ts",
+	"triggers": {
+		"crons": ["30 6 * * *"]
+	},
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "hyperdrive-placeholder"
+		}
+	],
+	"send_email": [
+		{
+			"name": "EMAIL"
+		}
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "AUTH_HASHER",
+				"class_name": "AuthHasher"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": ["AuthHasher"]
+		}
+	],
+	"env": {
+		"development": {
+			"secrets": {
+				"required": ["ACCESS_TOKEN_SECRETS", "ANON_TOKEN_SECRETS", "REFRESH_TOKEN_SECRETS", "REFRESH_GRACE_TOKEN_SECRETS"]
+			},
+			"hyperdrive": [
+				{
+					"binding": "HYPERDRIVE",
+					"id": "hyperdrive-placeholder"
+				}
+			],
+			"send_email": [
+				{
+					"name": "EMAIL"
+				}
+			],
+			"durable_objects": {
+				"bindings": [
+					{
+						"name": "AUTH_HASHER",
+						"class_name": "AuthHasher"
+					}
+				]
+			}
+		}
+	}
+}
