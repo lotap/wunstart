@@ -20,7 +20,7 @@ export default function VerifyEmail({code}: VerifyEmailProps) {
 						<Text className="mb-4 text-sm leading-relaxed text-muted-foreground">
 							Enter this code to complete your sign-up:
 						</Text>
-						<Container className="mb-4 rounded-[8px] bg-muted p-6 text-center">
+						<Container className="mb-4 rounded-[8px] bg-muted p-4 text-center">
 							<Text className="m-0 font-mono text-4xl font-bold tracking-[8px]">{code}</Text>
 						</Container>
 						<Text className="text-xs leading-relaxed text-muted-foreground">

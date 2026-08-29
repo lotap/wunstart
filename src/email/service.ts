@@ -74,9 +74,7 @@ export class EmailConfig extends Context.Service<
 		EmailConfig,
 		Effect.gen(function* () {
 			return EmailConfig.of({
-				from: yield* Config.string('EMAIL_FROM').pipe(
-					Config.withDefault('noreply@wunstart.com'),
-				),
+				from: yield* Config.string('EMAIL_FROM').pipe(Config.withDefault('noreply@wunstart.com')),
 				appUrl: yield* Config.string('APP_URL').pipe(Config.withDefault('http://localhost:3000')),
 			})
 		}),

@@ -7,42 +7,42 @@ export const emailTailwindConfig = {
 		extend: {
 			colors: {
 				background: colors.white,
-				foreground: colors.stone[950],
+				foreground: colors.neutral[950],
 				card: {
 					DEFAULT: colors.white,
-					foreground: colors.stone[950],
+					foreground: colors.neutral[950],
 				},
 				popover: {
 					DEFAULT: colors.white,
-					foreground: colors.stone[950],
+					foreground: colors.neutral[950],
 				},
 				primary: {
-					DEFAULT: colors.orange[700],
-					foreground: colors.orange[50],
+					DEFAULT: colors.neutral[900],
+					foreground: colors.neutral[50],
 				},
 				secondary: {
-					DEFAULT: colors.stone[100],
-					foreground: colors.stone[900],
+					DEFAULT: colors.neutral[100],
+					foreground: colors.neutral[900],
 				},
 				muted: {
-					DEFAULT: colors.stone[100],
-					foreground: colors.stone[500],
+					DEFAULT: colors.neutral[100],
+					foreground: colors.neutral[500],
 				},
 				accent: {
-					DEFAULT: colors.stone[100],
-					foreground: colors.stone[900],
+					DEFAULT: colors.neutral[100],
+					foreground: colors.neutral[900],
 				},
 				destructive: {
 					DEFAULT: colors.red[600],
-					foreground: colors.stone[50],
+					foreground: colors.neutral[50],
 				},
-				border: colors.stone[200],
-				input: colors.stone[200],
-				ring: colors.stone[400],
+				border: colors.neutral[200],
+				input: colors.neutral[200],
+				ring: colors.neutral[400],
 			},
 			fontFamily: {
-				sans: ['Public Sans', 'Verdana', 'Arial', 'sans-serif'],
-				heading: ['Lora', 'Georgia', 'Times New Roman', 'serif'],
+				sans: ['Inter', 'Arial', 'Helvetica', 'sans-serif'],
+				heading: ['Inter', 'Arial', 'Helvetica', 'sans-serif'],
 			},
 			borderRadius: {
 				'sm': '0.375rem',
