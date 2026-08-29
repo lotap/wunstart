@@ -3,9 +3,9 @@ import {cva} from 'class-variance-authority'
 import {DateTime, Duration} from 'effect'
 import {RotateCw} from 'lucide-react'
 import {useEffect, useMemo, useState} from 'react'
-import {toast} from 'sonner'
 
 import {Button} from '#/components/ui/button.tsx'
+import {toast} from '#/components/ui/toast.tsx'
 
 import type {EmailRequestVerificationQueryOptions} from './_utils.ts'
 
@@ -78,19 +78,15 @@ export function ResetEmailVerificationButton({
 				onRequestNewCode?.()
 				try {
 					await mutateAsync()
-					toast.success(`New code sent to ${email}`, {
-						duration: 2500,
-						position: 'bottom-center',
-					})
+					toast.add({title: `New code sent to ${email}`, type: 'success', timeout: 2500})
 				} catch (error) {
-					toast.error(
-						error instanceof Error
-							? error.message
-							: 'Something went wrong on our end. Please try again later.',
-						{
-							position: 'bottom-center',
-						},
-					)
+					toast.add({
+						type: 'error',
+						title:
+							error instanceof Error
+								? error.message
+								: 'Something went wrong on our end. Please try again later.',
+					})
 				}
 			}}
 		>

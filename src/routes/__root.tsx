@@ -7,7 +7,7 @@ import {cva} from 'class-variance-authority'
 
 import {Footer} from '#/components/footer.tsx'
 import {Header} from '#/components/header.tsx'
-import {Toaster} from '#/components/ui/sonner.tsx'
+import {Toaster} from '#/components/ui/toast.tsx'
 import {TooltipProvider} from '#/components/ui/tooltip.tsx'
 import {ThemeProvider, useTheme} from '#/contexts/theme.tsx'
 
@@ -80,7 +80,7 @@ function RootDocument({children}: {children: React.ReactNode}) {
 					<Header />
 					<main className="shrink-0 grow basis-auto">{children}</main>
 					<Footer />
-					<Toaster position="top-center" />
+					<Toaster />
 					<TanStackDevtools
 						config={{
 							position: 'bottom-right',

@@ -3,7 +3,6 @@ import {useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 import {Schema} from 'effect'
 import {lazy, Suspense, useEffect, useState} from 'react'
-import {toast} from 'sonner'
 
 import {Button} from '#/components/ui/button.tsx'
 import {
@@ -17,6 +16,7 @@ import {
 	DrawerTrigger,
 } from '#/components/ui/drawer.tsx'
 import {FieldGroup} from '#/components/ui/field.tsx'
+import {toast} from '#/components/ui/toast.tsx'
 import {useHasSudo} from '#/contexts/has-sudo.tsx'
 import {useConfiguredAppForm, validateAfterFirstSubmit} from '#/hooks/use-app-form.ts'
 import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
@@ -51,8 +51,9 @@ export function ChangePasswordForm({
 			/** Every session was archived, including this one, so refresh app state */
 			if (signOutAllSessions) await router.invalidate()
 			if (closePasswordChangeDrawer) closePasswordChangeDrawer()
-			toast.success('Password Updated', {
-				position: 'bottom-center',
+			toast.add({
+				type: 'success',
+				title: 'Password Updated',
 				description: signOutAllSessions ? 'You have been signed out of all sessions' : undefined,
 			})
 		},

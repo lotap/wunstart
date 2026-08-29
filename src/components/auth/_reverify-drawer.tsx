@@ -3,7 +3,6 @@ import {useQuery, useSuspenseQuery, queryOptions} from '@tanstack/react-query'
 import {useServerFn} from '@tanstack/react-start'
 import {Schema} from 'effect'
 import {Suspense, useEffect, useState, type Dispatch, type SetStateAction} from 'react'
-import {toast} from 'sonner'
 
 import {Button} from '#/components/ui/button.tsx'
 import {
@@ -17,6 +16,7 @@ import {
 } from '#/components/ui/drawer.tsx'
 import {FieldGroup} from '#/components/ui/field.tsx'
 import {Spinner} from '#/components/ui/spinner.tsx'
+import {toast} from '#/components/ui/toast.tsx'
 import {useHasSudo} from '#/contexts/has-sudo.tsx'
 import {useConfiguredAppForm, validateAfterFirstSubmit} from '#/hooks/use-app-form.ts'
 import {
@@ -67,12 +67,13 @@ function ReverifyEmailForm({email}: {email: string}) {
 						try {
 							await mutateEmailRequestVerification({email, expectRegisteredRecipient: true})
 						} catch (error) {
-							toast.error(
-								error instanceof Error
-									? error.message
-									: 'Something went wrong on our end. Please try again later.',
-								{position: 'bottom-center'},
-							)
+							toast.add({
+								type: 'error',
+								title:
+									error instanceof Error
+										? error.message
+										: 'Something went wrong on our end. Please try again later.',
+							})
 						}
 					}}
 				>

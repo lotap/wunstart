@@ -1,7 +1,6 @@
 import {useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 import {lazy, Suspense, useEffect, useState} from 'react'
-import {toast} from 'sonner'
 
 import {Button} from '#/components/ui/button.tsx'
 import {
@@ -14,6 +13,7 @@ import {
 	DrawerTrigger,
 } from '#/components/ui/drawer.tsx'
 import {Spinner} from '#/components/ui/spinner.tsx'
+import {toast} from '#/components/ui/toast.tsx'
 import {useHasSudo} from '#/contexts/has-sudo.tsx'
 import {handleRemoveUser} from '#/server-fns/handle-remove-user.ts'
 
@@ -88,15 +88,16 @@ function ConfirmRemoval({closeRemoveAccountDrawer}: {closeRemoveAccountDrawer?: 
 								/** The account is gone, so leave the protected area before refreshing auth state */
 								await router.navigate({to: '/', replace: true})
 								await router.invalidate()
-								toast.success('Your account has been removed', {position: 'bottom-center'})
+								toast.add({title: 'Your account has been removed', type: 'success'})
 							} catch (error) {
 								setIsRemoving(false)
-								toast.error(
-									error instanceof Error
-										? error.message
-										: 'Something went wrong on our end. Please try again later.',
-									{position: 'bottom-center'},
-								)
+								toast.add({
+									type: 'error',
+									title:
+										error instanceof Error
+											? error.message
+											: 'Something went wrong on our end. Please try again later.',
+								})
 							}
 						}}
 					>
