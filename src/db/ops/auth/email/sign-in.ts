@@ -26,10 +26,12 @@ const genericFailureOutputMessage = 'Something went wrong. Double-check your det
 const _emailSignIn = Effect.fn('emailSignIn')(function* ({
 	input: {email, passcode},
 	ipAddress,
+	userAgent,
 	anonTokenPayload,
 }: {
 	input: (typeof EmailSignInCredentials)['Type']
 	ipAddress: string
+	userAgent: string
 	anonTokenPayload: AnonTokenPayloadCustomClaims
 }) {
 	const {id: anonId} = anonTokenPayload
@@ -131,14 +133,14 @@ const _emailSignIn = Effect.fn('emailSignIn')(function* ({
 					/** Concurrently create a session, generate an access token, and archive the anon token if it exists. */
 					const [_session, _access, _retiredAnon] = yield* Effect.all(
 						[
-							createSession({userId, ipAddress, nonce, nonceHash}, tx),
+							createSession({userId, ipAddress, userAgent, nonce, nonceHash}, tx),
 							generateAccessToken({
 								userId,
 								sudoExpiresAt: DateTime.add(now, {
 									milliseconds: SUDO_EXPIRATION_WINDOW,
 								}),
 							}),
-							retireAnon({tokenData: anonTokenPayload, userId, ipAddress}, tx),
+							retireAnon({tokenData: anonTokenPayload, userId, ipAddress, userAgent}, tx),
 						],
 						{concurrency: 'unbounded'},
 					)

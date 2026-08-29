@@ -20,6 +20,7 @@ export const handleRemoveUser = createServerFn({method: 'POST'})
 		async ({
 			context: {
 				ipAddress,
+				userAgent,
 				auth: {userId, sudoExpiresAt},
 			},
 		}) => {
@@ -27,7 +28,7 @@ export const handleRemoveUser = createServerFn({method: 'POST'})
 				anonToken: {token},
 			} = await runOp({
 				op: removeUser,
-				data: {userId, sudoExpiresAt, ipAddress},
+				data: {userId, sudoExpiresAt, ipAddress, userAgent},
 				layers: [authLayer, dbLayer],
 			})
 

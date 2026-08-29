@@ -2,7 +2,7 @@ import {createInsertSchema, createSelectSchema} from 'drizzle-orm/effect-schema'
 import {Struct} from 'effect'
 
 import type {RefinementsFor} from '#/db/helpers/types.ts'
-import {DateFromDateTimeUtc, IpAddresses} from '#/db/helpers/validators.ts'
+import {DateFromDateTimeUtc, IpAddresses, UserAgents} from '#/db/helpers/validators.ts'
 
 import {activeTable, archiveTable} from './schemas.ts'
 
@@ -10,6 +10,7 @@ import {activeTable, archiveTable} from './schemas.ts'
 
 const overrides = {
 	ipAddresses: IpAddresses,
+	userAgents: UserAgents,
 	tokenCreatedAt: DateFromDateTimeUtc,
 } satisfies RefinementsFor<typeof activeTable>
 
@@ -20,7 +21,7 @@ const selectPrimitive = createSelectSchema(activeTable, overrides)
 /// INSERT ///
 
 export const Insert = insertPrimitive.mapFields(
-	Struct.pick(['id', 'tokenCreatedAt', 'ipAddresses']),
+	Struct.pick(['id', 'tokenCreatedAt', 'ipAddresses', 'userAgents']),
 )
 
 /// SELECT ///
@@ -33,6 +34,7 @@ export const Select = selectPrimitive.mapFields(Struct.pick(['id']))
 
 const archiveOverrides = {
 	ipAddresses: IpAddresses,
+	userAgents: UserAgents,
 	tokenCreatedAt: DateFromDateTimeUtc,
 } satisfies RefinementsFor<typeof archiveTable>
 
@@ -41,5 +43,5 @@ export const archiveInsertPrimitive = createInsertSchema(archiveTable, archiveOv
 /// INSERT ///
 
 export const ArchiveInsert = archiveInsertPrimitive.mapFields(
-	Struct.pick(['id', 'tokenCreatedAt', 'ipAddresses']),
+	Struct.pick(['id', 'tokenCreatedAt', 'ipAddresses', 'userAgents']),
 )

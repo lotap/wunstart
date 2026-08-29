@@ -10,6 +10,7 @@ export const tableName = 'sessions'
 /** Columns with identical definitions in the active and archive tables */
 const baseCols = {
 	ipAddresses: inet().notNull().array().notNull(),
+	userAgents: text().notNull().array().notNull(),
 	refreshGeneration: smallint().notNull().default(0),
 }
 

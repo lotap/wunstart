@@ -20,11 +20,13 @@ const genericFailureOutputMessage = 'Something went wrong. Please try again.'
 const _passwordChange = Effect.fn('passwordChange')(function* ({
 	input: {password, signOutAllSessions},
 	ipAddress,
+	userAgent,
 	userId,
 	sudoExpiresAt,
 }: {
 	input: (typeof PasswordChangeCredentials)['Type']
 	ipAddress: string
+	userAgent: string
 	userId: string
 	sudoExpiresAt?: DateTime.Utc
 }) {
@@ -81,7 +83,7 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 			)
 
 		const anonToken = signOutAllSessions
-			? yield* generateAnonToken({ipAddresses: [ipAddress]})
+			? yield* generateAnonToken({ipAddresses: [ipAddress], userAgents: [userAgent]})
 			: undefined
 
 		/**

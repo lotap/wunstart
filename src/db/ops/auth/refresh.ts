@@ -58,10 +58,12 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 	nonce,
 	rowData,
 	ipAddress,
+	userAgent,
 }: {
 	nonce: string
 	rowData: SessionRow
 	ipAddress: string
+	userAgent: string
 }) {
 	/** Ensure the refresh token matches the hashed one stored in the database */
 	const isNonceVerified = yield* verifyTarget(rowData.nonceHash, nonce)
@@ -94,6 +96,7 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 		expiresAt: newExpiresAt,
 		graceToken,
 		ipAddress,
+		userAgent,
 	})
 
 	/**
@@ -252,14 +255,16 @@ const classifySession = Effect.fn('classifySession')(function* ({
 	rowData,
 	tokenData: {generation, nonce},
 	ipAddress,
+	userAgent,
 }: {
 	rowData: SessionRow
 	tokenData: RefreshTokenPayloadCustomClaims
 	ipAddress: string
+	userAgent: string
 }) {
 	/** Current generation - rotate and create fresh access/refresh tokens */
 	if (generation === rowData.refreshGeneration)
-		return yield* attemptRotation({nonce, rowData, ipAddress})
+		return yield* attemptRotation({nonce, rowData, ipAddress, userAgent})
 
 	/** Single generation behind - use grace token to create access/refresh tokens */
 	if (generation === rowData.refreshGeneration - 1)
@@ -281,18 +286,20 @@ const classifySession = Effect.fn('classifySession')(function* ({
 const resolveSession = Effect.fn('resolveSession')(function* ({
 	tokenData,
 	ipAddress,
+	userAgent,
 	rowData,
 	maxAttempts,
 }: {
 	tokenData: RefreshTokenPayloadCustomClaims
 	ipAddress: string
+	userAgent: string
 	rowData: SessionRow
 	maxAttempts: number
 }) {
 	let currentRow = rowData
 
 	for (let attempts = 0; attempts < maxAttempts; attempts++) {
-		const outcome = yield* classifySession({rowData: currentRow, tokenData, ipAddress})
+		const outcome = yield* classifySession({rowData: currentRow, tokenData, ipAddress, userAgent})
 
 		if (Option.isSome(outcome)) return outcome.value
 
@@ -307,9 +314,11 @@ const resolveSession = Effect.fn('resolveSession')(function* ({
 const _refresh = Effect.fn('refresh')(function* ({
 	token,
 	ipAddress,
+	userAgent,
 }: {
 	token: string
 	ipAddress: string
+	userAgent: string
 }) {
 	const tokenData = yield* extractRefreshTokenPayload(token).pipe(
 		Effect.mapError((error) =>
@@ -338,9 +347,13 @@ const _refresh = Effect.fn('refresh')(function* ({
 	if (currentBansAndExcessiveActivities.length)
 		return yield* rateLimitFailure({message: genericFailureOutputMessage, userId: session.userId})
 
-	return yield* resolveSession({tokenData, rowData: session, maxAttempts: 2, ipAddress}).pipe(
-		Effect.provide(HashingStub.layer(session.userId)),
-	)
+	return yield* resolveSession({
+		tokenData,
+		rowData: session,
+		maxAttempts: 2,
+		ipAddress,
+		userAgent,
+	}).pipe(Effect.provide(HashingStub.layer(session.userId)))
 })
 
 /**

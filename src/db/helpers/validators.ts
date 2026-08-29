@@ -17,6 +17,13 @@ const IP_REGEX =
 export const IpAddress = Schema.String.check(Schema.isPattern(IP_REGEX))
 export const IpAddresses = Schema.Array(IpAddress)
 
+/**
+ * Validation for user-agent strings
+ * Capped to keep hostile/absent headers from bloating rows, anon token payloads, and activity logs
+ */
+export const UserAgent = Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(512))
+export const UserAgents = Schema.Array(UserAgent)
+
 const PG_VERBOSE_INTERVAL_REGEX =
 	/^(?:@ )?(?:(?:\+|-)?infinity)|(?:(?:\d+(?:\.\d+)?) (?:(?:mil(?:s?|lenni(?:um|a)))|(?:c(?:ent(?:ury|uries)?)?)|(?:dec(?:ade)?s?)|(?:y(?:(?:r|ear)s?)?)|(?:q(?:tr|uarter))|(?:mon(?:th)?s?)|(?:w(?:eeks?)?)|(?:d(?:ays?)?)|(?:h(?:(?:r|our)s?)?)|(?:m(?:in(?:ute)?s?)?)|(?:s(?:ec(?:ond)?s?)?)|(?:ms(?:ec(?:ond)?s?)?|millisecon(?:ds?)?)|(?:us(?:ec(?:ond)?s?)?|microsecon(?:ds?)?))(?:(?= \w) |$)){1,13}(?:ago)?$/iu
 

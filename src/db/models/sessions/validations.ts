@@ -2,7 +2,14 @@ import {createInsertSchema, createSelectSchema} from 'drizzle-orm/effect-schema'
 import {Struct} from 'effect'
 
 import type {RefinementsFor} from '#/db/helpers/types.ts'
-import {Argon2Hash, DateFromDateTimeUtc, IpAddress, IpAddresses} from '#/db/helpers/validators.ts'
+import {
+	Argon2Hash,
+	DateFromDateTimeUtc,
+	IpAddress,
+	IpAddresses,
+	UserAgent,
+	UserAgents,
+} from '#/db/helpers/validators.ts'
 
 import {activeTable} from './schemas.ts'
 
@@ -11,6 +18,7 @@ import {activeTable} from './schemas.ts'
 const overrides = {
 	nonceHash: Argon2Hash,
 	ipAddresses: IpAddresses,
+	userAgents: UserAgents,
 	expiresAt: DateFromDateTimeUtc,
 	graceExpiresAt: DateFromDateTimeUtc,
 } satisfies RefinementsFor<typeof activeTable>
@@ -23,7 +31,7 @@ const selectPrimitive = createSelectSchema(activeTable, overrides)
 
 export const Insert = insertPrimitive
 	.mapFields(Struct.pick(['nonceHash', 'userId']))
-	.mapFields(Struct.assign({ipAddress: IpAddress}))
+	.mapFields(Struct.assign({ipAddress: IpAddress, userAgent: UserAgent}))
 
 /// SELECT ///
 
@@ -45,5 +53,6 @@ export const Rotate = selectPrimitive
 			currentNonceHash: Argon2Hash,
 			nextNonceHash: Argon2Hash,
 			ipAddress: IpAddress,
+			userAgent: UserAgent,
 		}),
 	)

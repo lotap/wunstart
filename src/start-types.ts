@@ -5,6 +5,7 @@ import type {AuthContext} from './middleware/verify-auth.ts'
 /** The context as produced by the verification middlewares. May carry the degraded state */
 export interface VerifiedServerFnContext {
 	ipAddress: string
+	userAgent: string
 	auth: AuthContext['auth']
 	anon: AnonContext['anon']
 }
@@ -16,6 +17,7 @@ export interface VerifiedServerFnContext {
  */
 export interface GlobalServerFnContext {
 	ipAddress: string
+	userAgent: string
 	auth: Exclude<AuthContext['auth'], DegradedAuth>
 	anon: Exclude<AnonContext['anon'], DegradedAuth>
 }

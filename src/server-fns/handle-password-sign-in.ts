@@ -14,10 +14,10 @@ import {requireAnon} from '#/middleware/require-anon.ts'
 export const handlePasswordSignIn = createServerFn({method: 'POST'})
 	.middleware([rateLimit, requireAnon])
 	.validator(Schema.toStandardSchemaV1(PasswordSignInCredentials))
-	.handler(async ({data, context: {ipAddress, anon}}) => {
+	.handler(async ({data, context: {ipAddress, userAgent, anon}}) => {
 		const {access, session} = await runOp({
 			op: passwordSignIn,
-			data: {input: data, ipAddress, anonTokenPayload: anon},
+			data: {input: data, ipAddress, userAgent, anonTokenPayload: anon},
 			layers: [authLayer, dbLayer, emailLayer],
 		})
 

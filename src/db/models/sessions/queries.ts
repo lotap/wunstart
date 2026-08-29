@@ -9,7 +9,7 @@ import * as V from './validations.ts'
 
 const labelPrefix = tableName
 
-const {id, userId, ipAddresses, expiresAt, nonceHash, refreshGeneration, revokedAt} =
+const {id, userId, ipAddresses, userAgents, expiresAt, nonceHash, refreshGeneration, revokedAt} =
 	getColumns(activeTable)
 
 /// INSERT ///
@@ -22,6 +22,7 @@ export const insert = createPreparedQuery({
 			.values({
 				userId: sql.placeholder('userId'),
 				ipAddresses: sql`ARRAY[${sql.placeholder('ipAddress')}::inet]`,
+				userAgents: sql`ARRAY[${sql.placeholder('userAgent')}::text]`,
 				nonceHash: sql.placeholder('nonceHash'),
 			})
 			.returning({id, expiresAt, refreshGeneration})
@@ -74,6 +75,9 @@ export const rotate = createPreparedQuery({
 				ipAddresses: sql`ARRAY(SELECT DISTINCT unnest(array_cat(${
 					ipAddresses
 				}, ARRAY[${sql.placeholder('ipAddress')}::inet])))`,
+				userAgents: sql`ARRAY(SELECT DISTINCT unnest(array_cat(${
+					userAgents
+				}, ARRAY[${sql.placeholder('userAgent')}::text])))`,
 				nonceHash: sql`${sql.placeholder('nextNonceHash')}`,
 				refreshGeneration: sql`${sql.placeholder('refreshGeneration')} + 1`,
 				expiresAt: sql`${sql.placeholder('expiresAt')}`,

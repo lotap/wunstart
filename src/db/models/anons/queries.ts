@@ -9,7 +9,7 @@ import * as V from './validations.ts'
 
 const labelPrefix = tableName
 
-const {id, ipAddresses} = getColumns(activeTable)
+const {id, ipAddresses, userAgents} = getColumns(activeTable)
 
 /// INSERT ///
 
@@ -22,11 +22,13 @@ export const insert = createPreparedQuery({
 				id: sql.placeholder('id'),
 				tokenCreatedAt: sql.placeholder('tokenCreatedAt'),
 				ipAddresses: sql.placeholder('ipAddresses'),
+				userAgents: sql.placeholder('userAgents'),
 			})
 			.onConflictDoUpdate({
 				target: id,
 				set: {
 					ipAddresses: sql`${ipAddresses} || EXCLUDED.ip_addresses`,
+					userAgents: sql`${userAgents} || EXCLUDED.user_agents`,
 				},
 			})
 			.returning({id})
@@ -76,6 +78,7 @@ export const archiveInsert = createPreparedQuery({
 				id: sql.placeholder('id'),
 				tokenCreatedAt: sql.placeholder('tokenCreatedAt'),
 				ipAddresses: sql.placeholder('ipAddresses'),
+				userAgents: sql.placeholder('userAgents'),
 			})
 			.returning({archiveId})
 			.prepare(`${labelPrefix}_archive_insert`),

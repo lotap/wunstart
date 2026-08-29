@@ -12,9 +12,11 @@ import {generateAnonToken} from './_anon-token.ts'
 const _signOutAll = Effect.fn('signOutAll')(function* ({
 	accessToken,
 	ipAddress,
+	userAgent,
 }: {
 	accessToken: string
 	ipAddress: string
+	userAgent: string
 }) {
 	/** Validate access token and get user id */
 	const {userId} = yield* extractAccessTokenPayload(accessToken).pipe(
@@ -46,7 +48,7 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 	)
 
 	/** Create a new anon token */
-	const anonToken = yield* generateAnonToken({ipAddresses: [ipAddress]})
+	const anonToken = yield* generateAnonToken({ipAddresses: [ipAddress], userAgents: [userAgent]})
 
 	return {anonToken}
 })
