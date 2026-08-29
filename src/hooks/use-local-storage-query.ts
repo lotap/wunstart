@@ -66,7 +66,7 @@ export function useLocalStorageQuery<T extends ConstraintDecoder<unknown>>({
 
 	const mutation = useMutation({
 		mutationFn: async (data: Partial<T['Type']>) => {
-			let newData = null
+			let newData
 			if (Schema.is(Schema.String)(data)) {
 				newData = data
 			} else if (query.isSuccess && query.data) {
