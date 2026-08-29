@@ -1,0 +1,1 @@
+export const SUDO_EXPIRATION_WINDOW = 5 * 60 * 1000
