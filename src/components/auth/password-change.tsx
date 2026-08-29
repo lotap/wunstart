@@ -20,7 +20,7 @@ import {toast} from '#/components/ui/toast.tsx'
 import {useHasSudo} from '#/contexts/has-sudo.tsx'
 import {useConfiguredAppForm, validateAfterFirstSubmit} from '#/hooks/use-app-form.ts'
 import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
-import {Password} from '#/isomorphic/validators.ts'
+import {StrongPassword} from '#/isomorphic/validators.ts'
 import {handlePasswordChange} from '#/server-fns/handle-password-change.ts'
 
 const ReverifyDrawer = lazy(() =>
@@ -113,7 +113,7 @@ export function ChangePasswordForm({
 						<FieldGroup>
 							<form.Field
 								name="password"
-								validators={[validateAfterFirstSubmit(Schema.toStandardSchemaV1(Password))]}
+								validators={[validateAfterFirstSubmit(Schema.toStandardSchemaV1(StrongPassword))]}
 							>
 								{(field) => <field.PasswordField />}
 							</form.Field>
