@@ -23,12 +23,16 @@ const _removeUser = Effect.fn('removeUser')(function* ({
 	ipAddress,
 	userAgent,
 	country,
+	city,
+	region,
 	userId,
 	sudoExpiresAt,
 }: {
 	ipAddress: string
 	userAgent: string
 	country: string
+	city: string
+	region: string
 	userId: string
 	sudoExpiresAt?: DateTime.Utc
 }) {
@@ -65,6 +69,8 @@ const _removeUser = Effect.fn('removeUser')(function* ({
 		ipAddresses: [ipAddress],
 		userAgents: [userAgent],
 		countries: [country],
+		cities: [city],
+		regions: [region],
 	})
 
 	return {anonToken}

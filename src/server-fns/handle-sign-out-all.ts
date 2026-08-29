@@ -22,13 +22,15 @@ export const handleSignOutAll = createServerFn({method: 'POST'})
 				ipAddress,
 				userAgent,
 				country,
+				city,
+				region,
 			},
 		}) => {
 			const {
 				anonToken: {token},
 			} = await runOp({
 				op: signOutAll,
-				data: {accessToken, ipAddress, userAgent, country},
+				data: {accessToken, ipAddress, userAgent, country, city, region},
 				layers: [authLayer, dbLayer],
 			})
 

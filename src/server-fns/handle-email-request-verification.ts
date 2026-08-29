@@ -17,7 +17,7 @@ import {KnownServerError} from '#/middleware/sanitize-errors.ts'
 export const handleEmailRequestVerification = createServerFn({method: 'POST'})
 	.middleware([rateLimit])
 	.validator(Schema.toStandardSchemaV1(Schema.optional(EmailRequestVerificationCredentials)))
-	.handler(async ({data, context: {ipAddress, userAgent, country, auth, anon}}) => {
+	.handler(async ({data, context: {ipAddress, userAgent, country, city, region, auth, anon}}) => {
 		if (!auth && !data) {
 			setResponseStatus(400)
 			throw new KnownServerError({message: 'Missing credentials'})
@@ -28,7 +28,7 @@ export const handleEmailRequestVerification = createServerFn({method: 'POST'})
 		if (anonTokenPayload && !anonTokenPayload.registered) {
 			const {payload, token} = await runOp({
 				op: registerAnon,
-				data: {anonTokenPayload, ipAddress, userAgent, country},
+				data: {anonTokenPayload, ipAddress, userAgent, country, city, region},
 				layers: [authLayer, dbLayer],
 			})
 			anonTokenPayload = payload

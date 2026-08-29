@@ -60,12 +60,16 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 	ipAddress,
 	userAgent,
 	country,
+	city,
+	region,
 }: {
 	nonce: string
 	rowData: SessionRow
 	ipAddress: string
 	userAgent: string
 	country: string
+	city: string
+	region: string
 }) {
 	/** Ensure the refresh token matches the hashed one stored in the database */
 	const isNonceVerified = yield* verifyTarget(rowData.nonceHash, nonce)
@@ -100,6 +104,8 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 		ipAddress,
 		userAgent,
 		country,
+		city,
+		region,
 	})
 
 	/**
@@ -260,16 +266,20 @@ const classifySession = Effect.fn('classifySession')(function* ({
 	ipAddress,
 	userAgent,
 	country,
+	city,
+	region,
 }: {
 	rowData: SessionRow
 	tokenData: RefreshTokenPayloadCustomClaims
 	ipAddress: string
 	userAgent: string
 	country: string
+	city: string
+	region: string
 }) {
 	/** Current generation - rotate and create fresh access/refresh tokens */
 	if (generation === rowData.refreshGeneration)
-		return yield* attemptRotation({nonce, rowData, ipAddress, userAgent, country})
+		return yield* attemptRotation({nonce, rowData, ipAddress, userAgent, country, city, region})
 
 	/** Single generation behind - use grace token to create access/refresh tokens */
 	if (generation === rowData.refreshGeneration - 1)
@@ -293,6 +303,8 @@ const resolveSession = Effect.fn('resolveSession')(function* ({
 	ipAddress,
 	userAgent,
 	country,
+	city,
+	region,
 	rowData,
 	maxAttempts,
 }: {
@@ -300,6 +312,8 @@ const resolveSession = Effect.fn('resolveSession')(function* ({
 	ipAddress: string
 	userAgent: string
 	country: string
+	city: string
+	region: string
 	rowData: SessionRow
 	maxAttempts: number
 }) {
@@ -312,6 +326,8 @@ const resolveSession = Effect.fn('resolveSession')(function* ({
 			ipAddress,
 			userAgent,
 			country,
+			city,
+			region,
 		})
 
 		if (Option.isSome(outcome)) return outcome.value
@@ -329,11 +345,15 @@ const _refresh = Effect.fn('refresh')(function* ({
 	ipAddress,
 	userAgent,
 	country,
+	city,
+	region,
 }: {
 	token: string
 	ipAddress: string
 	userAgent: string
 	country: string
+	city: string
+	region: string
 }) {
 	const tokenData = yield* extractRefreshTokenPayload(token).pipe(
 		Effect.mapError((error) =>
@@ -369,6 +389,8 @@ const _refresh = Effect.fn('refresh')(function* ({
 		ipAddress,
 		userAgent,
 		country,
+		city,
+		region,
 	}).pipe(Effect.provide(HashingStub.layer(session.userId)))
 })
 

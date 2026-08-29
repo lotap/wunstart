@@ -9,23 +9,29 @@ import type {AnonTokenPayloadCustomClaims} from './_anon-token.ts'
 /** Send anon to the archive table */
 export const retireAnon = Effect.fn('retireAnon')(function* (
 	{
-		tokenData: {id, createdAt, ipAddresses, userAgents, countries, registered},
+		tokenData: {id, createdAt, ipAddresses, userAgents, countries, cities, regions, registered},
 		userId,
 		ipAddress,
 		userAgent,
 		country,
+		city,
+		region,
 	}: {
 		tokenData: AnonTokenPayloadCustomClaims
 		userId: string
 		ipAddress: string
 		userAgent: string
 		country: string
+		city: string
+		region: string
 	},
 	tx?: Tx,
 ) {
 	const newIpAddresses = [...new Set([...ipAddresses, ipAddress])]
 	const newUserAgents = [...new Set([...userAgents, userAgent])]
 	const newCountries = [...new Set([...countries, country])]
+	const newCities = [...new Set([...cities, city])]
+	const newRegions = [...new Set([...regions, region])]
 
 	if (registered) {
 		const [data] = yield* anonsCascades.archive(
@@ -35,6 +41,8 @@ export const retireAnon = Effect.fn('retireAnon')(function* (
 					ipAddresses: newIpAddresses,
 					userAgents: newUserAgents,
 					countries: newCountries,
+					cities: newCities,
+					regions: newRegions,
 					tokenCreatedAt: createdAt,
 					userId,
 				},
@@ -55,6 +63,8 @@ export const retireAnon = Effect.fn('retireAnon')(function* (
 			ipAddresses: newIpAddresses,
 			userAgents: newUserAgents,
 			countries: newCountries,
+			cities: newCities,
+			regions: newRegions,
 		},
 		tx,
 	)

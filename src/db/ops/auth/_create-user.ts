@@ -25,6 +25,8 @@ export const createUser = Effect.fn('createUser')(function* ({
 	ipAddress,
 	userAgent,
 	country,
+	city,
+	region,
 	sessionNonce,
 	tx,
 }: {
@@ -33,6 +35,8 @@ export const createUser = Effect.fn('createUser')(function* ({
 	ipAddress: string
 	userAgent: string
 	country: string
+	city: string
+	region: string
 	/** Generated via `generateNonce` before the caller's transaction opened */
 	sessionNonce: NonceWithHash
 	tx: Tx
@@ -82,8 +86,11 @@ export const createUser = Effect.fn('createUser')(function* ({
 	/** Concurrently create a session, archive the anon token if it exists, and generate an access token */
 	const [session, anonsArchive, access] = yield* Effect.all(
 		[
-			createSession({userId, ipAddress, userAgent, country, ...sessionNonce}, tx),
-			retireAnon({tokenData: anonTokenPayload, userId, ipAddress, userAgent, country}, tx),
+			createSession({userId, ipAddress, userAgent, country, city, region, ...sessionNonce}, tx),
+			retireAnon(
+				{tokenData: anonTokenPayload, userId, ipAddress, userAgent, country, city, region},
+				tx,
+			),
 			generateAccessToken({
 				userId,
 				sudoExpiresAt: DateTime.add(now, {milliseconds: SUDO_EXPIRATION_WINDOW}),

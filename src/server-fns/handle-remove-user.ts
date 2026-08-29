@@ -22,6 +22,8 @@ export const handleRemoveUser = createServerFn({method: 'POST'})
 				ipAddress,
 				userAgent,
 				country,
+				city,
+				region,
 				auth: {userId, sudoExpiresAt},
 			},
 		}) => {
@@ -29,7 +31,7 @@ export const handleRemoveUser = createServerFn({method: 'POST'})
 				anonToken: {token},
 			} = await runOp({
 				op: removeUser,
-				data: {userId, sudoExpiresAt, ipAddress, userAgent, country},
+				data: {userId, sudoExpiresAt, ipAddress, userAgent, country, city, region},
 				layers: [authLayer, dbLayer],
 			})
 

@@ -4,8 +4,10 @@ import {DateTime, Effect, Schema} from 'effect'
 import {jwtVerify, SignJWT} from 'jose'
 
 import {
+	Cities,
 	Countries,
 	IpAddresses,
+	Regions,
 	UserAgents,
 	DateTimeUtcFromSeconds,
 	UUID,
@@ -25,6 +27,8 @@ const AnonTokenPayload = Schema.Struct({
 	ipAddresses: IpAddresses,
 	userAgents: UserAgents,
 	countries: Countries,
+	cities: Cities,
+	regions: Regions,
 	registered: Schema.Boolean,
 })
 
@@ -41,6 +45,8 @@ export const generateAnonToken = Effect.fn('generateAnonToken')(function* ({
 	ipAddresses = [],
 	userAgents = [],
 	countries = [],
+	cities = [],
+	regions = [],
 	registered = false,
 }: Partial<AnonTokenPayloadCustomClaims> = {}) {
 	const issuedAt = createdAt ?? (yield* DateTime.now)
@@ -48,7 +54,16 @@ export const generateAnonToken = Effect.fn('generateAnonToken')(function* ({
 	const {secretsEntries} = yield* AnonTokenSecretsConfig
 	const {kid, salt, key} = yield* generateSaltedKey(secretsEntries)
 
-	const payload = {id, createdAt: issuedAt, ipAddresses, userAgents, countries, registered}
+	const payload = {
+		id,
+		createdAt: issuedAt,
+		ipAddresses,
+		userAgents,
+		countries,
+		cities,
+		regions,
+		registered,
+	}
 
 	const token = yield* Effect.tryPromise({
 		try: () =>

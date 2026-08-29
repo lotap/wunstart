@@ -39,7 +39,7 @@ export type AuthContext = {
 
 export const verifyAuth = createMiddleware()
 	.middleware([getForwardedIp])
-	.server(async ({next, context: {ipAddress, userAgent, country}}) => {
+	.server(async ({next, context: {ipAddress, userAgent, country, city, region}}) => {
 		const accessToken = getCookie(ACCESS_TOKEN_COOKIE_NAME)
 		const refreshToken = getCookie(REFRESH_TOKEN_COOKIE_NAME)
 
@@ -83,7 +83,7 @@ export const verifyAuth = createMiddleware()
 			try {
 				const refreshData = await runOp({
 					op: refresh,
-					data: {token: refreshToken, ipAddress, userAgent, country},
+					data: {token: refreshToken, ipAddress, userAgent, country, city, region},
 					layers: [authLayer, dbLayer, emailLayer],
 				})
 

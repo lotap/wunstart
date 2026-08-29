@@ -14,11 +14,11 @@ export const handleEmailSignUp = createServerFn({method: 'POST'})
 	.middleware([rateLimit, requireAnonRegistered])
 	.validator(Schema.toStandardSchemaV1(EmailSignUpCredentials))
 	.handler(async ({data, context}) => {
-		const {ipAddress, userAgent, country, anon} = context
+		const {ipAddress, userAgent, country, city, region, anon} = context
 
 		const {access, session} = await runOp({
 			op: emailSignUp,
-			data: {input: data, anonTokenPayload: anon, ipAddress, userAgent, country},
+			data: {input: data, anonTokenPayload: anon, ipAddress, userAgent, country, city, region},
 			layers: [authLayer, dbLayer],
 		})
 

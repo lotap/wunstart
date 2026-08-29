@@ -32,6 +32,17 @@ export const UserAgents = Schema.Array(UserAgent)
 export const Country = Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(2))
 export const Countries = Schema.Array(Country)
 
+/**
+ * Validations for geolocation city/region values
+ * Capped loosely because the source headers vary by provider; default to Cloudflare's
+ * `cf-ipcity` and `cf-region-code` from the visitor-location managed transform.
+ * City names arrive UTF-8 (sometimes percent-encoded), so values can be longer than codes
+ */
+export const City = Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(128))
+export const Cities = Schema.Array(City)
+export const Region = Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(64))
+export const Regions = Schema.Array(Region)
+
 const PG_VERBOSE_INTERVAL_REGEX =
 	/^(?:@ )?(?:(?:\+|-)?infinity)|(?:(?:\d+(?:\.\d+)?) (?:(?:mil(?:s?|lenni(?:um|a)))|(?:c(?:ent(?:ury|uries)?)?)|(?:dec(?:ade)?s?)|(?:y(?:(?:r|ear)s?)?)|(?:q(?:tr|uarter))|(?:mon(?:th)?s?)|(?:w(?:eeks?)?)|(?:d(?:ays?)?)|(?:h(?:(?:r|our)s?)?)|(?:m(?:in(?:ute)?s?)?)|(?:s(?:ec(?:ond)?s?)?)|(?:ms(?:ec(?:ond)?s?)?|millisecon(?:ds?)?)|(?:us(?:ec(?:ond)?s?)?|microsecon(?:ds?)?))(?:(?= \w) |$)){1,13}(?:ago)?$/iu
 

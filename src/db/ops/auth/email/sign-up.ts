@@ -22,12 +22,16 @@ const _emailSignUp = Effect.fn('emailSignUp')(function* ({
 	ipAddress,
 	userAgent,
 	country,
+	city,
+	region,
 	anonTokenPayload,
 }: {
 	input: (typeof EmailSignUpCredentials)['Type']
 	ipAddress: string
 	userAgent: string
 	country: string
+	city: string
+	region: string
 	anonTokenPayload: AnonTokenPayloadCustomClaims
 }) {
 	const {id: anonId} = anonTokenPayload
@@ -89,6 +93,8 @@ const _emailSignUp = Effect.fn('emailSignUp')(function* ({
 					ipAddress,
 					userAgent,
 					country,
+					city,
+					region,
 					sessionNonce,
 					tx,
 				})

@@ -20,13 +20,22 @@ export const createSession = Effect.fn('createSession')(function* (
 		ipAddress,
 		userAgent,
 		country,
+		city,
+		region,
 		nonce,
 		nonceHash,
-	}: {userId: string; ipAddress: string; userAgent: string; country: string} & NonceWithHash,
+	}: {
+		userId: string
+		ipAddress: string
+		userAgent: string
+		country: string
+		city: string
+		region: string
+	} & NonceWithHash,
 	tx: Tx,
 ) {
 	const [session] = yield* sessionsQueries.insert(
-		{userId, ipAddress, userAgent, country, nonceHash},
+		{userId, ipAddress, userAgent, country, city, region, nonceHash},
 		tx,
 	)
 
