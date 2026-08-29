@@ -70,6 +70,7 @@ export function SignInForm() {
 		})
 
 	const [branch, setBranch] = useState<'password' | 'passcode-send' | 'passcode-skip'>('password')
+	const [submittedBranch, setSubmittedBranch] = useState(branch)
 
 	const step0Form = useConfiguredAppForm({
 		defaultValues: {
@@ -77,6 +78,7 @@ export function SignInForm() {
 			password: '',
 		},
 		onSubmitTry: async ({password}) => {
+			setSubmittedBranch(branch)
 			if (branch === 'password') {
 				await handlePasswordSignInFn({data: {email, password}})
 				removeLocalStorageSignInState()
@@ -184,7 +186,7 @@ export function SignInForm() {
 									{(field) => <field.PasswordField isDisabled={branch !== 'password'} />}
 								</step0Form.Field>
 
-								<step0Form.OnSubmitErrors />
+								{submittedBranch !== 'passcode-send' && <step0Form.OnSubmitErrors />}
 
 								<step0Form.SubmitButton
 									buttonProps={{disabled: branch !== 'password'}}
@@ -220,6 +222,8 @@ export function SignInForm() {
 									changeLabelWhileSubmitting={branch === 'passcode-send'}
 									labelWhileSubmitting="Sending code"
 								/>
+
+								{submittedBranch === 'passcode-send' && <step0Form.OnSubmitErrors />}
 
 								<step0Form.SubmitButton
 									buttonProps={{
