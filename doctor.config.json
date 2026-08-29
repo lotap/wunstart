@@ -1,0 +1,17 @@
+{
+	"$schema": "https://react.doctor/schema/config.json",
+	"adoptExistingLintConfig": true,
+	"ignore": {
+		"files": ["src/components/ui/*.tsx"],
+		"overrides": [
+			{
+				"files": ["src/email/templates/**/*.tsx"],
+				"rules": [
+					"react-doctor/only-export-components",
+					"deslop/unused-export",
+					"react-doctor/no-impure-call-at-module-scope"
+				]
+			}
+		]
+	}
+}

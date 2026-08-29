@@ -1,0 +1,23 @@
+{
+	"$schema": "https://opencode.ai/config.json",
+	"mcp": {
+		"chrome-devtools": {
+			"type": "local",
+			"command": ["npx", "-y", "chrome-devtools-mcp@latest"]
+		}
+	},
+	"references": {
+		"effect": {
+			"repository": "https://github.com/Effect-TS/effect",
+			"description": "use whenever there's any questions about effect or you need to know how to do something in effect"
+		},
+		"drizzle": {
+			"repository": "https://github.com/drizzle-team/drizzle-orm",
+			"branch": "rc4",
+			"description": "use whenever there's any questions about drizzle or you need to know how to do something in drizzle"
+		},
+		"typescript": {
+			"repository": "https://github.com/microsoft/typescript/"
+		}
+	}
+}
