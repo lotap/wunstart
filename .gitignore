@@ -1,0 +1,19 @@
+node_modules
+.DS_Store
+dist
+dist-ssr
+*.local
+.env
+.nitro
+.tanstack
+.wrangler
+.output
+.vinxi
+__unconfig*
+todos.json
+
+# Rust build artifacts
+crates/*/target/
+
+# Generated Wasm binary (built from Rust)
+src/durable-objects/wunstart-hasher.wasm
