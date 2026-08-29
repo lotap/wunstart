@@ -6,6 +6,7 @@ import type {AuthContext} from './middleware/verify-auth.ts'
 export interface VerifiedServerFnContext {
 	ipAddress: string
 	userAgent: string
+	country: string
 	auth: AuthContext['auth']
 	anon: AnonContext['anon']
 }
@@ -18,6 +19,7 @@ export interface VerifiedServerFnContext {
 export interface GlobalServerFnContext {
 	ipAddress: string
 	userAgent: string
+	country: string
 	auth: Exclude<AuthContext['auth'], DegradedAuth>
 	anon: Exclude<AnonContext['anon'], DegradedAuth>
 }

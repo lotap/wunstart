@@ -21,12 +21,14 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 	input: {password, signOutAllSessions},
 	ipAddress,
 	userAgent,
+	country,
 	userId,
 	sudoExpiresAt,
 }: {
 	input: (typeof PasswordChangeCredentials)['Type']
 	ipAddress: string
 	userAgent: string
+	country: string
 	userId: string
 	sudoExpiresAt?: DateTime.Utc
 }) {
@@ -83,7 +85,11 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 			)
 
 		const anonToken = signOutAllSessions
-			? yield* generateAnonToken({ipAddresses: [ipAddress], userAgents: [userAgent]})
+			? yield* generateAnonToken({
+					ipAddresses: [ipAddress],
+					userAgents: [userAgent],
+					countries: [country],
+				})
 			: undefined
 
 		/**

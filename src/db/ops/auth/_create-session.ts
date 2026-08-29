@@ -19,12 +19,16 @@ export const createSession = Effect.fn('createSession')(function* (
 		userId,
 		ipAddress,
 		userAgent,
+		country,
 		nonce,
 		nonceHash,
-	}: {userId: string; ipAddress: string; userAgent: string} & NonceWithHash,
+	}: {userId: string; ipAddress: string; userAgent: string; country: string} & NonceWithHash,
 	tx: Tx,
 ) {
-	const [session] = yield* sessionsQueries.insert({userId, ipAddress, userAgent, nonceHash}, tx)
+	const [session] = yield* sessionsQueries.insert(
+		{userId, ipAddress, userAgent, country, nonceHash},
+		tx,
+	)
 
 	// should be unreachable, drizzle throws on failed insert but it makes the linter happy
 	if (!session) return yield* Effect.die(new Error('Problem inserting session'))

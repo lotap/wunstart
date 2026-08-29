@@ -30,7 +30,7 @@ export type AnonContext = {
 
 export const verifyAnon = createMiddleware({type: 'function'})
 	.middleware([verifyAuth])
-	.server(async ({next, context: {auth, ipAddress, userAgent}}) => {
+	.server(async ({next, context: {auth, ipAddress, userAgent, country}}) => {
 		/**
 		 * Infrastructure failure upstream. Carry the degraded state through to the anon
 		 * context. Never verify or issue anon tokens solely because authentication failed
@@ -79,7 +79,7 @@ export const verifyAnon = createMiddleware({type: 'function'})
 		try {
 			const result = await runOp({
 				op: signAnon,
-				data: {ipAddress, userAgent},
+				data: {ipAddress, userAgent, country},
 				layers: [authLayer, dbLayer],
 			})
 

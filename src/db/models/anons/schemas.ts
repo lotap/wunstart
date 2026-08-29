@@ -12,6 +12,7 @@ const baseCols = {
 	tokenCreatedAt: timestamp(TIMESTAMPTZ_CONFIG).notNull(),
 	ipAddresses: inet().notNull().array().notNull(),
 	userAgents: text().notNull().array().notNull(),
+	countries: text().notNull().array().notNull(),
 }
 
 /** Anons is used for linking pre-authentication sessions with activities and users */

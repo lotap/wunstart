@@ -11,6 +11,7 @@ export const tableName = 'sessions'
 const baseCols = {
 	ipAddresses: inet().notNull().array().notNull(),
 	userAgents: text().notNull().array().notNull(),
+	countries: text().notNull().array().notNull(),
 	refreshGeneration: smallint().notNull().default(0),
 }
 

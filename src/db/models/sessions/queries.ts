@@ -9,8 +9,17 @@ import * as V from './validations.ts'
 
 const labelPrefix = tableName
 
-const {id, userId, ipAddresses, userAgents, expiresAt, nonceHash, refreshGeneration, revokedAt} =
-	getColumns(activeTable)
+const {
+	id,
+	userId,
+	ipAddresses,
+	userAgents,
+	countries,
+	expiresAt,
+	nonceHash,
+	refreshGeneration,
+	revokedAt,
+} = getColumns(activeTable)
 
 /// INSERT ///
 
@@ -23,6 +32,7 @@ export const insert = createPreparedQuery({
 				userId: sql.placeholder('userId'),
 				ipAddresses: sql`ARRAY[${sql.placeholder('ipAddress')}::inet]`,
 				userAgents: sql`ARRAY[${sql.placeholder('userAgent')}::text]`,
+				countries: sql`ARRAY[${sql.placeholder('country')}::text]`,
 				nonceHash: sql.placeholder('nonceHash'),
 			})
 			.returning({id, expiresAt, refreshGeneration})
@@ -78,6 +88,9 @@ export const rotate = createPreparedQuery({
 				userAgents: sql`ARRAY(SELECT DISTINCT unnest(array_cat(${
 					userAgents
 				}, ARRAY[${sql.placeholder('userAgent')}::text])))`,
+				countries: sql`ARRAY(SELECT DISTINCT unnest(array_cat(${
+					countries
+				}, ARRAY[${sql.placeholder('country')}::text])))`,
 				nonceHash: sql`${sql.placeholder('nextNonceHash')}`,
 				refreshGeneration: sql`${sql.placeholder('refreshGeneration')} + 1`,
 				expiresAt: sql`${sql.placeholder('expiresAt')}`,

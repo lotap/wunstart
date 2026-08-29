@@ -3,7 +3,13 @@ import {randomUUID} from 'node:crypto'
 import {DateTime, Effect, Schema} from 'effect'
 import {jwtVerify, SignJWT} from 'jose'
 
-import {IpAddresses, UserAgents, DateTimeUtcFromSeconds, UUID} from '#/db/helpers/validators.ts'
+import {
+	Countries,
+	IpAddresses,
+	UserAgents,
+	DateTimeUtcFromSeconds,
+	UUID,
+} from '#/db/helpers/validators.ts'
 
 import {AnonTokenSecretsConfig} from './_auth-layer.ts'
 import {generateSaltedKey, getKeyFromSecretsMap, JwtHandlerError} from './_jwt-utils.ts'
@@ -18,6 +24,7 @@ const AnonTokenPayload = Schema.Struct({
 	createdAt: Schema.DateTimeUtcFromString,
 	ipAddresses: IpAddresses,
 	userAgents: UserAgents,
+	countries: Countries,
 	registered: Schema.Boolean,
 })
 
@@ -33,6 +40,7 @@ export const generateAnonToken = Effect.fn('generateAnonToken')(function* ({
 	createdAt,
 	ipAddresses = [],
 	userAgents = [],
+	countries = [],
 	registered = false,
 }: Partial<AnonTokenPayloadCustomClaims> = {}) {
 	const issuedAt = createdAt ?? (yield* DateTime.now)
@@ -40,7 +48,7 @@ export const generateAnonToken = Effect.fn('generateAnonToken')(function* ({
 	const {secretsEntries} = yield* AnonTokenSecretsConfig
 	const {kid, salt, key} = yield* generateSaltedKey(secretsEntries)
 
-	const payload = {id, createdAt: issuedAt, ipAddresses, userAgents, registered}
+	const payload = {id, createdAt: issuedAt, ipAddresses, userAgents, countries, registered}
 
 	const token = yield* Effect.tryPromise({
 		try: () =>

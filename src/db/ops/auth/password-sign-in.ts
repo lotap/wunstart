@@ -40,11 +40,13 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 	input: {email, password},
 	ipAddress,
 	userAgent,
+	country,
 	anonTokenPayload,
 }: {
 	input: (typeof PasswordSignInCredentials)['Type']
 	ipAddress: string
 	userAgent: string
+	country: string
 	anonTokenPayload: AnonTokenPayloadCustomClaims
 }) {
 	const registeredAnonId = anonTokenPayload.registered ? anonTokenPayload.id : undefined
@@ -161,12 +163,12 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 				/** Concurrently create a session, archive the anon token if it exists, and generate an access token. */
 				Effect.all(
 					[
-						createSession({userId, ipAddress, userAgent, nonce, nonceHash}, tx),
+						createSession({userId, ipAddress, userAgent, country, nonce, nonceHash}, tx),
 						generateAccessToken({
 							userId,
 							sudoExpiresAt: DateTime.add(now, {milliseconds: SUDO_EXPIRATION_WINDOW}),
 						}),
-						retireAnon({tokenData: anonTokenPayload, userId, ipAddress, userAgent}, tx),
+						retireAnon({tokenData: anonTokenPayload, userId, ipAddress, userAgent, country}, tx),
 					],
 					{concurrency: 'unbounded'},
 				),

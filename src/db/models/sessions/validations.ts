@@ -4,6 +4,8 @@ import {Struct} from 'effect'
 import type {RefinementsFor} from '#/db/helpers/types.ts'
 import {
 	Argon2Hash,
+	Country,
+	Countries,
 	DateFromDateTimeUtc,
 	IpAddress,
 	IpAddresses,
@@ -19,6 +21,7 @@ const overrides = {
 	nonceHash: Argon2Hash,
 	ipAddresses: IpAddresses,
 	userAgents: UserAgents,
+	countries: Countries,
 	expiresAt: DateFromDateTimeUtc,
 	graceExpiresAt: DateFromDateTimeUtc,
 } satisfies RefinementsFor<typeof activeTable>
@@ -31,7 +34,7 @@ const selectPrimitive = createSelectSchema(activeTable, overrides)
 
 export const Insert = insertPrimitive
 	.mapFields(Struct.pick(['nonceHash', 'userId']))
-	.mapFields(Struct.assign({ipAddress: IpAddress, userAgent: UserAgent}))
+	.mapFields(Struct.assign({ipAddress: IpAddress, userAgent: UserAgent, country: Country}))
 
 /// SELECT ///
 
@@ -54,5 +57,6 @@ export const Rotate = selectPrimitive
 			nextNonceHash: Argon2Hash,
 			ipAddress: IpAddress,
 			userAgent: UserAgent,
+			country: Country,
 		}),
 	)
