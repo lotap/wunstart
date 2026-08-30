@@ -28,8 +28,8 @@ const _signOut = Effect.fn('signOut')(function* ({
 	ipAddress: string
 	userAgent: string
 	country: string
-	city: string
-	region: string
+	city: string | null
+	region: string | null
 }) {
 	const {nonce, sessionId} = yield* extractRefreshTokenPayload(token).pipe(
 		Effect.mapError(({operation}) =>
@@ -84,8 +84,8 @@ const _signOut = Effect.fn('signOut')(function* ({
 		ipAddresses: [ipAddress],
 		userAgents: [userAgent],
 		countries: [country],
-		cities: [city],
-		regions: [region],
+		cities: city ? [city] : [],
+		regions: region ? [region] : [],
 	})
 
 	return {anonToken}

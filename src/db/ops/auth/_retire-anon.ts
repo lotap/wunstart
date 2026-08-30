@@ -22,16 +22,16 @@ export const retireAnon = Effect.fn('retireAnon')(function* (
 		ipAddress: string
 		userAgent: string
 		country: string
-		city: string
-		region: string
+		city: string | null
+		region: string | null
 	},
 	tx?: Tx,
 ) {
 	const newIpAddresses = [...new Set([...ipAddresses, ipAddress])]
 	const newUserAgents = [...new Set([...userAgents, userAgent])]
 	const newCountries = [...new Set([...countries, country])]
-	const newCities = [...new Set([...cities, city])]
-	const newRegions = [...new Set([...regions, region])]
+	const newCities = [...new Set(city ? [...cities, city] : cities)]
+	const newRegions = [...new Set(region ? [...regions, region] : regions)]
 
 	if (registered) {
 		const [data] = yield* anonsCascades.archive(

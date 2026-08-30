@@ -35,8 +35,8 @@ export const createUser = Effect.fn('createUser')(function* ({
 	ipAddress: string
 	userAgent: string
 	country: string
-	city: string
-	region: string
+	city: string | null
+	region: string | null
 	/** Generated via `generateNonce` before the caller's transaction opened */
 	sessionNonce: NonceWithHash
 	tx: Tx

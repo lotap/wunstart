@@ -68,8 +68,8 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 	ipAddress: string
 	userAgent: string
 	country: string
-	city: string
-	region: string
+	city: string | null
+	region: string | null
 }) {
 	/** Ensure the refresh token matches the hashed one stored in the database */
 	const isNonceVerified = yield* verifyTarget(rowData.nonceHash, nonce)
@@ -104,8 +104,8 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 		ipAddress,
 		userAgent,
 		country,
-		city,
-		region,
+		newCities: city ? [city] : [],
+		newRegions: region ? [region] : [],
 	})
 
 	/**
@@ -274,8 +274,8 @@ const classifySession = Effect.fn('classifySession')(function* ({
 	ipAddress: string
 	userAgent: string
 	country: string
-	city: string
-	region: string
+	city: string | null
+	region: string | null
 }) {
 	/** Current generation - rotate and create fresh access/refresh tokens */
 	if (generation === rowData.refreshGeneration)
@@ -312,8 +312,8 @@ const resolveSession = Effect.fn('resolveSession')(function* ({
 	ipAddress: string
 	userAgent: string
 	country: string
-	city: string
-	region: string
+	city: string | null
+	region: string | null
 	rowData: SessionRow
 	maxAttempts: number
 }) {
@@ -352,8 +352,8 @@ const _refresh = Effect.fn('refresh')(function* ({
 	ipAddress: string
 	userAgent: string
 	country: string
-	city: string
-	region: string
+	city: string | null
+	region: string | null
 }) {
 	const tokenData = yield* extractRefreshTokenPayload(token).pipe(
 		Effect.mapError((error) =>

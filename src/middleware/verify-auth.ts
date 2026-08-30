@@ -18,7 +18,7 @@ import {
 	REFRESH_TOKEN_COOKIE_NAME,
 	setAuthCookies,
 } from './_set-auth-cookies.ts'
-import {getForwardedIp} from './get-forwarded-ip.ts'
+import {getRequestInfo} from './get-request-info.ts'
 import {KnownServerError} from './sanitize-errors.ts'
 
 /**
@@ -38,7 +38,7 @@ export type AuthContext = {
 }
 
 export const verifyAuth = createMiddleware()
-	.middleware([getForwardedIp])
+	.middleware([getRequestInfo])
 	.server(async ({next, context: {ipAddress, userAgent, country, city, region}}) => {
 		const accessToken = getCookie(ACCESS_TOKEN_COOKIE_NAME)
 		const refreshToken = getCookie(REFRESH_TOKEN_COOKIE_NAME)

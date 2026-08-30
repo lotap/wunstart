@@ -17,8 +17,8 @@ const _registerAnon = Effect.fn('registerAnon')(function* ({
 	ipAddress: string
 	userAgent: string
 	country: string
-	city: string
-	region: string
+	city: string | null
+	region: string | null
 }) {
 	const {
 		id,
@@ -33,8 +33,8 @@ const _registerAnon = Effect.fn('registerAnon')(function* ({
 	const ipAddresses = [...new Set([..._ipAddresses, ipAddress])]
 	const userAgents = [...new Set([..._userAgents, userAgent])]
 	const countries = [...new Set([..._countries, country])]
-	const cities = [...new Set([..._cities, city])]
-	const regions = [...new Set([..._regions, region])]
+	const cities = [...new Set(city ? [..._cities, city] : _cities)]
+	const regions = [...new Set(region ? [..._regions, region] : _regions)]
 
 	yield* anonQueries.insert({
 		id,

@@ -7,8 +7,8 @@ export interface VerifiedServerFnContext {
 	ipAddress: string
 	userAgent: string
 	country: string
-	city: string
-	region: string
+	city: string | null
+	region: string | null
 	auth: AuthContext['auth']
 	anon: AnonContext['anon']
 }
@@ -22,8 +22,8 @@ export interface GlobalServerFnContext {
 	ipAddress: string
 	userAgent: string
 	country: string
-	city: string
-	region: string
+	city: string | null
+	region: string | null
 	auth: Exclude<AuthContext['auth'], DegradedAuth>
 	anon: Exclude<AnonContext['anon'], DegradedAuth>
 }

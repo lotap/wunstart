@@ -16,14 +16,17 @@ const _signAnon = Effect.fn('signAnon')(function* ({
 	ipAddress: string
 	userAgent: string
 	country: string
-	city: string
-	region: string
+	city: string | null
+	region: string | null
 }) {
 	const ipAddresses = new Set([...(existingData?.ipAddresses ?? []), ipAddress])
 	const userAgents = new Set([...(existingData?.userAgents ?? []), userAgent])
 	const countries = new Set([...(existingData?.countries ?? []), country])
-	const cities = new Set([...(existingData?.cities ?? []), city])
-	const regions = new Set([...(existingData?.regions ?? []), region])
+	const cities = new Set(existingData?.cities ?? [])
+	const regions = new Set(existingData?.regions ?? [])
+
+	if (city) cities.add(city)
+	if (region) regions.add(region)
 
 	return yield* generateAnonToken({
 		...existingData,

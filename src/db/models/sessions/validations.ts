@@ -4,14 +4,12 @@ import {Struct} from 'effect'
 import type {RefinementsFor} from '#/db/helpers/types.ts'
 import {
 	Argon2Hash,
-	City,
 	Cities,
 	Country,
 	Countries,
 	DateFromDateTimeUtc,
 	IpAddress,
 	IpAddresses,
-	Region,
 	Regions,
 	UserAgent,
 	UserAgents,
@@ -43,8 +41,8 @@ export const Insert = insertPrimitive.mapFields(Struct.pick(['nonceHash', 'userI
 		ipAddress: IpAddress,
 		userAgent: UserAgent,
 		country: Country,
-		city: City,
-		region: Region,
+		cities: Cities,
+		regions: Regions,
 	}),
 )
 
@@ -70,7 +68,7 @@ export const Rotate = selectPrimitive
 			ipAddress: IpAddress,
 			userAgent: UserAgent,
 			country: Country,
-			city: City,
-			region: Region,
+			newCities: Cities,
+			newRegions: Regions,
 		}),
 	)

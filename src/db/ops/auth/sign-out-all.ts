@@ -21,8 +21,8 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 	ipAddress: string
 	userAgent: string
 	country: string
-	city: string
-	region: string
+	city: string | null
+	region: string | null
 }) {
 	/** Validate access token and get user id */
 	const {userId} = yield* extractAccessTokenPayload(accessToken).pipe(
@@ -58,8 +58,8 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 		ipAddresses: [ipAddress],
 		userAgents: [userAgent],
 		countries: [country],
-		cities: [city],
-		regions: [region],
+		cities: city ? [city] : [],
+		regions: region ? [region] : [],
 	})
 
 	return {anonToken}

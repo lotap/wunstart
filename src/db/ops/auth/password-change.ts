@@ -31,8 +31,8 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 	ipAddress: string
 	userAgent: string
 	country: string
-	city: string
-	region: string
+	city: string | null
+	region: string | null
 	userId: string
 	sudoExpiresAt?: DateTime.Utc
 }) {
@@ -93,8 +93,8 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 					ipAddresses: [ipAddress],
 					userAgents: [userAgent],
 					countries: [country],
-					cities: [city],
-					regions: [region],
+					cities: city ? [city] : [],
+					regions: region ? [region] : [],
 				})
 			: undefined
 

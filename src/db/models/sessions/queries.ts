@@ -35,8 +35,8 @@ export const insert = createPreparedQuery({
 				ipAddresses: sql`ARRAY[${sql.placeholder('ipAddress')}::inet]`,
 				userAgents: sql`ARRAY[${sql.placeholder('userAgent')}::text]`,
 				countries: sql`ARRAY[${sql.placeholder('country')}::text]`,
-				cities: sql`ARRAY[${sql.placeholder('city')}::text]`,
-				regions: sql`ARRAY[${sql.placeholder('region')}::text]`,
+				cities: sql.placeholder('cities'),
+				regions: sql.placeholder('regions'),
 				nonceHash: sql.placeholder('nonceHash'),
 			})
 			.returning({id, expiresAt, refreshGeneration})
@@ -97,10 +97,10 @@ export const rotate = createPreparedQuery({
 				}, ARRAY[${sql.placeholder('country')}::text])))`,
 				cities: sql`ARRAY(SELECT DISTINCT unnest(array_cat(${
 					cities
-				}, ARRAY[${sql.placeholder('city')}::text])))`,
+				}, ${sql.placeholder('newCities')}::text[])))`,
 				regions: sql`ARRAY(SELECT DISTINCT unnest(array_cat(${
 					regions
-				}, ARRAY[${sql.placeholder('region')}::text])))`,
+				}, ${sql.placeholder('newRegions')}::text[])))`,
 				nonceHash: sql`${sql.placeholder('nextNonceHash')}`,
 				refreshGeneration: sql`${sql.placeholder('refreshGeneration')} + 1`,
 				expiresAt: sql`${sql.placeholder('expiresAt')}`,

@@ -36,8 +36,8 @@ const _emailSignIn = Effect.fn('emailSignIn')(function* ({
 	ipAddress: string
 	userAgent: string
 	country: string
-	city: string
-	region: string
+	city: string | null
+	region: string | null
 	anonTokenPayload: AnonTokenPayloadCustomClaims
 }) {
 	const {id: anonId} = anonTokenPayload
