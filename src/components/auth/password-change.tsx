@@ -1,7 +1,7 @@
 import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
+import {useQuery} from '@tanstack/react-query'
 import {useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
-import {Schema} from 'effect'
 import {lazy, Suspense, useEffect, useState} from 'react'
 
 import {Button} from '#/components/ui/button.tsx'
@@ -19,9 +19,12 @@ import {FieldGroup} from '#/components/ui/field.tsx'
 import {toast} from '#/components/ui/toast.tsx'
 import {useHasSudo} from '#/contexts/has-sudo.tsx'
 import {useConfiguredAppForm, validateAfterFirstSubmit} from '#/hooks/use-app-form.ts'
+import {checkPasswordStrength, loadZxcvbn} from '#/isomorphic/password-strength.ts'
 import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
-import {StrongPassword} from '#/isomorphic/validators.ts'
+import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 import {handlePasswordChange} from '#/server-fns/handle-password-change.ts'
+
+import {userProfileQueryOptions} from './_utils.ts'
 
 const ReverifyDrawer = lazy(() =>
 	import('./_reverify-drawer.tsx').then((m) => ({default: m.ReverifyDrawer})),
@@ -39,6 +42,18 @@ export function ChangePasswordForm({
 	const {hasSudo} = useHasSudo()
 
 	const router = useRouter()
+
+	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
+
+	const {data: profile} = useQuery(userProfileQueryOptions({serverFn: handleGetUserProfileFn}))
+
+	/**
+	 * The zxcvbn dictionaries load lazily on first check, so warm them up while
+	 * the user is still typing instead of stalling the first validation
+	 */
+	useEffect(() => {
+		void loadZxcvbn()
+	}, [])
 
 	const form = useConfiguredAppForm({
 		defaultValues: {
@@ -113,7 +128,20 @@ export function ChangePasswordForm({
 						<FieldGroup>
 							<form.Field
 								name="password"
-								validators={[validateAfterFirstSubmit(Schema.toStandardSchemaV1(StrongPassword))]}
+								validators={[
+									validateAfterFirstSubmit(async ({value}: {value: string}) => {
+										/**
+										 * Async because the zxcvbn dictionaries lazy-load; the
+										 * password is also checked against the user's own email
+										 */
+										const {isStrong, message} = await checkPasswordStrength(
+											value,
+											profile?.email ? [profile.email] : [],
+										)
+										if (isStrong) return undefined
+										return message
+									}),
+								]}
 							>
 								{(field) => <field.PasswordField />}
 							</form.Field>

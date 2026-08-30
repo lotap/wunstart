@@ -1,5 +1,5 @@
 import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
-import {useQuery, useSuspenseQuery, queryOptions} from '@tanstack/react-query'
+import {useQuery, useSuspenseQuery} from '@tanstack/react-query'
 import {useServerFn} from '@tanstack/react-start'
 import {Schema} from 'effect'
 import {Suspense, useEffect, useState, type Dispatch, type SetStateAction} from 'react'
@@ -31,7 +31,7 @@ import {handlePasswordReverify} from '#/server-fns/handle-password-reverify.ts'
 
 import {useEmailRequestVerificationMutation} from './_hooks.ts'
 import {PasscodeForm} from './_passcode-form.tsx'
-import {emailRequestVerificationQueryOptions} from './_utils.ts'
+import {emailRequestVerificationQueryOptions, userProfileQueryOptions} from './_utils.ts'
 
 function ReverifyEmailForm({email}: {email: string}) {
 	const handleEmailRequestVerificationFn = useServerFn(handleEmailRequestVerification)
@@ -196,17 +196,6 @@ function ReverifyFormSwitcher({email, hasPassword}: {email: string; hasPassword:
 		</>
 	)
 }
-
-const userProfileQueryOptions = ({
-	serverFn,
-}: {
-	serverFn: ReturnType<typeof useServerFn<typeof handleGetUserProfile>>
-}) =>
-	queryOptions({
-		queryKey: [serverFn],
-		queryFn: () => serverFn(),
-		staleTime: Infinity,
-	})
 
 function ReverifyFormFetcher() {
 	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)

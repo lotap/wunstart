@@ -3,6 +3,7 @@ import type {useServerFn} from '@tanstack/react-start'
 import {Result, Schema} from 'effect'
 
 import type {handleEmailRequestVerification} from '#/server-fns/handle-email-request-verification.ts'
+import type {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 
 export const LocalStorageEmailSchema = Schema.Struct({
 	email: Schema.String, // Does not use Email schema because it should incomplete addresses
@@ -42,3 +43,14 @@ export const emailRequestVerificationQueryOptions = ({
 export type EmailRequestVerificationQueryOptions = ReturnType<
 	typeof emailRequestVerificationQueryOptions
 >
+
+export const userProfileQueryOptions = ({
+	serverFn,
+}: {
+	serverFn: ReturnType<typeof useServerFn<typeof handleGetUserProfile>>
+}) =>
+	queryOptions({
+		queryKey: ['userProfile'],
+		queryFn: () => serverFn(),
+		staleTime: Infinity,
+	})

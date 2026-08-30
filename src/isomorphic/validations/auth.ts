@@ -1,6 +1,6 @@
 import {Schema} from 'effect'
 
-import {Email, Passcode, Password, StrongPassword} from '#/isomorphic/validators.ts'
+import {Email, Passcode, Password} from '#/isomorphic/validators.ts'
 
 const EmailPasscodeCredentials = Schema.Struct({
 	email: Email,
@@ -25,7 +25,7 @@ export const EmailSignInCredentials = EmailPasscodeCredentials
 export const EmailSignUpCredentials = EmailPasscodeCredentials
 
 export const PasswordChangeCredentials = Schema.Struct({
-	password: StrongPassword,
+	password: Password,
 	signOutAllSessions: Schema.optional(Schema.Boolean),
 })
 

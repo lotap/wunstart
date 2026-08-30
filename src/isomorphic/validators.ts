@@ -1,7 +1,5 @@
 import {Schema, SchemaTransformation} from 'effect'
 
-import {checkPasswordStrength} from '#/isomorphic/password-strength.ts'
-
 // From: https://github.com/open-circle/valibot/blob/main/library/src/regex.ts
 const EMAIL_REGEX = /^[\w+-]+(?:\.[\w+-]+)*@[\da-z]+(?:[.-][\da-z]+)*\.[a-z]{2,}$/iu
 
@@ -50,20 +48,6 @@ export const Password = Schema.String.pipe(
 	Schema.check(
 		Schema.makeFilter((s) => new TextEncoder().encode(s).length <= 72, {
 			message: 'That password is too long to store. Try a shorter one.',
-		}),
-	),
-)
-
-export const StrongPassword = Password.pipe(
-	/**
-	 * Rejects passwords zxcvbn estimates to be too easy to crack, surfacing its
-	 * warning + suggestions as the error message
-	 */
-	Schema.check(
-		Schema.makeFilter((s) => {
-			const {isStrong, message} = checkPasswordStrength(s)
-			if (isStrong) return undefined
-			return message || 'That password is too weak. Try a longer or less predictable one.'
 		}),
 	),
 )
