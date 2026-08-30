@@ -145,9 +145,15 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 	userId,
 	ipAddress,
+	country,
+	city,
+	region,
 }: {
 	userId: string
 	ipAddress: string
+	country: string
+	city: string | null
+	region: string | null
 }) {
 	const [user] = yield* usersQueries.selectProfile({id: userId})
 
@@ -159,7 +165,14 @@ const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 	const now = yield* DateTime.now
 
 	const {html, text, subject} = yield* Effect.tryPromise({
-		try: () => renderSessionEndedNotification({ipAddress, revokedAt: DateTime.toDate(now)}),
+		try: () =>
+			renderSessionEndedNotification({
+				ipAddress,
+				revokedAt: DateTime.toDate(now),
+				country,
+				city,
+				region,
+			}),
 		catch: (cause) =>
 			new EmailRenderError({
 				message: cause instanceof Error ? cause.message : String(cause),
@@ -178,9 +191,15 @@ const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
 	session,
 	ipAddress,
+	country,
+	city,
+	region,
 }: {
 	session: SessionRow
 	ipAddress: string
+	country: string
+	city: string | null
+	region: string | null
 }) {
 	/** Revoke first. The email is a best-effort notification, never a blocker */
 	yield* sessionsQueries.revoke({id: session.id})
@@ -189,7 +208,7 @@ const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
 	 * Not a Fork to ensure that a worker isolate does not eject without attempting
 	 * the notification. Instead use ignore with logging
 	 */
-	yield* notifyReuseReplay({userId: session.userId, ipAddress}).pipe(
+	yield* notifyReuseReplay({userId: session.userId, ipAddress, country, city, region}).pipe(
 		Effect.ignore({log: true, message: 'Failed to notify the account owner of session reuse'}),
 	)
 
@@ -208,9 +227,15 @@ const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
 const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 	session,
 	ipAddress,
+	country,
+	city,
+	region,
 }: {
 	session: SessionRow
 	ipAddress: string
+	country: string
+	city: string | null
+	region: string | null
 }) {
 	const {id, userId, graceToken, graceExpiresAt, refreshGeneration, expiresAt} = session
 
@@ -222,7 +247,7 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 
 	/** Revoke if not within grace period duration */
 	if (graceExpiresAt.getTime() <= DateTime.nowUnsafe().epochMilliseconds)
-		return yield* revokeForReuse({session, ipAddress})
+		return yield* revokeForReuse({session, ipAddress, country, city, region})
 
 	const graceTokenData = yield* extractRefreshGraceToken(graceToken)
 
@@ -283,11 +308,11 @@ const classifySession = Effect.fn('classifySession')(function* ({
 
 	/** Single generation behind - use grace token to create access/refresh tokens */
 	if (generation === rowData.refreshGeneration - 1)
-		return yield* replayFromGraceToken({session: rowData, ipAddress})
+		return yield* replayFromGraceToken({session: rowData, ipAddress, country, city, region})
 
 	/** Several generations old: reuse. Revoke the family */
 	if (generation < rowData.refreshGeneration - 1)
-		return yield* revokeForReuse({session: rowData, ipAddress})
+		return yield* revokeForReuse({session: rowData, ipAddress, country, city, region})
 
 	/** Future generation: invalid, not reuse. Do not revoke */
 	return yield* authTokenFailure({

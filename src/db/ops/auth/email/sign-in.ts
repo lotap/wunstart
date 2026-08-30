@@ -169,7 +169,14 @@ const _emailSignIn = Effect.fn('emailSignIn')(function* ({
 		 */
 		yield* Effect.gen(function* () {
 			const {html, text, subject} = yield* Effect.tryPromise({
-				try: () => renderSignInNotification({ipAddress, signedInAt: DateTime.toDate(now)}),
+				try: () =>
+					renderSignInNotification({
+						ipAddress,
+						signedInAt: DateTime.toDate(now),
+						country,
+						city,
+						region,
+					}),
 				catch: (cause) =>
 					new EmailRenderError({
 						message: cause instanceof Error ? cause.message : String(cause),

@@ -13,11 +13,15 @@ import {
 	Text,
 } from 'react-email'
 
+import {formatLocation} from '../format-location.ts'
 import {emailTailwindConfig} from '../tailwind-config.ts'
 
 type SignInNotificationProps = {
 	ipAddress: string
 	signedInAt: Date
+	country: string
+	city: string | null
+	region: string | null
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
@@ -26,7 +30,15 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
 	timeZone: 'America/New_York',
 })
 
-export default function SignInNotification({ipAddress, signedInAt}: SignInNotificationProps) {
+export default function SignInNotification({
+	ipAddress,
+	signedInAt,
+	country,
+	city,
+	region,
+}: SignInNotificationProps) {
+	const location = formatLocation({city, region, country})
+
 	return (
 		<Html>
 			<Tailwind config={emailTailwindConfig}>
@@ -53,6 +65,13 @@ export default function SignInNotification({ipAddress, signedInAt}: SignInNotifi
 										{ipAddress}
 									</Text>
 
+									{location && (
+										<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
+											<b>Location: </b>
+											{location}
+										</Text>
+									)}
+
 									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
 										If this was you, there's nothing else you need to do.
 									</Text>
@@ -75,6 +94,9 @@ export default function SignInNotification({ipAddress, signedInAt}: SignInNotifi
 SignInNotification.PreviewProps = {
 	ipAddress: '0.0.0.0',
 	signedInAt: new Date(),
+	country: 'US',
+	city: 'San Francisco',
+	region: 'CA',
 } as SignInNotificationProps
 
 export async function renderSignInNotification(signInNotificationProps: SignInNotificationProps) {

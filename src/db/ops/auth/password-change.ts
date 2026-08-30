@@ -105,7 +105,14 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 		 */
 		yield* Effect.gen(function* () {
 			const {html, text, subject} = yield* Effect.tryPromise({
-				try: () => renderPasswordChangeConfirmation({ipAddress, updatedAt: rowData.updatedAt}),
+				try: () =>
+					renderPasswordChangeConfirmation({
+						ipAddress,
+						updatedAt: rowData.updatedAt,
+						country,
+						city,
+						region,
+					}),
 				catch: (cause) =>
 					new EmailRenderError({
 						message: cause instanceof Error ? cause.message : String(cause),
