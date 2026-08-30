@@ -1,44 +1,67 @@
 import {pixelBasedPreset, type TailwindConfig} from 'react-email'
-import colors from 'tailwindcss/colors'
+
+/**
+ * Hex color scale (Tailwind v3's sRGB values)
+ *
+ * `tailwindcss/colors` can't be used here: its v4 palette is oklch-based, which
+ * react-email's CSS inliner can't process and email clients don't support anyway
+ */
+const neutral = {
+	50: '#fafafa',
+	100: '#f5f5f5',
+	200: '#e5e5e5',
+	300: '#d4d4d4',
+	400: '#a3a3a3',
+	500: '#737373',
+	600: '#525252',
+	700: '#404040',
+	800: '#262626',
+	900: '#171717',
+	950: '#0a0a0a',
+}
+
+const red = {
+	600: '#dc2626',
+}
 
 export const emailTailwindConfig = {
 	presets: [pixelBasedPreset],
 	theme: {
 		extend: {
 			colors: {
-				background: colors.white,
-				foreground: colors.neutral[950],
+				background: '#ffffff',
+				foreground: neutral[950],
 				card: {
-					DEFAULT: colors.white,
-					foreground: colors.neutral[950],
+					DEFAULT: '#ffffff',
+					foreground: neutral[950],
 				},
 				popover: {
-					DEFAULT: colors.white,
-					foreground: colors.neutral[950],
+					DEFAULT: '#ffffff',
+					foreground: neutral[950],
 				},
 				primary: {
-					DEFAULT: colors.neutral[900],
-					foreground: colors.neutral[50],
+					DEFAULT: neutral[900],
+					foreground: neutral[50],
 				},
 				secondary: {
-					DEFAULT: colors.neutral[100],
-					foreground: colors.neutral[900],
+					DEFAULT: neutral[100],
+					foreground: neutral[900],
 				},
 				muted: {
-					DEFAULT: colors.neutral[100],
-					foreground: colors.neutral[500],
+					DEFAULT: neutral[100],
+					foreground: neutral[500],
 				},
 				accent: {
-					DEFAULT: colors.neutral[100],
-					foreground: colors.neutral[900],
+					DEFAULT: neutral[100],
+					foreground: neutral[900],
 				},
 				destructive: {
-					DEFAULT: colors.red[600],
-					foreground: colors.neutral[50],
+					DEFAULT: red[600],
+					foreground: neutral[50],
 				},
-				border: colors.neutral[200],
-				input: colors.neutral[200],
-				ring: colors.neutral[400],
+				border: neutral[200],
+				input: neutral[200],
+				ring: neutral[400],
 			},
 			fontFamily: {
 				sans: ['Inter', 'Arial', 'Helvetica', 'sans-serif'],
