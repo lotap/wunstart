@@ -1,11 +1,18 @@
 import {ZxcvbnFactory} from '@zxcvbn-ts/core'
-import type {ZxcvbnResult} from '@zxcvbn-ts/core'
+import type {Score, ZxcvbnResult} from '@zxcvbn-ts/core'
 
 /**
  * zxcvbn scores passwords 0-4 based on estimated real-world cracking resistance.
  * A score of 3+ means the password is safe from most offline attacks
  */
 export const MIN_PASSWORD_SCORE = 3
+
+export type PasswordStrength = {
+	score: Score
+	isStrong: boolean
+	/** Why the password is weak and how to improve it, e.g. zxcvbn's warning + suggestions */
+	message: string
+}
 
 type Zxcvbn = InstanceType<typeof ZxcvbnFactory>
 
