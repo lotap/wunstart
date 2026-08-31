@@ -42,7 +42,7 @@ Run a single test file: `bun --bun run test -- src/path/to/file`. No `typecheck`
 ## Project anatomy
 
 - **`CONTEXT.md`**: Starter-kit glossary. Replace it with your product's domain language; read before writing feature code.
-- **`docs/adr/`**: 9 ADRs (0001-0009). Read before architectural changes. Covers auth strategy (0001), anon identity (0002), credential/ban weight routing (0003), ban activity references (0004), hashing offloaded to a Durable Object (0005), active/archive table pairs (0006), email verification and transport (0007), lazy-loaded request-bound modules in middleware (0008), email delivery side-effect semantics (0009).
+- **`docs/adr/`**: 10 ADRs (0001-0010). Read before architectural changes. Covers auth strategy (0001), anon identity (0002), credential/ban weight routing (0003), ban activity references (0004), hashing offloaded to a Durable Object (0005), active/archive table pairs (0006), email verification and transport (0007), lazy-loaded request-bound modules in middleware (0008), email delivery side-effect semantics (0009), no user-facing single-session revocation (0010).
 - **`src/server.ts`**: Cloudflare Workers entry (`wrangler.jsonc` `main`). Re-exports the `AuthHasher` Durable Object and the TanStack Start fetch handler, plus the `scheduled` handler for the daily cron trigger (`30 6 * * *` UTC) that archives activities older than 30 days.
 - **`src/start.ts`**: `createStart` app factory; wires request middleware (CSRF, error handling) and function middleware (rate limit @150 req/min, anon-token issuing).
 - **`src/router.tsx`**: Router factory wired to TanStack Query.
