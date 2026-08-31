@@ -1,5 +1,6 @@
 import {queryOptions, useQuery} from '@tanstack/react-query'
 import {createFileRoute} from '@tanstack/react-router'
+import {useServerFn} from '@tanstack/react-start'
 
 import {PasswordChangeDrawer} from '#/components/auth/password-change.tsx'
 import {RemoveAccountDrawer} from '#/components/auth/remove-account.tsx'
@@ -12,12 +13,14 @@ export const Route = createFileRoute('/_auth-protected/settings')({
 	component: RouteComponent,
 })
 
-const sessionsQueryOptions = queryOptions({
-	queryKey: ['sessions'],
-	queryFn: () => handleGetSessions(),
-})
-
 function SessionsList() {
+	const handleGetSessionsFn = useServerFn(handleGetSessions)
+
+	const sessionsQueryOptions = queryOptions({
+		queryKey: ['sessions'],
+		queryFn: () => handleGetSessionsFn(),
+	})
+
 	const {isPending, error, data: sessions} = useQuery(sessionsQueryOptions)
 
 	if (isPending) return <p>Loading sessions…</p>
@@ -29,12 +32,9 @@ function SessionsList() {
 				<li key={session.id}>
 					Signed in {session.createdAt.toLocaleString()} · expires{' '}
 					{session.expiresAt.toLocaleString()}
-					<br />
-					IP: {session.ipAddress ?? 'Unknown'}
-					<br />
-					Device: {session.device ?? 'Unknown'}
-					<br />
-					Location: {session.location ?? 'Unknown'}
+					<p>IP: {session.ipAddress ?? 'Unknown'}</p>
+					{session.device && <p>Device: {session.device}</p>}
+					{session.location && <p>Location: {session.location}</p>}
 				</li>
 			))}
 		</ul>
