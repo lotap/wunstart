@@ -28,15 +28,17 @@ function SessionsList() {
 
 	return (
 		<ul>
-			{sessions.map((session) => (
-				<li key={session.id}>
-					Signed in {session.createdAt.toLocaleString()} · expires{' '}
-					{session.expiresAt.toLocaleString()}
-					<p>IP: {session.ipAddress ?? 'Unknown'}</p>
-					{session.device && <p>Device: {session.device}</p>}
-					{session.location && <p>Location: {session.location}</p>}
-				</li>
-			))}
+			{sessions.map((session) => {
+				const createdAtString = session.createdAt.toLocaleString()
+				return (
+					<li key={createdAtString}>
+						<p>Signed in: {createdAtString}</p>
+						<p>IP: {session.ipAddress ?? 'Unknown'}</p>
+						{session.device && <p>Device: {session.device}</p>}
+						{session.location && <p>Location: {session.location}</p>}
+					</li>
+				)
+			})}
 		</ul>
 	)
 }

@@ -10,9 +10,7 @@ const _listSessions = Effect.fn('listSessions')(function* ({userId}: {userId: st
 	const sessions = yield* sessionsQueries.selectFromUnexpiredUnrevokedByUser({userId})
 
 	return sessions.map((session) => ({
-		id: session.id,
 		createdAt: session.createdAt,
-		expiresAt: session.expiresAt,
 		ipAddress: session.ipAddresses.at(-1) ?? null,
 		device: formatUserAgent(session.userAgents.at(-1) ?? 'unknown'),
 		location: formatLocation({

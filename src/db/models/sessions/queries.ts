@@ -82,7 +82,14 @@ export const selectFromUnexpiredUnrevokedByUser = createPreparedQuery({
 	vSchema: V.ByUser,
 	stmtFn: (qx) =>
 		qx
-			.select()
+			.select({
+				createdAt,
+				ipAddresses,
+				userAgents,
+				countries,
+				cities,
+				regions,
+			})
 			.from(activeTable)
 			.where(
 				and(eq(userId, sql.placeholder('userId')), sql`${expiresAt} > now()`, isNull(revokedAt)),
