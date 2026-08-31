@@ -22,6 +22,7 @@ type SessionEndedNotificationProps = {
 	country: string
 	city: string | null
 	region: string | null
+	device: string | null
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
@@ -36,6 +37,7 @@ export default function SessionEndedNotification({
 	country,
 	city,
 	region,
+	device,
 }: SessionEndedNotificationProps) {
 	const location = formatLocation({city, region, country})
 
@@ -72,6 +74,13 @@ export default function SessionEndedNotification({
 										</Text>
 									)}
 
+									{device && (
+										<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
+											<b>Device: </b>
+											{device}
+										</Text>
+									)}
+
 									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
 										We detected that one of your sign-in sessions may have been accessed by someone
 										else, so we ended it to protect your account.
@@ -104,6 +113,7 @@ SessionEndedNotification.PreviewProps = {
 	country: 'US',
 	city: 'San Francisco',
 	region: 'CA',
+	device: 'Chrome 126 on Windows (Desktop)',
 } as SessionEndedNotificationProps
 
 export async function renderSessionEndedNotification(

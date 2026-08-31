@@ -20,6 +20,7 @@ import {needsRehash} from './_check-rehash.ts'
 import {createSession} from './_create-session.ts'
 import {generateNonce} from './_refresh-token.ts'
 import {retireAnon} from './_retire-anon.ts'
+import {formatUserAgent} from './_user-agent.ts'
 import {SUDO_EXPIRATION_WINDOW} from './consts.ts'
 
 const genericFailureOutputMessage =
@@ -199,6 +200,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 						country,
 						city,
 						region,
+						device: formatUserAgent(userAgent),
 					}),
 				catch: (cause) =>
 					new EmailRenderError({

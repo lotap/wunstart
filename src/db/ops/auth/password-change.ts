@@ -14,6 +14,7 @@ import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
 import {hashTarget} from './_hashing.ts'
+import {formatUserAgent} from './_user-agent.ts'
 
 const genericFailureOutputMessage = 'Something went wrong. Please try again.'
 
@@ -112,6 +113,7 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 						country,
 						city,
 						region,
+						device: formatUserAgent(userAgent),
 					}),
 				catch: (cause) =>
 					new EmailRenderError({

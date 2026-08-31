@@ -22,6 +22,7 @@ type SignInNotificationProps = {
 	country: string
 	city: string | null
 	region: string | null
+	device: string | null
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
@@ -36,6 +37,7 @@ export default function SignInNotification({
 	country,
 	city,
 	region,
+	device,
 }: SignInNotificationProps) {
 	const location = formatLocation({city, region, country})
 
@@ -72,6 +74,13 @@ export default function SignInNotification({
 										</Text>
 									)}
 
+									{device && (
+										<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
+											<b>Device: </b>
+											{device}
+										</Text>
+									)}
+
 									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
 										If this was you, there's nothing else you need to do.
 									</Text>
@@ -97,6 +106,7 @@ SignInNotification.PreviewProps = {
 	country: 'US',
 	city: 'San Francisco',
 	region: 'CA',
+	device: 'Chrome 126 on Windows (Desktop)',
 } as SignInNotificationProps
 
 export async function renderSignInNotification(signInNotificationProps: SignInNotificationProps) {

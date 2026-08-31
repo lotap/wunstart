@@ -18,6 +18,7 @@ import {
 	generateRefreshToken,
 	type RefreshTokenPayloadCustomClaims,
 } from './_refresh-token.ts'
+import {formatUserAgent} from './_user-agent.ts'
 import {authTokenFailure} from './token-error.ts'
 
 const genericFailureOutputMessage = 'Your session has expired. Sign in and try again.'
@@ -145,12 +146,14 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 	userId,
 	ipAddress,
+	userAgent,
 	country,
 	city,
 	region,
 }: {
 	userId: string
 	ipAddress: string
+	userAgent: string
 	country: string
 	city: string | null
 	region: string | null
@@ -172,6 +175,7 @@ const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 				country,
 				city,
 				region,
+				device: formatUserAgent(userAgent),
 			}),
 		catch: (cause) =>
 			new EmailRenderError({
@@ -191,12 +195,14 @@ const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
 	session,
 	ipAddress,
+	userAgent,
 	country,
 	city,
 	region,
 }: {
 	session: SessionRow
 	ipAddress: string
+	userAgent: string
 	country: string
 	city: string | null
 	region: string | null
@@ -208,7 +214,14 @@ const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
 	 * Not a Fork to ensure that a worker isolate does not eject without attempting
 	 * the notification. Instead use ignore with logging
 	 */
-	yield* notifyReuseReplay({userId: session.userId, ipAddress, country, city, region}).pipe(
+	yield* notifyReuseReplay({
+		userId: session.userId,
+		ipAddress,
+		userAgent,
+		country,
+		city,
+		region,
+	}).pipe(
 		Effect.ignore({log: true, message: 'Failed to notify the account owner of session reuse'}),
 	)
 
@@ -227,12 +240,14 @@ const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
 const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 	session,
 	ipAddress,
+	userAgent,
 	country,
 	city,
 	region,
 }: {
 	session: SessionRow
 	ipAddress: string
+	userAgent: string
 	country: string
 	city: string | null
 	region: string | null
@@ -247,7 +262,7 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 
 	/** Revoke if not within grace period duration */
 	if (graceExpiresAt.getTime() <= DateTime.nowUnsafe().epochMilliseconds)
-		return yield* revokeForReuse({session, ipAddress, country, city, region})
+		return yield* revokeForReuse({session, ipAddress, userAgent, country, city, region})
 
 	const graceTokenData = yield* extractRefreshGraceToken(graceToken)
 
@@ -308,11 +323,18 @@ const classifySession = Effect.fn('classifySession')(function* ({
 
 	/** Single generation behind - use grace token to create access/refresh tokens */
 	if (generation === rowData.refreshGeneration - 1)
-		return yield* replayFromGraceToken({session: rowData, ipAddress, country, city, region})
+		return yield* replayFromGraceToken({
+			session: rowData,
+			ipAddress,
+			userAgent,
+			country,
+			city,
+			region,
+		})
 
 	/** Several generations old: reuse. Revoke the family */
 	if (generation < rowData.refreshGeneration - 1)
-		return yield* revokeForReuse({session: rowData, ipAddress, country, city, region})
+		return yield* revokeForReuse({session: rowData, ipAddress, userAgent, country, city, region})
 
 	/** Future generation: invalid, not reuse. Do not revoke */
 	return yield* authTokenFailure({

@@ -18,6 +18,7 @@ import {EmailRenderError, EmailService} from '#/email/service.ts'
 import {renderSignInNotification} from '#/email/templates/sign-in-notification.tsx'
 import {EmailSignInCredentials} from '#/isomorphic/validations/auth.ts'
 
+import {formatUserAgent} from '../_user-agent.ts'
 import {burnPasscode} from './_burn-passcode.ts'
 import {verify} from './_verify.ts'
 
@@ -176,6 +177,7 @@ const _emailSignIn = Effect.fn('emailSignIn')(function* ({
 						country,
 						city,
 						region,
+						device: formatUserAgent(userAgent),
 					}),
 				catch: (cause) =>
 					new EmailRenderError({
