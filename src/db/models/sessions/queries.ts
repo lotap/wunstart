@@ -1,4 +1,4 @@
-import {and, eq, getColumns, isNull, sql} from 'drizzle-orm'
+import {and, desc, eq, getColumns, isNull, sql} from 'drizzle-orm'
 
 import {createPreparedQuery} from '#/db/helpers/funcs.ts'
 
@@ -12,6 +12,7 @@ const labelPrefix = tableName
 const {
 	id,
 	userId,
+	createdAt,
 	ipAddresses,
 	userAgents,
 	countries,
@@ -75,6 +76,19 @@ export const selectFromUnexpiredUnrevoked = createPreparedQuery({
 			.where(and(eq(id, sql.placeholder('id')), sql`${expiresAt} > now()`, isNull(revokedAt)))
 			.limit(1)
 			.prepare(`${labelPrefix}_select_from_unexpired_unrevoked`),
+})
+
+export const selectFromUnexpiredUnrevokedByUser = createPreparedQuery({
+	vSchema: V.ByUser,
+	stmtFn: (qx) =>
+		qx
+			.select()
+			.from(activeTable)
+			.where(
+				and(eq(userId, sql.placeholder('userId')), sql`${expiresAt} > now()`, isNull(revokedAt)),
+			)
+			.orderBy(desc(createdAt))
+			.prepare(`${labelPrefix}_select_from_unexpired_unrevoked_by_user`),
 })
 
 /// UPDATE ///
