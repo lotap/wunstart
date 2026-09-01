@@ -2,7 +2,7 @@ import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
 import {useQuery} from '@tanstack/react-query'
 import {useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
-import {lazy, Suspense, useEffect, useState} from 'react'
+import {lazy, Suspense, useEffect, useMemo, useState} from 'react'
 
 import {Button} from '#/components/ui/button.tsx'
 import {
@@ -46,6 +46,12 @@ export function ChangePasswordForm({
 	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
 
 	const {data: profile} = useQuery(userProfileQueryOptions({serverFn: handleGetUserProfileFn}))
+
+	/**
+	 * Memoized so the meter's effect does not re-run on unrelated re-renders;
+	 * the react compiler does not memoize this value on its own
+	 */
+	const strengthUserInputs = useMemo(() => (profile?.email ? [profile.email] : []), [profile])
 
 	/**
 	 * The zxcvbn dictionaries load lazily on first check, so warm them up while
@@ -136,14 +142,16 @@ export function ChangePasswordForm({
 										 */
 										const {isStrong, message} = await checkPasswordStrength(
 											value,
-											profile?.email ? [profile.email] : [],
+											strengthUserInputs,
 										)
 										if (isStrong) return undefined
 										return message
 									}),
 								]}
 							>
-								{(field) => <field.PasswordField />}
+								{(field) => (
+									<field.PasswordField showStrength strengthUserInputs={strengthUserInputs} />
+								)}
 							</form.Field>
 
 							{showSignOutAllSessions && (

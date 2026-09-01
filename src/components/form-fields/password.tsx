@@ -1,7 +1,7 @@
 import type {FieldWithValue} from '@tanstack/react-form'
 import {cva} from 'class-variance-authority'
 import {Eye, EyeOff} from 'lucide-react'
-import {useState} from 'react'
+import {lazy, Suspense, useState} from 'react'
 
 import {Field, FieldError, FieldLabel} from '#/components/ui/field.tsx'
 import {
@@ -10,6 +10,8 @@ import {
 	InputGroupButton,
 	InputGroupInput,
 } from '#/components/ui/input-group.tsx'
+
+const PasswordStrengthMeter = lazy(() => import('./password-strength-meter.tsx'))
 
 const errorTextVariants = cva('text-center', {
 	variants: {
@@ -22,9 +24,13 @@ const errorTextVariants = cva('text-center', {
 export function PasswordField({
 	field,
 	isDisabled = false,
+	showStrength = false,
+	strengthUserInputs,
 }: {
 	field: FieldWithValue<string>
 	isDisabled?: boolean
+	showStrength?: boolean
+	strengthUserInputs?: Array<string>
 }) {
 	const [showPassword, setShowPassword] = useState(false)
 
@@ -61,6 +67,12 @@ export function PasswordField({
 					</InputGroupButton>
 				</InputGroupAddon>
 			</InputGroup>
+
+			{showStrength && (
+				<Suspense fallback={null}>
+					<PasswordStrengthMeter value={field.value} userInputs={strengthUserInputs} />
+				</Suspense>
+			)}
 
 			{isInvalid && (
 				<FieldError

@@ -50,7 +50,6 @@ export async function checkPasswordStrength(password: string, userInputs: Array<
 	return {
 		score,
 		isStrong: score >= MIN_PASSWORD_SCORE,
-		/** Why the password is weak and how to improve it, e.g. zxcvbn's warning + suggestions */
 		message:
 			[feedback.warning, ...feedback.suggestions].filter(Boolean).join(' ') ||
 			'That password is too weak. Try a longer or less predictable one.',
