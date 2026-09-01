@@ -18,8 +18,9 @@ import appCss from '../styles.css?url'
 
 interface MyRouterContext {
 	queryClient: QueryClient
+	/** Client-safe auth state only; db ids are unwrapped server-side from cookies */
 	auth?: {
-		userId: string
+		sudoExpiresAt?: Date
 	} | null
 }
 

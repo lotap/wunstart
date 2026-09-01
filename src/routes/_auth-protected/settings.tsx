@@ -2,6 +2,7 @@ import {queryOptions, useQuery} from '@tanstack/react-query'
 import {createFileRoute} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 
+import {userProfileQueryOptions} from '#/components/auth/_utils.ts'
 import {PasswordChangeDrawer} from '#/components/auth/password-change.tsx'
 import {RemoveAccountDrawer} from '#/components/auth/remove-account.tsx'
 import {ErrorBoundary} from '#/components/error-boundary.tsx'
@@ -9,6 +10,7 @@ import {Button} from '#/components/ui/button.tsx'
 import {useSignOutAll} from '#/hooks/use-sign-out-all.ts'
 import {useSignOut} from '#/hooks/use-sign-out.ts'
 import {handleGetSessions} from '#/server-fns/handle-get-sessions.ts'
+import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 
 export const Route = createFileRoute('/_auth-protected/settings')({
 	component: RouteComponent,
@@ -45,15 +47,18 @@ function SessionsList() {
 }
 
 function RouteComponent() {
-	const {auth} = Route.useRouteContext()
 	const signOut = useSignOut()
 	const signOutAll = useSignOutAll()
 
-	const {userId} = auth
+	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
+
+	const {isPending, data: profile} = useQuery(
+		userProfileQueryOptions({serverFn: handleGetUserProfileFn}),
+	)
 
 	return (
 		<div>
-			Hello {userId}!
+			Hello {isPending ? '…' : (profile?.email ?? '')}!
 			<br />
 			<Button onClick={async () => await signOut()}>Sign Out</Button>
 			<br />
