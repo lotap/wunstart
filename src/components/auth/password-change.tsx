@@ -2,8 +2,9 @@ import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
 import {useQuery} from '@tanstack/react-query'
 import {useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
-import {lazy, Suspense, useEffect, useMemo, useState} from 'react'
+import {lazy, useEffect, useMemo, useState} from 'react'
 
+import {AsyncBoundary} from '#/components/async-boundary.tsx'
 import {Button} from '#/components/ui/button.tsx'
 import {
 	Drawer,
@@ -16,6 +17,7 @@ import {
 	DrawerTrigger,
 } from '#/components/ui/drawer.tsx'
 import {FieldGroup} from '#/components/ui/field.tsx'
+import {Spinner} from '#/components/ui/spinner.tsx'
 import {toast} from '#/components/ui/toast.tsx'
 import {useHasSudo} from '#/contexts/has-sudo.tsx'
 import {useConfiguredAppForm, validateAfterFirstSubmit} from '#/hooks/use-app-form.ts'
@@ -94,7 +96,8 @@ export function ChangePasswordForm({
 
 	if (!hasSudo)
 		return (
-			<Suspense>
+			// No fallback because it should enter off-screen and animate in
+			<AsyncBoundary>
 				<ReverifyDrawer
 					open={reverifyOpen}
 					setOpen={setReverifyOpen}
@@ -113,7 +116,7 @@ export function ChangePasswordForm({
 						</Button>
 					</div>
 				)}
-			</Suspense>
+			</AsyncBoundary>
 		)
 
 	return (

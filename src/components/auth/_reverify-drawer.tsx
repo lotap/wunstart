@@ -1,9 +1,10 @@
 import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
-import {useSuspenseQuery} from '@tanstack/react-query'
+import {useQueryClient, useSuspenseQuery} from '@tanstack/react-query'
 import {useServerFn} from '@tanstack/react-start'
 import {Schema} from 'effect'
-import {Suspense, useEffect, useState, type Dispatch, type SetStateAction} from 'react'
+import {useEffect, useState, type Dispatch, type SetStateAction} from 'react'
 
+import {AsyncBoundary} from '#/components/async-boundary.tsx'
 import {Button} from '#/components/ui/button.tsx'
 import {
 	Drawer,
@@ -215,6 +216,26 @@ function ReverifyFormSwitcher({email, hasPassword}: {email: string; hasPassword:
 	)
 }
 
+function ReverifyError() {
+	const queryClient = useQueryClient()
+	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
+	return (
+		<div className="flex flex-col items-center gap-3 text-center">
+			<p>Couldn’t load the verification form. Please try again.</p>
+			<Button
+				variant="outline"
+				onClick={() => {
+					void queryClient.invalidateQueries({
+						queryKey: userProfileQueryOptions({serverFn: handleGetUserProfileFn}).queryKey,
+					})
+				}}
+			>
+				Retry
+			</Button>
+		</div>
+	)
+}
+
 function ReverifyFormFetcher() {
 	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
 
@@ -261,9 +282,9 @@ export function ReverifyDrawer({
 						<DrawerDescription>We want to make sure it’s really you</DrawerDescription>
 					</DrawerHeader>
 					<div className="flex grow flex-col items-center justify-center p-4">
-						<Suspense fallback={<Spinner />}>
+						<AsyncBoundary fallback={<Spinner />} errorFallback={<ReverifyError />}>
 							<ReverifyFormFetcher />
-						</Suspense>
+						</AsyncBoundary>
 					</div>
 					<DrawerFooter>
 						<DrawerClose

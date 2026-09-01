@@ -1,7 +1,8 @@
 import {useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
-import {lazy, Suspense, useEffect, useState} from 'react'
+import {lazy, useEffect, useState} from 'react'
 
+import {AsyncBoundary} from '#/components/async-boundary.tsx'
 import {Button} from '#/components/ui/button.tsx'
 import {
 	Drawer,
@@ -43,7 +44,8 @@ function ConfirmRemoval({closeRemoveAccountDrawer}: {closeRemoveAccountDrawer?: 
 
 	if (!hasSudo)
 		return (
-			<Suspense>
+			// No fallback because it should enter off-screen and animate in
+			<AsyncBoundary>
 				<ReverifyDrawer
 					open={reverifyOpen}
 					setOpen={setReverifyOpen}
@@ -62,7 +64,7 @@ function ConfirmRemoval({closeRemoveAccountDrawer}: {closeRemoveAccountDrawer?: 
 						</Button>
 					</div>
 				)}
-			</Suspense>
+			</AsyncBoundary>
 		)
 
 	return (

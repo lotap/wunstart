@@ -1,11 +1,22 @@
 import {createFileRoute} from '@tanstack/react-router'
-import {lazy, Suspense} from 'react'
+import {lazy} from 'react'
 
+import {AsyncBoundary} from '#/components/async-boundary.tsx'
 import {SignUpForm} from '#/components/auth/sign-up-form.tsx'
+import {Skeleton} from '#/components/ui/skeleton.tsx'
 
 const Dashboard = lazy(() =>
 	import('#/components/dashboard.tsx').then((m) => ({default: m.Dashboard})),
 )
+
+function DashboardFallback() {
+	return (
+		<div className="flex w-full flex-col gap-2 p-4">
+			<Skeleton className="h-7 w-32" />
+			<Skeleton className="h-40 w-full" />
+		</div>
+	)
+}
 
 export const Route = createFileRoute('/_auth-dynamic/')({
 	component: App,
@@ -16,9 +27,9 @@ function App() {
 
 	if (auth) {
 		return (
-			<Suspense>
+			<AsyncBoundary fallback={<DashboardFallback />}>
 				<Dashboard />
-			</Suspense>
+			</AsyncBoundary>
 		)
 	}
 
