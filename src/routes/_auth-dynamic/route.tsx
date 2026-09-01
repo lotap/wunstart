@@ -15,7 +15,13 @@ export const Route = createFileRoute('/_auth-dynamic')({
 function AuthDynamic() {
 	const {auth} = Route.useRouteContext()
 	return (
-		<HasSudoProvider initialSudoExpiresAt={auth?.sudoExpiresAt}>
+		/**
+		 * Keyed by auth presence so the provider resets when the identity appears or
+		 * disappears in place (e.g. sign-up navigates back to this same route as an
+		 * anon). Without the key the stale initial value from the anon render would
+		 * keep hasSudo false
+		 */
+		<HasSudoProvider key={auth ? 'user' : 'anon'} initialSudoExpiresAt={auth?.sudoExpiresAt}>
 			<Outlet />
 		</HasSudoProvider>
 	)
