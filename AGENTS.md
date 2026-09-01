@@ -120,6 +120,7 @@ Ops that need the `AuthHasher` Durable Object provide `HashingStub.layer(name)` 
 - **Styling**: Tailwind v4 (CSS-first config). Use `@theme inline` for tokens. Shadcn components use `cn()`.
 - **UI libs**: shadcn/ui Base UI flavor, `base-nova` style (see `components.json`); icons from `lucide-react`. Components use `cn()`.
 - **Auth**: Self-rolled (DB sessions + JWT hybrid, see ADR 0001). Password hashing is offloaded to the `AuthHasher` Durable Object (ADR 0005).
+- **Server functions**: Act on the cookie identity — middleware (`requireAuth`/`requireAnonRegistered`) unwraps db ids server-side, so the client never supplies or receives db ids. A fn that accepts an id param is the exception and must say so in its name (e.g. `...ById`) and validate authorization for it.
 - **TypeScript**: v6 with `@typescript/native-preview` (`tsgo`). `verbatimModuleSyntax: true` (use `import type` for types). `noUnusedLocals` and `noUnusedParameters` are enabled, so unused bindings fail the build.
 - **Format/lint**: oxfmt + oxlint (not prettier, not eslint). Run both before commit.
 - **Formatting style** (from `.oxfmtrc.json`): **no semicolons**, **tabs** for indentation, **single quotes**, **no bracket spacing** (`{key}` not `{ key }`). Imports are auto-sorted by oxfmt, so don't manually order them.
