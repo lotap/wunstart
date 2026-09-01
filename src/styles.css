@@ -142,4 +142,24 @@
 	[role='button']:not(:disabled) {
 		cursor: pointer;
 	}
+
+	main {
+		view-transition-name: main;
+	}
+
+	::view-transition-old(main) {
+		@apply animate-out ease-in animation-duration-100 fill-mode-forwards fade-out;
+	}
+
+	::view-transition-new(main) {
+		@apply animate-in ease-out animation-duration-160 fade-in slide-in-from-bottom-2;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	::view-transition-group(*),
+	::view-transition-old(*),
+	::view-transition-new(*) {
+		animation: none !important;
+	}
 }
