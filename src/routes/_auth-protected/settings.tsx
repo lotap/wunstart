@@ -4,6 +4,7 @@ import {useServerFn} from '@tanstack/react-start'
 
 import {PasswordChangeDrawer} from '#/components/auth/password-change.tsx'
 import {RemoveAccountDrawer} from '#/components/auth/remove-account.tsx'
+import {ErrorBoundary} from '#/components/error-boundary.tsx'
 import {Button} from '#/components/ui/button.tsx'
 import {useSignOutAll} from '#/hooks/use-sign-out-all.ts'
 import {useSignOut} from '#/hooks/use-sign-out.ts'
@@ -63,7 +64,9 @@ function RouteComponent() {
 			<RemoveAccountDrawer />
 			<br />
 			<h2>Your sessions</h2>
-			<SessionsList />
+			<ErrorBoundary fallback={<p>Couldn’t render your sessions. Please try again.</p>}>
+				<SessionsList />
+			</ErrorBoundary>
 		</div>
 	)
 }

@@ -7,6 +7,7 @@ import {cva} from 'class-variance-authority'
 
 import {Footer} from '#/components/footer.tsx'
 import {Header} from '#/components/header.tsx'
+import {RouteError} from '#/components/route-error.tsx'
 import {Toaster} from '#/components/ui/toast.tsx'
 import {TooltipProvider} from '#/components/ui/tooltip.tsx'
 import {ThemeProvider, useTheme} from '#/contexts/theme.tsx'
@@ -44,12 +45,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 		],
 		scripts: [{src: '/theme-init.js'}],
 	}),
-	errorComponent: () => (
-		<main className="container mx-auto p-4 pt-16">
-			<h1>Uh-oh</h1>
-			<p>Something broke. Try again later.</p>
-		</main>
-	),
+	errorComponent: RouteError,
 	notFoundComponent: () => (
 		<main className="container mx-auto p-4 pt-16">
 			<h1>404</h1>
