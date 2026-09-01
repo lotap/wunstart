@@ -1,5 +1,5 @@
 import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
-import {useQuery, useSuspenseQuery} from '@tanstack/react-query'
+import {useSuspenseQuery} from '@tanstack/react-query'
 import {useServerFn} from '@tanstack/react-start'
 import {Schema} from 'effect'
 import {Suspense, useEffect, useState, type Dispatch, type SetStateAction} from 'react'
@@ -33,6 +33,19 @@ import {useEmailRequestVerificationMutation} from './_hooks.ts'
 import {PasscodeForm} from './_passcode-form.tsx'
 import {emailRequestVerificationQueryOptions, userProfileQueryOptions} from './_utils.ts'
 
+/**
+ * Reverification via email passcode.
+ *
+ * The `emailRequestVerification` query cache this form reads and writes is a
+ * last-send record only — when a code was emailed and how long its resend
+ * cooldown runs. It is never a validity signal: a code can be burned by any
+ * flow (sign-in, sign-up, reverify), superseded by a newer send, maxed out on
+ * attempts, or expired while still cached. Server-side there is a single
+ * verification row per email, so codes are interchangeable across flows until
+ * burned. Never gate UI state on this cache — it cannot tell you whether an
+ * entry-worthy code exists. This form tracks its own send in local state so
+ * the drawer always opens at the send step
+ */
 function ReverifyEmailForm({email}: {email: string}) {
 	const handleEmailRequestVerificationFn = useServerFn(handleEmailRequestVerification)
 	const handleEmailReverifyFn = useServerFn(handleEmailReverify)
@@ -43,8 +56,6 @@ function ReverifyEmailForm({email}: {email: string}) {
 		expectRegisteredRecipient: true,
 	})
 
-	const {data: emailRequestVerificationData} = useQuery(_emailRequestVerificationQueryOptions)
-
 	const {mutateEmailRequestVerification, emailRequestVerificationIsPending} =
 		useEmailRequestVerificationMutation({
 			serverFn: handleEmailRequestVerificationFn,
@@ -53,7 +64,13 @@ function ReverifyEmailForm({email}: {email: string}) {
 
 	const {setSudoExpiresAt} = useHasSudo()
 
-	if (!emailRequestVerificationData)
+	/**
+	 * Per the cache contract above, the drawer must not infer "code was sent"
+	 * from the shared cache, so the send is tracked locally instead
+	 */
+	const [passcodeSent, setPasscodeSent] = useState(false)
+
+	if (!passcodeSent)
 		return (
 			<div className="flex w-full max-w-sm flex-col items-center gap-3">
 				<p className="text-center">
@@ -66,6 +83,7 @@ function ReverifyEmailForm({email}: {email: string}) {
 					onClick={async () => {
 						try {
 							await mutateEmailRequestVerification({email, expectRegisteredRecipient: true})
+							setPasscodeSent(true)
 						} catch (error) {
 							toast.add({
 								type: 'error',
