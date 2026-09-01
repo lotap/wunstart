@@ -21,10 +21,18 @@ const genericFailureOutputMessage = 'Something went wrong. Please try again.'
  */
 const _removeUser = Effect.fn('removeUser')(function* ({
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 	userId,
 	sudoExpiresAt,
 }: {
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 	userId: string
 	sudoExpiresAt?: DateTime.Utc
 }) {
@@ -57,7 +65,13 @@ const _removeUser = Effect.fn('removeUser')(function* ({
 	yield* archiveUser({id: userId}).pipe(Effect.catchTag('ArchiveNotFoundError', () => Effect.void))
 
 	/** Create a new anon token so the client leaves with a clean anonymous identity */
-	const anonToken = yield* generateAnonToken({ipAddresses: [ipAddress]})
+	const anonToken = yield* generateAnonToken({
+		ipAddresses: [ipAddress],
+		userAgents: [userAgent],
+		countries: [country],
+		cities: city ? [city] : [],
+		regions: region ? [region] : [],
+	})
 
 	return {anonToken}
 })

@@ -14,17 +14,26 @@ import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
 import {hashTarget} from './_hashing.ts'
+import {formatUserAgent} from './_user-agent.ts'
 
 const genericFailureOutputMessage = 'Something went wrong. Please try again.'
 
 const _passwordChange = Effect.fn('passwordChange')(function* ({
 	input: {password, signOutAllSessions},
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 	userId,
 	sudoExpiresAt,
 }: {
 	input: (typeof PasswordChangeCredentials)['Type']
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 	userId: string
 	sudoExpiresAt?: DateTime.Utc
 }) {
@@ -81,7 +90,13 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 			)
 
 		const anonToken = signOutAllSessions
-			? yield* generateAnonToken({ipAddresses: [ipAddress]})
+			? yield* generateAnonToken({
+					ipAddresses: [ipAddress],
+					userAgents: [userAgent],
+					countries: [country],
+					cities: city ? [city] : [],
+					regions: region ? [region] : [],
+				})
 			: undefined
 
 		/**
@@ -91,7 +106,15 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 		 */
 		yield* Effect.gen(function* () {
 			const {html, text, subject} = yield* Effect.tryPromise({
-				try: () => renderPasswordChangeConfirmation({ipAddress, updatedAt: rowData.updatedAt}),
+				try: () =>
+					renderPasswordChangeConfirmation({
+						ipAddress,
+						updatedAt: rowData.updatedAt,
+						country,
+						city,
+						region,
+						device: formatUserAgent(userAgent),
+					}),
 				catch: (cause) =>
 					new EmailRenderError({
 						message: cause instanceof Error ? cause.message : String(cause),

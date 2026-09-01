@@ -15,10 +15,37 @@ import {generateRefreshToken} from './_refresh-token.ts'
  * forces the hashing work to repeat on every transient-DB retry
  */
 export const createSession = Effect.fn('createSession')(function* (
-	{userId, ipAddress, nonce, nonceHash}: {userId: string; ipAddress: string} & NonceWithHash,
+	{
+		userId,
+		ipAddress,
+		userAgent,
+		country,
+		city,
+		region,
+		nonce,
+		nonceHash,
+	}: {
+		userId: string
+		ipAddress: string
+		userAgent: string
+		country: string
+		city: string | null
+		region: string | null
+	} & NonceWithHash,
 	tx: Tx,
 ) {
-	const [session] = yield* sessionsQueries.insert({userId, ipAddress, nonceHash}, tx)
+	const [session] = yield* sessionsQueries.insert(
+		{
+			userId,
+			ipAddress,
+			userAgent,
+			country,
+			cities: city ? [city] : [],
+			regions: region ? [region] : [],
+			nonceHash,
+		},
+		tx,
+	)
 
 	// should be unreachable, drizzle throws on failed insert but it makes the linter happy
 	if (!session) return yield* Effect.die(new Error('Problem inserting session'))

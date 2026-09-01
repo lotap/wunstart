@@ -1,7 +1,7 @@
 import {createMiddleware, createServerOnlyFn} from '@tanstack/react-start'
 import {setResponseStatus} from '@tanstack/react-start/server'
 
-import {getForwardedIp} from './get-forwarded-ip.ts'
+import {getRequestInfo} from './get-request-info.ts'
 import {KnownServerError} from './sanitize-errors.ts'
 
 /**
@@ -93,7 +93,7 @@ export function addRateLimitEvent({ipAddress, weight}: {ipAddress: string; weigh
  */
 export function createRateLimit(max: number) {
 	return createMiddleware({type: 'function'})
-		.middleware([getForwardedIp])
+		.middleware([getRequestInfo])
 		.server(async ({next, context: {ipAddress}}) => {
 			cleanCounter++
 			if (cleanCounter > 10_000) cleanup()

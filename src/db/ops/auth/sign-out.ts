@@ -19,9 +19,17 @@ import {extractRefreshTokenPayload} from './_refresh-token.ts'
 const _signOut = Effect.fn('signOut')(function* ({
 	token,
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 }: {
 	token: string
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 }) {
 	const {nonce, sessionId} = yield* extractRefreshTokenPayload(token).pipe(
 		Effect.mapError(({operation}) =>
@@ -72,7 +80,13 @@ const _signOut = Effect.fn('signOut')(function* ({
 	)
 
 	/** Create a new anon token */
-	const anonToken = yield* generateAnonToken({ipAddresses: [ipAddress]})
+	const anonToken = yield* generateAnonToken({
+		ipAddresses: [ipAddress],
+		userAgents: [userAgent],
+		countries: [country],
+		cities: city ? [city] : [],
+		regions: region ? [region] : [],
+	})
 
 	return {anonToken}
 })

@@ -8,17 +8,53 @@ import {generateAnonToken, type AnonTokenPayloadCustomClaims} from './_anon-toke
 const _registerAnon = Effect.fn('registerAnon')(function* ({
 	anonTokenPayload,
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 }: {
 	anonTokenPayload: AnonTokenPayloadCustomClaims
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 }) {
-	const {id, ipAddresses: _ipAddresses, createdAt: tokenCreatedAt} = anonTokenPayload
+	const {
+		id,
+		ipAddresses: _ipAddresses,
+		userAgents: _userAgents,
+		countries: _countries,
+		cities: _cities,
+		regions: _regions,
+		createdAt: tokenCreatedAt,
+	} = anonTokenPayload
 
 	const ipAddresses = [...new Set([..._ipAddresses, ipAddress])]
+	const userAgents = [...new Set([..._userAgents, userAgent])]
+	const countries = [...new Set([..._countries, country])]
+	const cities = [...new Set(city ? [..._cities, city] : _cities)]
+	const regions = [...new Set(region ? [..._regions, region] : _regions)]
 
-	yield* anonQueries.insert({id, tokenCreatedAt, ipAddresses})
+	yield* anonQueries.insert({
+		id,
+		tokenCreatedAt,
+		ipAddresses,
+		userAgents,
+		countries,
+		cities,
+		regions,
+	})
 
-	const payload = {...anonTokenPayload, registered: true, ipAddresses}
+	const payload = {
+		...anonTokenPayload,
+		registered: true,
+		ipAddresses,
+		userAgents,
+		countries,
+		cities,
+		regions,
+	}
 	const {token} = yield* generateAnonToken(payload)
 
 	return {

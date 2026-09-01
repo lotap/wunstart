@@ -18,6 +18,7 @@ import {
 	generateRefreshToken,
 	type RefreshTokenPayloadCustomClaims,
 } from './_refresh-token.ts'
+import {formatUserAgent} from './_user-agent.ts'
 import {authTokenFailure} from './token-error.ts'
 
 const genericFailureOutputMessage = 'Your session has expired. Sign in and try again.'
@@ -58,10 +59,18 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 	nonce,
 	rowData,
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 }: {
 	nonce: string
 	rowData: SessionRow
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 }) {
 	/** Ensure the refresh token matches the hashed one stored in the database */
 	const isNonceVerified = yield* verifyTarget(rowData.nonceHash, nonce)
@@ -94,6 +103,10 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 		expiresAt: newExpiresAt,
 		graceToken,
 		ipAddress,
+		userAgent,
+		country,
+		newCities: city ? [city] : [],
+		newRegions: region ? [region] : [],
 	})
 
 	/**
@@ -133,9 +146,17 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 	userId,
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 }: {
 	userId: string
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 }) {
 	const [user] = yield* usersQueries.selectProfile({id: userId})
 
@@ -147,7 +168,15 @@ const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 	const now = yield* DateTime.now
 
 	const {html, text, subject} = yield* Effect.tryPromise({
-		try: () => renderSessionEndedNotification({ipAddress, revokedAt: DateTime.toDate(now)}),
+		try: () =>
+			renderSessionEndedNotification({
+				ipAddress,
+				revokedAt: DateTime.toDate(now),
+				country,
+				city,
+				region,
+				device: formatUserAgent(userAgent),
+			}),
 		catch: (cause) =>
 			new EmailRenderError({
 				message: cause instanceof Error ? cause.message : String(cause),
@@ -166,9 +195,17 @@ const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
 	session,
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 }: {
 	session: SessionRow
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 }) {
 	/** Revoke first. The email is a best-effort notification, never a blocker */
 	yield* sessionsQueries.revoke({id: session.id})
@@ -177,7 +214,14 @@ const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
 	 * Not a Fork to ensure that a worker isolate does not eject without attempting
 	 * the notification. Instead use ignore with logging
 	 */
-	yield* notifyReuseReplay({userId: session.userId, ipAddress}).pipe(
+	yield* notifyReuseReplay({
+		userId: session.userId,
+		ipAddress,
+		userAgent,
+		country,
+		city,
+		region,
+	}).pipe(
 		Effect.ignore({log: true, message: 'Failed to notify the account owner of session reuse'}),
 	)
 
@@ -196,9 +240,17 @@ const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
 const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 	session,
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 }: {
 	session: SessionRow
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 }) {
 	const {id, userId, graceToken, graceExpiresAt, refreshGeneration, expiresAt} = session
 
@@ -210,7 +262,7 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 
 	/** Revoke if not within grace period duration */
 	if (graceExpiresAt.getTime() <= DateTime.nowUnsafe().epochMilliseconds)
-		return yield* revokeForReuse({session, ipAddress})
+		return yield* revokeForReuse({session, ipAddress, userAgent, country, city, region})
 
 	const graceTokenData = yield* extractRefreshGraceToken(graceToken)
 
@@ -252,22 +304,37 @@ const classifySession = Effect.fn('classifySession')(function* ({
 	rowData,
 	tokenData: {generation, nonce},
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 }: {
 	rowData: SessionRow
 	tokenData: RefreshTokenPayloadCustomClaims
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 }) {
 	/** Current generation - rotate and create fresh access/refresh tokens */
 	if (generation === rowData.refreshGeneration)
-		return yield* attemptRotation({nonce, rowData, ipAddress})
+		return yield* attemptRotation({nonce, rowData, ipAddress, userAgent, country, city, region})
 
 	/** Single generation behind - use grace token to create access/refresh tokens */
 	if (generation === rowData.refreshGeneration - 1)
-		return yield* replayFromGraceToken({session: rowData, ipAddress})
+		return yield* replayFromGraceToken({
+			session: rowData,
+			ipAddress,
+			userAgent,
+			country,
+			city,
+			region,
+		})
 
 	/** Several generations old: reuse. Revoke the family */
 	if (generation < rowData.refreshGeneration - 1)
-		return yield* revokeForReuse({session: rowData, ipAddress})
+		return yield* revokeForReuse({session: rowData, ipAddress, userAgent, country, city, region})
 
 	/** Future generation: invalid, not reuse. Do not revoke */
 	return yield* authTokenFailure({
@@ -281,18 +348,34 @@ const classifySession = Effect.fn('classifySession')(function* ({
 const resolveSession = Effect.fn('resolveSession')(function* ({
 	tokenData,
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 	rowData,
 	maxAttempts,
 }: {
 	tokenData: RefreshTokenPayloadCustomClaims
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 	rowData: SessionRow
 	maxAttempts: number
 }) {
 	let currentRow = rowData
 
 	for (let attempts = 0; attempts < maxAttempts; attempts++) {
-		const outcome = yield* classifySession({rowData: currentRow, tokenData, ipAddress})
+		const outcome = yield* classifySession({
+			rowData: currentRow,
+			tokenData,
+			ipAddress,
+			userAgent,
+			country,
+			city,
+			region,
+		})
 
 		if (Option.isSome(outcome)) return outcome.value
 
@@ -307,9 +390,17 @@ const resolveSession = Effect.fn('resolveSession')(function* ({
 const _refresh = Effect.fn('refresh')(function* ({
 	token,
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 }: {
 	token: string
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 }) {
 	const tokenData = yield* extractRefreshTokenPayload(token).pipe(
 		Effect.mapError((error) =>
@@ -338,9 +429,16 @@ const _refresh = Effect.fn('refresh')(function* ({
 	if (currentBansAndExcessiveActivities.length)
 		return yield* rateLimitFailure({message: genericFailureOutputMessage, userId: session.userId})
 
-	return yield* resolveSession({tokenData, rowData: session, maxAttempts: 2, ipAddress}).pipe(
-		Effect.provide(HashingStub.layer(session.userId)),
-	)
+	return yield* resolveSession({
+		tokenData,
+		rowData: session,
+		maxAttempts: 2,
+		ipAddress,
+		userAgent,
+		country,
+		city,
+		region,
+	}).pipe(Effect.provide(HashingStub.layer(session.userId)))
 })
 
 /**

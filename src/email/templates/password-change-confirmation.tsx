@@ -13,11 +13,16 @@ import {
 	Text,
 } from 'react-email'
 
+import {formatLocation} from '../format-location.ts'
 import {emailTailwindConfig} from '../tailwind-config.ts'
 
 type PasswordChangeConfirmationProps = {
 	ipAddress: string
 	updatedAt: Date
+	country: string
+	city: string | null
+	region: string | null
+	device: string | null
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
@@ -29,7 +34,13 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
 export default function PasswordChangeConfirmation({
 	ipAddress,
 	updatedAt,
+	country,
+	city,
+	region,
+	device,
 }: PasswordChangeConfirmationProps) {
+	const location = formatLocation({city, region, country})
+
 	return (
 		<Html>
 			<Tailwind config={emailTailwindConfig}>
@@ -56,6 +67,20 @@ export default function PasswordChangeConfirmation({
 										{ipAddress}
 									</Text>
 
+									{location && (
+										<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
+											<b>Location: </b>
+											{location}
+										</Text>
+									)}
+
+									{device && (
+										<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
+											<b>Device: </b>
+											{device}
+										</Text>
+									)}
+
 									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
 										If this was you, there's nothing else you need to do.
 									</Text>
@@ -78,6 +103,10 @@ export default function PasswordChangeConfirmation({
 PasswordChangeConfirmation.PreviewProps = {
 	ipAddress: '0.0.0.0',
 	updatedAt: new Date(),
+	country: 'US',
+	city: 'San Francisco',
+	region: 'CA',
+	device: 'Chrome 126 on Windows (Desktop)',
 } as PasswordChangeConfirmationProps
 
 export async function renderPasswordChangeConfirmation(

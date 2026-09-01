@@ -18,6 +18,7 @@ import {EmailRenderError, EmailService} from '#/email/service.ts'
 import {renderSignInNotification} from '#/email/templates/sign-in-notification.tsx'
 import {EmailSignInCredentials} from '#/isomorphic/validations/auth.ts'
 
+import {formatUserAgent} from '../_user-agent.ts'
 import {burnPasscode} from './_burn-passcode.ts'
 import {verify} from './_verify.ts'
 
@@ -26,10 +27,18 @@ const genericFailureOutputMessage = 'Something went wrong. Double-check your det
 const _emailSignIn = Effect.fn('emailSignIn')(function* ({
 	input: {email, passcode},
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 	anonTokenPayload,
 }: {
 	input: (typeof EmailSignInCredentials)['Type']
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 	anonTokenPayload: AnonTokenPayloadCustomClaims
 }) {
 	const {id: anonId} = anonTokenPayload
@@ -131,14 +140,20 @@ const _emailSignIn = Effect.fn('emailSignIn')(function* ({
 					/** Concurrently create a session, generate an access token, and archive the anon token if it exists. */
 					const [_session, _access, _retiredAnon] = yield* Effect.all(
 						[
-							createSession({userId, ipAddress, nonce, nonceHash}, tx),
+							createSession(
+								{userId, ipAddress, userAgent, country, city, region, nonce, nonceHash},
+								tx,
+							),
 							generateAccessToken({
 								userId,
 								sudoExpiresAt: DateTime.add(now, {
 									milliseconds: SUDO_EXPIRATION_WINDOW,
 								}),
 							}),
-							retireAnon({tokenData: anonTokenPayload, userId, ipAddress}, tx),
+							retireAnon(
+								{tokenData: anonTokenPayload, userId, ipAddress, userAgent, country, city, region},
+								tx,
+							),
 						],
 						{concurrency: 'unbounded'},
 					)
@@ -155,7 +170,15 @@ const _emailSignIn = Effect.fn('emailSignIn')(function* ({
 		 */
 		yield* Effect.gen(function* () {
 			const {html, text, subject} = yield* Effect.tryPromise({
-				try: () => renderSignInNotification({ipAddress, signedInAt: DateTime.toDate(now)}),
+				try: () =>
+					renderSignInNotification({
+						ipAddress,
+						signedInAt: DateTime.toDate(now),
+						country,
+						city,
+						region,
+						device: formatUserAgent(userAgent),
+					}),
 				catch: (cause) =>
 					new EmailRenderError({
 						message: cause instanceof Error ? cause.message : String(cause),

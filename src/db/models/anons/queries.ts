@@ -9,7 +9,7 @@ import * as V from './validations.ts'
 
 const labelPrefix = tableName
 
-const {id, ipAddresses} = getColumns(activeTable)
+const {id, ipAddresses, userAgents, countries, cities, regions} = getColumns(activeTable)
 
 /// INSERT ///
 
@@ -22,11 +22,19 @@ export const insert = createPreparedQuery({
 				id: sql.placeholder('id'),
 				tokenCreatedAt: sql.placeholder('tokenCreatedAt'),
 				ipAddresses: sql.placeholder('ipAddresses'),
+				userAgents: sql.placeholder('userAgents'),
+				countries: sql.placeholder('countries'),
+				cities: sql.placeholder('cities'),
+				regions: sql.placeholder('regions'),
 			})
 			.onConflictDoUpdate({
 				target: id,
 				set: {
 					ipAddresses: sql`${ipAddresses} || EXCLUDED.ip_addresses`,
+					userAgents: sql`${userAgents} || EXCLUDED.user_agents`,
+					countries: sql`${countries} || EXCLUDED.countries`,
+					cities: sql`${cities} || EXCLUDED.cities`,
+					regions: sql`${regions} || EXCLUDED.regions`,
 				},
 			})
 			.returning({id})
@@ -76,6 +84,10 @@ export const archiveInsert = createPreparedQuery({
 				id: sql.placeholder('id'),
 				tokenCreatedAt: sql.placeholder('tokenCreatedAt'),
 				ipAddresses: sql.placeholder('ipAddresses'),
+				userAgents: sql.placeholder('userAgents'),
+				countries: sql.placeholder('countries'),
+				cities: sql.placeholder('cities'),
+				regions: sql.placeholder('regions'),
 			})
 			.returning({archiveId})
 			.prepare(`${labelPrefix}_archive_insert`),

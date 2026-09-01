@@ -20,6 +20,7 @@ import {needsRehash} from './_check-rehash.ts'
 import {createSession} from './_create-session.ts'
 import {generateNonce} from './_refresh-token.ts'
 import {retireAnon} from './_retire-anon.ts'
+import {formatUserAgent} from './_user-agent.ts'
 import {SUDO_EXPIRATION_WINDOW} from './consts.ts'
 
 const genericFailureOutputMessage =
@@ -39,10 +40,18 @@ const genericFailureOutputMessage =
 const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 	input: {email, password},
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 	anonTokenPayload,
 }: {
 	input: (typeof PasswordSignInCredentials)['Type']
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 	anonTokenPayload: AnonTokenPayloadCustomClaims
 }) {
 	const registeredAnonId = anonTokenPayload.registered ? anonTokenPayload.id : undefined
@@ -159,12 +168,18 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 				/** Concurrently create a session, archive the anon token if it exists, and generate an access token. */
 				Effect.all(
 					[
-						createSession({userId, ipAddress, nonce, nonceHash}, tx),
+						createSession(
+							{userId, ipAddress, userAgent, country, city, region, nonce, nonceHash},
+							tx,
+						),
 						generateAccessToken({
 							userId,
 							sudoExpiresAt: DateTime.add(now, {milliseconds: SUDO_EXPIRATION_WINDOW}),
 						}),
-						retireAnon({tokenData: anonTokenPayload, userId, ipAddress}, tx),
+						retireAnon(
+							{tokenData: anonTokenPayload, userId, ipAddress, userAgent, country, city, region},
+							tx,
+						),
 					],
 					{concurrency: 'unbounded'},
 				),
@@ -178,7 +193,15 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 		 */
 		yield* Effect.gen(function* () {
 			const {html, text, subject} = yield* Effect.tryPromise({
-				try: () => renderSignInNotification({ipAddress, signedInAt: DateTime.toDate(now)}),
+				try: () =>
+					renderSignInNotification({
+						ipAddress,
+						signedInAt: DateTime.toDate(now),
+						country,
+						city,
+						region,
+						device: formatUserAgent(userAgent),
+					}),
 				catch: (cause) =>
 					new EmailRenderError({
 						message: cause instanceof Error ? cause.message : String(cause),

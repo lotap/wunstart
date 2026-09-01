@@ -20,10 +20,18 @@ const genericFailureOutputMessage = 'Something went wrong. Double-check your det
 const _emailSignUp = Effect.fn('emailSignUp')(function* ({
 	input: {email, passcode},
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 	anonTokenPayload,
 }: {
 	input: (typeof EmailSignUpCredentials)['Type']
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 	anonTokenPayload: AnonTokenPayloadCustomClaims
 }) {
 	const {id: anonId} = anonTokenPayload
@@ -83,6 +91,10 @@ const _emailSignUp = Effect.fn('emailSignUp')(function* ({
 					input: {email},
 					anonTokenPayload,
 					ipAddress,
+					userAgent,
+					country,
+					city,
+					region,
 					sessionNonce,
 					tx,
 				})

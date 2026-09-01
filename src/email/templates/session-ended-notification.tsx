@@ -13,11 +13,16 @@ import {
 	Text,
 } from 'react-email'
 
+import {formatLocation} from '../format-location.ts'
 import {emailTailwindConfig} from '../tailwind-config.ts'
 
 type SessionEndedNotificationProps = {
 	ipAddress: string
 	revokedAt: Date
+	country: string
+	city: string | null
+	region: string | null
+	device: string | null
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
@@ -29,7 +34,13 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
 export default function SessionEndedNotification({
 	ipAddress,
 	revokedAt,
+	country,
+	city,
+	region,
+	device,
 }: SessionEndedNotificationProps) {
+	const location = formatLocation({city, region, country})
+
 	return (
 		<Html>
 			<Tailwind config={emailTailwindConfig}>
@@ -55,6 +66,20 @@ export default function SessionEndedNotification({
 										<b>IP Address: </b>
 										{ipAddress}
 									</Text>
+
+									{location && (
+										<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
+											<b>Location: </b>
+											{location}
+										</Text>
+									)}
+
+									{device && (
+										<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
+											<b>Device: </b>
+											{device}
+										</Text>
+									)}
 
 									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
 										We detected that one of your sign-in sessions may have been accessed by someone
@@ -85,6 +110,10 @@ export default function SessionEndedNotification({
 SessionEndedNotification.PreviewProps = {
 	ipAddress: '0.0.0.0',
 	revokedAt: new Date(),
+	country: 'US',
+	city: 'San Francisco',
+	region: 'CA',
+	device: 'Chrome 126 on Windows (Desktop)',
 } as SessionEndedNotificationProps
 
 export async function renderSessionEndedNotification(

@@ -1,4 +1,4 @@
-import {bigint, inet, timestamp, uuid} from 'drizzle-orm/pg-core'
+import {bigint, inet, text, timestamp, uuid} from 'drizzle-orm/pg-core'
 
 import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/consts.ts'
 import {createActiveTable, createArchiveTable} from '#/db/helpers/tables.ts'
@@ -11,6 +11,10 @@ export const tableName = 'anons'
 const baseCols = {
 	tokenCreatedAt: timestamp(TIMESTAMPTZ_CONFIG).notNull(),
 	ipAddresses: inet().notNull().array().notNull(),
+	userAgents: text().notNull().array().notNull(),
+	countries: text().notNull().array().notNull(),
+	cities: text().notNull().array().notNull(),
+	regions: text().notNull().array().notNull(),
 }
 
 /** Anons is used for linking pre-authentication sessions with activities and users */

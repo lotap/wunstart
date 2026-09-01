@@ -7,13 +7,35 @@ import {createOpsFn} from '../_create-ops-fn.ts'
 const _signAnon = Effect.fn('signAnon')(function* ({
 	existingData,
 	ipAddress,
+	userAgent,
+	country,
+	city,
+	region,
 }: {
 	existingData?: Parameters<typeof generateAnonToken>[0] | null
 	ipAddress: string
+	userAgent: string
+	country: string
+	city: string | null
+	region: string | null
 }) {
 	const ipAddresses = new Set([...(existingData?.ipAddresses ?? []), ipAddress])
+	const userAgents = new Set([...(existingData?.userAgents ?? []), userAgent])
+	const countries = new Set([...(existingData?.countries ?? []), country])
+	const cities = new Set(existingData?.cities ?? [])
+	const regions = new Set(existingData?.regions ?? [])
 
-	return yield* generateAnonToken({...existingData, ipAddresses: [...ipAddresses]})
+	if (city) cities.add(city)
+	if (region) regions.add(region)
+
+	return yield* generateAnonToken({
+		...existingData,
+		ipAddresses: [...ipAddresses],
+		userAgents: [...userAgents],
+		countries: [...countries],
+		cities: [...cities],
+		regions: [...regions],
+	})
 })
 
 /**
