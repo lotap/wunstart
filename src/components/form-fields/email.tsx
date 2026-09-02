@@ -20,11 +20,12 @@ export function EmailField({field}: {field: FieldWithValue<string>}) {
 				onBlur={field.handleBlur}
 				onChange={(e) => field.handleChange(e.target.value)}
 				aria-invalid={isInvalid}
+				aria-describedby={isInvalid ? `${field.name}-error` : undefined}
 				placeholder="Email address"
 			/>
 
 			{isInvalid && (
-				<FieldError aria-describedby={field.name} errors={field.errors} className="text-center" />
+				<FieldError id={`${field.name}-error`} errors={field.errors} className="text-center" />
 			)}
 		</Field>
 	)

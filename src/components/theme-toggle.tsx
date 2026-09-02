@@ -23,7 +23,12 @@ export default function ThemeToggle() {
 		<Tooltip>
 			<TooltipTrigger
 				render={
-					<Button variant="ghost" onClick={toggleMode} size="icon-lg">
+					<Button
+						variant="ghost"
+						onClick={toggleMode}
+						size="icon-lg"
+						aria-label={`Switch to: ${toggleResolved(resolved)} Mode`}
+					>
 						{resolved === 'dark' && <Moon />}
 						{resolved === 'light' && <Sun />}
 					</Button>

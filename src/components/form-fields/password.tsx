@@ -51,6 +51,7 @@ export function PasswordField({
 					onChange={(e) => field.handleChange(e.target.value)}
 					disabled={isDisabled}
 					aria-invalid={isInvalid}
+					aria-describedby={isInvalid ? `${field.name}-error` : undefined}
 					placeholder="Password"
 					type={showPassword ? 'text' : 'password'}
 				/>
@@ -76,7 +77,7 @@ export function PasswordField({
 
 			{isInvalid && (
 				<FieldError
-					aria-describedby={field.name}
+					id={`${field.name}-error`}
 					errors={field.errors}
 					className={errorTextVariants({isDisabled})}
 				/>

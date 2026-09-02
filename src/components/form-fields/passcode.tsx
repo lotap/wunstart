@@ -20,11 +20,13 @@ export function PasscodeField({
 			</FieldLabel>
 
 			<InputOTP
+				id={field.name}
 				maxLength={6}
 				pattern={REGEXP_ONLY_DIGITS}
 				onChange={field.handleChange}
 				onComplete={onComplete}
 				aria-invalid={isInvalid}
+				aria-describedby={isInvalid ? `${field.name}-error` : undefined}
 				placeholder="000000"
 				containerClassName="justify-center"
 			>
@@ -39,7 +41,7 @@ export function PasscodeField({
 			</InputOTP>
 
 			{isInvalid && (
-				<FieldError aria-describedby={field.name} errors={field.errors} className="text-center" />
+				<FieldError id={`${field.name}-error`} errors={field.errors} className="text-center" />
 			)}
 		</Field>
 	)
