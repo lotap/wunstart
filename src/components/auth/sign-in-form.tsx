@@ -1,7 +1,7 @@
 import {useSelector} from '@tanstack/react-form'
 import {Link, useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
-import {DateTime, Schema} from 'effect'
+import {Schema} from 'effect'
 import {ArrowLeft} from 'lucide-react'
 import {useState} from 'react'
 
@@ -17,15 +17,11 @@ import {handlePasswordSignIn} from '#/server-fns/handle-password-sign-in.ts'
 
 import {FormHeading} from './_form-heading.tsx'
 import {
-	useEmailRequestVerificationMutation,
+	useAuthFormEmailState,
 	useLocalStorageAuthFormState,
 	useLocalStorageEmail,
 } from './_hooks.ts'
 import {PasscodeForm} from './_passcode-form.tsx'
-import {
-	type EmailRequestVerificationQueryOptions,
-	emailRequestVerificationQueryOptions,
-} from './_utils.ts'
 
 const LinkToSignUp = () => (
 	<Link to="/sign-up" className="mt-10 font-bold text-muted-foreground hover:underline">
@@ -41,8 +37,7 @@ export function SignInForm() {
 	const router = useRouter()
 
 	const {
-		query: {data: localStorageEmail, isPending: localStorageEmailIsPending},
-		mutation: {mutate: upsertLocalStorageEmail},
+		query: {data: localStorageEmail},
 	} = useLocalStorageEmail()
 
 	const {
@@ -54,21 +49,6 @@ export function SignInForm() {
 		key: 'sign-in-state',
 	})
 
-	const [_emailRequestVerificationQueryOptions, setEmailRequestVerificationQueryOptions] =
-		useState<EmailRequestVerificationQueryOptions>(() =>
-			emailRequestVerificationQueryOptions({
-				serverFn: handleEmailRequestVerificationFn,
-				email: localStorageEmail?.email ?? '',
-				expectRegisteredRecipient: true,
-			}),
-		)
-
-	const {mutateEmailRequestVerification, emailRequestVerificationIsPending} =
-		useEmailRequestVerificationMutation({
-			serverFn: handleEmailRequestVerificationFn,
-			invalidationKey: _emailRequestVerificationQueryOptions.queryKey,
-		})
-
 	const [branch, setBranch] = useState<'password' | 'passcode-send' | 'passcode-skip'>('password')
 	const [submittedBranch, setSubmittedBranch] = useState(branch)
 
@@ -78,6 +58,7 @@ export function SignInForm() {
 			password: '',
 		},
 		onSubmitTry: async ({password}) => {
+			handleEmailChange(email)
 			setSubmittedBranch(branch)
 			if (branch === 'password') {
 				await handlePasswordSignInFn({data: {email, password}})
@@ -95,6 +76,18 @@ export function SignInForm() {
 	const email = useSelector(step0Form.atom, (state) => state.values.email)
 
 	const step0FormIsSubmitting = useSelector(step0Form.atom, (state) => state.isSubmitting)
+
+	const {
+		localStorageEmailIsPending,
+		emailRequestVerificationOptions,
+		mutateEmailRequestVerification,
+		emailRequestVerificationIsPending,
+		handleEmailChange,
+	} = useAuthFormEmailState({
+		serverFn: handleEmailRequestVerificationFn,
+		email,
+		expectRegisteredRecipient: true,
+	})
 
 	if (localStorageSignInStateIsPending || localStorageEmailIsPending)
 		return (
@@ -130,26 +123,16 @@ export function SignInForm() {
 							<FieldGroup>
 								<step0Form.Field
 									name="email"
-									/**
-									 * Using listeners instead of useEffect prevents bug where
-									 * localStorage email is overwritten by empty string
-									 */
 									listeners={[
 										{
+											/**
+											 * Using listeners instead of useEffect prevents bug where
+											 * localStorage email is overwritten by empty string
+											 */
 											triggers: ['change'],
+											triggerDebounceMs: 500,
 											run: ({value}) => {
-												upsertLocalStorageEmail({
-													email: value,
-													expiresAt: DateTime.nowUnsafe().pipe(DateTime.add({hours: 24})),
-												})
-
-												setEmailRequestVerificationQueryOptions(
-													emailRequestVerificationQueryOptions({
-														serverFn: handleEmailRequestVerificationFn,
-														email: value,
-														expectRegisteredRecipient: true,
-													}),
-												)
+												handleEmailChange(value)
 											},
 										},
 									]}
@@ -287,7 +270,7 @@ export function SignInForm() {
 							void router.navigate({to: '/'})
 						}}
 						email={email}
-						emailRequestVerificationQueryOptions={_emailRequestVerificationQueryOptions}
+						emailRequestVerificationQueryOptions={emailRequestVerificationOptions}
 						mutateEmailRequestVerification={() =>
 							mutateEmailRequestVerification({email, expectRegisteredRecipient: true})
 						}

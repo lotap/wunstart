@@ -6,6 +6,7 @@ import {useLocalStorageQuery} from '#/hooks/use-local-storage-query.ts'
 import {handleEmailRequestVerification} from '#/server-fns/handle-email-request-verification.ts'
 
 import {
+	emailRequestVerificationQueryOptions,
 	LocalStorageAuthFormStateSchema,
 	LocalStorageEmailSchema,
 	type EmailRequestVerificationQueryOptions,
@@ -35,6 +36,49 @@ export function useEmailRequestVerificationMutation({
 	})
 
 	return {mutateEmailRequestVerification, emailRequestVerificationIsPending}
+}
+
+/** Shared email-capture state for the sign-in and sign-up forms */
+export function useAuthFormEmailState({
+	serverFn,
+	email,
+	expectRegisteredRecipient,
+}: {
+	serverFn: ReturnType<typeof useServerFn<typeof handleEmailRequestVerification>>
+	email: string
+	expectRegisteredRecipient: boolean
+}) {
+	const {
+		query: {isPending: localStorageEmailIsPending},
+		mutation: {mutate: upsertLocalStorageEmail},
+	} = useLocalStorageEmail()
+
+	const emailRequestVerificationOptions = emailRequestVerificationQueryOptions({
+		serverFn,
+		email,
+		expectRegisteredRecipient,
+	})
+
+	const {mutateEmailRequestVerification, emailRequestVerificationIsPending} =
+		useEmailRequestVerificationMutation({
+			serverFn,
+			invalidationKey: emailRequestVerificationOptions.queryKey,
+		})
+
+	const handleEmailChange = (value: string) => {
+		upsertLocalStorageEmail({
+			email: value,
+			expiresAt: DateTime.nowUnsafe().pipe(DateTime.add({hours: 24})),
+		})
+	}
+
+	return {
+		localStorageEmailIsPending,
+		emailRequestVerificationOptions,
+		mutateEmailRequestVerification,
+		emailRequestVerificationIsPending,
+		handleEmailChange,
+	}
 }
 
 export function useLocalStorageAuthFormState({key}: {key: string}) {
