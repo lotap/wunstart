@@ -26,15 +26,26 @@ function SessionsList() {
 
 	const {isPending, error, data: sessions} = useQuery(sessionsQueryOptions)
 
-	if (isPending) return <p>Loading sessions…</p>
-	if (error) return <p>Couldn’t load your sessions. Please try again.</p>
+	if (isPending)
+		return (
+			// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+			<p role="status" aria-busy="true">
+				Loading sessions…
+			</p>
+		)
+	if (error) return <p role="alert">Couldn’t load your sessions. Please try again.</p>
 
 	return (
 		<ul>
 			{sessions.map((session) => {
 				const createdAtString = session.createdAt.toLocaleString()
+				/**
+				 * ms-precision timestamp as key: rows are stateless and the list is tiny,
+				 * so the only failure mode (two sign-ins within the same millisecond —
+				 * already guarded by the disabled submit button) is a console warning
+				 */
 				return (
-					<li key={createdAtString}>
+					<li key={session.createdAt.getTime()}>
 						<p>Signed in: {createdAtString}</p>
 						<p>IP: {session.ipAddress ?? 'Unknown'}</p>
 						{session.device && <p>Device: {session.device}</p>}
