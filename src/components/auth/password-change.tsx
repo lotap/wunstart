@@ -152,7 +152,11 @@ export function ChangePasswordForm({
 								]}
 							>
 								{(field) => (
-									<field.PasswordField showStrength strengthUserInputs={strengthUserInputs} />
+									<field.PasswordField
+										showStrength
+										strengthUserInputs={strengthUserInputs}
+										autoComplete="new-password"
+									/>
 								)}
 							</form.Field>
 

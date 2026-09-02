@@ -26,11 +26,13 @@ export function PasswordField({
 	isDisabled = false,
 	showStrength = false,
 	strengthUserInputs,
+	autoComplete = 'current-password',
 }: {
 	field: FieldWithValue<string>
 	isDisabled?: boolean
 	showStrength?: boolean
 	strengthUserInputs?: Array<string>
+	autoComplete?: 'current-password' | 'new-password'
 }) {
 	const [showPassword, setShowPassword] = useState(false)
 
@@ -52,6 +54,7 @@ export function PasswordField({
 					disabled={isDisabled}
 					aria-invalid={isInvalid}
 					aria-describedby={isInvalid ? `${field.name}-error` : undefined}
+					autoComplete={autoComplete}
 					placeholder="Password"
 					type={showPassword ? 'text' : 'password'}
 				/>
