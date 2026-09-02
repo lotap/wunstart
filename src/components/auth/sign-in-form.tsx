@@ -3,7 +3,7 @@ import {Link, useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 import {Schema} from 'effect'
 import {ArrowLeft} from 'lucide-react'
-import {useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 
 import {Button} from '#/components/ui/button.tsx'
 import {FieldGroup, FieldSeparator} from '#/components/ui/field.tsx'
@@ -50,7 +50,11 @@ export function SignInForm() {
 	})
 
 	const [branch, setBranch] = useState<'password' | 'passcode-send' | 'passcode-skip'>('password')
-	const [submittedBranch, setSubmittedBranch] = useState(branch)
+	const [submittedBranch, setSubmittedBranch] = useState<
+		'password' | 'passcode-send' | 'passcode-skip'
+	>('password')
+	/** Set synchronously on click so onSubmitTry reliably observes the intended branch */
+	const branchRef = useRef<'password' | 'passcode-send' | 'passcode-skip'>('password')
 
 	const step0Form = useConfiguredAppForm({
 		defaultValues: {
@@ -59,12 +63,12 @@ export function SignInForm() {
 		},
 		onSubmitTry: async ({password}) => {
 			handleEmailChange(email)
-			setSubmittedBranch(branch)
-			if (branch === 'password') {
+			setSubmittedBranch(branchRef.current)
+			if (branchRef.current === 'password') {
 				await handlePasswordSignInFn({data: {email, password}})
 				removeLocalStorageSignInState()
 				void router.navigate({to: '/'})
-			} else if (branch === 'passcode-send') {
+			} else if (branchRef.current === 'passcode-send') {
 				await mutateEmailRequestVerification({email, expectRegisteredRecipient: true})
 				setStep(1)
 			} else {
@@ -76,6 +80,12 @@ export function SignInForm() {
 	const email = useSelector(step0Form.atom, (state) => state.values.email)
 
 	const step0FormIsSubmitting = useSelector(step0Form.atom, (state) => state.isSubmitting)
+
+	const backButtonRef = useRef<HTMLButtonElement>(null)
+
+	useEffect(() => {
+		if (step === 1) backButtonRef.current?.focus()
+	}, [step])
 
 	const {
 		localStorageEmailIsPending,
@@ -186,19 +196,32 @@ export function SignInForm() {
 									buttonProps={{
 										variant: 'outline',
 										onMouseEnter: () => {
-											if (!step0FormIsSubmitting) setBranch('passcode-send')
+											if (!step0FormIsSubmitting) {
+												branchRef.current = 'passcode-send'
+												setBranch('passcode-send')
+											}
 										},
 										onMouseLeave: () => {
-											if (!step0FormIsSubmitting) setBranch('password')
+											if (!step0FormIsSubmitting) {
+												branchRef.current = 'password'
+												setBranch('password')
+											}
 										},
 										onFocus: () => {
-											if (!step0FormIsSubmitting) setBranch('passcode-send')
+											if (!step0FormIsSubmitting) {
+												branchRef.current = 'passcode-send'
+												setBranch('passcode-send')
+											}
 										},
 										onBlur: () => {
-											if (!step0FormIsSubmitting) setBranch('password')
+											if (!step0FormIsSubmitting) {
+												branchRef.current = 'password'
+												setBranch('password')
+											}
 										},
 										onClick: () => {
-											if (!step0FormIsSubmitting) setBranch('passcode-send')
+											branchRef.current = 'passcode-send'
+											setBranch('passcode-send')
 										},
 									}}
 									label="Send a Passcode"
@@ -214,24 +237,37 @@ export function SignInForm() {
 										variant: 'ghost',
 										className: 'text-muted-foreground',
 										onMouseEnter: () => {
-											if (!step0FormIsSubmitting) setBranch('passcode-skip')
+											if (!step0FormIsSubmitting) {
+												branchRef.current = 'passcode-skip'
+												setBranch('passcode-skip')
+											}
 										},
 										onMouseLeave: () => {
-											if (!step0FormIsSubmitting) setBranch('password')
+											if (!step0FormIsSubmitting) {
+												branchRef.current = 'password'
+												setBranch('password')
+											}
 										},
 										onFocus: () => {
-											if (!step0FormIsSubmitting) setBranch('passcode-skip')
+											if (!step0FormIsSubmitting) {
+												branchRef.current = 'passcode-skip'
+												setBranch('passcode-skip')
+											}
 										},
 										onBlur: () => {
-											if (!step0FormIsSubmitting) setBranch('password')
+											if (!step0FormIsSubmitting) {
+												branchRef.current = 'password'
+												setBranch('password')
+											}
 										},
 										onClick: () => {
-											if (!step0FormIsSubmitting) setBranch('passcode-skip')
+											branchRef.current = 'passcode-skip'
+											setBranch('passcode-skip')
 										},
 									}}
 									label="Already Have a Passcode?"
 									changeLabelWhileSubmitting={branch === 'passcode-skip'}
-									labelWhileSubmitting=""
+									labelWhileSubmitting="Loading"
 								/>
 							</FieldGroup>
 						</FieldGroup>
@@ -242,12 +278,14 @@ export function SignInForm() {
 			{step === 1 && (
 				<>
 					<Button
+						ref={backButtonRef}
 						variant="ghost"
 						size="sm"
 						className="mb-7 -ml-2 self-start text-muted-foreground"
 						onClick={() => {
 							setStep(0)
 							setBranch('password')
+							branchRef.current = 'password'
 						}}
 					>
 						<ArrowLeft data-icon="inline-start" /> Change email

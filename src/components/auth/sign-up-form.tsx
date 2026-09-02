@@ -3,7 +3,7 @@ import {Link, useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 import {Schema} from 'effect'
 import {ArrowLeft} from 'lucide-react'
-import {useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 
 import {useConfiguredAppForm, validateAfterFirstSubmit} from '#/hooks/use-app-form.ts'
 import {
@@ -51,13 +51,15 @@ export function SignUpForm() {
 	})
 
 	const [branch, setBranch] = useState<'default' | 'skip'>('default')
+	/** Set synchronously on click so onSubmitTry observes the intended branch without hover/focus pre-sets */
+	const branchRef = useRef<'default' | 'skip'>('default')
 
 	const step0Form = useConfiguredAppForm({
 		defaultValues: {email: localStorageEmail?.email ?? ''},
 		onSubmitSchema: branch === 'default' ? EmailRequestVerificationCredentials : undefined,
 		onSubmitTry: async () => {
 			handleEmailChange(email)
-			if (branch === 'default')
+			if (branchRef.current === 'default')
 				await mutateEmailRequestVerification({email, expectRegisteredRecipient: false})
 			setStep(1)
 		},
@@ -66,6 +68,12 @@ export function SignUpForm() {
 	const email = useSelector(step0Form.atom, (state) => state.values.email)
 
 	const signUpStep0FormIsSubmitting = useSelector(step0Form.atom, (state) => state.isSubmitting)
+
+	const backButtonRef = useRef<HTMLButtonElement>(null)
+
+	useEffect(() => {
+		if (step === 1) backButtonRef.current?.focus()
+	}, [step])
 
 	const {
 		localStorageEmailIsPending,
@@ -144,24 +152,37 @@ export function SignUpForm() {
 										variant: 'ghost',
 										className: 'text-muted-foreground',
 										onMouseEnter: () => {
-											if (!signUpStep0FormIsSubmitting) setBranch('skip')
+											if (!signUpStep0FormIsSubmitting) {
+												branchRef.current = 'skip'
+												setBranch('skip')
+											}
 										},
 										onMouseLeave: () => {
-											if (!signUpStep0FormIsSubmitting) setBranch('default')
+											if (!signUpStep0FormIsSubmitting) {
+												branchRef.current = 'default'
+												setBranch('default')
+											}
 										},
 										onFocus: () => {
-											if (!signUpStep0FormIsSubmitting) setBranch('skip')
+											if (!signUpStep0FormIsSubmitting) {
+												branchRef.current = 'skip'
+												setBranch('skip')
+											}
 										},
 										onBlur: () => {
-											if (!signUpStep0FormIsSubmitting) setBranch('default')
+											if (!signUpStep0FormIsSubmitting) {
+												branchRef.current = 'default'
+												setBranch('default')
+											}
 										},
 										onClick: () => {
-											if (!signUpStep0FormIsSubmitting) setBranch('skip')
+											branchRef.current = 'skip'
+											setBranch('skip')
 										},
 									}}
 									label="Have a Passcode?"
 									changeLabelWhileSubmitting={branch === 'skip'}
-									labelWhileSubmitting=""
+									labelWhileSubmitting="Loading"
 								/>
 							</FieldGroup>
 
@@ -181,12 +202,14 @@ export function SignUpForm() {
 			{step === 1 && (
 				<>
 					<Button
+						ref={backButtonRef}
 						variant="ghost"
 						size="sm"
 						className="mb-7 -ml-2 self-start text-muted-foreground"
 						onClick={() => {
 							setStep(0)
 							setBranch('default')
+							branchRef.current = 'default'
 						}}
 					>
 						<ArrowLeft data-icon="inline-start" /> Change email
