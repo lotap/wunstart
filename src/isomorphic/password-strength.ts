@@ -39,7 +39,10 @@ export function loadZxcvbn() {
 			translations: enPackage.translations,
 			useLevenshteinDistance: true,
 		})
-	})()
+	})().catch((error) => {
+		zxcvbnPromise = undefined
+		throw error
+	})
 
 	return zxcvbnPromise
 }
