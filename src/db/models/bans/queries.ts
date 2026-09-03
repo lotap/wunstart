@@ -1,4 +1,4 @@
-import {eq, getColumns, sql} from 'drizzle-orm'
+import {getColumns, sql} from 'drizzle-orm'
 
 import {createPreparedQuery, createQueryFn} from '#/db/helpers/funcs.ts'
 import {EXCESSIVE_ACTIVITIES_THRESHOLD} from '#/db/models/activities/consts.ts'
@@ -110,17 +110,6 @@ export const insertOrMergeMany = createQueryFn({
 })
 
 /// SELECT ///
-
-export const select = createPreparedQuery({
-	vSchema: V.Select,
-	stmtFn: (qx) =>
-		qx
-			.select()
-			.from(activeTable)
-			.where(eq(id, sql.placeholder('id')))
-			.limit(1)
-			.prepare(`${labelPrefix}_select`),
-})
 
 /// UPDATE ///
 
