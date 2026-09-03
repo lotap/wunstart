@@ -3,7 +3,6 @@ import {
 	createContext,
 	useContext,
 	useEffect,
-	useMemo,
 	useState,
 	type Dispatch,
 	type PropsWithChildren,
@@ -37,7 +36,7 @@ export function HasSudoProvider({
 		return () => clearTimeout(timer)
 	}, [sudoExpiresAt])
 
-	const value = useMemo(() => ({hasSudo, setSudoExpiresAt}), [hasSudo])
+	const value = {hasSudo, setSudoExpiresAt}
 
 	return <HasSudoContext.Provider value={value}>{children}</HasSudoContext.Provider>
 }

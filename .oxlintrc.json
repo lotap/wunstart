@@ -65,6 +65,7 @@
 				// Built-in plugin rules
 				"react/react-in-jsx-scope": "off", // Tanstack Start & vite handle this automatically
 				"react/no-object-type-as-default-prop": "off", // React Compiler handles prop stability
+				"react/jsx-no-constructed-context-values": "off", // React Compiler handles context value stability
 				// TanstackQuery rules
 				"tanstack-query/exhaustive-deps": [
 					"error",

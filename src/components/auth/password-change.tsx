@@ -2,7 +2,7 @@ import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
 import {useQuery} from '@tanstack/react-query'
 import {useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
-import {lazy, useEffect, useMemo, useState} from 'react'
+import {lazy, useEffect, useState} from 'react'
 
 import {AsyncBoundary} from '#/components/async-boundary.tsx'
 import {Button} from '#/components/ui/button.tsx'
@@ -48,11 +48,7 @@ export function ChangePasswordForm({
 
 	const {data: profile} = useQuery(userProfileQueryOptions({serverFn: handleGetUserProfileFn}))
 
-	/**
-	 * Memoized so the meter's effect does not re-run on unrelated re-renders;
-	 * the react compiler does not memoize this value on its own
-	 */
-	const strengthUserInputs = useMemo(() => (profile?.email ? [profile.email] : []), [profile])
+	const strengthUserInputs = profile?.email ? [profile.email] : []
 
 	/**
 	 * The zxcvbn dictionaries load lazily on first check, so warm them up while

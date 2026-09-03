@@ -1,5 +1,5 @@
 import {Schema} from 'effect'
-import {createContext, useContext, useMemo, type PropsWithChildren} from 'react'
+import {createContext, useContext, type PropsWithChildren} from 'react'
 
 import {useLocalStorageQuery} from '#/hooks/use-local-storage-query.ts'
 
@@ -35,7 +35,7 @@ export function ThemeProvider({children}: PropsWithChildren) {
 	/** Default to light theme on server render, where localstorage and prefers-color-scheme are not available. */
 	const resolved = import.meta.env.SSR ? 'light' : resolveTheme(theme)
 
-	const value = useMemo(() => ({theme, resolved, setTheme}), [theme, resolved, setTheme])
+	const value = {theme, resolved, setTheme}
 
 	return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
