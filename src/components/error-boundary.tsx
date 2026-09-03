@@ -1,16 +1,16 @@
 import {Component} from 'react'
 import type {ErrorInfo, ReactNode} from 'react'
 
+type ErrorBoundaryState = {error: Error | null}
+
 export class ErrorBoundary extends Component<
 	{
 		fallback?: ReactNode
 		children: ReactNode
 	},
-	{
-		error: Error | null
-	}
+	ErrorBoundaryState
 > {
-	override state = {error: null}
+	override state: ErrorBoundaryState = {error: null}
 
 	static getDerivedStateFromError(error: Error) {
 		return {error}
