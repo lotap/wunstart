@@ -22,6 +22,15 @@ function SessionsList() {
 	const sessionsQueryOptions = queryOptions({
 		queryKey: ['sessions'],
 		queryFn: () => handleGetSessionsFn(),
+		/**
+		 * Locale-dependent display text is derived as query data (select),
+		 * not formatted during render
+		 */
+		select: (sessions) =>
+			sessions.map((session) => ({
+				...session,
+				createdAtString: session.createdAt.toLocaleString(),
+			})),
 	})
 
 	const {isPending, error, data: sessions} = useQuery(sessionsQueryOptions)
@@ -38,7 +47,6 @@ function SessionsList() {
 	return (
 		<ul>
 			{sessions.map((session) => {
-				const createdAtString = session.createdAt.toLocaleString()
 				/**
 				 * ms-precision timestamp as key: rows are stateless and the list is tiny,
 				 * so the only failure mode (two sign-ins within the same millisecond —
@@ -46,7 +54,7 @@ function SessionsList() {
 				 */
 				return (
 					<li key={session.createdAt.getTime()}>
-						<p>Signed in: {createdAtString}</p>
+						<p>Signed in: {session.createdAtString}</p>
 						<p>IP: {session.ipAddress ?? 'Unknown'}</p>
 						{session.device && <p>Device: {session.device}</p>}
 						{session.location && <p>Location: {session.location}</p>}
