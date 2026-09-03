@@ -2,7 +2,7 @@ import {useQuery} from '@tanstack/react-query'
 import {cva} from 'class-variance-authority'
 import {DateTime, Duration} from 'effect'
 import {RotateCw} from 'lucide-react'
-import {useEffect, useMemo, useState} from 'react'
+import {useEffect, useState} from 'react'
 
 import {Button} from '#/components/ui/button.tsx'
 import {toast} from '#/components/ui/toast.tsx'
@@ -37,9 +37,7 @@ export function ResetEmailVerificationButton({
 }) {
 	const {data: emailRequestVerificationData} = useQuery(queryOptions)
 
-	const expiresAtUtc = emailRequestVerificationData?.expiresAt
-
-	const expiresAt = useMemo(() => expiresAtUtc ?? DateTime.nowUnsafe(), [expiresAtUtc])
+	const expiresAt = emailRequestVerificationData?.expiresAt ?? DateTime.nowUnsafe()
 
 	const [timeUntilEnabled, setTimeUntilEnabled] = useState(() =>
 		calcTimeUntilEnabled(calcEnabledAt(expiresAt)),
