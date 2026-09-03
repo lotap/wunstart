@@ -1,6 +1,5 @@
 import {setCookie} from '@tanstack/react-start/server'
-
-import {addWeeks} from '#/lib/date-helpers.ts'
+import {DateTime} from 'effect'
 
 export const ANON_TOKEN_COOKIE_NAME = `${import.meta.env.PROD ? '__Http-' : ''}anon`
 
@@ -13,5 +12,9 @@ export const anonCookieConfig = {
 } as const
 
 export function setAnonCookie(token: string) {
-	setCookie(ANON_TOKEN_COOKIE_NAME, token, {...anonCookieConfig, expires: addWeeks(new Date(), 8)})
+	setCookie(ANON_TOKEN_COOKIE_NAME, token, {
+		...anonCookieConfig,
+		/** Add weeks and convert back to a Date for the cookie */
+		expires: DateTime.nowUnsafe().pipe(DateTime.add({weeks: 8}), DateTime.toDateUtc),
+	})
 }

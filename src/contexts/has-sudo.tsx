@@ -1,3 +1,4 @@
+import {DateTime} from 'effect'
 import {
 	createContext,
 	useContext,
@@ -8,8 +9,6 @@ import {
 	type PropsWithChildren,
 	type SetStateAction,
 } from 'react'
-
-import {isFuture} from '#/lib/date-helpers.ts'
 
 type HasSudoContextState = {
 	hasSudo: boolean
@@ -24,7 +23,7 @@ export function HasSudoProvider({
 }: PropsWithChildren<{initialSudoExpiresAt?: Date}>) {
 	const [sudoExpiresAt, setSudoExpiresAt] = useState(initialSudoExpiresAt ?? null)
 
-	const hasSudo = !!sudoExpiresAt && isFuture(sudoExpiresAt)
+	const hasSudo = !!sudoExpiresAt && DateTime.isFutureUnsafe(DateTime.makeUnsafe(sudoExpiresAt))
 
 	useEffect(() => {
 		if (!sudoExpiresAt) return

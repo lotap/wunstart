@@ -43,8 +43,6 @@ export const Insert = Schema.Union([
 
 export const Select = selectPrimitive.mapFields(Struct.pick(['id']))
 
-export const ByEmail = selectPrimitive.mapFields(Struct.pick(['email']))
-
 export const ByAnon = selectPrimitive
 	.mapFields(Struct.pick(['anonId']))
 	.mapFields(Struct.evolve({anonId: () => UUID}))
