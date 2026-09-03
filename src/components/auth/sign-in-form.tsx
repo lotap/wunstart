@@ -1,5 +1,5 @@
 import {useSelector} from '@tanstack/react-form'
-import {Link, useRouter} from '@tanstack/react-router'
+import {Link, useRouter, useSearch} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 import {Schema} from 'effect'
 import {ArrowLeft} from 'lucide-react'
@@ -29,12 +29,28 @@ const LinkToSignUp = () => (
 	</Link>
 )
 
+/** Same-origin redirect targets only; anything else falls back to the dashboard */
+function safeRedirectTarget(raw?: string) {
+	if (raw) {
+		try {
+			const url = new URL(raw, window.location.origin)
+			if (url.origin === window.location.origin) return `${url.pathname}${url.search}${url.hash}`
+		} catch {
+			// Adversarial or malformed params (e.g. `redirect=https://[`) can throw here;
+			// fall through to the dashboard rather than failing the sign-in
+		}
+	}
+	return '/'
+}
+
 export function SignInForm() {
 	const handlePasswordSignInFn = useServerFn(handlePasswordSignIn)
 	const handleEmailRequestVerificationFn = useServerFn(handleEmailRequestVerification)
 	const handleEmailSignInFn = useServerFn(handleEmailSignIn)
 
 	const router = useRouter()
+
+	const {redirect} = useSearch({from: '/_auth-gateway/sign-in'})
 
 	const {
 		query: {data: localStorageEmail},
@@ -67,7 +83,7 @@ export function SignInForm() {
 			if (branchRef.current === 'password') {
 				await handlePasswordSignInFn({data: {email, password}})
 				removeLocalStorageSignInState()
-				void router.navigate({to: '/'})
+				router.history.push(safeRedirectTarget(redirect))
 			} else if (branchRef.current === 'passcode-send') {
 				await mutateEmailRequestVerification({email, expectRegisteredRecipient: true})
 				setStep(1)
@@ -305,7 +321,7 @@ export function SignInForm() {
 						onSubmitTry={async ({passcode}) => {
 							await handleEmailSignInFn({data: {email, passcode}})
 							removeLocalStorageSignInState()
-							void router.navigate({to: '/'})
+							router.history.push(safeRedirectTarget(redirect))
 						}}
 						email={email}
 						emailRequestVerificationQueryOptions={emailRequestVerificationOptions}

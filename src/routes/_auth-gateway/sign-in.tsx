@@ -1,8 +1,16 @@
 import {createFileRoute} from '@tanstack/react-router'
+import {Schema} from 'effect'
 
 import {SignInForm} from '#/components/auth/sign-in-form.tsx'
 
-export const Route = createFileRoute('/_auth-gateway/sign-in')({component: App})
+const SignInSearchSchema = Schema.Struct({
+	redirect: Schema.optional(Schema.String),
+})
+
+export const Route = createFileRoute('/_auth-gateway/sign-in')({
+	validateSearch: Schema.toStandardSchemaV1(SignInSearchSchema),
+	component: App,
+})
 
 function App() {
 	return (
