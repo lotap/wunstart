@@ -150,6 +150,7 @@ const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 	country,
 	city,
 	region,
+	timezone,
 }: {
 	userId: string
 	ipAddress: string
@@ -157,6 +158,7 @@ const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 	country: string
 	city: string | null
 	region: string | null
+	timezone: string | null
 }) {
 	const [user] = yield* usersQueries.selectProfile({id: userId})
 
@@ -175,6 +177,7 @@ const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 				country,
 				city,
 				region,
+				timezone,
 				device: formatUserAgent(userAgent),
 			}),
 		catch: (cause) =>
@@ -199,6 +202,7 @@ const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
 	country,
 	city,
 	region,
+	timezone,
 }: {
 	session: SessionRow
 	ipAddress: string
@@ -206,6 +210,7 @@ const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
 	country: string
 	city: string | null
 	region: string | null
+	timezone: string | null
 }) {
 	/** Revoke first. The email is a best-effort notification, never a blocker */
 	yield* sessionsQueries.revoke({id: session.id})
@@ -221,6 +226,7 @@ const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
 		country,
 		city,
 		region,
+		timezone,
 	}).pipe(
 		Effect.ignore({log: true, message: 'Failed to notify the account owner of session reuse'}),
 	)
@@ -244,6 +250,7 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 	country,
 	city,
 	region,
+	timezone,
 }: {
 	session: SessionRow
 	ipAddress: string
@@ -251,6 +258,7 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 	country: string
 	city: string | null
 	region: string | null
+	timezone: string | null
 }) {
 	const {id, userId, graceToken, graceExpiresAt, refreshGeneration, expiresAt} = session
 
@@ -262,7 +270,7 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 
 	/** Revoke if not within grace period duration */
 	if (graceExpiresAt.getTime() <= DateTime.nowUnsafe().epochMilliseconds)
-		return yield* revokeForReuse({session, ipAddress, userAgent, country, city, region})
+		return yield* revokeForReuse({session, ipAddress, userAgent, country, city, region, timezone})
 
 	const graceTokenData = yield* extractRefreshGraceToken(graceToken)
 
@@ -308,6 +316,7 @@ const classifySession = Effect.fn('classifySession')(function* ({
 	country,
 	city,
 	region,
+	timezone,
 }: {
 	rowData: SessionRow
 	tokenData: RefreshTokenPayloadCustomClaims
@@ -316,6 +325,7 @@ const classifySession = Effect.fn('classifySession')(function* ({
 	country: string
 	city: string | null
 	region: string | null
+	timezone: string | null
 }) {
 	/** Current generation - rotate and create fresh access/refresh tokens */
 	if (generation === rowData.refreshGeneration)
@@ -330,11 +340,20 @@ const classifySession = Effect.fn('classifySession')(function* ({
 			country,
 			city,
 			region,
+			timezone,
 		})
 
 	/** Several generations old: reuse. Revoke the family */
 	if (generation < rowData.refreshGeneration - 1)
-		return yield* revokeForReuse({session: rowData, ipAddress, userAgent, country, city, region})
+		return yield* revokeForReuse({
+			session: rowData,
+			ipAddress,
+			userAgent,
+			country,
+			city,
+			region,
+			timezone,
+		})
 
 	/** Future generation: invalid, not reuse. Do not revoke */
 	return yield* authTokenFailure({
@@ -352,6 +371,7 @@ const resolveSession = Effect.fn('resolveSession')(function* ({
 	country,
 	city,
 	region,
+	timezone,
 	rowData,
 	maxAttempts,
 }: {
@@ -361,6 +381,7 @@ const resolveSession = Effect.fn('resolveSession')(function* ({
 	country: string
 	city: string | null
 	region: string | null
+	timezone: string | null
 	rowData: SessionRow
 	maxAttempts: number
 }) {
@@ -375,6 +396,7 @@ const resolveSession = Effect.fn('resolveSession')(function* ({
 			country,
 			city,
 			region,
+			timezone,
 		})
 
 		if (Option.isSome(outcome)) return outcome.value
@@ -394,6 +416,7 @@ const _refresh = Effect.fn('refresh')(function* ({
 	country,
 	city,
 	region,
+	timezone,
 }: {
 	token: string
 	ipAddress: string
@@ -401,6 +424,7 @@ const _refresh = Effect.fn('refresh')(function* ({
 	country: string
 	city: string | null
 	region: string | null
+	timezone: string | null
 }) {
 	const tokenData = yield* extractRefreshTokenPayload(token).pipe(
 		Effect.mapError((error) =>
@@ -438,6 +462,7 @@ const _refresh = Effect.fn('refresh')(function* ({
 		country,
 		city,
 		region,
+		timezone,
 	}).pipe(Effect.provide(HashingStub.layer(session.userId)))
 })
 

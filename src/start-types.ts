@@ -9,6 +9,7 @@ export interface VerifiedServerFnContext {
 	country: string
 	city: string | null
 	region: string | null
+	timezone: string | null
 	auth: AuthContext['auth']
 	anon: AnonContext['anon']
 }
@@ -24,6 +25,7 @@ export interface GlobalServerFnContext {
 	country: string
 	city: string | null
 	region: string | null
+	timezone: string | null
 	auth: Exclude<AuthContext['auth'], DegradedAuth>
 	anon: Exclude<AnonContext['anon'], DegradedAuth>
 }

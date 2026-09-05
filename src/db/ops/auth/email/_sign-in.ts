@@ -19,7 +19,7 @@ import type {VerifyPasscodeContext} from './verify-passcode.ts'
 export const signInWithVerifiedCode = Effect.fn('emailVerifyPasscode.signIn')(function* ({
 	verification,
 	user,
-	ctx: {email, ipAddress, userAgent, country, city, region, anonTokenPayload},
+	ctx: {email, ipAddress, userAgent, country, city, region, timezone, anonTokenPayload},
 }: {
 	verification: Effect.Success<ReturnType<typeof verify>>
 	user: {
@@ -98,6 +98,7 @@ export const signInWithVerifiedCode = Effect.fn('emailVerifyPasscode.signIn')(fu
 						country,
 						city,
 						region,
+						timezone,
 						device: formatUserAgent(userAgent),
 					}),
 				catch: (cause) =>

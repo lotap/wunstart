@@ -20,6 +20,7 @@ export type VerifyPasscodeContext = {
 	country: string
 	city: string | null
 	region: string | null
+	timezone: string | null
 	anonTokenPayload: AnonTokenPayloadCustomClaims
 }
 
@@ -30,6 +31,7 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 	country,
 	city,
 	region,
+	timezone,
 	anonTokenPayload,
 }: {
 	input: (typeof EmailPasscodeCredentials)['Type']
@@ -38,13 +40,14 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 	country: string
 	city: string | null
 	region: string | null
+	timezone: string | null
 	anonTokenPayload: AnonTokenPayloadCustomClaims
 }) {
 	const {id: anonId} = anonTokenPayload
 	/** Only registered anons have a database row, so only their id may populate the FK column */
 	const registeredAnonId = anonTokenPayload.registered ? anonId : undefined
 
-	const ctx = {email, ipAddress, userAgent, country, city, region, anonTokenPayload}
+	const ctx = {email, ipAddress, userAgent, country, city, region, timezone, anonTokenPayload}
 
 	/** Before processing, check if the ip address should be ratelimited */
 	const currentBansAndExcessiveActivities = yield* checkCurrentBansAndExcessiveActivities({

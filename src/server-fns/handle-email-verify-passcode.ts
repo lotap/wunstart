@@ -19,11 +19,20 @@ export const handleEmailVerifyPasscode = createServerFn({method: 'POST'})
 	.middleware([rateLimit, requireAnonRegistered])
 	.validator(Schema.toStandardSchemaV1(EmailPasscodeCredentials))
 	.handler(async ({data, context}) => {
-		const {ipAddress, userAgent, country, city, region, anon} = context
+		const {ipAddress, userAgent, country, city, region, timezone, anon} = context
 
 		const {access, session, isNewUser} = await runOp({
 			op: emailVerifyPasscode,
-			data: {input: data, anonTokenPayload: anon, ipAddress, userAgent, country, city, region},
+			data: {
+				input: data,
+				anonTokenPayload: anon,
+				ipAddress,
+				userAgent,
+				country,
+				city,
+				region,
+				timezone,
+			},
 			layers: [authLayer, dbLayer, emailLayer],
 		})
 

@@ -25,6 +25,7 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 	country,
 	city,
 	region,
+	timezone,
 	userId,
 	sudoExpiresAt,
 }: {
@@ -34,6 +35,7 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 	country: string
 	city: string | null
 	region: string | null
+	timezone: string | null
 	userId: string
 	sudoExpiresAt?: DateTime.Utc
 }) {
@@ -113,6 +115,7 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 						country,
 						city,
 						region,
+						timezone,
 						device: formatUserAgent(userAgent),
 					}),
 				catch: (cause) =>

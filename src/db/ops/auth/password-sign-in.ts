@@ -44,6 +44,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 	country,
 	city,
 	region,
+	timezone,
 	anonTokenPayload,
 }: {
 	input: (typeof EmailPasswordCredentials)['Type']
@@ -52,6 +53,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 	country: string
 	city: string | null
 	region: string | null
+	timezone: string | null
 	anonTokenPayload: AnonTokenPayloadCustomClaims
 }) {
 	const registeredAnonId = anonTokenPayload.registered ? anonTokenPayload.id : undefined
@@ -200,6 +202,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 						country,
 						city,
 						region,
+						timezone,
 						device: formatUserAgent(userAgent),
 					}),
 				catch: (cause) =>

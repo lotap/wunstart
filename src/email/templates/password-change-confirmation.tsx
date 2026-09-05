@@ -14,6 +14,7 @@ import {
 } from 'react-email'
 
 import {formatLocation} from '../format-location.ts'
+import {formatEmailTime} from '../format-time.ts'
 import {emailTailwindConfig} from '../tailwind-config.ts'
 
 type PasswordChangeConfirmationProps = {
@@ -22,14 +23,9 @@ type PasswordChangeConfirmationProps = {
 	country: string
 	city: string | null
 	region: string | null
+	timezone: string | null
 	device: string | null
 }
-
-const dateFormatter = new Intl.DateTimeFormat('en-US', {
-	dateStyle: 'long',
-	timeStyle: 'short',
-	timeZone: 'America/New_York',
-})
 
 export default function PasswordChangeConfirmation({
 	ipAddress,
@@ -37,6 +33,7 @@ export default function PasswordChangeConfirmation({
 	country,
 	city,
 	region,
+	timezone,
 	device,
 }: PasswordChangeConfirmationProps) {
 	const location = formatLocation({city, region, country})
@@ -59,7 +56,7 @@ export default function PasswordChangeConfirmation({
 
 									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
 										<b>Time: </b>
-										{dateFormatter.format(updatedAt)} ET
+										{formatEmailTime(updatedAt, timezone)}
 									</Text>
 
 									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
@@ -106,6 +103,7 @@ PasswordChangeConfirmation.PreviewProps = {
 	country: 'US',
 	city: 'San Francisco',
 	region: 'CA',
+	timezone: 'America/Los_Angeles',
 	device: 'Chrome 126 on Windows (Desktop)',
 } as PasswordChangeConfirmationProps
 

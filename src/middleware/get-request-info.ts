@@ -21,6 +21,20 @@ const geoHeaderValue = (header: string, maxLength: number) => {
 	return raw ? decodeHeaderValue(raw.trim()).slice(0, maxLength) || null : null
 }
 
+/** Read the `cf-timezone` visitor-location header, returning null when absent or not a valid IANA zone */
+const timezoneHeaderValue = () => {
+	const raw = geoHeaderValue('cf-timezone', 64)
+
+	if (!raw) return null
+
+	try {
+		new Intl.DateTimeFormat('en-US', {timeZone: raw}).format(new Date())
+		return raw
+	} catch {
+		return null
+	}
+}
+
 export const getRequestInfo = createMiddleware().server(({next}) => {
 	const ipAddress =
 		getRequestHeader('cf-connecting-ip') ?? getRequestIP({xForwardedFor: true}) ?? '0.0.0.0'
@@ -30,11 +44,12 @@ export const getRequestInfo = createMiddleware().server(({next}) => {
 	/**
 	 * Geolocation varies by provider; defaults to Cloudflare's visitor-location headers.
 	 * Country falls back to `XX` (CF's own "unknown client country" sentinel), while
-	 * city/region stay null when absent — absence is not a place
+	 * city/region/timezone stay null when absent — absence is not a place
 	 */
 	const country = (getRequestHeader('cf-ipcountry') || 'XX').trim().slice(0, 2)
 	const city = geoHeaderValue('cf-ipcity', 128)
 	const region = geoHeaderValue('cf-region-code', 64)
+	const timezone = timezoneHeaderValue()
 
-	return next({context: {ipAddress, userAgent, country, city, region}})
+	return next({context: {ipAddress, userAgent, country, city, region, timezone}})
 })

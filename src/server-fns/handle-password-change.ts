@@ -31,6 +31,7 @@ export const handlePasswordChange = createServerFn({method: 'POST'})
 				country,
 				city,
 				region,
+				timezone,
 				auth: {userId, sudoExpiresAt},
 			},
 		}) => {
@@ -44,7 +45,17 @@ export const handlePasswordChange = createServerFn({method: 'POST'})
 
 			const {anonToken} = await runOp({
 				op: passwordChange,
-				data: {input: data, ipAddress, userAgent, country, city, region, userId, sudoExpiresAt},
+				data: {
+					input: data,
+					ipAddress,
+					userAgent,
+					country,
+					city,
+					region,
+					timezone,
+					userId,
+					sudoExpiresAt,
+				},
 				layers: [authLayer, dbLayer, emailLayer],
 			})
 
