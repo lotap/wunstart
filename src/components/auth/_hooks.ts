@@ -1,15 +1,14 @@
 import {useMutation, useQueryClient} from '@tanstack/react-query'
-import {useServerFn} from '@tanstack/react-start'
 import {DateTime} from 'effect'
 
 import {useLocalStorageQuery} from '#/hooks/use-local-storage-query.ts'
-import {handleEmailRequestVerification} from '#/server-fns/handle-email-request-verification.ts'
 
 import {
-	emailRequestVerificationQueryOptions,
+	passcodeRequestQueryOptions,
 	LocalStorageAuthFormStateSchema,
 	LocalStorageEmailSchema,
-	type EmailRequestVerificationQueryOptions,
+	type RequestEmailPasscodeServerFn,
+	type PasscodeRequestQueryOptions,
 } from './_utils.ts'
 
 export function useLocalStorageEmail() {
@@ -17,53 +16,49 @@ export function useLocalStorageEmail() {
 	return queries
 }
 
-export function useEmailRequestVerificationMutation({
+export function usePasscodeRequestMutation({
 	serverFn,
 	invalidationKey,
 }: {
-	serverFn: ReturnType<typeof useServerFn<typeof handleEmailRequestVerification>>
-	invalidationKey: EmailRequestVerificationQueryOptions['queryKey']
+	serverFn: RequestEmailPasscodeServerFn
+	invalidationKey: PasscodeRequestQueryOptions['queryKey']
 }) {
 	const queryClient = useQueryClient()
 
-	const {
-		mutateAsync: mutateEmailRequestVerification,
-		isPending: emailRequestVerificationIsPending,
-	} = useMutation({
-		mutationFn: (data: {email: string; expectRegisteredRecipient?: boolean}) => serverFn({data}),
+	const {mutateAsync: mutatePasscodeRequest, isPending: passcodeRequestIsPending} = useMutation({
+		mutationFn: serverFn,
 		gcTime: 15 * 60 * 1000,
 		onSuccess: ({expiresAt}) => queryClient.setQueryData(invalidationKey, {expiresAt}),
 	})
 
-	return {mutateEmailRequestVerification, emailRequestVerificationIsPending}
+	return {mutatePasscodeRequest, passcodeRequestIsPending}
 }
 
 /** Shared email-capture state for the sign-in and sign-up forms */
 export function useAuthFormEmailState({
 	serverFn,
 	email,
-	expectRegisteredRecipient,
+	intent,
 }: {
-	serverFn: ReturnType<typeof useServerFn<typeof handleEmailRequestVerification>>
+	serverFn: RequestEmailPasscodeServerFn
 	email: string
-	expectRegisteredRecipient: boolean
+	intent: 'sign-up' | 'sign-in' | 'reverify'
 }) {
 	const {
 		query: {isPending: localStorageEmailIsPending},
 		mutation: {mutate: upsertLocalStorageEmail},
 	} = useLocalStorageEmail()
 
-	const emailRequestVerificationOptions = emailRequestVerificationQueryOptions({
+	const passcodeRequestOptions = passcodeRequestQueryOptions({
 		serverFn,
 		email,
-		expectRegisteredRecipient,
+		intent,
 	})
 
-	const {mutateEmailRequestVerification, emailRequestVerificationIsPending} =
-		useEmailRequestVerificationMutation({
-			serverFn,
-			invalidationKey: emailRequestVerificationOptions.queryKey,
-		})
+	const {mutatePasscodeRequest, passcodeRequestIsPending} = usePasscodeRequestMutation({
+		serverFn,
+		invalidationKey: passcodeRequestOptions.queryKey,
+	})
 
 	const handleEmailChange = (value: string) => {
 		upsertLocalStorageEmail({
@@ -74,9 +69,9 @@ export function useAuthFormEmailState({
 
 	return {
 		localStorageEmailIsPending,
-		emailRequestVerificationOptions,
-		mutateEmailRequestVerification,
-		emailRequestVerificationIsPending,
+		passcodeRequestOptions,
+		mutatePasscodeRequest,
+		passcodeRequestIsPending,
 		handleEmailChange,
 	}
 }

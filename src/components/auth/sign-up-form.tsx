@@ -6,13 +6,10 @@ import {ArrowLeft} from 'lucide-react'
 import {useEffect, useRef, useState} from 'react'
 
 import {useConfiguredAppForm, validateAfterFirstSubmit} from '#/hooks/use-app-form.ts'
-import {
-	EmailRequestVerificationCredentials,
-	EmailSignUpCredentials,
-} from '#/isomorphic/validations/auth.ts'
+import {EmailCredentials, EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 import {Email} from '#/isomorphic/validators.ts'
-import {handleEmailRequestVerification} from '#/server-fns/handle-email-request-verification.ts'
-import {handleEmailSignUp} from '#/server-fns/handle-email-sign-up.ts'
+import {handleEmailRequestPasscode} from '#/server-fns/handle-email-request-passcode.ts'
+import {handleEmailVerifyPasscode} from '#/server-fns/handle-email-verify-passcode.ts'
 
 import {Button} from '../ui/button.tsx'
 import {FieldDescription, FieldGroup} from '../ui/field.tsx'
@@ -32,8 +29,8 @@ const LinkToSignIn = () => (
 )
 
 export function SignUpForm() {
-	const handleEmailRequestVerificationFn = useServerFn(handleEmailRequestVerification)
-	const handleEmailSignUpFn = useServerFn(handleEmailSignUp)
+	const handleEmailRequestPasscodeFn = useServerFn(handleEmailRequestPasscode)
+	const handleEmailVerifyPasscodeFn = useServerFn(handleEmailVerifyPasscode)
 
 	const router = useRouter()
 
@@ -56,11 +53,10 @@ export function SignUpForm() {
 
 	const step0Form = useConfiguredAppForm({
 		defaultValues: {email: localStorageEmail?.email ?? ''},
-		onSubmitSchema: branch === 'default' ? EmailRequestVerificationCredentials : undefined,
+		onSubmitSchema: branch === 'default' ? EmailCredentials : undefined,
 		onSubmitTry: async () => {
 			handleEmailChange(email)
-			if (branchRef.current === 'default')
-				await mutateEmailRequestVerification({email, expectRegisteredRecipient: false})
+			if (branchRef.current === 'default') await mutatePasscodeRequest()
 			setStep(1)
 		},
 	})
@@ -77,14 +73,14 @@ export function SignUpForm() {
 
 	const {
 		localStorageEmailIsPending,
-		emailRequestVerificationOptions,
-		mutateEmailRequestVerification,
-		emailRequestVerificationIsPending,
+		passcodeRequestOptions,
+		mutatePasscodeRequest,
+		passcodeRequestIsPending,
 		handleEmailChange,
 	} = useAuthFormEmailState({
-		serverFn: handleEmailRequestVerificationFn,
+		serverFn: () => handleEmailRequestPasscodeFn({data: {email, intent: 'sign-up'}}),
 		email,
-		expectRegisteredRecipient: false,
+		intent: 'sign-up',
 	})
 
 	if (localStorageSignUpStateIsPending || localStorageEmailIsPending)
@@ -219,24 +215,22 @@ export function SignUpForm() {
 						headline="Verify your email"
 						subhead={
 							<>
-								We sent a 6-digit code to <strong>{email}</strong>
+								We sent a passcode/instructions to <strong>{email}</strong>
 							</>
 						}
 					/>
 
 					<PasscodeForm
-						onSubmitSchema={EmailSignUpCredentials}
+						onSubmitSchema={EmailPasscodeCredentials}
 						onSubmitTry={async ({passcode}) => {
-							await handleEmailSignUpFn({data: {email, passcode}})
+							await handleEmailVerifyPasscodeFn({data: {email, passcode}})
 							removeLocalStorageSignUpState()
 							void router.navigate({to: '/', state: {welcome: true}})
 						}}
 						email={email}
-						emailRequestVerificationQueryOptions={emailRequestVerificationOptions}
-						mutateEmailRequestVerification={() =>
-							mutateEmailRequestVerification({email, expectRegisteredRecipient: false})
-						}
-						mutateEmailRequestVerificationIsPending={emailRequestVerificationIsPending}
+						passcodeRequestQueryOptions={passcodeRequestOptions}
+						mutatePasscodeRequest={mutatePasscodeRequest}
+						mutatePasscodeRequestIsPending={passcodeRequestIsPending}
 					/>
 				</>
 			)}

@@ -8,7 +8,7 @@ import {hashTarget, verifyTarget} from '#/db/ops/auth/_hashing.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
-import {PasswordReverifyCredentials} from '#/isomorphic/validations/auth.ts'
+import {PasswordCredentials} from '#/isomorphic/validations/auth.ts'
 
 import {generateAccessToken} from './_access-token.ts'
 import {needsRehash} from './_check-rehash.ts'
@@ -25,7 +25,7 @@ const _passwordReverify = Effect.fn('passwordReverify')(function* ({
 	ipAddress,
 	userId,
 }: {
-	input: (typeof PasswordReverifyCredentials)['Type']
+	input: (typeof PasswordCredentials)['Type']
 	ipAddress: string
 	userId: string
 }) {

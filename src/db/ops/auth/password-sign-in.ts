@@ -12,7 +12,7 @@ import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 import {EmailRenderError, EmailService} from '#/email/service.ts'
 import {renderSignInNotification} from '#/email/templates/sign-in-notification.tsx'
-import {PasswordSignInCredentials} from '#/isomorphic/validations/auth.ts'
+import {EmailPasswordCredentials} from '#/isomorphic/validations/auth.ts'
 
 import {generateAccessToken} from './_access-token.ts'
 import type {AnonTokenPayloadCustomClaims} from './_anon-token.ts'
@@ -46,7 +46,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 	region,
 	anonTokenPayload,
 }: {
-	input: (typeof PasswordSignInCredentials)['Type']
+	input: (typeof EmailPasswordCredentials)['Type']
 	ipAddress: string
 	userAgent: string
 	country: string

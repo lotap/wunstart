@@ -7,7 +7,7 @@ Email delivery is an unimportant side effect. A notification failure after its d
 
 ## Context
 
-Before this ADR, ops rendered and sent notification emails after their database work had already committed (`password-sign-in`, `password-change`, `email/sign-in`, `email/request-verification`). If the render or provider send failed, the op returned an error even though the session, password, or verification row had committed. The client would retry, producing duplicate sessions or verification codes.
+Before this ADR, ops rendered and sent notification emails after their database work had already committed (`password-sign-in`, `password-change`, `email/sign-in`, `email/request-passcode`). If the render or provider send failed, the op returned an error even though the session, password, or verification row had committed. The client would retry, producing duplicate sessions or verification codes.
 
 Two failures had to be distinguished:
 
@@ -18,7 +18,7 @@ A transactional outbox table was prototyped to make delivery durable, then rejec
 
 ## Decision
 
-**The verification email is the deliverable and must not silently fail.** `email/request-verification` renders before the row upsert (a render failure fails the op while nothing is committed) and a provider send failure fails the op with an `EMAIL_SEND` activity, so the user is told the code never went out instead of waiting for one that will never arrive. On send failure the op retires the just-minted verification intent (guarded by its passcode hash, so a concurrent reset is left alone), letting an immediate retry mint a fresh code instead of hitting the `TOO_SOON_SINCE_LAST_RESET` window.
+**The verification email is the deliverable and must not silently fail.** `email/request-passcode` renders before the row upsert (a render failure fails the op while nothing is committed) and a provider send failure fails the op with an `EMAIL_SEND` activity, so the user is told the code never went out instead of waiting for one that will never arrive. On send failure the op retires the just-minted verification intent (guarded by its passcode hash, so a concurrent reset is left alone), letting an immediate retry mint a fresh code instead of hitting the `TOO_SOON_SINCE_LAST_RESET` window.
 
 **Notification emails are nice-to-have post-commit side effects.** For `email/sign-in`, `password-sign-in`, and `password-change`, the notification and its render run entirely after the commit, wrapped in `Effect.ignore({log: true, message})`. Neither a render failure nor a provider/database/defect failure can fail the op or misreport the committed mutation. The refresh-reuse notification (`refresh.ts`) follows the same pattern. The `ignore` log message is the observable failure policy: each send site names the notification it failed to dispatch.
 
@@ -39,8 +39,8 @@ A transactional outbox table was prototyped to make delivery durable, then rejec
 
 ## Consequences
 
-- **Ops still call `EmailService.send` directly.** `email/request-verification` treats send failures as typed `EMAIL_SEND` operation failures with a best-effort compensating archive; every other send site runs post-commit through `Effect.ignore` so delivery can never fail the op. The `emailLayer` remains provided only to ops that send email (abuse-surface minimization per ADR 0007).
-- **Verification-code renders moved pre-commit** in `email/request-verification`. Its render failure path changed from a misreported committed mutation to a safe pre-mutation failure.
+- **Ops still call `EmailService.send` directly.** `email/request-passcode` treats send failures as typed `EMAIL_SEND` operation failures with a best-effort compensating archive; every other send site runs post-commit through `Effect.ignore` so delivery can never fail the op. The `emailLayer` remains provided only to ops that send email (abuse-surface minimization per ADR 0007).
+- **Verification-code renders moved pre-commit** in `email/request-passcode`. Its render failure path changed from a misreported committed mutation to a safe pre-mutation failure.
 - **Notification renders moved post-commit** in `email/sign-in`, `password-sign-in`, and `password-change`; render failures became logged-and-swallowed instead of failing the op. The password-change confirmation uses the database `updatedAt` from the committed update.
 - **Email content never persists**. No table, migration, cron, or sweep infrastructure. Activity metadata for `EMAIL_SEND` failures stores only the transport name and provider error code, never message bodies or email content, consistent with the activity-redaction policy that forbids persisting email bodies, tokens, and raw provider responses. The `Effect.ignore({log: true})` calls are the only record of notification delivery failures.
 - **Email retryability classification shrinks in scope**: since nothing is retried at the application layer, classifying a provider failure as permanent, transient, or ambiguous only matters for the transport-layer fallback chain (`EMAIL_FALLBACK`). Transports tag their own failures at the boundary (`kind`: `config` / `transient` / `ambiguous` / `rejected`); the chain skips unconfigured transports instantly, stops early on permanent rejections, and its single whole-chain retry fires only when every hop provably did not accept the message (an aggregate `transient` outcome).

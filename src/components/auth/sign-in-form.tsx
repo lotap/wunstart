@@ -9,10 +9,10 @@ import {Button} from '#/components/ui/button.tsx'
 import {FieldGroup, FieldSeparator} from '#/components/ui/field.tsx'
 import {Skeleton} from '#/components/ui/skeleton.tsx'
 import {useConfiguredAppForm, validateAfterFirstSubmit} from '#/hooks/use-app-form.ts'
-import {EmailSignInCredentials} from '#/isomorphic/validations/auth.ts'
+import {EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 import {Email, Password} from '#/isomorphic/validators.ts'
-import {handleEmailRequestVerification} from '#/server-fns/handle-email-request-verification.ts'
-import {handleEmailSignIn} from '#/server-fns/handle-email-sign-in.ts'
+import {handleEmailRequestPasscode} from '#/server-fns/handle-email-request-passcode.ts'
+import {handleEmailVerifyPasscode} from '#/server-fns/handle-email-verify-passcode.ts'
 import {handlePasswordSignIn} from '#/server-fns/handle-password-sign-in.ts'
 
 import {FormHeading} from './_form-heading.tsx'
@@ -45,8 +45,8 @@ function safeRedirectTarget(raw?: string) {
 
 export function SignInForm() {
 	const handlePasswordSignInFn = useServerFn(handlePasswordSignIn)
-	const handleEmailRequestVerificationFn = useServerFn(handleEmailRequestVerification)
-	const handleEmailSignInFn = useServerFn(handleEmailSignIn)
+	const handleEmailRequestPasscodeFn = useServerFn(handleEmailRequestPasscode)
+	const handleEmailVerifyPasscodeFn = useServerFn(handleEmailVerifyPasscode)
 
 	const router = useRouter()
 
@@ -85,7 +85,7 @@ export function SignInForm() {
 				removeLocalStorageSignInState()
 				router.history.push(safeRedirectTarget(redirect))
 			} else if (branchRef.current === 'passcode-send') {
-				await mutateEmailRequestVerification({email, expectRegisteredRecipient: true})
+				await mutatePasscodeRequest()
 				setStep(1)
 			} else {
 				setStep(1)
@@ -105,14 +105,14 @@ export function SignInForm() {
 
 	const {
 		localStorageEmailIsPending,
-		emailRequestVerificationOptions,
-		mutateEmailRequestVerification,
-		emailRequestVerificationIsPending,
+		passcodeRequestOptions,
+		mutatePasscodeRequest,
+		passcodeRequestIsPending,
 		handleEmailChange,
 	} = useAuthFormEmailState({
-		serverFn: handleEmailRequestVerificationFn,
+		serverFn: () => handleEmailRequestPasscodeFn({data: {email, intent: 'sign-in'}}),
 		email,
-		expectRegisteredRecipient: true,
+		intent: 'sign-in',
 	})
 
 	if (localStorageSignInStateIsPending || localStorageEmailIsPending)
@@ -311,24 +311,22 @@ export function SignInForm() {
 						headline="Verify your email"
 						subhead={
 							<>
-								We sent a 6-digit code to <strong>{email}</strong>
+								We sent a passcode/instructions to <strong>{email}</strong>
 							</>
 						}
 					/>
 
 					<PasscodeForm
-						onSubmitSchema={EmailSignInCredentials}
+						onSubmitSchema={EmailPasscodeCredentials}
 						onSubmitTry={async ({passcode}) => {
-							await handleEmailSignInFn({data: {email, passcode}})
+							await handleEmailVerifyPasscodeFn({data: {email, passcode}})
 							removeLocalStorageSignInState()
 							router.history.push(safeRedirectTarget(redirect))
 						}}
 						email={email}
-						emailRequestVerificationQueryOptions={emailRequestVerificationOptions}
-						mutateEmailRequestVerification={() =>
-							mutateEmailRequestVerification({email, expectRegisteredRecipient: true})
-						}
-						mutateEmailRequestVerificationIsPending={emailRequestVerificationIsPending}
+						passcodeRequestQueryOptions={passcodeRequestOptions}
+						mutatePasscodeRequest={mutatePasscodeRequest}
+						mutatePasscodeRequestIsPending={passcodeRequestIsPending}
 					/>
 				</>
 			)}

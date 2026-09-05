@@ -2,7 +2,6 @@ import {queryOptions} from '@tanstack/react-query'
 import type {useServerFn} from '@tanstack/react-start'
 import {Result, Schema} from 'effect'
 
-import type {handleEmailRequestVerification} from '#/server-fns/handle-email-request-verification.ts'
 import type {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 
 export const LocalStorageEmailSchema = Schema.Struct({
@@ -15,22 +14,21 @@ export const LocalStorageAuthFormStateSchema = Schema.Struct({
 	expiresAt: Schema.DateTimeUtcFromString,
 })
 
-export const emailRequestVerificationQueryOptions = ({
+/** The server function that requests a code email. Closed over its inputs, so callers invoke it with no arguments */
+export type RequestEmailPasscodeServerFn = () => Promise<{expiresAt: Date}>
+
+export const passcodeRequestQueryOptions = ({
 	serverFn,
 	email,
-	expectRegisteredRecipient,
+	intent,
 }: {
-	serverFn: ReturnType<typeof useServerFn<typeof handleEmailRequestVerification>>
+	serverFn: RequestEmailPasscodeServerFn
 	email: string
-	expectRegisteredRecipient?: boolean
+	intent: 'sign-up' | 'sign-in' | 'reverify'
 }) =>
 	queryOptions({
-		queryKey: [
-			'emailRequestVerification',
-			email,
-			`expectRegisteredRecipient-${expectRegisteredRecipient}`,
-		],
-		queryFn: () => serverFn({data: {email, expectRegisteredRecipient}}),
+		queryKey: ['passcodeRequest', email, intent],
+		queryFn: () => serverFn(),
 		select: (data) =>
 			Result.getOrThrow(
 				Schema.decodeUnknownResult(Schema.Struct({expiresAt: Schema.DateTimeUtcFromDate}))(data),
@@ -40,9 +38,7 @@ export const emailRequestVerificationQueryOptions = ({
 		enabled: false,
 	})
 
-export type EmailRequestVerificationQueryOptions = ReturnType<
-	typeof emailRequestVerificationQueryOptions
->
+export type PasscodeRequestQueryOptions = ReturnType<typeof passcodeRequestQueryOptions>
 
 export const userProfileQueryOptions = ({
 	serverFn,

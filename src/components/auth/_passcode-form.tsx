@@ -5,7 +5,7 @@ import {useConfiguredAppForm, validateAfterFirstSubmit} from '#/hooks/use-app-fo
 import {Passcode} from '#/isomorphic/validators.ts'
 
 import {ResetEmailVerificationButton} from './_reset-email-verification-button.tsx'
-import type {EmailRequestVerificationQueryOptions} from './_utils.ts'
+import type {PasscodeRequestQueryOptions} from './_utils.ts'
 
 type PasscodeSubmitCredentials = {passcode: string; email?: string}
 
@@ -13,16 +13,16 @@ export function PasscodeForm({
 	onSubmitSchema,
 	onSubmitTry,
 	email,
-	emailRequestVerificationQueryOptions,
-	mutateEmailRequestVerification,
-	mutateEmailRequestVerificationIsPending,
+	passcodeRequestQueryOptions,
+	mutatePasscodeRequest,
+	mutatePasscodeRequestIsPending,
 }: {
 	onSubmitSchema?: Schema.ConstraintCodec<PasscodeSubmitCredentials>
 	onSubmitTry: (value: PasscodeSubmitCredentials) => Promise<void>
 	email: string
-	emailRequestVerificationQueryOptions: EmailRequestVerificationQueryOptions
-	mutateEmailRequestVerification: () => Promise<{expiresAt: Date}>
-	mutateEmailRequestVerificationIsPending: boolean
+	passcodeRequestQueryOptions: PasscodeRequestQueryOptions
+	mutatePasscodeRequest: () => Promise<{expiresAt: Date}>
+	mutatePasscodeRequestIsPending: boolean
 }) {
 	const form = useConfiguredAppForm({
 		defaultValues: {email, passcode: ''},
@@ -51,9 +51,9 @@ export function PasscodeForm({
 
 					<ResetEmailVerificationButton
 						email={email}
-						queryOptions={emailRequestVerificationQueryOptions}
-						mutateAsync={mutateEmailRequestVerification}
-						mutationIsPending={mutateEmailRequestVerificationIsPending}
+						queryOptions={passcodeRequestQueryOptions}
+						mutateAsync={mutatePasscodeRequest}
+						mutationIsPending={mutatePasscodeRequestIsPending}
 						onRequestNewCode={() => form.resetField('passcode')}
 					/>
 

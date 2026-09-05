@@ -9,7 +9,7 @@ import {SUDO_EXPIRATION_WINDOW} from '#/db/ops/auth/consts.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
-import type {EmailReverifyCredentials} from '#/isomorphic/validations/auth.ts'
+import type {PasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 
 import {burnPasscode} from './_burn-passcode.ts'
 import {verify} from './_verify.ts'
@@ -25,7 +25,7 @@ const _emailReverify = Effect.fn('emailReverify')(function* ({
 	ipAddress,
 	userId,
 }: {
-	input: (typeof EmailReverifyCredentials)['Type']
+	input: (typeof PasscodeCredentials)['Type']
 	ipAddress: string
 	userId: string
 }) {

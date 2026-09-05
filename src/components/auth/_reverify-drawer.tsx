@@ -20,24 +20,21 @@ import {Spinner} from '#/components/ui/spinner.tsx'
 import {toast} from '#/components/ui/toast.tsx'
 import {useHasSudo} from '#/contexts/has-sudo.tsx'
 import {useConfiguredAppForm, validateAfterFirstSubmit} from '#/hooks/use-app-form.ts'
-import {
-	EmailReverifyCredentials,
-	PasswordReverifyCredentials,
-} from '#/isomorphic/validations/auth.ts'
+import {PasscodeCredentials, PasswordCredentials} from '#/isomorphic/validations/auth.ts'
 import {Password} from '#/isomorphic/validators.ts'
-import {handleEmailRequestVerification} from '#/server-fns/handle-email-request-verification.ts'
+import {handleEmailRequestPasscodeFromSession} from '#/server-fns/handle-email-request-passcode-from-session.ts'
 import {handleEmailReverify} from '#/server-fns/handle-email-reverify.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 import {handlePasswordReverify} from '#/server-fns/handle-password-reverify.ts'
 
-import {useEmailRequestVerificationMutation} from './_hooks.ts'
+import {usePasscodeRequestMutation} from './_hooks.ts'
 import {PasscodeForm} from './_passcode-form.tsx'
-import {emailRequestVerificationQueryOptions, userProfileQueryOptions} from './_utils.ts'
+import {passcodeRequestQueryOptions, userProfileQueryOptions} from './_utils.ts'
 
 /**
  * Reverification via email passcode.
  *
- * The `emailRequestVerification` query cache this form reads and writes is a
+ * The `passcodeRequest` query cache this form reads and writes is a
  * last-send record only — when a code was emailed and how long its resend
  * cooldown runs. It is never a validity signal: a code can be burned by any
  * flow (sign-in, sign-up, reverify), superseded by a newer send, maxed out on
@@ -48,20 +45,19 @@ import {emailRequestVerificationQueryOptions, userProfileQueryOptions} from './_
  * the drawer always opens at the send step
  */
 function ReverifyEmailForm({email}: {email: string}) {
-	const handleEmailRequestVerificationFn = useServerFn(handleEmailRequestVerification)
+	const handleEmailRequestPasscodeFromSessionFn = useServerFn(handleEmailRequestPasscodeFromSession)
 	const handleEmailReverifyFn = useServerFn(handleEmailReverify)
 
-	const _emailRequestVerificationQueryOptions = emailRequestVerificationQueryOptions({
-		serverFn: handleEmailRequestVerificationFn,
+	const _passcodeRequestQueryOptions = passcodeRequestQueryOptions({
+		serverFn: handleEmailRequestPasscodeFromSessionFn,
 		email,
-		expectRegisteredRecipient: true,
+		intent: 'reverify',
 	})
 
-	const {mutateEmailRequestVerification, emailRequestVerificationIsPending} =
-		useEmailRequestVerificationMutation({
-			serverFn: handleEmailRequestVerificationFn,
-			invalidationKey: _emailRequestVerificationQueryOptions.queryKey,
-		})
+	const {mutatePasscodeRequest, passcodeRequestIsPending} = usePasscodeRequestMutation({
+		serverFn: handleEmailRequestPasscodeFromSessionFn,
+		invalidationKey: _passcodeRequestQueryOptions.queryKey,
+	})
 
 	const {setSudoExpiresAt} = useHasSudo()
 
@@ -80,10 +76,10 @@ function ReverifyEmailForm({email}: {email: string}) {
 				</p>
 				<Button
 					className="w-full"
-					disabled={emailRequestVerificationIsPending}
+					disabled={passcodeRequestIsPending}
 					onClick={async () => {
 						try {
-							await mutateEmailRequestVerification({email, expectRegisteredRecipient: true})
+							await mutatePasscodeRequest()
 							setPasscodeSent(true)
 						} catch (error) {
 							toast.add({
@@ -97,7 +93,7 @@ function ReverifyEmailForm({email}: {email: string}) {
 					}}
 				>
 					Send it
-					{emailRequestVerificationIsPending && <Spinner data-icon="inline-end" />}
+					{passcodeRequestIsPending && <Spinner data-icon="inline-end" />}
 				</Button>
 			</div>
 		)
@@ -109,17 +105,15 @@ function ReverifyEmailForm({email}: {email: string}) {
 			</div>
 
 			<PasscodeForm
-				onSubmitSchema={EmailReverifyCredentials}
+				onSubmitSchema={PasscodeCredentials}
 				onSubmitTry={async ({passcode}) => {
 					const {sudoExpiresAt} = await handleEmailReverifyFn({data: {passcode}})
 					setSudoExpiresAt(sudoExpiresAt)
 				}}
 				email={email}
-				emailRequestVerificationQueryOptions={_emailRequestVerificationQueryOptions}
-				mutateEmailRequestVerification={() =>
-					mutateEmailRequestVerification({email, expectRegisteredRecipient: true})
-				}
-				mutateEmailRequestVerificationIsPending={emailRequestVerificationIsPending}
+				passcodeRequestQueryOptions={_passcodeRequestQueryOptions}
+				mutatePasscodeRequest={mutatePasscodeRequest}
+				mutatePasscodeRequestIsPending={passcodeRequestIsPending}
 			/>
 		</div>
 	)
@@ -134,7 +128,7 @@ function ConfirmPasswordForm() {
 		defaultValues: {
 			password: '',
 		},
-		onSubmitSchema: PasswordReverifyCredentials,
+		onSubmitSchema: PasswordCredentials,
 		onSubmitTry: async ({password}) => {
 			const {sudoExpiresAt} = await handlePasswordReverifyFn({data: {password}})
 			setSudoExpiresAt(sudoExpiresAt)

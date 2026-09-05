@@ -7,7 +7,7 @@ import {useEffect, useState} from 'react'
 import {Button} from '#/components/ui/button.tsx'
 import {toast} from '#/components/ui/toast.tsx'
 
-import type {EmailRequestVerificationQueryOptions} from './_utils.ts'
+import type {PasscodeRequestQueryOptions} from './_utils.ts'
 
 const resetPasscodeIconVariants = cva('', {
 	variants: {
@@ -30,14 +30,14 @@ export function ResetEmailVerificationButton({
 	onRequestNewCode,
 }: {
 	email: string
-	queryOptions: EmailRequestVerificationQueryOptions
+	queryOptions: PasscodeRequestQueryOptions
 	mutateAsync: () => Promise<{expiresAt: Date}>
 	mutationIsPending: boolean
 	onRequestNewCode?: () => void
 }) {
-	const {data: emailRequestVerificationData} = useQuery(queryOptions)
+	const {data: passcodeRequestData} = useQuery(queryOptions)
 
-	const expiresAt = emailRequestVerificationData?.expiresAt ?? DateTime.nowUnsafe()
+	const expiresAt = passcodeRequestData?.expiresAt ?? DateTime.nowUnsafe()
 
 	const [timeUntilEnabled, setTimeUntilEnabled] = useState(() =>
 		calcTimeUntilEnabled(calcEnabledAt(expiresAt)),

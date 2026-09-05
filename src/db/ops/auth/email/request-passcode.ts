@@ -1,4 +1,4 @@
-import {DateTime, Effect} from 'effect'
+import {Effect} from 'effect'
 
 import * as emailVerificationsCascades from '#/db/models/email-verifications/cascades.ts'
 import * as emailVerificationsQueries from '#/db/models/email-verifications/queries.ts'
@@ -13,18 +13,19 @@ import {extractErrorProps, opsFailure} from '#/db/ops/ops-error.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 import {EmailService} from '#/email/service.ts'
+import {renderNoAccountFound} from '#/email/templates/no-account-found.tsx'
 import {renderVerificationEmail} from '#/email/templates/verify-email.tsx'
-import {EmailRequestVerificationCredentials} from '#/isomorphic/validations/auth.ts'
+import type {PasscodeIntent} from '#/isomorphic/validations/auth.ts'
 
 const genericFailureOutputMessage = 'Something went wrong. Please try again in a moment.'
 
-const _emailRequestVerification = Effect.fn('emailRequestVerification')(function* ({
-	input: {email, expectRegisteredRecipient},
+const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
+	input: {email, intent},
 	anonTokenPayload,
 	userId,
 	ipAddress,
 }: {
-	input: Partial<(typeof EmailRequestVerificationCredentials)['Type']>
+	input: {email?: string; intent: (typeof PasscodeIntent)['Type']}
 	anonTokenPayload: AnonTokenPayloadCustomClaims | null
 	userId?: string
 	ipAddress: string
@@ -39,11 +40,11 @@ const _emailRequestVerification = Effect.fn('emailRequestVerification')(function
 	/** Only registered anons have a database row, so only their id may populate the FK column */
 	const registeredAnonId = anonTokenPayload?.registered ? anonTokenPayload.id : undefined
 
-	if (anonTokenPayload && !email)
+	if (!email && !userId)
 		return yield* opsFailure({
 			failureCause: 'INVALID_PARAMS',
 			anonId: registeredAnonId,
-			message: 'input: email is required when using anonTokenPayload',
+			message: 'input: email is required when userId is absent',
 		})
 
 	/** Rate-limit check against ip address & id */
@@ -119,12 +120,34 @@ const _emailRequestVerification = Effect.fn('emailRequestVerification')(function
 				message: 'must provide either anonTokenPayload or userId',
 			})
 
+		const recipientExists =
+			intent === 'reverify'
+				? true
+				: (yield* usersQueries.selectByEmail({email: derivedEmail})).length > 0
+
 		/**
-		 * Render the verification email before the verification row commits: a
+		 * Render the email before the verification row commits: a
 		 * render failure fails the operation
 		 */
 		const {html, text, subject} = yield* Effect.tryPromise({
-			try: () => renderVerificationEmail(code),
+			try:
+				/**
+				 * Resolve which email to send. The row is always minted and the response
+				 * is always `{expiresAt}`, so neither timing nor delivery state leaks
+				 * whether the address is registered. Only the inbox owner sees the
+				 * flow-aware copy.
+				 *
+				 * The sign-in/new quadrant sends instructions instead of a code, but its
+				 * row is still minted and kept: the identical Argon2 + insert work
+				 * preserves timing uniformity and the row preserves the resend throttle.
+				 */
+				intent === 'sign-in' && !recipientExists
+					? () => renderNoAccountFound()
+					: () =>
+							renderVerificationEmail(
+								code,
+								intent === 'sign-up' ? (recipientExists ? 'signup-existing' : 'signup') : 'signin',
+							),
 			catch: (cause) =>
 				opsFailure({
 					failureCause: 'EMAIL_RENDER',
@@ -158,30 +181,6 @@ const _emailRequestVerification = Effect.fn('emailRequestVerification')(function
 			})
 
 		const {send} = yield* EmailService
-
-		/**
-		 * Delivery screening: withhold the email and return success immediately
-		 * when the expectation is violated. `true` expects a registered
-		 * recipient, so an unknown account receives nothing. `false` expects an
-		 * unregistered recipient, so an existing account receives nothing.
-		 * Omitted always delivers. The response is identical either
-		 * way so delivery state cannot be probed.
-		 */
-		if (expectRegisteredRecipient !== undefined) {
-			const recipientRows = yield* usersQueries.selectByEmail({email: derivedEmail})
-
-			if (
-				(expectRegisteredRecipient && !recipientRows.length) ||
-				(!expectRegisteredRecipient && recipientRows.length)
-			)
-				/** @todo consider adding a delay to mimic the time it takes to send an email to prevent enumeration attacks */
-				return {
-					id: null,
-					expiresAt: DateTime.toDate(
-						DateTime.add(yield* DateTime.now, {milliseconds: 15 * 60 * 1000}),
-					),
-				}
-		}
 
 		/**
 		 * The email is the deliverable. A send failure retires the verification
@@ -227,7 +226,7 @@ const _emailRequestVerification = Effect.fn('emailRequestVerification')(function
 	}).pipe(Effect.provide(HashingStub.layer(hasherId)))
 })
 
-export const emailRequestVerification = createOpsFn({
-	fn: _emailRequestVerification,
-	label: 'AUTH_EMAIL_REQUEST_VERIFICATION',
+export const emailRequestPasscode = createOpsFn({
+	fn: _emailRequestPasscode,
+	label: 'AUTH_EMAIL_REQUEST_PASSCODE',
 })

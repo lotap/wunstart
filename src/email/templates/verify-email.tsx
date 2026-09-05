@@ -4,22 +4,39 @@ import {Body, Container, Head, Heading, Html, Preview, Tailwind, Text, render} f
 
 import {emailTailwindConfig} from '../tailwind-config.ts'
 
+type VerifyEmailVariant = 'signup' | 'signin' | 'signup-existing'
+
 type VerifyEmailProps = {
 	code: string
+	variant?: VerifyEmailVariant
 }
 
-export default function VerifyEmail({code}: VerifyEmailProps) {
+const variantCopy = {
+	'signup': {
+		preview: 'Enter this code to complete your sign-up',
+		body: 'Enter this code to complete your sign-up:',
+	},
+	'signin': {
+		preview: 'Enter this code to sign in',
+		body: 'Enter this code to sign in:',
+	},
+	'signup-existing': {
+		preview: 'Enter this code to sign in',
+		body: 'Someone tried to sign up with this address. If it was you, use this code to sign in:',
+	},
+} satisfies Record<VerifyEmailVariant, {preview: string; body: string}>
+
+export default function VerifyEmail({code, variant = 'signup'}: VerifyEmailProps) {
+	const copy = variantCopy[variant]
 	return (
 		<Html>
 			<Tailwind config={emailTailwindConfig}>
 				<Head />
-				<Preview>Enter this code to complete your sign-up</Preview>
+				<Preview>{copy.preview}</Preview>
 				<Body className="m-0 font-sans">
 					<Container className="mx-auto mt-10 max-w-150 px-5">
 						<Heading className="mb-6 text-xl font-semibold">Verify your email</Heading>
-						<Text className="mb-4 text-sm leading-relaxed text-muted-foreground">
-							Enter this code to complete your sign-up:
-						</Text>
+						<Text className="mb-4 text-sm leading-relaxed text-muted-foreground">{copy.body}</Text>
 						<Container className="mb-4 rounded-[8px] bg-muted p-4 text-center">
 							<Text className="m-0 font-mono text-4xl font-bold tracking-[8px]">{code}</Text>
 						</Container>
@@ -40,8 +57,11 @@ VerifyEmail.PreviewProps = {
 	code: '123456',
 } as VerifyEmailProps
 
-export async function renderVerificationEmail(code: string) {
-	const component = <VerifyEmail code={code} />
+export async function renderVerificationEmail(
+	code: string,
+	variant: VerifyEmailVariant = 'signup',
+) {
+	const component = <VerifyEmail code={code} variant={variant} />
 	const [html, text] = await Promise.all([render(component), render(component, {plainText: true})])
 	return {subject: 'Verify your email', html, text}
 }
