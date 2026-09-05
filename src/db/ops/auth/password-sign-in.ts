@@ -198,7 +198,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 				try: () =>
 					renderSignInNotification({
 						ipAddress,
-						signedInAt: DateTime.toDate(now),
+						occurredAt: DateTime.toDate(now),
 						country,
 						city,
 						region,

@@ -111,7 +111,7 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 				try: () =>
 					renderPasswordChangeConfirmation({
 						ipAddress,
-						updatedAt: rowData.updatedAt,
+						occurredAt: rowData.updatedAt,
 						country,
 						city,
 						region,

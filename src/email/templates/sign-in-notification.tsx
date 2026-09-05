@@ -1,97 +1,27 @@
 // @refresh reset
 
 import {
-	Body,
-	Container,
-	Head,
-	Heading,
-	Html,
-	Preview,
-	render,
-	Section,
-	Tailwind,
-	Text,
-} from 'react-email'
+	BodyCopy,
+	renderSecurityNotification,
+	SecurityDetailRows,
+	SecurityNotificationLayout,
+} from './security-notification.tsx'
+import type {SecurityNotificationContext} from './security-notification.tsx'
 
-import {formatLocation} from '../format-location.ts'
-import {formatEmailTime} from '../format-time.ts'
-import {emailTailwindConfig} from '../tailwind-config.ts'
+type SignInNotificationProps = {occurredAt: Date} & SecurityNotificationContext
 
-type SignInNotificationProps = {
-	ipAddress: string
-	signedInAt: Date
-	country: string
-	city: string | null
-	region: string | null
-	timezone: string | null
-	device: string | null
-}
-
-export default function SignInNotification({
-	ipAddress,
-	signedInAt,
-	country,
-	city,
-	region,
-	timezone,
-	device,
-}: SignInNotificationProps) {
-	const location = formatLocation({city, region, country})
-
+export default function SignInNotification({occurredAt, ...context}: SignInNotificationProps) {
 	return (
-		<Html>
-			<Tailwind config={emailTailwindConfig}>
-				<Head />
-				<Body className="m-0 text-center font-sans">
-					<Preview>New sign-in to your account</Preview>
-					<Container className="mobile:mt-0 mx-auto mt-8 w-full max-w-160">
-						<Section>
-							<Section className="mobile:px-2 px-6 py-4">
-								<Section className="mobile:px-6 mobile:py-12 rounded-[8px] px-10 py-20 text-left text-secondary-foreground">
-									<Section className="mb-8">
-										<Heading as="h1" className="font-28 m-0 text-left font-sans">
-											New sign-in to your account
-										</Heading>
-									</Section>
+		<SecurityNotificationLayout
+			preview="New sign-in to your account"
+			heading="New sign-in to your account"
+		>
+			<SecurityDetailRows occurredAt={occurredAt} {...context} />
 
-									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-										<b>Time: </b>
-										{formatEmailTime(signedInAt, timezone)}
-									</Text>
+			<BodyCopy>If this was you, there's nothing else you need to do.</BodyCopy>
 
-									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-										<b>IP Address: </b>
-										{ipAddress}
-									</Text>
-
-									{location && (
-										<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-											<b>Location: </b>
-											{location}
-										</Text>
-									)}
-
-									{device && (
-										<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-											<b>Device: </b>
-											{device}
-										</Text>
-									)}
-
-									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-										If this was you, there's nothing else you need to do.
-									</Text>
-
-									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-										If you don't recognize this activity, change your password immediately.
-									</Text>
-								</Section>
-							</Section>
-						</Section>
-					</Container>
-				</Body>
-			</Tailwind>
-		</Html>
+			<BodyCopy>If you don't recognize this activity, change your password immediately.</BodyCopy>
+		</SecurityNotificationLayout>
 	)
 }
 
@@ -99,7 +29,7 @@ export default function SignInNotification({
 // representative placeholders for the required props.
 SignInNotification.PreviewProps = {
 	ipAddress: '0.0.0.0',
-	signedInAt: new Date(),
+	occurredAt: new Date(),
 	country: 'US',
 	city: 'San Francisco',
 	region: 'CA',
@@ -108,7 +38,8 @@ SignInNotification.PreviewProps = {
 } as SignInNotificationProps
 
 export async function renderSignInNotification(signInNotificationProps: SignInNotificationProps) {
-	const component = <SignInNotification {...signInNotificationProps} />
-	const [html, text] = await Promise.all([render(component), render(component, {plainText: true})])
-	return {subject: 'New sign-in to your account', html, text}
+	return renderSecurityNotification(
+		<SignInNotification {...signInNotificationProps} />,
+		'New sign-in to your account',
+	)
 }

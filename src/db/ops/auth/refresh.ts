@@ -173,7 +173,7 @@ const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 		try: () =>
 			renderSessionEndedNotification({
 				ipAddress,
-				revokedAt: DateTime.toDate(now),
+				occurredAt: DateTime.toDate(now),
 				country,
 				city,
 				region,

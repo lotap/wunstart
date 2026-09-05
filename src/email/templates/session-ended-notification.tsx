@@ -1,104 +1,41 @@
 // @refresh reset
 
 import {
-	Body,
-	Container,
-	Head,
-	Heading,
-	Html,
-	Preview,
-	render,
-	Section,
-	Tailwind,
-	Text,
-} from 'react-email'
+	BodyCopy,
+	renderSecurityNotification,
+	SecurityDetailRows,
+	SecurityNotificationLayout,
+} from './security-notification.tsx'
+import type {SecurityNotificationContext} from './security-notification.tsx'
 
-import {formatLocation} from '../format-location.ts'
-import {formatEmailTime} from '../format-time.ts'
-import {emailTailwindConfig} from '../tailwind-config.ts'
-
-type SessionEndedNotificationProps = {
-	ipAddress: string
-	revokedAt: Date
-	country: string
-	city: string | null
-	region: string | null
-	timezone: string | null
-	device: string | null
-}
+type SessionEndedNotificationProps = {occurredAt: Date} & SecurityNotificationContext
 
 export default function SessionEndedNotification({
-	ipAddress,
-	revokedAt,
-	country,
-	city,
-	region,
-	timezone,
-	device,
+	occurredAt,
+	...context
 }: SessionEndedNotificationProps) {
-	const location = formatLocation({city, region, country})
-
 	return (
-		<Html>
-			<Tailwind config={emailTailwindConfig}>
-				<Head />
-				<Body className="m-0 text-center font-sans">
-					<Preview>Alert: Session revoked due to security concerns</Preview>
-					<Container className="mobile:mt-0 mx-auto mt-8 w-full max-w-160">
-						<Section>
-							<Section className="mobile:px-2 px-6 py-4">
-								<Section className="mobile:px-6 mobile:py-12 rounded-[8px] px-10 py-20 text-left text-secondary-foreground">
-									<Section className="mb-8">
-										<Heading as="h1" className="font-28 m-0 text-left font-sans">
-											We signed you out
-										</Heading>
-									</Section>
+		<SecurityNotificationLayout
+			preview="Alert: Session revoked due to security concerns"
+			heading="We signed you out"
+		>
+			<SecurityDetailRows occurredAt={occurredAt} {...context} />
 
-									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-										<b>Time: </b>
-										{formatEmailTime(revokedAt, timezone)}
-									</Text>
+			<BodyCopy>
+				We detected that one of your sign-in sessions may have been accessed by someone else, so we
+				ended it to protect your account.
+			</BodyCopy>
 
-									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-										<b>IP Address: </b>
-										{ipAddress}
-									</Text>
+			<BodyCopy>
+				If this was you, there's nothing else you need to do. You can sign in again.
+			</BodyCopy>
 
-									{location && (
-										<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-											<b>Location: </b>
-											{location}
-										</Text>
-									)}
-
-									{device && (
-										<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-											<b>Device: </b>
-											{device}
-										</Text>
-									)}
-
-									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-										We detected that one of your sign-in sessions may have been accessed by someone
-										else, so we ended it to protect your account.
-									</Text>
-
-									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-										If this was you, there's nothing else you need to do. You can sign in again.
-									</Text>
-
-									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-										If you don't recognize this activity, change your password and "sign out all"
-										immediately. Review your browser extensions and recently installed applications,
-										something may be stealing your cookies.
-									</Text>
-								</Section>
-							</Section>
-						</Section>
-					</Container>
-				</Body>
-			</Tailwind>
-		</Html>
+			<BodyCopy>
+				If you don't recognize this activity, change your password and "sign out all" immediately.
+				Review your browser extensions and recently installed applications, something may be
+				stealing your cookies.
+			</BodyCopy>
+		</SecurityNotificationLayout>
 	)
 }
 
@@ -106,7 +43,7 @@ export default function SessionEndedNotification({
 // representative placeholders for the required props.
 SessionEndedNotification.PreviewProps = {
 	ipAddress: '0.0.0.0',
-	revokedAt: new Date(),
+	occurredAt: new Date(),
 	country: 'US',
 	city: 'San Francisco',
 	region: 'CA',
@@ -117,7 +54,8 @@ SessionEndedNotification.PreviewProps = {
 export async function renderSessionEndedNotification(
 	sessionEndedNotificationProps: SessionEndedNotificationProps,
 ) {
-	const component = <SessionEndedNotification {...sessionEndedNotificationProps} />
-	const [html, text] = await Promise.all([render(component), render(component, {plainText: true})])
-	return {subject: 'Your session was ended for security', html, text}
+	return renderSecurityNotification(
+		<SessionEndedNotification {...sessionEndedNotificationProps} />,
+		'Your session was ended for security',
+	)
 }

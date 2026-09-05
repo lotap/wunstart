@@ -94,7 +94,7 @@ export const signInWithVerifiedCode = Effect.fn('emailVerifyPasscode.signIn')(fu
 				try: () =>
 					renderSignInNotification({
 						ipAddress,
-						signedInAt: DateTime.toDate(now),
+						occurredAt: DateTime.toDate(now),
 						country,
 						city,
 						region,

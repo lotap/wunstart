@@ -1,97 +1,30 @@
 // @refresh reset
 
 import {
-	Body,
-	Container,
-	Head,
-	Heading,
-	Html,
-	Preview,
-	render,
-	Section,
-	Tailwind,
-	Text,
-} from 'react-email'
+	BodyCopy,
+	renderSecurityNotification,
+	SecurityDetailRows,
+	SecurityNotificationLayout,
+} from './security-notification.tsx'
+import type {SecurityNotificationContext} from './security-notification.tsx'
 
-import {formatLocation} from '../format-location.ts'
-import {formatEmailTime} from '../format-time.ts'
-import {emailTailwindConfig} from '../tailwind-config.ts'
-
-type PasswordChangeConfirmationProps = {
-	ipAddress: string
-	updatedAt: Date
-	country: string
-	city: string | null
-	region: string | null
-	timezone: string | null
-	device: string | null
-}
+type PasswordChangeConfirmationProps = {occurredAt: Date} & SecurityNotificationContext
 
 export default function PasswordChangeConfirmation({
-	ipAddress,
-	updatedAt,
-	country,
-	city,
-	region,
-	timezone,
-	device,
+	occurredAt,
+	...context
 }: PasswordChangeConfirmationProps) {
-	const location = formatLocation({city, region, country})
-
 	return (
-		<Html>
-			<Tailwind config={emailTailwindConfig}>
-				<Head />
-				<Body className="m-0 text-center font-sans">
-					<Preview>Your password was changed</Preview>
-					<Container className="mobile:mt-0 mx-auto mt-8 w-full max-w-160">
-						<Section>
-							<Section className="mobile:px-2 px-6 py-4">
-								<Section className="mobile:px-6 mobile:py-12 rounded-[8px] px-10 py-20 text-left text-secondary-foreground">
-									<Section className="mb-8">
-										<Heading as="h1" className="font-28 m-0 text-left font-sans">
-											You’ve changed your password
-										</Heading>
-									</Section>
+		<SecurityNotificationLayout
+			preview="Your password was changed"
+			heading="You’ve changed your password"
+		>
+			<SecurityDetailRows occurredAt={occurredAt} {...context} />
 
-									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-										<b>Time: </b>
-										{formatEmailTime(updatedAt, timezone)}
-									</Text>
+			<BodyCopy>If this was you, there's nothing else you need to do.</BodyCopy>
 
-									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-										<b>IP Address: </b>
-										{ipAddress}
-									</Text>
-
-									{location && (
-										<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-											<b>Location: </b>
-											{location}
-										</Text>
-									)}
-
-									{device && (
-										<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-											<b>Device: </b>
-											{device}
-										</Text>
-									)}
-
-									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-										If this was you, there's nothing else you need to do.
-									</Text>
-
-									<Text className="font-16 mt-0 mb-6 max-w-105 text-left font-sans last:mb-0">
-										Otherwise, sign in with a passcode to recover your account.
-									</Text>
-								</Section>
-							</Section>
-						</Section>
-					</Container>
-				</Body>
-			</Tailwind>
-		</Html>
+			<BodyCopy>Otherwise, sign in with a passcode to recover your account.</BodyCopy>
+		</SecurityNotificationLayout>
 	)
 }
 
@@ -99,7 +32,7 @@ export default function PasswordChangeConfirmation({
 // representative placeholders for the required props.
 PasswordChangeConfirmation.PreviewProps = {
 	ipAddress: '0.0.0.0',
-	updatedAt: new Date(),
+	occurredAt: new Date(),
 	country: 'US',
 	city: 'San Francisco',
 	region: 'CA',
@@ -110,7 +43,8 @@ PasswordChangeConfirmation.PreviewProps = {
 export async function renderPasswordChangeConfirmation(
 	passwordChangeConfirmationProps: PasswordChangeConfirmationProps,
 ) {
-	const component = <PasswordChangeConfirmation {...passwordChangeConfirmationProps} />
-	const [html, text] = await Promise.all([render(component), render(component, {plainText: true})])
-	return {subject: 'Confirmation: Your password was changed', html, text}
+	return renderSecurityNotification(
+		<PasswordChangeConfirmation {...passwordChangeConfirmationProps} />,
+		'Confirmation: Your password was changed',
+	)
 }
