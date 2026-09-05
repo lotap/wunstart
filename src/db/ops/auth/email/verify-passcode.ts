@@ -273,7 +273,22 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 			anonRegistered: anonTokenPayload.registered,
 		})
 
-		return yield* signInWithVerifiedCode({verification, user, ctx})
+		return {
+			isNewUser: false as const,
+			...(yield* signInWithVerifiedCode({verification, user, ctx})),
+		}
+	} else if (currentBansAndExcessiveActivities.length) {
+		/**
+		 * Provisioning a new account keeps the blanket check: any remaining
+		 * (FAILED_CREDENTIAL) bans block first-time entry. There is no known-IP
+		 * set to bypass with yet
+		 */
+		return yield* rateLimitFailure({
+			message: genericFailureOutputMessage,
+			/** Denial payload omits failedCredential, so weight routes to IP scope; meta keeps the email for audit */
+			meta: {credential: email},
+			anonId: registeredAnonId,
+		})
 	}
 
 	/**
@@ -289,6 +304,7 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 	})
 
 	return yield* signUpWithVerifiedCode({verification, ctx}).pipe(
+		Effect.map((result) => ({isNewUser: true as const, ...result})),
 		Effect.catchTag('OpsError', (error) =>
 			/**
 			 * Lost the creation race: a user was created for this email between the
@@ -299,7 +315,10 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 				? sessionsUsersQueries.selectUserWithIpAddressesByEmail({email}).pipe(
 						Effect.flatMap(([racedUser]) => {
 							if (!racedUser) return Effect.fail(error)
-							return signInWithVerifiedCode({verification, user: racedUser, ctx})
+							return Effect.map(
+								signInWithVerifiedCode({verification, user: racedUser, ctx}),
+								(result) => ({isNewUser: false as const, ...result}),
+							)
 						}),
 					)
 				: Effect.fail(error),

@@ -223,9 +223,13 @@ export function SignUpForm() {
 					<PasscodeForm
 						onSubmitSchema={EmailPasscodeCredentials}
 						onSubmitTry={async ({passcode}) => {
-							await handleEmailVerifyPasscodeFn({data: {email, passcode}})
+							/**
+							 * Cross-over sign-ins (existing account, sign-up form) must
+							 * not trigger the welcome page
+							 */
+							const {isNewUser} = await handleEmailVerifyPasscodeFn({data: {email, passcode}})
 							removeLocalStorageSignUpState()
-							void router.navigate({to: '/', state: {welcome: true}})
+							void router.navigate({to: '/', state: {welcome: isNewUser}})
 						}}
 						email={email}
 						passcodeRequestQueryOptions={passcodeRequestOptions}

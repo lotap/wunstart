@@ -21,11 +21,13 @@ export const handleEmailVerifyPasscode = createServerFn({method: 'POST'})
 	.handler(async ({data, context}) => {
 		const {ipAddress, userAgent, country, city, region, anon} = context
 
-		const {access, session} = await runOp({
+		const {access, session, isNewUser} = await runOp({
 			op: emailVerifyPasscode,
 			data: {input: data, anonTokenPayload: anon, ipAddress, userAgent, country, city, region},
 			layers: [authLayer, dbLayer, emailLayer],
 		})
 
 		setAuthCookies({access, session})
+
+		return {isNewUser}
 	})
