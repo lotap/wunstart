@@ -1,3 +1,10 @@
+/**
+ * Convention: one export per distinct input shape. Flows with identical shapes
+ * share an export (sign-in and sign-up both use `EmailPasscodeCredentials`);
+ * a flow gets its own export only when its shape is actually different or
+ * expected to diverge
+ */
+
 import {Schema, Tuple} from 'effect'
 
 import {Email, Passcode, Password} from '#/isomorphic/validators.ts'
