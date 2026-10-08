@@ -1,10 +1,9 @@
 import {useQuery} from '@tanstack/react-query'
 import {useServerFn} from '@tanstack/react-start'
-import {Edit} from 'lucide-react'
 
 import {userProfileQueryOptions} from '#/components/auth/_utils.ts'
+import {EmailChangeDrawer} from '#/components/auth/email-change.tsx'
 import {ErrorBoundary} from '#/components/error-boundary.tsx'
-import {Button} from '#/components/ui/button.tsx'
 import {Field, FieldContent, FieldDescription, FieldLabel} from '#/components/ui/field.tsx'
 import {Skeleton} from '#/components/ui/skeleton.tsx'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
@@ -41,9 +40,7 @@ export function Profile() {
 					<ProfileEmail />
 				</ErrorBoundary>
 
-				<Button size="icon-sm" variant="secondary">
-					<Edit />
-				</Button>
+				<EmailChangeDrawer />
 			</FieldContent>
 		</Field>
 	)

@@ -91,6 +91,17 @@ export const updatePasswordHashIfMatches = createPreparedQuery({
 			.prepare(`${labelPrefix}_update_password_hash_if_matches`),
 })
 
+export const updateEmail = createPreparedQuery({
+	vSchema: V.UpdateEmail,
+	stmtFn: (qx) =>
+		qx
+			.update(activeTable)
+			.set({email: sql.placeholder('email')})
+			.where(eq(id, sql.placeholder('id')))
+			.returning({email, updatedAt})
+			.prepare(`${labelPrefix}_update_email`),
+})
+
 /// ARCHIVE ///
 
 /// PRIMITIVES ///

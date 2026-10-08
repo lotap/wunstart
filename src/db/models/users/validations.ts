@@ -37,3 +37,5 @@ export const UpdatePasswordHash = selectPrimitive
 export const UpdatePasswordHashIfMatches = UpdatePasswordHash.mapFields(
 	Struct.assign({newHash: Argon2Hash}),
 )
+
+export const UpdateEmail = selectPrimitive.mapFields(Struct.pick(['id', 'email']))
