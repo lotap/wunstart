@@ -18,9 +18,10 @@ export function WelcomeDrawer() {
 	const router = useRouter()
 	const [open, setOpen] = useState(false)
 
+	// oxlint-disable-next-line react-doctor/rendering-hydration-no-flicker
 	useEffect(() => {
 		/** setting false above then open here makes the animate-in of the drawer work when it loads in */
-		// oxlint-disable-next-line react/set-state-in-effect
+		// oxlint-disable-next-line react/set-state-in-effect react-hooks-js/set-state-in-effect
 		setOpen(true)
 	}, [])
 

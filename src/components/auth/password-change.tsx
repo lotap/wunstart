@@ -85,7 +85,7 @@ export function ChangePasswordForm({
 
 	useEffect(() => {
 		/** setState in effect is necessary to allow first render to have the drawer closed */
-		// oxlint-disable-next-line react/set-state-in-effect
+		// oxlint-disable-next-line react/set-state-in-effect react-hooks-js/set-state-in-effect
 		if (!hasSudo) setReverifyOpen(true)
 	}, [hasSudo])
 
