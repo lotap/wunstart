@@ -58,7 +58,7 @@ function ThemeSelector() {
 			) : (
 				<div className="flex flex-col gap-2">
 					<Skeleton className="h-18.5 w-52.5" />
-					<Skeleton className="h-3.5 w-full" />
+					<Skeleton className="h-5.25 w-md" />
 				</div>
 			)}
 		</Field>

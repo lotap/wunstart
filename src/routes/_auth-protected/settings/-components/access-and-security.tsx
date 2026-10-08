@@ -5,6 +5,7 @@ import {PasswordChangeDrawer} from '#/components/auth/password-change.tsx'
 import {RemoveAccountDrawer} from '#/components/auth/remove-account.tsx'
 import {ErrorBoundary} from '#/components/error-boundary.tsx'
 import {Button} from '#/components/ui/button.tsx'
+import {Spinner} from '#/components/ui/spinner.tsx'
 import {useSignOutAll} from '#/hooks/use-sign-out-all.ts'
 import {useSignOut} from '#/hooks/use-sign-out.ts'
 import {handleGetSessions} from '#/server-fns/handle-get-sessions.ts'
@@ -30,9 +31,13 @@ function SessionsList() {
 
 	if (isPending)
 		return (
-			// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-			<p role="status" aria-busy="true" className="text-sm text-muted-foreground">
-				Loading sessions…
+			<p
+				// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+				role="status"
+				aria-busy="true"
+				className="flex items-center gap-1 rounded-lg border px-4 py-5.75 text-sm text-muted-foreground"
+			>
+				Loading sessions <Spinner />
 			</p>
 		)
 	if (error) return <p role="alert">Couldn’t load your sessions. Please try again.</p>
