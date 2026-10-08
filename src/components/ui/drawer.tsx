@@ -1,9 +1,8 @@
 'use client'
 
 import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
+import {cn} from 'cn'
 import * as React from 'react'
-
-import {cn} from '#/lib/utils.ts'
 
 type DrawerContextProps = {
 	hasSnapPoints: boolean
