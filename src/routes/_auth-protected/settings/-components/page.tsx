@@ -3,17 +3,16 @@ import {
 	ChevronDown,
 	ChevronLeft,
 	CircleUserRound,
-	Pin,
 	ShieldCheck,
 	SlidersHorizontal,
 } from 'lucide-react'
 import {useState, type CSSProperties} from 'react'
 
 import {RouterButton} from '#/components/router-button.tsx'
-import {Button} from '#/components/ui/button.tsx'
 import {Card, CardAction, CardContent, CardHeader, CardTitle} from '#/components/ui/card.tsx'
 
 import {AccessAndSecurity} from './access-and-security.tsx'
+import {PinButton} from './pin-button.tsx'
 import {Preferences} from './preferences.tsx'
 import {Profile} from './profile.tsx'
 
@@ -87,14 +86,14 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 							</RouterButton>
 
 							{isExpanded && (
-								<Button
+								<PinButton
+									isPinned={pinned.includes(id)}
+									label={label}
+									onToggle={() => togglePinned(id)}
 									variant={pinned.includes(id) ? 'secondary' : 'ghost'}
 									size="icon-lg"
 									className="text-muted-foreground md:hidden"
-									onClick={() => togglePinned(id)}
-								>
-									<Pin />
-								</Button>
+								/>
 							)}
 						</div>
 					)
@@ -123,13 +122,14 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 											<h2 className="text-muted-foreground md:block">{label}</h2>
 										</CardTitle>
 										<CardAction>
-											<Button
-												size="icon"
+											<PinButton
+												isPinned={pinned.includes(id)}
+												label={label}
+												onToggle={() => togglePinned(id)}
 												variant={pinned.includes(id) ? 'default' : 'ghost'}
-												onClick={() => togglePinned(id)}
-											>
-												<Pin />
-											</Button>
+												size="icon"
+												className="text-muted-foreground"
+											/>
 										</CardAction>
 									</CardHeader>
 									<CardContent>
