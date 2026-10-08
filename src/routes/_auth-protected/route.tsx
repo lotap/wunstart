@@ -1,12 +1,15 @@
+/**
+ * Pages that require sign-in (e.g. settings). Anons redirect to `/sign-in`
+ * with the return location saved. Put a page here if it must NOT render anon.
+ * File placement IS the protection: moving a page in or out of this folder
+ * changes its guard, so treat moves as security-relevant in review.
+ */
 import {createFileRoute, redirect, Outlet} from '@tanstack/react-router'
 
 import {HasSudoProvider} from '#/contexts/has-sudo.tsx'
-import {handleVerifyAuth} from '#/server-fns/handle-verify-auth.ts'
 
 export const Route = createFileRoute('/_auth-protected')({
-	beforeLoad: async ({location}) => {
-		const auth = await handleVerifyAuth()
-
+	beforeLoad: async ({context: {auth}, location}) => {
 		if (!auth) {
 			throw redirect({
 				to: '/sign-in',

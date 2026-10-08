@@ -11,6 +11,7 @@ import {RouteError} from '#/components/route-error.tsx'
 import {Toaster} from '#/components/ui/toast.tsx'
 import {TooltipProvider} from '#/components/ui/tooltip.tsx'
 import {ThemeProvider, useTheme} from '#/contexts/theme.tsx'
+import {handleVerifyAuth} from '#/server-fns/handle-verify-auth.ts'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools.tsx'
 
@@ -25,6 +26,11 @@ interface MyRouterContext {
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
+	beforeLoad: async () => {
+		const auth = await handleVerifyAuth()
+
+		return {auth}
+	},
 	head: () => ({
 		meta: [
 			{

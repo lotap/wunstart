@@ -1,0 +1,68 @@
+import {useQuery} from '@tanstack/react-query'
+import {Link} from '@tanstack/react-router'
+import {useServerFn} from '@tanstack/react-start'
+import {LogOut, Settings, User} from 'lucide-react'
+import {useState} from 'react'
+
+import {userProfileQueryOptions} from '#/components/auth/_utils.ts'
+import {Button} from '#/components/ui/button.tsx'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '#/components/ui/dropdown-menu.tsx'
+import {Skeleton} from '#/components/ui/skeleton.tsx'
+import {useSignOut} from '#/hooks/use-sign-out.ts'
+import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
+
+export function UserNav() {
+	const signOut = useSignOut()
+	/**
+	 * Always set the initial value to false so it renders closed
+	 * This provides a base so that the animate-in can function properly
+	 */
+	const [open, setOpen] = useState(false)
+	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
+	const {isPending, data: profile} = useQuery({
+		...userProfileQueryOptions({serverFn: handleGetUserProfileFn}),
+		enabled: open,
+	})
+
+	return (
+		<DropdownMenu open={open} onOpenChange={setOpen}>
+			<DropdownMenuTrigger render={<Button variant="ghost" size="icon" aria-label="Account" />}>
+				<User />
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="end" sideOffset={8}>
+				{(isPending || profile) && (
+					<DropdownMenuGroup>
+						{isPending ? (
+							<DropdownMenuLabel>
+								<Skeleton className="h-4 w-32" />
+							</DropdownMenuLabel>
+						) : (
+							<DropdownMenuLabel className="max-w-56 truncate">{profile.email}</DropdownMenuLabel>
+						)}
+					</DropdownMenuGroup>
+				)}
+				{(isPending || profile) && <DropdownMenuSeparator />}
+				<DropdownMenuItem render={<Link to="/settings" />}>
+					<Settings />
+					Settings
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					onClick={() => {
+						void signOut()
+					}}
+				>
+					<LogOut />
+					Sign Out
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	)
+}

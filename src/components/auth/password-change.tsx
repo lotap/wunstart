@@ -160,7 +160,7 @@ export function ChangePasswordForm({
 								<form.Field name="signOutAllSessions">
 									{(field) => (
 										<field.CheckboxField
-											label="Sign out all sessions"
+											label="Sign Out All Sessions"
 											description="Ends every signed-in session, including this device. You will need to sign in again."
 										/>
 									)}

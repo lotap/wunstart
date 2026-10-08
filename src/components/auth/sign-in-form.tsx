@@ -134,7 +134,7 @@ export function SignInForm() {
 		<div className="mx-auto flex w-full max-w-sm flex-col items-center p-4">
 			{step === 0 && (
 				<step0Form.AppForm>
-					<FormHeading headline="Sign in" subhead="Welcome back!" />
+					<FormHeading headline="Sign In" subhead="Welcome back!" />
 
 					<form
 						className="w-full"

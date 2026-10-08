@@ -100,7 +100,7 @@ export function SignUpForm() {
 		<div className="mx-auto flex w-full max-w-sm flex-col items-center p-4">
 			{step === 0 && (
 				<step0Form.AppForm>
-					<FormHeading headline="Sign up" subhead="Create an account" />
+					<FormHeading headline="Sign Up" subhead="Create an account" />
 
 					<form
 						className="w-full max-w-sm"
