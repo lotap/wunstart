@@ -17,7 +17,7 @@ import { Route as AuthAnonLandingPageRouteImport } from './routes/_auth-anon/lan
 import { Route as AuthDynamicIndexRouteImport } from './routes/_auth-dynamic/index'
 import { Route as AuthGatewaySignInRouteImport } from './routes/_auth-gateway/sign-in'
 import { Route as AuthGatewaySignUpRouteImport } from './routes/_auth-gateway/sign-up'
-import { Route as AuthProtectedSettingsRouteImport } from './routes/_auth-protected/settings'
+import { Route as AuthProtectedSettingsRouteRouteImport } from './routes/_auth-protected/settings/route'
 
 const AuthAnonRouteRoute = AuthAnonRouteRouteImport.update({
   id: '/_auth-anon',
@@ -55,25 +55,26 @@ const AuthGatewaySignUpRoute = AuthGatewaySignUpRouteImport.update({
   path: '/sign-up',
   getParentRoute: () => AuthGatewayRouteRoute,
 } as any)
-const AuthProtectedSettingsRoute = AuthProtectedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AuthProtectedRouteRoute,
-} as any)
+const AuthProtectedSettingsRouteRoute =
+  AuthProtectedSettingsRouteRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthProtectedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthDynamicIndexRoute
+  '/settings': typeof AuthProtectedSettingsRouteRoute
   '/landing-page': typeof AuthAnonLandingPageRoute
   '/sign-in': typeof AuthGatewaySignInRoute
   '/sign-up': typeof AuthGatewaySignUpRoute
-  '/settings': typeof AuthProtectedSettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AuthDynamicIndexRoute
+  '/settings': typeof AuthProtectedSettingsRouteRoute
   '/landing-page': typeof AuthAnonLandingPageRoute
   '/sign-in': typeof AuthGatewaySignInRoute
   '/sign-up': typeof AuthGatewaySignUpRoute
-  '/settings': typeof AuthProtectedSettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -81,27 +82,27 @@ export interface FileRoutesById {
   '/_auth-dynamic': typeof AuthDynamicRouteRouteWithChildren
   '/_auth-gateway': typeof AuthGatewayRouteRouteWithChildren
   '/_auth-protected': typeof AuthProtectedRouteRouteWithChildren
+  '/_auth-protected/settings': typeof AuthProtectedSettingsRouteRoute
   '/_auth-anon/landing-page': typeof AuthAnonLandingPageRoute
   '/_auth-gateway/sign-in': typeof AuthGatewaySignInRoute
   '/_auth-gateway/sign-up': typeof AuthGatewaySignUpRoute
-  '/_auth-protected/settings': typeof AuthProtectedSettingsRoute
   '/_auth-dynamic/': typeof AuthDynamicIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/landing-page' | '/sign-in' | '/sign-up' | '/settings'
+  fullPaths: '/' | '/settings' | '/landing-page' | '/sign-in' | '/sign-up'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/landing-page' | '/sign-in' | '/sign-up' | '/settings'
+  to: '/' | '/settings' | '/landing-page' | '/sign-in' | '/sign-up'
   id:
     | '__root__'
     | '/_auth-anon'
     | '/_auth-dynamic'
     | '/_auth-gateway'
     | '/_auth-protected'
+    | '/_auth-protected/settings'
     | '/_auth-anon/landing-page'
     | '/_auth-gateway/sign-in'
     | '/_auth-gateway/sign-up'
-    | '/_auth-protected/settings'
     | '/_auth-dynamic/'
   fileRoutesById: FileRoutesById
 }
@@ -174,7 +175,7 @@ declare module '@tanstack/react-router' {
       id: '/_auth-protected/settings'
       path: '/settings'
       fullPath: '/settings'
-      preLoaderRoute: typeof AuthProtectedSettingsRouteImport
+      preLoaderRoute: typeof AuthProtectedSettingsRouteRouteImport
       parentRoute: typeof AuthProtectedRouteRoute
     }
   }
@@ -217,11 +218,11 @@ const AuthGatewayRouteRouteWithChildren =
   AuthGatewayRouteRoute._addFileChildren(AuthGatewayRouteRouteChildren)
 
 interface AuthProtectedRouteRouteChildren {
-  AuthProtectedSettingsRoute: typeof AuthProtectedSettingsRoute
+  AuthProtectedSettingsRouteRoute: typeof AuthProtectedSettingsRouteRoute
 }
 
 const AuthProtectedRouteRouteChildren: AuthProtectedRouteRouteChildren = {
-  AuthProtectedSettingsRoute: AuthProtectedSettingsRoute,
+  AuthProtectedSettingsRouteRoute: AuthProtectedSettingsRouteRoute,
 }
 
 const AuthProtectedRouteRouteWithChildren =

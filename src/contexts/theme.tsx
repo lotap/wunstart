@@ -9,7 +9,7 @@ const ThemeSchema = Schema.Union([
 	Schema.Literal('system'),
 ])
 
-type Theme = (typeof ThemeSchema)['Type']
+export type Theme = (typeof ThemeSchema)['Type']
 
 export type ThemeContextState = {
 	theme: Theme | null

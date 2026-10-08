@@ -22,6 +22,8 @@ export function EmailField({field}: {field: FieldWithValue<string>}) {
 				aria-invalid={isInvalid}
 				aria-describedby={isInvalid ? `${field.name}-error` : undefined}
 				placeholder="Email address"
+				minLength={6}
+				maxLength={254}
 			/>
 
 			{isInvalid && (

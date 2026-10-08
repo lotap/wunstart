@@ -56,6 +56,8 @@ export function PasswordField({
 					aria-describedby={isInvalid ? `${field.name}-error` : undefined}
 					autoComplete={autoComplete}
 					placeholder="Password"
+					minLength={8}
+					maxLength={72}
 					type={showPassword ? 'text' : 'password'}
 				/>
 				<InputGroupAddon align="inline-end">

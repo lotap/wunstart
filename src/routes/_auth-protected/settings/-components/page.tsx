@@ -1,0 +1,136 @@
+import {cva} from 'class-variance-authority'
+import {ChevronDown, ChevronLeft, Pin} from 'lucide-react'
+import {useState, type CSSProperties} from 'react'
+
+import {RouterButton} from '#/components/router-button.tsx'
+import {Button} from '#/components/ui/button.tsx'
+import {Card, CardAction, CardContent, CardHeader, CardTitle} from '#/components/ui/card.tsx'
+
+import {AccessAndSecurity} from './access-and-security.tsx'
+import {Preferences} from './preferences.tsx'
+import {Profile} from './profile.tsx'
+
+export const CATEGORIES = [
+	{id: 'preferences', label: 'Preferences', Component: Preferences},
+	{id: 'profile', label: 'Profile', Component: Profile},
+	{id: 'access', label: 'Access & Security', Component: AccessAndSecurity},
+] as const
+
+type CatId = (typeof CATEGORIES)[number]['id']
+
+const settingsSectionVariants = cva('order-(--cat-order) md:order-(--cat-order-md) md:p-0', {
+	variants: {last: {true: 'grow'}},
+})
+
+export function SettingsPage({activeCategories}: {activeCategories: readonly CatId[]}) {
+	const [pinned, setPinned] = useState<CatId[]>([])
+
+	const nextPins = (id: CatId) => (pinned.includes(id) ? pinned.filter((c) => c !== id) : pinned)
+
+	const nextCats = (id: CatId, nextPinned: CatId[]) => {
+		if (activeCategories.includes(id)) {
+			const remaining = activeCategories.filter((c) => c !== id)
+			return remaining.length > 0 ? remaining : [id]
+		}
+
+		return [...new Set([...nextPinned, id])]
+	}
+
+	const togglePinned = (id: CatId) =>
+		setPinned((p) => (p.includes(id) ? p.filter((c) => c !== id) : [...p, id]))
+
+	return (
+		<div className="mx-auto flex h-full max-w-5xl flex-col gap-2 p-2 md:flex-row md:gap-4">
+			<nav className="contents gap-2 py-2 md:flex md:flex-col">
+				{CATEGORIES.map(({id, label}, i) => {
+					const isExpanded = activeCategories.includes(id)
+					return (
+						<div
+							key={id}
+							className="order-(--cat-order) flex items-center justify-between"
+							// SAFETY: custom vars are not automatically recognized as CSS
+							style={{'--cat-order': i * 2} as CSSProperties}
+						>
+							<RouterButton
+								from={'/settings'}
+								search={(prev) => ({
+									...prev,
+									categories: nextCats(id, nextPins(id)),
+								})}
+								replace
+								viewTransition={false}
+								onClick={() => {
+									const nextPinned = nextPins(id)
+									if (nextPinned.length !== pinned.length) setPinned(nextPinned)
+								}}
+								aria-expanded={isExpanded}
+								variant={isExpanded ? 'secondary' : 'ghost'}
+								size="lg"
+								className="grow justify-between"
+							>
+								{label}
+								{isExpanded ? (
+									<ChevronDown data-icon="inline-end" className="md:hidden" />
+								) : (
+									<ChevronLeft data-icon="inline-end" className="md:hidden" />
+								)}
+							</RouterButton>
+
+							{isExpanded && (
+								<Button
+									variant={pinned.includes(id) ? 'secondary' : 'ghost'}
+									size="icon-lg"
+									className="text-muted-foreground md:hidden"
+									onClick={() => togglePinned(id)}
+								>
+									<Pin />
+								</Button>
+							)}
+						</div>
+					)
+				})}
+			</nav>
+
+			<div className="contents gap-2 md:flex md:w-full md:flex-col">
+				{CATEGORIES.map(({id, label, Component: CatComponent}, i) => {
+					const catOrder = activeCategories.indexOf(id) + 1
+					return (
+						activeCategories.includes(id) && (
+							<section
+								key={id}
+								// SAFETY: custom vars are not automatically recognized as CSS
+								style={
+									{
+										'--cat-order': i * 2 + 1,
+										'--cat-order-md': catOrder,
+									} as CSSProperties
+								}
+								className={settingsSectionVariants({last: catOrder === activeCategories.length})}
+							>
+								<Card className="h-full">
+									<CardHeader className="hidden md:grid">
+										<CardTitle>
+											<h2 className="text-muted-foreground md:block">{label}</h2>
+										</CardTitle>
+										<CardAction>
+											<Button
+												size="icon"
+												variant={pinned.includes(id) ? 'default' : 'ghost'}
+												onClick={() => togglePinned(id)}
+											>
+												<Pin />
+											</Button>
+										</CardAction>
+									</CardHeader>
+									<CardContent>
+										<CatComponent />
+									</CardContent>
+								</Card>
+							</section>
+						)
+					)
+				})}
+			</div>
+		</div>
+	)
+}

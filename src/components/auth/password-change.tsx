@@ -178,11 +178,13 @@ export function ChangePasswordForm({
 	)
 }
 
-export function PasswordChangeDrawer() {
+export function PasswordChangeDrawer({triggerClassName}: {triggerClassName?: string}) {
 	const [open, setOpen] = useState(false)
 	return (
 		<Drawer showSwipeHandle open={open} onOpenChange={setOpen}>
-			<DrawerTrigger render={<Button variant="outline" />}>Change Password</DrawerTrigger>
+			<DrawerTrigger render={<Button variant="outline" className={triggerClassName} />}>
+				Change Password
+			</DrawerTrigger>
 			<DrawerPrimitive.VirtualKeyboardProvider>
 				<DrawerContent className="min-h-2/3">
 					<DrawerHeader>

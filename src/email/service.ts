@@ -21,12 +21,7 @@ export type EmailMessage = {
  * - `ambiguous`: outcome unknown. The message may have been accepted
  *   (network failure mid-flight, 5xx). Re-sending risks duplicates.
  */
-export const EmailFailureKind = Schema.Literals([
-	'config',
-	'transient',
-	'ambiguous',
-	'rejected',
-] as const)
+export const EmailFailureKind = Schema.Literals(['config', 'transient', 'ambiguous', 'rejected'])
 export type EmailFailureKind = Schema.Schema.Type<typeof EmailFailureKind>
 
 export class EmailSendError extends Schema.TaggedErrorClass<EmailSendError>()('EmailSendError', {

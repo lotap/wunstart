@@ -12,7 +12,7 @@ const toggleResolved = (resolved: ThemeContextState['resolved']) =>
 export default function ThemeToggle() {
 	const {theme, resolved, setTheme} = useTheme()
 
-	if (!theme) return <Skeleton className="size-10" />
+	if (!theme) return <Skeleton className="size-9" />
 
 	function toggleMode() {
 		const nextMode = theme !== 'system' ? 'system' : toggleResolved(resolved)

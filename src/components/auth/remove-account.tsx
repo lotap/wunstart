@@ -125,11 +125,13 @@ function ConfirmRemoval({closeRemoveAccountDrawer}: {closeRemoveAccountDrawer?: 
 	)
 }
 
-export function RemoveAccountDrawer() {
+export function RemoveAccountDrawer({triggerClassName}: {triggerClassName?: string}) {
 	const [open, setOpen] = useState(false)
 	return (
 		<Drawer showSwipeHandle open={open} onOpenChange={setOpen}>
-			<DrawerTrigger render={<Button variant="destructive" />}>Remove Account</DrawerTrigger>
+			<DrawerTrigger render={<Button variant="destructive" className={triggerClassName} />}>
+				Remove Account
+			</DrawerTrigger>
 			<DrawerContent className="min-h-2/3">
 				<DrawerHeader>
 					<DrawerTitle className="text-4xl font-bold">Remove Your Account</DrawerTitle>

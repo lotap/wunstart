@@ -130,7 +130,7 @@ const devEmailLayer = (): EmailLayer =>
 	Layer.unwrap(
 		Effect.gen(function* () {
 			const transport = yield* Config.schema(
-				Schema.Literals(['mailpit', 'sendemail', 'brevo'] as const),
+				Schema.Literals(['mailpit', 'sendemail', 'brevo']),
 				'EMAIL_TRANSPORT',
 			).pipe(Config.withDefault('mailpit'))
 			if (transport === 'mailpit') {
