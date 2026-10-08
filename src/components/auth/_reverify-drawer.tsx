@@ -257,7 +257,7 @@ export function ReverifyDrawer({
 
 	// oxlint-disable-next-line react-doctor/rendering-hydration-no-flicker
 	useEffect(() => {
-		// oxlint-disable-next-line react/set-state-in-effect react-hooks-js/set-state-in-effect
+		// oxlint-disable-next-line react/set-state-in-effect react-hooks-js/set-state-in-effect react-doctor/no-initialize-state
 		setHasMounted(true)
 	}, [])
 

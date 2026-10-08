@@ -1,28 +1,12 @@
 import {cva} from 'class-variance-authority'
-import {
-	ChevronDown,
-	ChevronLeft,
-	CircleUserRound,
-	ShieldCheck,
-	SlidersHorizontal,
-} from 'lucide-react'
+import {ChevronDown, ChevronLeft} from 'lucide-react'
 import {useState, type CSSProperties} from 'react'
 
 import {RouterButton} from '#/components/router-button.tsx'
 import {Card, CardAction, CardContent, CardHeader, CardTitle} from '#/components/ui/card.tsx'
 
-import {AccessAndSecurity} from './access-and-security.tsx'
+import {CATEGORIES, type CatId} from './categories.ts'
 import {PinButton} from './pin-button.tsx'
-import {Preferences} from './preferences.tsx'
-import {Profile} from './profile.tsx'
-
-export const CATEGORIES = [
-	{id: 'preferences', label: 'Preferences', Icon: SlidersHorizontal, Component: Preferences},
-	{id: 'profile', label: 'Profile', Icon: CircleUserRound, Component: Profile},
-	{id: 'access', label: 'Access & Security', Icon: ShieldCheck, Component: AccessAndSecurity},
-] as const
-
-type CatId = (typeof CATEGORIES)[number]['id']
 
 const settingsSectionVariants = cva('order-(--cat-order) md:order-(--cat-order-md) md:p-0', {
 	variants: {last: {true: 'grow'}},

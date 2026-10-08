@@ -183,11 +183,11 @@ export function SignUpForm() {
 							</FieldGroup>
 
 							<FieldDescription className="text-center">
-								{/* oxlint-disable-next-line jsx-a11y/anchor-is-valid */}
+								{/* oxlint-disable-next-line jsx-a11y/anchor-is-valid react-doctor/anchor-is-valid */}
 								By continuing, you agree to our <a href="#">Terms&nbsp;of&nbsp;Service</a>,{' '}
-								{/* oxlint-disable-next-line jsx-a11y/anchor-is-valid */}
+								{/* oxlint-disable-next-line jsx-a11y/anchor-is-valid react-doctor/anchor-is-valid */}
 								<a href="#">Privacy&nbsp;Policy</a>, and&nbsp;
-								{/* oxlint-disable-next-line jsx-a11y/anchor-is-valid */}
+								{/* oxlint-disable-next-line jsx-a11y/anchor-is-valid react-doctor/anchor-is-valid */}
 								<a href="#">Cookie&nbsp;Policy</a>.
 							</FieldDescription>
 						</FieldGroup>

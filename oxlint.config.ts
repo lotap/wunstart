@@ -2,24 +2,17 @@ import {defineConfig} from 'oxlint'
 import {
 	REACT_COMPILER_RULES,
 	RECOMMENDED_RULES,
-	RULES,
 	TANSTACK_QUERY_RULES,
 	TANSTACK_START_RULES,
 } from 'oxlint-plugin-react-doctor'
 
-// The built-in react and jsx-a11y plugins already cover the rules React Doctor
-// ports from OXC (`originallyExternal`), so only the plugin's own rules run.
-const portedKeys: Set<string> = new Set(
-	RULES.filter((meta) => 'originallyExternal' in meta && meta.originallyExternal).map(
-		(meta) => meta.key,
-	),
-)
-
 const reactDoctorRules: Record<string, 'error' | 'warn' | 'off'> = {}
-for (const [key, severity] of Object.entries(RECOMMENDED_RULES)) {
-	if (!portedKeys.has(key)) reactDoctorRules[key] = severity
-}
-for (const set of [TANSTACK_QUERY_RULES, TANSTACK_START_RULES, REACT_COMPILER_RULES]) {
+for (const set of [
+	RECOMMENDED_RULES,
+	TANSTACK_QUERY_RULES,
+	TANSTACK_START_RULES,
+	REACT_COMPILER_RULES,
+]) {
 	for (const [key, severity] of Object.entries(set)) reactDoctorRules[key] = severity
 }
 
@@ -108,6 +101,23 @@ const config = defineConfig({
 				'tanstack-query/prefer-query-options': 'warn',
 				// React Doctor rules (computed from the installed plugin)
 				...reactDoctorRules,
+			},
+		},
+
+		/// ROUTE MODULES, CONTEXTS, INTEGRATIONS ///
+		// TanStack route modules export only `Route` with local components, and
+		// contexts/integrations colocate hook/data exports by design, so
+		// only-export-components can't apply to them. Component files under
+		// `-components/` are excluded here and keep the rule.
+		{
+			files: [
+				'src/routes/**/*.tsx',
+				'src/contexts/**/*.tsx',
+				'src/integrations/**/*.tsx',
+			],
+			excludeFiles: ['src/routes/**/-components/**'],
+			rules: {
+				'react-doctor/only-export-components': 'off',
 			},
 		},
 
