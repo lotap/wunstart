@@ -50,11 +50,12 @@ export function UserNav() {
 					</DropdownMenuGroup>
 				)}
 				{(isPending || profile) && <DropdownMenuSeparator />}
-				<DropdownMenuItem render={<Link to="/settings" />}>
+				<DropdownMenuItem render={<Link to="/settings" />} className="cursor-pointer">
 					<Settings />
 					Settings
 				</DropdownMenuItem>
 				<DropdownMenuItem
+					className="cursor-pointer"
 					onClick={() => {
 						void signOut()
 					}}

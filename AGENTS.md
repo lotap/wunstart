@@ -14,28 +14,28 @@ Stack: TanStack Start (React) + TanStack Router + TanStack Query + Drizzle/Effec
 
 The `--bun` flag forces Bun's native runtime; without it, scripts may fall back to Node. That's necessary in some cases, such as running the dev server.
 
-| Command                              | What                                                                                                 |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `bun run dev`                        | Dev server on port 3000 - NEVER PREFIX WITH `bun --bun`                                              |
-| `bun --bun run build`                | `build:wasm` (Rust→Wasm) then `vite build`                                                           |
-| `bun --bun run test`                 | Vitest single run (no separate config; uses `vite.config.ts`)                                        |
-| `bun --bun run deploy`               | Build + `wrangler deploy`                                                                            |
-| `bun --bun run fmt` / `fmt:check`    | oxfmt `src/` (write / check-only)                                                                    |
-| `bun --bun run lint` / `lint:check`  | oxlint `src/` (warnings ok / `--deny-warnings`)                                                      |
-| `bun --bun run generate-routes`      | Regenerate `src/routeTree.gen.ts`                                                                    |
-| `bun --bun run db:generate`          | Drizzle schema → SQL migration                                                                       |
-| `bun --bun run db:check`             | Drizzle-kit migration check                                                                          |
-| `bun --bun run db:migrate`           | Apply pending migrations                                                                             |
-| `bun --bun run db:push`              | Push schema directly (dev)                                                                           |
-| `bun --bun run db:pull`              | Introspect existing DB into schema                                                                   |
-| `bun --bun run db:seed`              | Run `src/db/seed.ts`                                                                                 |
-| `bun --bun run db:studio`            | Drizzle Studio (GUI)                                                                                 |
-| `bun --bun run cf-typegen`           | `wrangler types` → `worker-configuration.d.ts` (regenerate after changing `wrangler.jsonc` bindings) |
-| `bun --bun run build:preview` / `preview` | Dev-mode build / serve the built app locally        |
-| `bun --bun run dev:email`            | React Email template dev server on port 3001          |
-| `bun --bun run archive-old-activities` | Manually run the activity-retention job the daily cron executes (needs `.env.local`) |
-| `bun --bun run db:export` / `db:up` / `db:mcp` / `db:skills` | Additional drizzle-kit passthroughs |
-| `bunx --bun shadcn@latest add <cmp>` | Install shadcn components                            |
+| Command                                                      | What                                                                                                 |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `bun run dev`                                                | Dev server on port 3000 - NEVER PREFIX WITH `bun --bun`                                              |
+| `bun --bun run build`                                        | `build:wasm` (Rust→Wasm) then `vite build`                                                           |
+| `bun --bun run test`                                         | Vitest single run (no separate config; uses `vite.config.ts`)                                        |
+| `bun --bun run deploy`                                       | Build + `wrangler deploy`                                                                            |
+| `bun --bun run fmt` / `fmt:check`                            | oxfmt `src/` (write / check-only)                                                                    |
+| `bun --bun run lint` / `lint:check`                          | oxlint `src/` (warnings ok / `--deny-warnings`)                                                      |
+| `bun --bun run generate-routes`                              | Regenerate `src/routeTree.gen.ts`                                                                    |
+| `bun --bun run db:generate`                                  | Drizzle schema → SQL migration                                                                       |
+| `bun --bun run db:check`                                     | Drizzle-kit migration check                                                                          |
+| `bun --bun run db:migrate`                                   | Apply pending migrations                                                                             |
+| `bun --bun run db:push`                                      | Push schema directly (dev)                                                                           |
+| `bun --bun run db:pull`                                      | Introspect existing DB into schema                                                                   |
+| `bun --bun run db:seed`                                      | Run `src/db/seed.ts`                                                                                 |
+| `bun --bun run db:studio`                                    | Drizzle Studio (GUI)                                                                                 |
+| `bun --bun run cf-typegen`                                   | `wrangler types` → `worker-configuration.d.ts` (regenerate after changing `wrangler.jsonc` bindings) |
+| `bun --bun run build:preview` / `preview`                    | Dev-mode build / serve the built app locally                                                         |
+| `bun --bun run dev:email`                                    | React Email template dev server on port 3001                                                         |
+| `bun --bun run archive-old-activities`                       | Manually run the activity-retention job the daily cron executes (needs `.env.local`)                 |
+| `bun --bun run db:export` / `db:up` / `db:mcp` / `db:skills` | Additional drizzle-kit passthroughs                                                                  |
+| `bunx --bun shadcn@latest add <cmp>`                         | Install shadcn components                                                                            |
 
 Run a single test file: `bun --bun run test -- src/path/to/file`. No `typecheck` script. Use `bunx tsgo --noEmit` (`@typescript/native-preview`).
 
@@ -66,14 +66,14 @@ Run a single test file: `bun --bun run test -- src/path/to/file`. No `typecheck`
 
 Each domain lives in `src/db/models/<domain>/` with these files:
 
-| File             | Purpose                                                                           |
-| ---------------- | --------------------------------------------------------------------------------- |
-| `schemas.ts`     | Table definitions using table factories (see below)                               |
-| `queries.ts`     | Prepared queries using `createPreparedQuery` helper                               |
+| File             | Purpose                                                                                   |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| `schemas.ts`     | Table definitions using table factories (see below)                                       |
+| `queries.ts`     | Prepared queries using `createPreparedQuery` helper                                       |
 | `validations.ts` | Effect Schema via `drizzle-orm/effect-schema` (`createInsertSchema`/`createSelectSchema`) |
-| `cascades.ts`    | Cascade logic for archive/delete operations                                       |
-| `consts.ts`      | Domain-specific constants (optional)                                              |
-| `views.ts`       | Drizzle views using `snakeCase.view()` (optional)                                 |
+| `cascades.ts`    | Cascade logic for archive/delete operations                                               |
+| `consts.ts`      | Domain-specific constants (optional)                                                      |
+| `views.ts`       | Drizzle views using `snakeCase.view()` (optional)                                         |
 
 Drizzle config glob (`drizzle.config.ts`): `src/db/models/**/*(schema|view)s.ts`. Only files under `models/` ending in `schemas.ts`/`views.ts` are discovered.
 
@@ -125,6 +125,7 @@ Ops that need the `AuthHasher` Durable Object provide `HashingStub.layer(name)` 
 - **Format/lint**: oxfmt + oxlint (not prettier, not eslint). Run both before commit.
 - **Formatting style** (from `.oxfmtrc.json`): **no semicolons**, **tabs** for indentation, **single quotes**, **no bracket spacing** (`{key}` not `{ key }`). Imports are auto-sorted by oxfmt, so don't manually order them.
 - **Effect services** (per `.agents/skills/effect/`): service impls return `Service.of({...})`; non-trivial service methods use `Effect.fn('Service.method', ...)` for tracing; typed errors via `Schema.TaggedErrorClass`; env config validated at the `Config` boundary with `Config.schema(Schema.Literals([...]), 'ENV')` (plural, array form, not variadic `Literal`). No keyof casts, no string `Effect.fail`. `Config.withDefault` only for missing-data defaults (it's curried and unions `A2 | A`, so annotate the default's type). `Config.option` for optional keys, `Config.redacted` for credentials.
+- **shadcn components** `src/components/ui/**` is generated shadcn output (see `components.json`). Editing those files directly is a last resort: it diverges from the registry and makes future `shadcn add`/updates painful. Prefer customizing from the caller with Tailwind classnames (they merge through `cn`); patch the ui file only when the change is impossible from outside (new export, variant, or behavior), and keep it minimal.
 
 ## Dev server gotchas
 
