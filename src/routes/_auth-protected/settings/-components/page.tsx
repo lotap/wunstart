@@ -1,5 +1,12 @@
 import {cva} from 'class-variance-authority'
-import {ChevronDown, ChevronLeft, Pin} from 'lucide-react'
+import {
+	ChevronDown,
+	ChevronLeft,
+	CircleUserRound,
+	Pin,
+	ShieldCheck,
+	SlidersHorizontal,
+} from 'lucide-react'
 import {useState, type CSSProperties} from 'react'
 
 import {RouterButton} from '#/components/router-button.tsx'
@@ -11,9 +18,9 @@ import {Preferences} from './preferences.tsx'
 import {Profile} from './profile.tsx'
 
 export const CATEGORIES = [
-	{id: 'preferences', label: 'Preferences', Component: Preferences},
-	{id: 'profile', label: 'Profile', Component: Profile},
-	{id: 'access', label: 'Access & Security', Component: AccessAndSecurity},
+	{id: 'preferences', label: 'Preferences', Icon: SlidersHorizontal, Component: Preferences},
+	{id: 'profile', label: 'Profile', Icon: CircleUserRound, Component: Profile},
+	{id: 'access', label: 'Access & Security', Icon: ShieldCheck, Component: AccessAndSecurity},
 ] as const
 
 type CatId = (typeof CATEGORIES)[number]['id']
@@ -42,7 +49,7 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 	return (
 		<div className="mx-auto flex h-full max-w-5xl flex-col gap-2 p-2 md:flex-row md:gap-4">
 			<nav className="contents gap-2 py-2 md:flex md:flex-col">
-				{CATEGORIES.map(({id, label}, i) => {
+				{CATEGORIES.map(({id, label, Icon}, i) => {
 					const isExpanded = activeCategories.includes(id)
 					return (
 						<div
@@ -66,9 +73,12 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 								aria-expanded={isExpanded}
 								variant={isExpanded ? 'secondary' : 'ghost'}
 								size="lg"
-								className="grow justify-between"
+								className="grow justify-between text-muted-foreground"
 							>
-								{label}
+								<span className="flex items-center gap-2">
+									<Icon data-icon="inline-start" />
+									{label}
+								</span>
 								{isExpanded ? (
 									<ChevronDown data-icon="inline-end" className="md:hidden" />
 								) : (
