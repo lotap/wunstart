@@ -69,8 +69,8 @@ export default function PasswordStrengthMeter({
 			 * unambiguous; only the bars use the score gradient
 			 */}
 			<span className="flex h-5 w-24 items-center justify-end">
-				{meta &&
-					(strength?.isStrong ? (
+				{meta ? (
+					strength?.isStrong ? (
 						<Badge className="bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/20">
 							<Check data-icon="inline-start" aria-hidden />
 							{meta.label}
@@ -80,7 +80,10 @@ export default function PasswordStrengthMeter({
 							<X data-icon="inline-start" aria-hidden />
 							{meta.label}
 						</Badge>
-					))}
+					)
+				) : (
+					<Badge variant="secondary">Strength</Badge>
+				)}
 			</span>
 		</div>
 	)
