@@ -3,7 +3,6 @@ import {useServerFn} from '@tanstack/react-start'
 import type {ReactNode} from 'react'
 
 import {ErrorBoundary} from '#/components/error-boundary.tsx'
-import {Badge} from '#/components/ui/badge.tsx'
 import {Button} from '#/components/ui/button.tsx'
 import {Spinner} from '#/components/ui/spinner.tsx'
 import {useSignOutAll} from '#/hooks/use-sign-out-all.ts'
@@ -22,14 +21,8 @@ type SessionDisplay = {
 function SessionText({session}: {session: SessionDisplay}) {
 	return (
 		<>
-			<p className="flex items-center gap-2 text-sm font-medium">
-				Signed in {session.createdAtString}
-				{session.isCurrent ? (
-					<Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-						Current Session
-					</Badge>
-				) : null}
-			</p>
+			{session.isCurrent ? <p className="text-sm text-muted-foreground">Current session</p> : null}
+			<p className="text-sm font-medium">Signed in {session.createdAtString}</p>
 			<p className="text-sm text-muted-foreground">
 				{[session.device, session.location, session.ipAddress ?? 'Unknown IP']
 					.filter(Boolean)
@@ -51,7 +44,7 @@ function SignOutButton() {
 	const signOut = useSignOut()
 
 	return (
-		<Button variant="secondary" onClick={async () => await signOut()} className="sm:w-fit">
+		<Button variant="outline" onClick={async () => await signOut()} className="w-fit">
 			Sign Out
 		</Button>
 	)
@@ -59,7 +52,7 @@ function SignOutButton() {
 
 function CurrentBox({children}: {children: ReactNode}) {
 	return (
-		<div className="flex flex-col gap-4 rounded-lg border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+		<div className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
 			{children}
 		</div>
 	)
@@ -87,12 +80,12 @@ function SessionsList() {
 	if (isPending)
 		return (
 			<CurrentBox>
-				{/* min-h matches the two-line session content below so the box never changes height */}
+				{/* min-h matches the three-line current-session content below so the box never changes height */}
 				<p
 					// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
 					role="status"
 					aria-busy="true"
-					className="flex min-h-10.5 items-center gap-1 text-sm text-muted-foreground"
+					className="flex min-h-16 items-center gap-1 text-sm text-muted-foreground"
 				>
 					Loading sessions <Spinner />
 				</p>
@@ -103,7 +96,7 @@ function SessionsList() {
 	if (error)
 		return (
 			<CurrentBox>
-				<p role="alert" className="flex min-h-10.5 items-center text-sm text-muted-foreground">
+				<p role="alert" className="flex min-h-16 items-center text-sm text-muted-foreground">
 					Couldn’t load your sessions. Please try again.
 				</p>
 				<SignOutButton />
@@ -113,11 +106,14 @@ function SessionsList() {
 	const current = sessions.find((session) => session.isCurrent)
 	const others = sessions.filter((session) => !session.isCurrent)
 
+	/** Every session is gone (e.g. a remote sign-out-all): nothing to list or leave */
+	if (!sessions.length) return <p className="text-sm text-muted-foreground">No active sessions.</p>
+
 	/** Fail-closed: current unknown, keep the single combined list */
 	if (!current)
 		return (
 			<div className="flex flex-col gap-2">
-				<ul className="flex flex-col divide-y rounded-lg border bg-card">
+				<ul className="flex flex-col divide-y rounded-lg border">
 					{sessions.map((session) => (
 						/** ms-precision timestamp as key: rows are stateless and the list is tiny */
 						<SessionItem key={session.createdAt.getTime()} session={session} />
@@ -130,13 +126,13 @@ function SessionsList() {
 	return (
 		<div className="flex flex-col gap-2">
 			<CurrentBox>
-				<div className="flex min-h-10.5 flex-col justify-center gap-0.5">
+				<div className="flex min-h-16 flex-col justify-center gap-0.5">
 					<SessionText session={current} />
 				</div>
 				<SignOutButton />
 			</CurrentBox>
 			{others.length ? (
-				<ul className="flex flex-col divide-y rounded-lg border bg-card">
+				<ul className="flex flex-col divide-y rounded-lg border">
 					{others.map((session) => (
 						/** ms-precision timestamp as key: rows are stateless and the list is tiny */
 						<SessionItem key={session.createdAt.getTime()} session={session} />
@@ -152,14 +148,20 @@ export function SessionsSection() {
 
 	return (
 		<section className="flex flex-col gap-4">
-			<h3 className="text-base text-muted-foreground">Sessions</h3>
-			<div className="flex flex-col gap-2 rounded-lg border bg-muted p-2">
+			<h3 className="text-sm font-medium text-muted-foreground">Sessions</h3>
+			<div className="flex flex-col gap-2">
 				<ErrorBoundary fallback={<p>Couldn’t render your sessions. Please try again.</p>}>
 					<SessionsList />
 				</ErrorBoundary>
-				<Button variant="outline" onClick={async () => await signOutAll()} className="my-2">
-					Sign Out All
-				</Button>
+				{/** Extra top margin as a deliberate break before the sign-out-all action */}
+				<div className="mt-2 flex flex-row flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border p-4">
+					<Button variant="outline" onClick={async () => await signOutAll()} className="w-fit">
+						Sign Out All
+					</Button>
+					<p className="min-w-0 flex-1 basis-64 text-sm text-muted-foreground">
+						Ends every session, including this device. You will need to sign in again.
+					</p>
+				</div>
 			</div>
 		</section>
 	)
