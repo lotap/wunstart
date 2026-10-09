@@ -14,6 +14,32 @@ const strengthMeta = [
 	{label: 'Strong', filledCount: 4, barClassName: 'bg-emerald-500'},
 ] as const
 
+/** Badge for the meter: idle before entry, then strong/weak once scored */
+function StrengthBadge({
+	meta,
+	isStrong,
+}: {
+	meta: (typeof strengthMeta)[number] | null
+	isStrong?: boolean
+}) {
+	if (!meta) return <Badge variant="secondary">Strength</Badge>
+
+	if (isStrong)
+		return (
+			<Badge className="bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/20">
+				<Check data-icon="inline-start" aria-hidden />
+				{meta.label}
+			</Badge>
+		)
+
+	return (
+		<Badge variant="destructive">
+			<X data-icon="inline-start" aria-hidden />
+			{meta.label}
+		</Badge>
+	)
+}
+
 /** Live strength indicator for a password input, scored by zxcvbn */
 export default function PasswordStrengthMeter({
 	value,
@@ -69,21 +95,7 @@ export default function PasswordStrengthMeter({
 			 * unambiguous; only the bars use the score gradient
 			 */}
 			<span className="flex h-5 w-24 items-center justify-end">
-				{meta ? (
-					strength?.isStrong ? (
-						<Badge className="bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/20">
-							<Check data-icon="inline-start" aria-hidden />
-							{meta.label}
-						</Badge>
-					) : (
-						<Badge variant="destructive">
-							<X data-icon="inline-start" aria-hidden />
-							{meta.label}
-						</Badge>
-					)
-				) : (
-					<Badge variant="secondary">Strength</Badge>
-				)}
+				<StrengthBadge meta={meta} isStrong={strength?.isStrong} />
 			</span>
 		</div>
 	)
