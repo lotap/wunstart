@@ -122,6 +122,7 @@ Ops that need the `AuthHasher` Durable Object provide `HashingStub.layer(name)` 
 - **Auth**: Self-rolled (DB sessions + JWT hybrid, see ADR 0001). Password hashing is offloaded to the `AuthHasher` Durable Object (ADR 0005).
 - **Server functions**: Act on the cookie identity — middleware (`requireAuth`/`requireAnonRegistered`) unwraps db ids server-side, so the client never supplies or receives db ids. A fn that accepts an id param is the exception and must say so in its name (e.g. `...ById`) and validate authorization for it.
 - **Readability**: prefer flat over nested — early returns/guard clauses over nested ternaries, small named helpers over config tables or clever dispatch. Model the states first, then pick the dullest construct that fits.
+- **Future cost**: prefer a small structural change now that prevents an expensive retrofit later — policy by construction over per-call-site discipline, even when the immediate diff is slightly larger. Cheap now beats expensive later.
 - **TypeScript**: v6 with `@typescript/native-preview` (`tsgo`). `verbatimModuleSyntax: true` (use `import type` for types). `noUnusedLocals` and `noUnusedParameters` are enabled, so unused bindings fail the build.
 - **Format/lint**: oxfmt + oxlint (not prettier, not eslint). Run both before commit.
 - **Formatting style** (from `.oxfmtrc.json`): **no semicolons**, **tabs** for indentation, **single quotes**, **no bracket spacing** (`{key}` not `{ key }`). Imports are auto-sorted by oxfmt, so don't manually order them.
