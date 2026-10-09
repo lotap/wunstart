@@ -9,7 +9,7 @@
 		"archive-old-activities": "dotenv -e .env.local -e .env -- bun --bun run src/scripts/archive-old-activities.ts",
 		"build": "bun run build:wasm && vite build",
 		"build:preview": "vite build --mode development",
-		"build:wasm": "cd crates/argon2-do-hasher && cargo build --target wasm32-unknown-unknown --release && cp target/wasm32-unknown-unknown/release/argon2_do_hasher.wasm ../../src/durable-objects/argon2-do-hasher.wasm",
+		"build:wasm": "sh tools/build-wasm.sh",
 		"cf-typegen": "wrangler types",
 		"db": "dotenv -e .env.development -- drizzle-kit",
 		"db:check": "bun --bun run db -- check",
