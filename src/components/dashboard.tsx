@@ -11,7 +11,7 @@ export function Dashboard() {
 	const {state: historyState} = useLocation()
 
 	return (
-		<div>
+		<div className="mx-auto max-w-5xl p-2">
 			<h2>dashboard</h2>
 			{historyState.welcome && (
 				<AsyncBoundary fallback={null}>
