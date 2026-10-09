@@ -21,6 +21,7 @@ export function Header() {
 					</li>
 				</ul>
 				<div className="flex items-center gap-1">
+					<ThemeToggle />
 					{auth ? (
 						<UserNav />
 					) : (
@@ -33,7 +34,6 @@ export function Header() {
 							</RouterButton>
 						</>
 					)}
-					<ThemeToggle />
 				</div>
 			</nav>
 		</header>
