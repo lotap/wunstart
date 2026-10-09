@@ -3,7 +3,7 @@ export function Footer() {
 
 	return (
 		<footer className="flex flex-row justify-center">
-			<small suppressHydrationWarning>© {year} Wunstart</small>
+			<small suppressHydrationWarning>© {year} wunstart</small>
 		</footer>
 	)
 }
