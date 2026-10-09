@@ -5,7 +5,7 @@ import {useServerFn} from '@tanstack/react-start'
 import {lazy, useEffect, useState} from 'react'
 
 import {AsyncBoundary} from '#/components/async-boundary.tsx'
-import {Button} from '#/components/ui/button.tsx'
+import {Button, type ButtonProps} from '#/components/ui/button.tsx'
 import {
 	Drawer,
 	DrawerClose,
@@ -178,11 +178,17 @@ export function ChangePasswordForm({
 	)
 }
 
-export function PasswordChangeDrawer({triggerClassName}: {triggerClassName?: string}) {
+export function PasswordChangeDrawer({
+	triggerClassName,
+	triggerVariant = 'outline',
+}: {
+	triggerClassName?: string
+	triggerVariant?: ButtonProps['variant']
+}) {
 	const [open, setOpen] = useState(false)
 	return (
 		<Drawer showSwipeHandle open={open} onOpenChange={setOpen}>
-			<DrawerTrigger render={<Button variant="outline" className={triggerClassName} />}>
+			<DrawerTrigger render={<Button variant={triggerVariant} className={triggerClassName} />}>
 				Change Password
 			</DrawerTrigger>
 			<DrawerPrimitive.VirtualKeyboardProvider>
