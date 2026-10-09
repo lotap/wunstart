@@ -1,5 +1,6 @@
 import {cva} from 'class-variance-authority'
-import {ChevronDown, ChevronLeft} from 'lucide-react'
+import {cn} from 'cn'
+import {ChevronDown} from 'lucide-react'
 import {useState, type ComponentType, type CSSProperties} from 'react'
 
 import {RouterButton} from '#/components/router-button.tsx'
@@ -20,6 +21,14 @@ const CATEGORY_COMPONENTS = {
 
 const settingsSectionVariants = cva('order-(--cat-order) md:order-(--cat-order-md) md:p-0', {
 	variants: {last: {true: 'grow'}},
+})
+
+const navChevronVariants = cva('transition-transform motion-reduce:transition-none md:hidden', {
+	variants: {
+		expanded: {
+			false: 'rotate-90',
+		},
+	},
 })
 
 export function SettingsPage({activeCategories}: {activeCategories: readonly CategoryId[]}) {
@@ -65,6 +74,7 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 									if (nextPinned.length !== pinned.length) setPinned(nextPinned)
 								}}
 								aria-expanded={isExpanded}
+								aria-controls={isExpanded ? `settings-section-${id}` : undefined}
 								variant={isExpanded ? 'secondary' : 'ghost'}
 								size="lg"
 								className="grow justify-between text-muted-foreground"
@@ -73,11 +83,10 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 									<Icon data-icon="inline-start" />
 									{label}
 								</span>
-								{isExpanded ? (
-									<ChevronDown data-icon="inline-end" className="md:hidden" />
-								) : (
-									<ChevronLeft data-icon="inline-end" className="md:hidden" />
-								)}
+								<ChevronDown
+									data-icon="inline-end"
+									className={cn(navChevronVariants({expanded: isExpanded}))}
+								/>
 							</RouterButton>
 
 							{isExpanded && (
@@ -103,6 +112,7 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 						activeCategories.includes(id) && (
 							<section
 								key={id}
+								id={`settings-section-${id}`}
 								// SAFETY: custom vars are not automatically recognized as CSS
 								style={
 									{
@@ -115,7 +125,7 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 								<Card className="h-full">
 									<CardHeader className="hidden md:grid">
 										<CardTitle>
-											<h2 className="text-muted-foreground md:block">{label}</h2>
+											<h2>{label}</h2>
 										</CardTitle>
 										<CardAction>
 											<PinButton

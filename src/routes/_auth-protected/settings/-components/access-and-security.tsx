@@ -7,11 +7,12 @@ export function AccessAndSecurity() {
 	return (
 		<div className="flex flex-col gap-6">
 			<section className="flex flex-col gap-4">
+				<h3 className="text-sm font-medium text-muted-foreground">Password</h3>
 				<PasswordChangeDrawer triggerClassName="w-fit" triggerVariant="secondary" />
 			</section>
 			<SessionsSection />
 			<section className="flex flex-col gap-4">
-				<h3 className="text-base text-muted-foreground">Danger Zone</h3>
+				<h3 className="text-sm font-medium text-muted-foreground">Danger zone</h3>
 				<RemoveAccountDrawer triggerClassName="w-fit" />
 			</section>
 		</div>
