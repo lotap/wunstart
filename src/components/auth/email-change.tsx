@@ -131,7 +131,7 @@ function VerifyNewEmailForm({
 					if (closeEmailChangeDrawer) closeEmailChangeDrawer()
 					toast.add({
 						type: 'success',
-						title: 'Email Updated',
+						title: 'Email updated',
 					})
 				}}
 				email={newEmail}

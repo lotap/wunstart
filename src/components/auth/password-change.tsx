@@ -71,7 +71,7 @@ export function ChangePasswordForm({
 			if (closePasswordChangeDrawer) closePasswordChangeDrawer()
 			toast.add({
 				type: 'success',
-				title: 'Password Updated',
+				title: 'Password updated',
 				description: signOutAllSessions ? 'You have been signed out of all sessions' : undefined,
 			})
 		},
@@ -129,48 +129,43 @@ export function ChangePasswordForm({
 					action="#"
 				>
 					<FieldGroup>
-						<FieldGroup>
-							<form.Field
-								name="password"
-								validators={[
-									validateAfterFirstSubmit(async ({value}: {value: string}) => {
-										/**
-										 * Async because the zxcvbn dictionaries lazy-load; the
-										 * password is also checked against the user's own email
-										 */
-										const {isStrong, message} = await checkPasswordStrength(
-											value,
-											strengthUserInputs,
-										)
-										if (isStrong) return undefined
-										return message
-									}),
-								]}
-							>
+						<form.Field
+							name="password"
+							validators={[
+								validateAfterFirstSubmit(async ({value}: {value: string}) => {
+									/**
+									 * Async because the zxcvbn dictionaries lazy-load; the
+									 * password is also checked against the user's own email
+									 */
+									const {isStrong, message} = await checkPasswordStrength(value, strengthUserInputs)
+									if (isStrong) return undefined
+									return message
+								}),
+							]}
+						>
+							{(field) => (
+								<field.PasswordField
+									showStrength
+									strengthUserInputs={strengthUserInputs}
+									autoComplete="new-password"
+								/>
+							)}
+						</form.Field>
+
+						{showSignOutAllSessions && (
+							<form.Field name="signOutAllSessions">
 								{(field) => (
-									<field.PasswordField
-										showStrength
-										strengthUserInputs={strengthUserInputs}
-										autoComplete="new-password"
+									<field.CheckboxField
+										label="Sign out all sessions"
+										description="Ends every signed-in session, including this device. You will need to sign in again."
 									/>
 								)}
 							</form.Field>
+						)}
 
-							{showSignOutAllSessions && (
-								<form.Field name="signOutAllSessions">
-									{(field) => (
-										<field.CheckboxField
-											label="Sign Out All Sessions"
-											description="Ends every signed-in session, including this device. You will need to sign in again."
-										/>
-									)}
-								</form.Field>
-							)}
+						<form.OnSubmitErrors />
 
-							<form.OnSubmitErrors />
-
-							<form.SubmitButton label="Set Password" labelWhileSubmitting="Updating" />
-						</FieldGroup>
+						<form.SubmitButton label="Set Password" labelWhileSubmitting="Updating" />
 					</FieldGroup>
 				</form>
 			</div>

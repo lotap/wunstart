@@ -15,7 +15,7 @@ export function useSignOut() {
 		} catch (error) {
 			toast.add({
 				type: 'error',
-				title: 'Sign Out Failed',
+				title: 'Sign out failed',
 				description: error instanceof Error ? error.message : 'Please try again.',
 			})
 		}
