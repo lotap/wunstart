@@ -11,13 +11,13 @@ export const handleGetSessions = createServerFn({method: 'GET'})
 	.handler(
 		async ({
 			context: {
-				auth: {userId},
+				auth: {userId, refreshToken},
 				ipAddress,
 			},
 		}) => {
 			return await runOp({
 				op: listSessions,
-				data: {userId, ipAddress},
+				data: {userId, refreshToken, ipAddress},
 				layers: [authLayer, dbLayer],
 			})
 		},

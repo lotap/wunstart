@@ -4,6 +4,7 @@ import {useServerFn} from '@tanstack/react-start'
 import {PasswordChangeDrawer} from '#/components/auth/password-change.tsx'
 import {RemoveAccountDrawer} from '#/components/auth/remove-account.tsx'
 import {ErrorBoundary} from '#/components/error-boundary.tsx'
+import {Badge} from '#/components/ui/badge.tsx'
 import {Button} from '#/components/ui/button.tsx'
 import {Spinner} from '#/components/ui/spinner.tsx'
 import {useSignOutAll} from '#/hooks/use-sign-out-all.ts'
@@ -51,8 +52,19 @@ function SessionsList() {
 				 * already guarded by the disabled submit button) is a console warning
 				 */
 				return (
-					<li key={session.createdAt.getTime()} className="flex flex-col gap-0.5 p-3">
-						<p className="text-sm font-medium">Signed in {session.createdAtString}</p>
+					<li
+						key={session.createdAt.getTime()}
+						aria-current={session.isCurrent ? 'true' : undefined}
+						className="flex flex-col gap-0.5 p-3"
+					>
+						<p className="flex items-center gap-2 text-sm font-medium">
+							Signed in {session.createdAtString}
+							{session.isCurrent ? (
+								<Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+									This device
+								</Badge>
+							) : null}
+						</p>
 						<p className="text-sm text-muted-foreground">
 							{[session.device, session.location, session.ipAddress ?? 'Unknown IP']
 								.filter(Boolean)

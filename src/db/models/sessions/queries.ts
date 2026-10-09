@@ -83,6 +83,7 @@ export const selectFromUnexpiredUnrevokedByUser = createPreparedQuery({
 	stmtFn: (qx) =>
 		qx
 			.select({
+				id,
 				createdAt,
 				ipAddresses,
 				userAgents,
