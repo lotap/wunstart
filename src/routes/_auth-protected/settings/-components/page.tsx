@@ -87,7 +87,7 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 									onToggle={() => togglePinned(id)}
 									variant={pinned.includes(id) ? 'secondary' : 'ghost'}
 									size="icon-lg"
-									className="text-muted-foreground md:hidden"
+									className="md:hidden"
 								/>
 							)}
 						</div>
@@ -124,7 +124,6 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 												onToggle={() => togglePinned(id)}
 												variant={pinned.includes(id) ? 'default' : 'ghost'}
 												size="icon"
-												className="text-muted-foreground"
 											/>
 										</CardAction>
 									</CardHeader>

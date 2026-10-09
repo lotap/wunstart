@@ -1,7 +1,17 @@
+import {cva} from 'class-variance-authority'
+import {cn} from 'cn'
 import {Pin} from 'lucide-react'
 
 import {Button, type ButtonProps} from '#/components/ui/button.tsx'
 import {Tooltip, TooltipContent, TooltipTrigger} from '#/components/ui/tooltip.tsx'
+
+const pinButtonVariants = cva('', {
+	variants: {
+		isPinned: {
+			false: 'text-muted-foreground',
+		},
+	},
+})
 
 export function PinButton({
 	isPinned,
@@ -14,7 +24,8 @@ export function PinButton({
 	isPinned: boolean
 	label: string
 	onToggle: () => void
-} & Required<Pick<ButtonProps, 'variant' | 'size' | 'className'>>) {
+	className?: string
+} & Required<Pick<ButtonProps, 'variant' | 'size'>>) {
 	return (
 		<Tooltip>
 			<TooltipTrigger
@@ -22,7 +33,7 @@ export function PinButton({
 					<Button
 						variant={variant}
 						size={size}
-						className={className}
+						className={cn(pinButtonVariants({isPinned}), className)}
 						onClick={onToggle}
 						aria-label={
 							isPinned ? `Unpin ${label}` : `Pin ${label} to keep it open as you navigate settings`
