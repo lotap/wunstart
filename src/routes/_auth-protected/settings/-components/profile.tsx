@@ -4,12 +4,14 @@ import {useServerFn} from '@tanstack/react-start'
 import {userProfileQueryOptions} from '#/components/auth/_utils.ts'
 import {EmailChangeDrawer} from '#/components/auth/email-change.tsx'
 import {ErrorBoundary} from '#/components/error-boundary.tsx'
-import {Field, FieldContent, FieldDescription, FieldLabel} from '#/components/ui/field.tsx'
+import {Field, FieldContent, FieldLabel} from '#/components/ui/field.tsx'
 import {Skeleton} from '#/components/ui/skeleton.tsx'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 
 const ProfileEmailErrMsg = () => (
-	<p className="alert">Could not retrieve your email. Refresh and try again.</p>
+	<p role="alert" className="text-destructive">
+		Could not retrieve your email. Refresh and try again.
+	</p>
 )
 
 function ProfileEmail() {
@@ -22,12 +24,7 @@ function ProfileEmail() {
 	/** w-28 matches a 14-char masked Gmail address at text-base so the load never shifts layout */
 	if (isPending) return <Skeleton className="h-6 w-28" />
 
-	if (profile)
-		return (
-			<FieldDescription className="mt-0! text-base text-foreground">
-				{profile.email}
-			</FieldDescription>
-		)
+	if (profile) return <p className="text-base text-foreground">{profile.email}</p>
 
 	return <ProfileEmailErrMsg />
 }
@@ -35,8 +32,8 @@ function ProfileEmail() {
 export function Profile() {
 	return (
 		<Field orientation="responsive">
-			<FieldLabel>Email</FieldLabel>
-			<FieldContent className="flex flex-row items-center-safe gap-1">
+			<FieldLabel className="text-muted-foreground">Email</FieldLabel>
+			<FieldContent className="flex flex-row items-center-safe gap-2">
 				<ErrorBoundary fallback={<ProfileEmailErrMsg />}>
 					<ProfileEmail />
 				</ErrorBoundary>
