@@ -1,8 +1,8 @@
 import {createFileRoute} from '@tanstack/react-router'
 import {Schema} from 'effect'
 
-import {CATEGORIES} from './-components/categories.ts'
 import {SettingsPage} from './-components/page.tsx'
+import {CATEGORIES} from './categories.ts'
 
 export const Route = createFileRoute('/_auth-protected/settings')({
 	component: RouteComponent,

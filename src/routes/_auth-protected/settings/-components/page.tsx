@@ -1,23 +1,34 @@
 import {cva} from 'class-variance-authority'
 import {ChevronDown, ChevronLeft} from 'lucide-react'
-import {useState, type CSSProperties} from 'react'
+import {useState, type ComponentType, type CSSProperties} from 'react'
 
 import {RouterButton} from '#/components/router-button.tsx'
 import {Card, CardAction, CardContent, CardHeader, CardTitle} from '#/components/ui/card.tsx'
 
-import {CATEGORIES, type CatId} from './categories.ts'
+import {CATEGORIES, type CategoryId} from '../categories.ts'
+import {AccessAndSecurity} from './access-and-security.tsx'
 import {PinButton} from './pin-button.tsx'
+import {Preferences} from './preferences.tsx'
+import {Profile} from './profile.tsx'
+
+/** Attaches each category to its section component. Exhaustive by construction */
+const CATEGORY_COMPONENTS = {
+	preferences: Preferences,
+	profile: Profile,
+	access: AccessAndSecurity,
+} satisfies Record<CategoryId, ComponentType>
 
 const settingsSectionVariants = cva('order-(--cat-order) md:order-(--cat-order-md) md:p-0', {
 	variants: {last: {true: 'grow'}},
 })
 
-export function SettingsPage({activeCategories}: {activeCategories: readonly CatId[]}) {
-	const [pinned, setPinned] = useState<CatId[]>([])
+export function SettingsPage({activeCategories}: {activeCategories: readonly CategoryId[]}) {
+	const [pinned, setPinned] = useState<CategoryId[]>([])
 
-	const nextPins = (id: CatId) => (pinned.includes(id) ? pinned.filter((c) => c !== id) : pinned)
+	const nextPins = (id: CategoryId) =>
+		pinned.includes(id) ? pinned.filter((c) => c !== id) : pinned
 
-	const nextCats = (id: CatId, nextPinned: CatId[]) => {
+	const nextCats = (id: CategoryId, nextPinned: CategoryId[]) => {
 		if (activeCategories.includes(id)) {
 			const remaining = activeCategories.filter((c) => c !== id)
 			return remaining.length > 0 ? remaining : [id]
@@ -26,7 +37,7 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 		return [...new Set([...nextPinned, id])]
 	}
 
-	const togglePinned = (id: CatId) =>
+	const togglePinned = (id: CategoryId) =>
 		setPinned((p) => (p.includes(id) ? p.filter((c) => c !== id) : [...p, id]))
 
 	return (
@@ -85,8 +96,9 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 			</nav>
 
 			<div className="contents gap-2 md:flex md:w-full md:flex-col">
-				{CATEGORIES.map(({id, label, Component: CatComponent}, i) => {
+				{CATEGORIES.map(({id, label}, i) => {
 					const catOrder = activeCategories.indexOf(id) + 1
+					const CatComponent = CATEGORY_COMPONENTS[id]
 					return (
 						activeCategories.includes(id) && (
 							<section

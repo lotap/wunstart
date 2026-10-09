@@ -1,7 +1,7 @@
 import {useQuery} from '@tanstack/react-query'
 import {Link} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
-import {LogOut, Settings, User} from 'lucide-react'
+import {LogOut, User} from 'lucide-react'
 import {useState} from 'react'
 
 import {userProfileQueryOptions} from '#/components/auth/_utils.ts'
@@ -17,6 +17,7 @@ import {
 } from '#/components/ui/dropdown-menu.tsx'
 import {Skeleton} from '#/components/ui/skeleton.tsx'
 import {useSignOut} from '#/hooks/use-sign-out.ts'
+import {CATEGORIES} from '#/routes/_auth-protected/settings/categories.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 
 export function UserNav() {
@@ -37,7 +38,7 @@ export function UserNav() {
 			<DropdownMenuTrigger render={<Button variant="ghost" size="icon" aria-label="Account" />}>
 				<User />
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" sideOffset={8}>
+			<DropdownMenuContent align="end" sideOffset={8} className="min-w-48">
 				{(isPending || profile) && (
 					<DropdownMenuGroup>
 						{isPending ? (
@@ -51,10 +52,17 @@ export function UserNav() {
 					</DropdownMenuGroup>
 				)}
 				{(isPending || profile) && <DropdownMenuSeparator />}
-				<DropdownMenuItem render={<Link to="/settings" />} className="cursor-pointer">
-					<Settings />
-					Settings
-				</DropdownMenuItem>
+				{CATEGORIES.map(({id, label, Icon}) => (
+					<DropdownMenuItem
+						key={id}
+						render={<Link to="/settings" search={{categories: [id]}} />}
+						className="cursor-pointer"
+					>
+						<Icon />
+						{label}
+					</DropdownMenuItem>
+				))}
+				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					className="cursor-pointer"
 					onClick={() => {
