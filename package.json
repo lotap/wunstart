@@ -25,7 +25,7 @@
 		"db:up": "bun --bun run db -- up",
 		"deploy": "bun run build && wrangler deploy",
 		"dev": "vite dev --port 3000",
-		"predev": "bun run build:wasm",
+		"predev": "bun install && bun run build:wasm",
 		"dev:email": "email dev --dir src/email/templates --port 3001",
 		"fmt": "oxfmt src/",
 		"fmt:check": "oxfmt --check src/",

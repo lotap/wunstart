@@ -7,7 +7,7 @@ Stack: TanStack Start (React) + TanStack Router + TanStack Query + Drizzle/Effec
 - Package manager: **bun** (`bun.lock`). Use `bun install`.
 - Postgres via Docker: `docker compose up -d`. Password `mypassword` (see `compose.yaml`).
 - `.env.local` must define `DATABASE_URL`. The `db:*` scripts load it via `dotenv -e .env.local`. `.env.development` is loaded by the Cloudflare vite plugin for the dev server and also holds the JWT secrets + `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`.
-- After install, run `bun --bun run build:wasm` once so the `AuthHasher` Durable Object has its Wasm module (gitignored, not built by `install`). Requires Rust + the `wasm32-unknown-unknown` rustup target. `build:wasm` (`tools/build-wasm.sh`) shares its cargo target dir (`../.shared-cargo-target`) and a content-hashed wasm cache (`../.shared-wasm-cache`) across sibling worktrees, so a new worktree with unchanged Rust sources just copies the cached `.wasm`.
+- No manual setup step for deps or wasm: `bun run dev` self-provisions both via `predev` (`bun install`, ~seconds from the warm cache, then `build:wasm`, an instant cache hit when Rust sources are unchanged). Requires Rust + the `wasm32-unknown-unknown` rustup target for the rare actual recompile. `build:wasm` (`tools/build-wasm.sh`) shares its cargo target dir (`../.shared-cargo-target`) and a content-hashed wasm cache (`../.shared-wasm-cache`) across sibling worktrees.
 - `prepare` script runs `effect-tsgo patch` automatically on install.
 
 ## Commands (use `bun --bun` prefix when possible)
