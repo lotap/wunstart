@@ -42,7 +42,8 @@ export function UserNav() {
 					<DropdownMenuGroup>
 						{isPending ? (
 							<DropdownMenuLabel>
-								<Skeleton className="h-4 w-32" />
+								{/** w-24 matches a 14-char masked Gmail address at text-sm */}
+								<Skeleton className="h-4 w-24" />
 							</DropdownMenuLabel>
 						) : (
 							<DropdownMenuLabel className="max-w-56 truncate">{profile.email}</DropdownMenuLabel>

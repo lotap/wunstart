@@ -1,5 +1,5 @@
 import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
-import {useQuery, useQueryClient} from '@tanstack/react-query'
+import {queryOptions, useQuery, useQueryClient} from '@tanstack/react-query'
 import {useServerFn} from '@tanstack/react-start'
 import {Schema} from 'effect'
 import {Edit} from 'lucide-react'
@@ -25,6 +25,7 @@ import {EmailCredentials, EmailPasscodeCredentials} from '#/isomorphic/validatio
 import {Email} from '#/isomorphic/validators.ts'
 import {handleEmailChange} from '#/server-fns/handle-email-change.ts'
 import {handleEmailRequestPasscodeForEmailChange} from '#/server-fns/handle-email-request-passcode-for-email-change.ts'
+import {handleGetUserEmail} from '#/server-fns/handle-get-user-email.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 
 import {usePasscodeRequestMutation} from './_hooks.ts'
@@ -142,12 +143,45 @@ function VerifyNewEmailForm({
 	)
 }
 
-export function ChangeEmailForm({closeEmailChangeDrawer}: {closeEmailChangeDrawer?: () => void}) {
-	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
+/**
+ * The full email address, sudo-gated. Never shares the profile cache key, and
+ * the caller must enable it only under sudo and drop it when sudo lapses — a
+ * stale full address in cache would defeat the profile masking. Single-use,
+ * so it lives with its consumer instead of the shared query options
+ */
+const userEmailQueryOptions = ({
+	serverFn,
+}: {
+	serverFn: ReturnType<typeof useServerFn<typeof handleGetUserEmail>>
+}) =>
+	queryOptions({
+		queryKey: ['userEmail'],
+		queryFn: () => serverFn(),
+	})
 
-	const {data: profile} = useQuery(userProfileQueryOptions({serverFn: handleGetUserProfileFn}))
+export function ChangeEmailForm({closeEmailChangeDrawer}: {closeEmailChangeDrawer?: () => void}) {
+	const handleGetUserEmailFn = useServerFn(handleGetUserEmail)
+
+	const queryClient = useQueryClient()
 
 	const {hasSudo} = useHasSudo()
+
+	/**
+	 * The only privileged path to the full address, fetched only under sudo.
+	 * The profile endpoint carries just the masked form
+	 */
+	const {data: userEmail} = useQuery({
+		...userEmailQueryOptions({serverFn: handleGetUserEmailFn}),
+		enabled: hasSudo,
+	})
+
+	useEffect(() => {
+		/** Drop the privileged address the moment sudo lapses so it never lingers in cache */
+		if (!hasSudo)
+			queryClient.removeQueries({
+				queryKey: userEmailQueryOptions({serverFn: handleGetUserEmailFn}).queryKey,
+			})
+	}, [hasSudo, queryClient, handleGetUserEmailFn])
 
 	const [newEmail, setNewEmail] = useState<string | null>(null)
 
@@ -195,9 +229,9 @@ export function ChangeEmailForm({closeEmailChangeDrawer}: {closeEmailChangeDrawe
 
 	return (
 		<>
-			{profile?.email && (
+			{userEmail?.email && (
 				<p className="mb-16 text-center text-muted-foreground">
-					<strong className="text-xl">{profile.email}</strong>
+					<strong className="text-xl">{userEmail.email}</strong>
 				</p>
 			)}
 			<NewEmailForm onCodeSent={setNewEmail} />

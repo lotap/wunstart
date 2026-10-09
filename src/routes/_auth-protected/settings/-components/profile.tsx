@@ -19,7 +19,8 @@ function ProfileEmail() {
 		userProfileQueryOptions({serverFn: handleGetUserProfileFn}),
 	)
 
-	if (isPending) return <Skeleton className="h-6 w-full max-w-3xs" />
+	/** w-28 matches a 14-char masked Gmail address at text-base so the load never shifts layout */
+	if (isPending) return <Skeleton className="h-6 w-28" />
 
 	if (profile)
 		return (
