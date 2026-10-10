@@ -35,7 +35,7 @@ const TopRule = () => (
 	</>
 )
 
-/** Between the Welcome bar and the tall content block: 2 rows */
+/** Between the Welcome bar and the tall content block: full-width, 2 rows */
 const MiddleRule = () => <SlashGrid contentLength={60 * 2} />
 
 /** Bottom of the welcome section: 3 rows */
