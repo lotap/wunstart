@@ -78,7 +78,7 @@ function RootDocument({children}: {children: React.ReactNode}) {
 			<head>
 				<HeadContent />
 			</head>
-			<body className="relative flex h-full flex-col text-pretty">
+			<body className="relative flex h-full flex-col text-pretty dark:font-light">
 				<TooltipProvider>
 					<Header />
 					<main className="shrink-0 grow basis-auto">{children}</main>
