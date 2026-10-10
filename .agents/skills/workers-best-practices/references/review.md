@@ -11,10 +11,10 @@ Prefer retrieval over pre-training. Types, config schemas, and APIs change with 
 Fetch the latest `@cloudflare/workers-types` before reviewing. The project may have an older version installed.
 
 ```bash
-mkdir -p /tmp/workers-types-latest && \
-  npm pack @cloudflare/workers-types --pack-destination /tmp/workers-types-latest && \
-  tar -xzf /tmp/workers-types-latest/cloudflare-workers-types-*.tgz -C /tmp/workers-types-latest
-# Types are at /tmp/workers-types-latest/package/index.d.ts
+mkdir -p .tmp/workers-types-latest && \
+  npm pack @cloudflare/workers-types --pack-destination .tmp/workers-types-latest && \
+  tar -xzf .tmp/workers-types-latest/cloudflare-workers-types-*.tgz -C .tmp/workers-types-latest
+# Types are at .tmp/workers-types-latest/package/index.d.ts
 ```
 
 Search this file for the specific type, class, or interface under review. Do not guess type names.

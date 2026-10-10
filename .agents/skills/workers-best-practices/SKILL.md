@@ -22,10 +22,10 @@ Before reviewing or writing Workers code, retrieve the current best practices pa
 
 ```bash
 # Fetch latest workers types
-mkdir -p /tmp/workers-types-latest && \
-  npm pack @cloudflare/workers-types --pack-destination /tmp/workers-types-latest && \
-  tar -xzf /tmp/workers-types-latest/cloudflare-workers-types-*.tgz -C /tmp/workers-types-latest
-# Types at /tmp/workers-types-latest/package/index.d.ts
+mkdir -p .tmp/workers-types-latest && \
+  npm pack @cloudflare/workers-types --pack-destination .tmp/workers-types-latest && \
+  tar -xzf .tmp/workers-types-latest/cloudflare-workers-types-*.tgz -C .tmp/workers-types-latest
+# Types at .tmp/workers-types-latest/package/index.d.ts
 ```
 
 ## Reference Documentation
