@@ -9,6 +9,7 @@ import {defineConfig} from 'vite'
 const config = defineConfig({
 	resolve: {tsconfigPaths: true},
 	assetsInclude: ['**/*.wasm'],
+	server: {watch: {ignored: ['**/.tmp/**']}},
 	plugins: [
 		devtools(),
 		cloudflare({viteEnvironment: {name: 'ssr'}}),
