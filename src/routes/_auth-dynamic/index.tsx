@@ -17,7 +17,7 @@ const SlashGrid = ({
 	className?: string
 	contentLength?: number
 }) => (
-	<div aria-hidden="true" className={cn('grid w-full grid-cols-60', className)}>
+	<div aria-hidden="true" className={cn('grid w-full grid-cols-60 select-none', className)}>
 		{Array.from({length: contentLength}).map((_, i) => (
 			// oxlint-disable-next-line react/no-array-index-key
 			<span key={i} className="text-center font-mono text-muted-foreground">
@@ -25,6 +25,53 @@ const SlashGrid = ({
 			</span>
 		))}
 	</div>
+)
+
+/** Top of the welcome section: 2 rows on mobile, 3 rows on sm+ */
+const TopRule = () => (
+	<>
+		<SlashGrid className="sm:hidden" contentLength={60 * 2} />
+		<SlashGrid className="hidden sm:grid" contentLength={60 * 3} />
+	</>
+)
+
+/** Between the Welcome bar and the tall content block: 2 rows */
+const MiddleRule = () => <SlashGrid contentLength={60 * 2} />
+
+/** Bottom of the welcome section: 3 rows */
+const BottomRule = () => <SlashGrid contentLength={60 * 3} />
+
+/** Single-row divider around the Get started heading */
+const GetStartedRule = () => <SlashGrid className="grid-cols-40" contentLength={40} />
+
+/** Right gutter of the Welcome bar: width grows with the viewport */
+const WelcomeGutter = () => (
+	<>
+		<SlashGrid className="w-1/12 grid-cols-5 sm:hidden" contentLength={5 * 2} />
+		<SlashGrid className="hidden w-1/4 grid-cols-15 sm:grid md:hidden" contentLength={15 * 2} />
+		<SlashGrid className="hidden w-1/3 grid-cols-20 md:grid" contentLength={20 * 2} />
+	</>
+)
+
+/**
+ * Flanking gutters of the tall content block. Row counts are per-breakpoint
+ * height estimates (the text column wraps differently at each width).
+ */
+const TallGutterLeft = () => (
+	<>
+		<SlashGrid className=" w-1/12 grid-cols-5 sm:hidden" contentLength={5 * 36} />
+		<SlashGrid className="hidden w-1/12 grid-cols-5 sm:grid md:hidden" contentLength={5 * 26} />
+		<SlashGrid className="hidden w-1/12 grid-cols-5 md:grid" contentLength={5 * 25} />
+	</>
+)
+
+/** Right gutter of the tall content block: width grows with the viewport */
+const TallGutterRight = () => (
+	<>
+		<SlashGrid className="w-1/12 grid-cols-5 sm:hidden" contentLength={5 * 36} />
+		<SlashGrid className="hidden w-1/4 grid-cols-15 sm:grid md:hidden" contentLength={15 * 26} />
+		<SlashGrid className="hidden w-1/3 grid-cols-20 md:grid" contentLength={20 * 25} />
+	</>
 )
 
 function Home() {
@@ -65,8 +112,7 @@ function Home() {
 			</section>
 
 			<section className="w-full max-w-5xl">
-				<SlashGrid className="sm:hidden" contentLength={60 * 2} />
-				<SlashGrid className="hidden sm:grid" contentLength={60 * 3} />
+				<TopRule />
 				<div className="flex items-center">
 					<div className="flex w-full">
 						<SlashGrid className="w-1/12 grid-cols-5" contentLength={5 * 2} />
@@ -81,25 +127,15 @@ function Home() {
 								<Globe className="size-4" />
 							</div>
 						</div>
-						<SlashGrid className="w-1/12 grid-cols-5 sm:hidden" contentLength={5 * 2} />
-						<SlashGrid
-							className="hidden w-1/4 grid-cols-15 sm:grid md:hidden"
-							contentLength={15 * 2}
-						/>
-						<SlashGrid className="hidden w-1/3 grid-cols-20 md:grid" contentLength={20 * 2} />
+						<WelcomeGutter />
 					</div>
 				</div>
-				<SlashGrid contentLength={60 * 2} />
+				<MiddleRule />
 
 				<div className="flex">
-					<SlashGrid className=" w-1/12 grid-cols-5 sm:hidden" contentLength={5 * 36} />
-					<SlashGrid
-						className="hidden w-1/12 grid-cols-5 sm:grid md:hidden"
-						contentLength={5 * 26}
-					/>
-					<SlashGrid className="hidden w-1/12 grid-cols-5 md:grid" contentLength={5 * 25} />
+					<TallGutterLeft />
 					<div className="w-5/6 p-6 sm:w-2/3 md:w-7/12">
-						<p className="text-2xl">Thankyou for installing wunstart!</p>
+						<p className="text-2xl">Thank you for installing wunstart!</p>
 
 						<p className="pt-6 text-2xl">
 							You’re ready to produce code that’s readable for humans, predictable for agents, and
@@ -138,14 +174,9 @@ function Home() {
 							</li>
 						</ul>
 					</div>
-					<SlashGrid className="w-1/12 grid-cols-5 sm:hidden" contentLength={5 * 36} />
-					<SlashGrid
-						className="hidden w-1/4 grid-cols-15 sm:grid md:hidden"
-						contentLength={15 * 26}
-					/>
-					<SlashGrid className="hidden w-1/3 grid-cols-20 md:grid" contentLength={20 * 25} />
+					<TallGutterRight />
 				</div>
-				<SlashGrid className="" contentLength={60 * 3} />
+				<BottomRule />
 			</section>
 
 			<div className="w-full bg-muted bg-linear-to-b from-background to-muted py-12">
@@ -167,9 +198,9 @@ function Home() {
 						/>
 					</div>
 					<div className="w-2/3">
-						<SlashGrid className="grid-cols-40" contentLength={40} />
+						<GetStartedRule />
 						<h3 className="text-3xl">Get started</h3>
-						<SlashGrid className="grid-cols-40" contentLength={40} />
+						<GetStartedRule />
 						<p className="pt-6 text-2xl">
 							Customize this page at: <br /> <code>"/_auth-dynamic/index.tsx"</code>
 						</p>
