@@ -11,6 +11,7 @@
 		"build:preview": "vite build --mode development",
 		"build:wasm": "sh tools/build-wasm.sh",
 		"cf-typegen": "wrangler types",
+		"clean:tmp": "rm -rf .tmp && mkdir -p .tmp",
 		"db": "dotenv -e .env.development -- drizzle-kit",
 		"db:check": "bun --bun run db -- check",
 		"db:export": "bun --bun run db -- export",
