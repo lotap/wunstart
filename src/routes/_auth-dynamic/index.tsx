@@ -142,7 +142,7 @@ function Home() {
 							scalable for users
 						</p>
 
-						<p className="pt-12 text-sm uppercase">Featuring:</p>
+						<p className="pt-12 text-sm tracking-widest uppercase">Featuring:</p>
 						<ul className="flex flex-col gap-2 pt-4 text-lg">
 							<li className="flex items-start">
 								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
@@ -158,7 +158,7 @@ function Home() {
 							</li>
 						</ul>
 
-						<p className="pt-12 text-sm uppercase">Turbo-charged by:</p>
+						<p className="pt-12 text-sm tracking-widest uppercase">Turbo-charged by:</p>
 						<ul className="flex flex-col gap-2 pt-4 text-lg">
 							<li className="flex items-start">
 								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
