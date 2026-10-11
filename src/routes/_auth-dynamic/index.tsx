@@ -5,6 +5,7 @@ import {Dot} from 'lucide-react'
 
 import {SignUpForm} from '#/components/auth/sign-up-form.tsx'
 import {Dashboard} from '#/components/dashboard.tsx'
+import {Card, CardContent} from '#/components/ui/card.tsx'
 
 export const Route = createFileRoute('/_auth-dynamic/')({
 	component: Home,
@@ -33,38 +34,6 @@ const SlashGrid = ({
 			</div>
 		))}
 	</div>
-)
-
-/** Top of the welcome section */
-const TopRule = () => (
-	<div className="flex items-center gap-2">
-		<SlashGrid className="w-1/3 grid-cols-20 sm:hidden" contentLength={20} />
-		<SlashGrid className="hidden w-2/3 grid-cols-40 sm:grid lg:hidden" contentLength={40} />
-		<SlashGrid className="hidden w-3/4 grid-cols-45 lg:grid" contentLength={45} />
-		<p className="grow text-right font-mono text-xs tracking-widest whitespace-nowrap text-muted-foreground/75 uppercase">
-			<span>ROUTE: &quot;/&quot;</span> <span className="text-muted-foreground/35">/</span>{' '}
-			<span>AUTH: ANON</span>
-		</p>
-	</div>
-)
-
-/** Between the Welcome bar and the tall content block: abuts the gutter */
-const MiddleRule = () => <SlashGrid contentLength={60} />
-
-/** Bottom of the welcome section: abuts the gutter */
-const BottomRule = () => <SlashGrid contentLength={60 * 2} />
-
-/** Single-row divider around the Get started heading */
-const GetStartedRule = () => <SlashGrid className="grid-cols-40" contentLength={40} />
-
-/** Right gutter of the Welcome bar: width grows with the viewport */
-const TallGutterRight = () => (
-	<>
-		<SlashGrid className="w-1/6 grid-cols-10 sm:hidden" contentLength={10 * 40} />
-		<SlashGrid className="hidden w-1/4 grid-cols-15 sm:grid md:hidden" contentLength={15 * 30} />
-		<SlashGrid className="hidden w-1/3 grid-cols-20 md:grid lg:hidden" contentLength={20 * 30} />
-		<SlashGrid className="hidden w-5/12 grid-cols-25 lg:grid" contentLength={25 * 30} />
-	</>
 )
 
 function Home() {
@@ -108,26 +77,47 @@ function Home() {
 			</section>
 
 			<section className="w-full max-w-5xl">
-				<TopRule />
+				<div className="flex items-center gap-2">
+					<SlashGrid className="w-1/3 grid-cols-20 sm:hidden" contentLength={20} />
+					<SlashGrid className="hidden w-2/3 grid-cols-40 sm:grid lg:hidden" contentLength={40} />
+					<SlashGrid className="hidden w-3/4 grid-cols-45 lg:grid" contentLength={45} />
+					<p className="grow text-right font-mono text-xs tracking-widest whitespace-nowrap text-muted-foreground/75 uppercase">
+						<span>ROUTE: &quot;/&quot;</span> <span className="text-muted-foreground/35">/</span>{' '}
+						<span>AUTH: ANON</span>
+					</p>
+				</div>
 
-				<h3 className="px-6 py-3 text-3xl">Welcome</h3>
+				<h3 className="px-6 py-3 text-3xl">Welcome to the happy path</h3>
 
-				<MiddleRule />
+				<SlashGrid />
 
 				<div className="flex pt-6">
-					<div className="w-5/6 px-6 py-3 sm:w-3/4 md:w-2/3 lg:w-7/12">
+					<div className="flex w-5/6 flex-col gap-6 px-6 py-3 sm:w-3/4 md:w-2/3 lg:w-7/12 **:[a]:underline">
 						<p className="text-2xl">Thank you for installing wunstart!</p>
 
-						<p className="pt-12 text-lg">
-							You’re ready to produce code that’s readable for humans, predictable for agents, and
-							scalable for users
+						<p>
+							This codebase provides you (and your agents) a strong foundation to build and deploy
+							your next webapp.
 						</p>
 
-						<p className="pt-12 text-sm tracking-widest uppercase">Featuring:</p>
-						<ul className="flex flex-col gap-2 pt-4 text-lg">
+						<p>
+							The patterns within are designed to strike the right balance of readable and
+							repeatable; something that agents can detect and copy without introducing code-slop
+							that leads to a feedback-loop of rot.
+						</p>
+
+						<p>
+							<a href="https://wunshot.dev/" target="_blank" rel="noreferrer">
+								wunshot
+							</a>{' '}
+							is the core of the project. This is an implementation of the primitives it provides
+						</p>
+
+						<p className="mt-4 text-sm tracking-widest uppercase">Featuring:</p>
+						<ul className="-mt-2 flex flex-col gap-2 text-lg">
 							<li className="flex items-start">
 								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
-								<span>Example home, pricing, and settings pages</span>
+								End-to-end type safety
 							</li>
 							<li className="flex items-start">
 								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
@@ -135,29 +125,147 @@ function Home() {
 							</li>
 							<li className="flex items-start">
 								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
-								<span>Working theme-toggle</span>
+								<span>Placeholder home, pricing, dashboard, and settings pages</span>
+							</li>
+							<li className="flex items-start">
+								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
+								<span>Working basic account preferences and theme-toggle</span>
 							</li>
 						</ul>
 
-						<p className="pt-6 text-sm tracking-widest uppercase">Turbo-charged by:</p>
-						<ul className="flex flex-col gap-2 pt-4 text-lg">
+						<p className="mt-4 text-sm tracking-widest uppercase">Turbo-charged by:</p>
+						<p className="-mt-4 text-xs text-muted-foreground">Frontend</p>
+						<ul className="-mt-4 flex flex-col gap-2 text-lg">
 							<li className="flex items-start">
 								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
-								<span>Tanstack Start configured with Tailwind &amp; shadcn</span>
+								<span>
+									<a href="https://tanstack.com/start/latest" target="_blank" rel="noreferrer">
+										TanStack Start
+									</a>{' '}
+									- File-based routing with server-side rendering, streaming, and server functions
+								</span>
 							</li>
 							<li className="flex items-start">
 								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
-								<span>Effect (v4) for backend operations</span>
+								<span>
+									<a href="https://tailwindcss.com/" target="_blank" rel="noreferrer">
+										tailwindcss
+									</a>{' '}
+									- Utility first CSS for consistent straightforward style editing
+								</span>
 							</li>
 							<li className="flex items-start">
 								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
-								<span>Drizzle ORM connected to Postgres and Hyperdrive</span>
+								<span>
+									<a href="https://ui.shadcn.com/" target="_blank" rel="noreferrer">
+										shadcn/ui
+									</a>{' '}
+									- Composable accessible components for building design systems
+								</span>
 							</li>
 						</ul>
+
+						<p className="text-xs text-muted-foreground">Backend</p>
+						<ul className="-mt-4 flex flex-col gap-2 text-lg">
+							<li className="flex items-start">
+								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
+								<span>
+									<a href="https://effect.website/" target="_blank" rel="noreferrer">
+										Effect
+									</a>{' '}
+									- Resilient system designs for backend operations
+								</span>
+							</li>
+							<li className="flex items-start">
+								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
+								<span>
+									<a href="https://orm.drizzle.team/" target="_blank" rel="noreferrer">
+										Drizzle ORM
+									</a>{' '}
+									- Speedy type-safe typescript ORM
+								</span>
+							</li>
+							<li className="flex items-start">
+								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
+								<span>
+									<a href="https://www.postgresql.org/" target="_blank" rel="noreferrer">
+										PostgreSQL
+									</a>{' '}
+									- Tried and trusted scalable and flexible database
+								</span>
+							</li>
+							<li className="flex items-start">
+								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
+								<span>
+									<a
+										href="https://www.cloudflare.com/products/hyperdrive/"
+										target="_blank"
+										rel="noreferrer"
+									>
+										Cloudflare Hyperdrive
+									</a>{' '}
+									(optional) - Make accessing your db fast for users around the globe
+								</span>
+							</li>
+						</ul>
+
+						<p className="text-xs text-muted-foreground">Code Consistency</p>
+						<ul className="-mt-4 flex flex-col gap-2 text-lg">
+							<li className="flex items-start">
+								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
+								<span>
+									<a href="https://oxc.rs/docs/guide/usage/linter" target="_blank" rel="noreferrer">
+										Oxlint
+									</a>{' '}
+									- Rules to keep your codebase consistent and efficient
+								</span>
+							</li>
+							<li className="flex items-start">
+								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
+								<span>
+									<a href="https://github.com/dmmulroy/anti-slop" target="_blank" rel="noreferrer">
+										anti-slop
+									</a>{' '}
+									- Rules that reject low-evidence and low-signal TypeScript and JavaScript patterns
+								</span>
+							</li>
+							<li className="flex items-start">
+								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
+								<span>
+									<a href="https://www.react.doctor/" target="_blank" rel="noreferrer">
+										React Doctor
+									</a>{' '}
+									- Rules that keep{' '}
+									<a href="https://react.dev/" target="_blank" rel="noreferrer">
+										React
+									</a>{' '}
+									code performant
+								</span>
+							</li>
+						</ul>
+
+						<Card className="bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20">
+							<CardContent>
+								Testing utilities/frameworks are not included while I investigate the best way to
+								provide tests that are robust without adding excess noise.
+								<br />
+								<br />
+								They will be added in a future release
+							</CardContent>
+						</Card>
 					</div>
-					<TallGutterRight />
+					<SlashGrid className="w-1/6 grid-cols-10 sm:hidden" contentLength={10 * 110} />
+					<SlashGrid
+						className="hidden w-1/4 grid-cols-15 sm:grid md:hidden"
+						contentLength={15 * 80}
+					/>
+					<SlashGrid
+						className="hidden w-1/3 grid-cols-20 md:grid lg:hidden"
+						contentLength={20 * 80}
+					/>
+					<SlashGrid className="hidden w-5/12 grid-cols-25 lg:grid" contentLength={25 * 70} />
 				</div>
-				<BottomRule />
+				<SlashGrid contentLength={60 * 2} />
 			</section>
 
 			<div className="w-full bg-muted bg-linear-to-b from-background to-muted py-12">
@@ -179,9 +287,9 @@ function Home() {
 						/>
 					</div>
 					<div className="w-2/3">
-						<GetStartedRule />
+						<SlashGrid className="grid-cols-40" contentLength={40} />
 						<h3 className="text-3xl">Get started</h3>
-						<GetStartedRule />
+						<SlashGrid className="grid-cols-40" contentLength={40} />
 						<p className="pt-6 text-2xl">
 							Customize this page at: <br /> <code>"/_auth-dynamic/index.tsx"</code>
 						</p>
