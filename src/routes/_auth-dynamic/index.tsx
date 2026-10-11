@@ -1,7 +1,7 @@
 import {GrainGradient} from '@paper-design/shaders-react'
 import {createFileRoute} from '@tanstack/react-router'
 import {cn} from 'cn'
-import {Dot, Globe} from 'lucide-react'
+import {Dot} from 'lucide-react'
 
 import {SignUpForm} from '#/components/auth/sign-up-form.tsx'
 import {Dashboard} from '#/components/dashboard.tsx'
@@ -19,58 +19,46 @@ const SlashGrid = ({
 }) => (
 	<div aria-hidden="true" className={cn('grid w-full grid-cols-60 select-none', className)}>
 		{Array.from({length: contentLength}).map((_, i) => (
-			// oxlint-disable-next-line react/no-array-index-key
-			<span key={i} className="text-center font-mono text-muted-foreground">
+			<div
+				// oxlint-disable-next-line react/no-array-index-key
+				key={i}
+				className="text-center font-mono text-base leading-tight text-muted-foreground/50 transition-transform hover:rotate-90"
+			>
 				/
-			</span>
+			</div>
 		))}
 	</div>
 )
 
-/** Top of the welcome section: 2 rows on mobile, 3 rows on sm+ */
+/** Top of the welcome section */
 const TopRule = () => (
-	<>
-		<SlashGrid className="sm:hidden" contentLength={60 * 2} />
-		<SlashGrid className="hidden sm:grid" contentLength={60 * 3} />
-	</>
+	<div className="flex items-center gap-2">
+		<SlashGrid className="w-1/3 grid-cols-20 sm:hidden" contentLength={20} />
+		<SlashGrid className="hidden w-2/3 grid-cols-40 sm:grid lg:hidden" contentLength={40} />
+		<SlashGrid className="hidden w-3/4 grid-cols-45 lg:grid" contentLength={45} />
+		<p className="grow text-right font-mono text-xs tracking-widest whitespace-nowrap text-muted-foreground/75 uppercase">
+			<span>ROUTE: &quot;/&quot;</span> <span className="text-muted-foreground/50">/</span>{' '}
+			<span>AUTH: ANON</span>
+		</p>
+	</div>
 )
 
-/** Between the Welcome bar and the tall content block: full-width, 2 rows */
-const MiddleRule = () => <SlashGrid contentLength={60 * 2} />
+/** Between the Welcome bar and the tall content block: abuts the gutter */
+const MiddleRule = () => <SlashGrid contentLength={60} />
 
-/** Bottom of the welcome section: 3 rows */
-const BottomRule = () => <SlashGrid contentLength={60 * 3} />
+/** Bottom of the welcome section: abuts the gutter */
+const BottomRule = () => <SlashGrid contentLength={60 * 2} />
 
 /** Single-row divider around the Get started heading */
 const GetStartedRule = () => <SlashGrid className="grid-cols-40" contentLength={40} />
 
 /** Right gutter of the Welcome bar: width grows with the viewport */
-const WelcomeGutter = () => (
-	<>
-		<SlashGrid className="w-1/12 grid-cols-5 sm:hidden" contentLength={5 * 2} />
-		<SlashGrid className="hidden w-1/4 grid-cols-15 sm:grid md:hidden" contentLength={15 * 2} />
-		<SlashGrid className="hidden w-1/3 grid-cols-20 md:grid" contentLength={20 * 2} />
-	</>
-)
-
-/**
- * Flanking gutters of the tall content block. Row counts are per-breakpoint
- * height estimates (the text column wraps differently at each width).
- */
-const TallGutterLeft = () => (
-	<>
-		<SlashGrid className=" w-1/12 grid-cols-5 sm:hidden" contentLength={5 * 36} />
-		<SlashGrid className="hidden w-1/12 grid-cols-5 sm:grid md:hidden" contentLength={5 * 26} />
-		<SlashGrid className="hidden w-1/12 grid-cols-5 md:grid" contentLength={5 * 25} />
-	</>
-)
-
-/** Right gutter of the tall content block: width grows with the viewport */
 const TallGutterRight = () => (
 	<>
-		<SlashGrid className="w-1/12 grid-cols-5 sm:hidden" contentLength={5 * 36} />
-		<SlashGrid className="hidden w-1/4 grid-cols-15 sm:grid md:hidden" contentLength={15 * 26} />
-		<SlashGrid className="hidden w-1/3 grid-cols-20 md:grid" contentLength={20 * 25} />
+		<SlashGrid className="w-1/6 grid-cols-10 sm:hidden" contentLength={10 * 40} />
+		<SlashGrid className="hidden w-1/4 grid-cols-15 sm:grid md:hidden" contentLength={15 * 30} />
+		<SlashGrid className="hidden w-1/3 grid-cols-20 md:grid lg:hidden" contentLength={20 * 30} />
+		<SlashGrid className="hidden w-5/12 grid-cols-25 lg:grid" contentLength={25 * 30} />
 	</>
 )
 
@@ -84,7 +72,7 @@ function Home() {
 	return (
 		<div className="mx-auto flex flex-col items-center gap-12 px-2 py-6">
 			<section className="flex w-full max-w-5xl flex-col gap-2 sm:flex-row">
-				<div className="flex sm:order-2 sm:items-end md:w-1/3 md:justify-end">
+				<div className="flex grow sm:order-2 sm:items-end md:justify-end">
 					<h2 className="flex flex-col py-12 text-4xl">
 						<span>Build </span>
 						<span>for </span>
@@ -94,13 +82,16 @@ function Home() {
 					</h2>
 				</div>
 
-				<div aria-hidden="true" className="h-56 w-full sm:order-1 sm:h-128 md:w-2/3">
+				<div
+					aria-hidden="true"
+					className="h-56 w-full animate-in bg-foreground/50 fade-in sm:order-1 sm:h-128 sm:w-3/4 md:w-2/3"
+				>
 					<GrainGradient
 						width="100%"
 						height="100%"
 						colors={['#ffffff']}
 						colorBack="#0a0a0a"
-						softness={0.5}
+						softness={0.3}
 						intensity={0.75}
 						noise={1}
 						// oxlint-disable-next-line anti-slop/no-shape-in-symbol-names
@@ -113,31 +104,16 @@ function Home() {
 
 			<section className="w-full max-w-5xl">
 				<TopRule />
-				<div className="flex items-center">
-					<div className="flex w-full">
-						<SlashGrid className="w-1/12 grid-cols-5" contentLength={5 * 2} />
-						<div className="flex grow items-center justify-between px-6">
-							<h3 className="text-3xl">Welcome</h3>
-							<div aria-hidden="true" className="flex text-muted-foreground">
-								<Globe className="size-4" />
-								<Globe className="size-4" />
-								<Globe className="size-4" />
-								<Globe className="size-4" />
-								<Globe className="size-4" />
-								<Globe className="size-4" />
-							</div>
-						</div>
-						<WelcomeGutter />
-					</div>
-				</div>
+
+				<h3 className="px-6 py-3 text-3xl">Welcome</h3>
+
 				<MiddleRule />
 
-				<div className="flex">
-					<TallGutterLeft />
-					<div className="w-5/6 p-6 sm:w-2/3 md:w-7/12">
+				<div className="flex pt-6">
+					<div className="w-5/6 px-6 py-3 sm:w-3/4 md:w-2/3 lg:w-7/12">
 						<p className="text-2xl">Thank you for installing wunstart!</p>
 
-						<p className="pt-6 text-2xl">
+						<p className="pt-12 text-lg">
 							You’re ready to produce code that’s readable for humans, predictable for agents, and
 							scalable for users
 						</p>
@@ -158,7 +134,7 @@ function Home() {
 							</li>
 						</ul>
 
-						<p className="pt-12 text-sm tracking-widest uppercase">Turbo-charged by:</p>
+						<p className="pt-6 text-sm tracking-widest uppercase">Turbo-charged by:</p>
 						<ul className="flex flex-col gap-2 pt-4 text-lg">
 							<li className="flex items-start">
 								<Dot aria-hidden="true" className="size-7 shrink-0 text-muted-foreground" />
