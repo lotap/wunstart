@@ -45,6 +45,7 @@ function Home() {
 
 	return (
 		<div className="mx-auto flex flex-col items-center gap-12 px-2 py-6">
+			{/* HERO */}
 			<section className="flex w-full max-w-5xl flex-col gap-2 sm:flex-row">
 				<div className="flex grow sm:order-2 sm:items-end md:justify-end">
 					<h2 className="flex flex-col py-12 text-4xl">
@@ -76,7 +77,9 @@ function Home() {
 				</div>
 			</section>
 
+			{/* WELCOME */}
 			<section className="w-full max-w-5xl">
+				{/* // TOP LINE */}
 				<div className="flex items-center gap-2">
 					<SlashGrid className="w-1/3 grid-cols-20 sm:hidden" contentLength={20} />
 					<SlashGrid className="hidden w-2/3 grid-cols-40 sm:grid lg:hidden" contentLength={40} />
@@ -87,11 +90,14 @@ function Home() {
 					</p>
 				</div>
 
+				{/* HEADER */}
 				<h3 className="px-6 py-3 text-3xl">Welcome to the happy path</h3>
 
+				{/* // DIVIDER */}
 				<SlashGrid />
 
 				<div className="flex pt-6">
+					{/* BODY COPY */}
 					<div className="flex w-5/6 flex-col gap-6 px-6 py-3 sm:w-3/4 md:w-2/3 lg:w-7/12 **:[a]:underline">
 						<p className="text-2xl">Thank you for installing wunstart!</p>
 
@@ -254,6 +260,8 @@ function Home() {
 							</CardContent>
 						</Card>
 					</div>
+
+					{/* // GUTTER */}
 					<SlashGrid className="w-1/6 grid-cols-10 sm:hidden" contentLength={10 * 110} />
 					<SlashGrid
 						className="hidden w-1/4 grid-cols-15 sm:grid md:hidden"
@@ -265,9 +273,11 @@ function Home() {
 					/>
 					<SlashGrid className="hidden w-5/12 grid-cols-25 lg:grid" contentLength={25 * 70} />
 				</div>
+				{/* // BOTTOM LINE */}
 				<SlashGrid contentLength={60 * 2} />
 			</section>
 
+			{/* GET STARTED */}
 			<div className="w-full bg-muted bg-linear-to-b from-background to-muted py-12">
 				<section className="mx-auto flex w-full max-w-5xl gap-6 rounded-lg from-background to-muted">
 					<div aria-hidden="true" className="w-1/3">
@@ -302,6 +312,7 @@ function Home() {
 				</section>
 			</div>
 
+			{/* SIGN UP */}
 			<section>
 				<SignUpForm />
 			</section>
