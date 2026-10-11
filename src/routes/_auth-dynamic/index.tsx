@@ -17,12 +17,17 @@ const SlashGrid = ({
 	className?: string
 	contentLength?: number
 }) => (
-	<div aria-hidden="true" className={cn('grid w-full grid-cols-60 select-none', className)}>
+	<div
+		aria-hidden="true"
+		className={cn(
+			'grid w-full grid-cols-60 text-center font-mono text-base leading-tight text-muted-foreground/35 select-none *:transition-transform *:hover:rotate-90',
+			className,
+		)}
+	>
 		{Array.from({length: contentLength}).map((_, i) => (
 			<div
 				// oxlint-disable-next-line react/no-array-index-key
 				key={i}
-				className="text-center font-mono text-base leading-tight text-muted-foreground/50 transition-transform hover:rotate-90"
 			>
 				/
 			</div>
@@ -37,7 +42,7 @@ const TopRule = () => (
 		<SlashGrid className="hidden w-2/3 grid-cols-40 sm:grid lg:hidden" contentLength={40} />
 		<SlashGrid className="hidden w-3/4 grid-cols-45 lg:grid" contentLength={45} />
 		<p className="grow text-right font-mono text-xs tracking-widest whitespace-nowrap text-muted-foreground/75 uppercase">
-			<span>ROUTE: &quot;/&quot;</span> <span className="text-muted-foreground/50">/</span>{' '}
+			<span>ROUTE: &quot;/&quot;</span> <span className="text-muted-foreground/35">/</span>{' '}
 			<span>AUTH: ANON</span>
 		</p>
 	</div>
