@@ -116,7 +116,8 @@ function Home() {
 							<a href="https://wunshot.dev/" target="_blank" rel="noreferrer">
 								wunshot
 							</a>{' '}
-							is the core of the project. This is an implementation of the primitives it provides
+							is the core of the project. This is a fullstack implementation of the primitives it
+							produces.
 						</p>
 
 						<p className="mt-4 text-sm tracking-widest uppercase">Featuring:</p>
