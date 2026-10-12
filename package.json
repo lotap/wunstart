@@ -33,9 +33,9 @@
 		"generate-routes": "tsr generate",
 		"lint": "oxlint src/",
 		"lint:check": "oxlint --deny-warnings src/",
-		"prepare": "effect-tsgo patch",
+		"prepare": "sh tools/setup-hooks.sh && effect-tsgo patch",
 		"preview": "vite preview --mode development",
-		"setup:hooks": "git config core.hooksPath tools/hooks",
+		"setup:hooks": "sh tools/setup-hooks.sh",
 		"test": "vitest run"
 	},
 	"dependencies": {

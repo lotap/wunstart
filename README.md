@@ -14,11 +14,8 @@ A full-stack TypeScript starter kit for building and deploying your own service:
 ## Getting started
 
 ```bash
-# Install dependencies
+# Install dependencies (also enables the repo's git hooks, repo-local config only)
 bun install
-
-# Enable git hooks once per fresh clone (shared across worktrees)
-bun run setup:hooks
 
 # Start postgres (Docker)
 docker compose up -d

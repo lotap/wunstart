@@ -7,8 +7,8 @@ Stack: TanStack Start (React) + TanStack Router + TanStack Query + Drizzle/Effec
 - Package manager: **bun** (`bun.lock`). Use `bun install`.
 - Postgres via Docker: `docker compose up -d`. Password `mypassword` (see `compose.yaml`).
 - `.env.local` must define `DATABASE_URL`. The `db:*` scripts load it via `dotenv -e .env.local`. `.env.development` is loaded by the Cloudflare vite plugin for the dev server and also holds the JWT secrets + `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`.
-- No manual setup step for deps: `bun run dev` self-provisions via `predev` (`bun install`, ~seconds from the warm cache). The Wasm kernel (`src/durable-objects/argon2-do-hasher.wasm`) is committed, so dev/build/deploy never need Rust. Only `bun --bun run build:wasm` (`tools/build-wasm.sh`) needs Rust + the `wasm32-unknown-unknown` target, and only after editing `crates/argon2-do-hasher` — commit the rebuilt wasm with the source change.
-- `prepare` script runs `effect-tsgo patch` automatically on install.
+- No manual setup step for deps: `bun run dev` self-provisions via `predev` (`bun install`, ~seconds from the warm cache). The Wasm kernel (`src/durable-objects/argon2-do-hasher.wasm`) is committed, so dev/build/deploy never need Rust. Only `bun --bun run build:wasm` (`tools/build-wasm.sh`) needs Rust + the `wasm32-unknown-unknown` target, and only after editing `crates/argon2-do-hasher` — commit the rebuilt wasm with the source change. Git hooks (`tools/hooks/`, pre-commit wasm guard) are enabled repo-locally on install; `bun run setup:hooks` re-runs that manually.
+- `prepare` script runs `sh tools/setup-hooks.sh` (repo-local `core.hooksPath`, never global) and `effect-tsgo patch` automatically on install.
 
 ## Commands (use `bun --bun` prefix when possible)
 
@@ -19,7 +19,7 @@ The `--bun` flag forces Bun's native runtime; without it, scripts may fall back 
 | `bun run dev`                                                | Dev server on port 3000 - NEVER PREFIX WITH `bun --bun`                                              |
 | `bun --bun run build`                                        | `vite build` (committed Wasm kernel included)                                                        |
 | `bun --bun run build:wasm`                                   | Rebuild Wasm kernel from `crates/` after Rust edits (requires Rust toolchain; commit result)         |
-| `bun run setup:hooks`                                          | Point git at `tools/hooks/` (pre-commit blocks `crates/` changes without staged wasm; once per fresh clone, shared across worktrees) |
+| `bun run setup:hooks`                                        | Re-point git at `tools/hooks/` (done automatically by `prepare` on install; pre-commit blocks `crates/` changes without staged wasm) |
 | `bun --bun run test`                                         | Vitest single run (no separate config; uses `vite.config.ts`)                                        |
 | `bun --bun run deploy`                                       | Build + `wrangler deploy`                                                                            |
 | `bun --bun run fmt` / `fmt:check`                            | oxfmt `src/` (write / check-only)                                                                    |

@@ -1,6 +1,7 @@
 #!/bin/sh
 # Pre-commit guard: if Rust sources changed, the committed Wasm must go with them.
-# No Rust toolchain needed — presence check only. CI does the authoritative rebuild+diff.
+# Presence check only — no Rust toolchain needed. It cannot tell whether the staged
+# Wasm is up to date, so run `bun --bun run build:wasm` after editing crates/.
 set -eu
 
 STAGED="$(git diff --cached --name-only)"
