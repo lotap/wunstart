@@ -19,6 +19,7 @@ The `--bun` flag forces Bun's native runtime; without it, scripts may fall back 
 | `bun run dev`                                                | Dev server on port 3000 - NEVER PREFIX WITH `bun --bun`                                              |
 | `bun --bun run build`                                        | `vite build` (committed Wasm kernel included)                                                        |
 | `bun --bun run build:wasm`                                   | Rebuild Wasm kernel from `crates/` after Rust edits (requires Rust toolchain; commit result)         |
+| `bun run setup:hooks`                                          | Point git at `tools/hooks/` (pre-commit blocks `crates/` changes without staged wasm; once per fresh clone, shared across worktrees) |
 | `bun --bun run test`                                         | Vitest single run (no separate config; uses `vite.config.ts`)                                        |
 | `bun --bun run deploy`                                       | Build + `wrangler deploy`                                                                            |
 | `bun --bun run fmt` / `fmt:check`                            | oxfmt `src/` (write / check-only)                                                                    |

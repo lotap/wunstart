@@ -1,0 +1,29 @@
+#!/bin/sh
+# Pre-commit guard: if Rust sources changed, the committed Wasm must go with them.
+# No Rust toolchain needed — presence check only. CI does the authoritative rebuild+diff.
+set -eu
+
+STAGED="$(git diff --cached --name-only)"
+
+has_staged() {
+	echo "$STAGED" | grep -q "^$1"
+}
+
+CRATE_CHANGED=0
+WASM_STAGED=0
+
+if echo "$STAGED" | grep -q "^crates/"; then
+	CRATE_CHANGED=1
+fi
+if has_staged "src/durable-objects/argon2-do-hasher.wasm"; then
+	WASM_STAGED=1
+fi
+
+if [ "$CRATE_CHANGED" -eq 1 ] && [ "$WASM_STAGED" -eq 0 ]; then
+	echo "Blocked: crates/ changed but src/durable-objects/argon2-do-hasher.wasm is not staged." >&2
+	echo "Run: bun --bun run build:wasm && git add src/durable-objects/argon2-do-hasher.wasm" >&2
+	echo "(If the rebuild produces no diff, e.g. comment-only change, use git commit --no-verify.)" >&2
+	exit 1
+fi
+
+exit 0

@@ -35,6 +35,7 @@
 		"lint:check": "oxlint --deny-warnings src/",
 		"prepare": "effect-tsgo patch",
 		"preview": "vite preview --mode development",
+		"setup:hooks": "git config core.hooksPath tools/hooks",
 		"test": "vitest run"
 	},
 	"dependencies": {
