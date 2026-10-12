@@ -7,7 +7,7 @@ Stack: TanStack Start (React) + TanStack Router + TanStack Query + Drizzle/Effec
 - Package manager: **bun** (`bun.lock`). Use `bun install`.
 - Postgres via Docker: `docker compose up -d`. Password `mypassword` (see `compose.yaml`).
 - `.env.local` must define `DATABASE_URL`. The `db:*` scripts load it via `dotenv -e .env.local`. `.env.development` is loaded by the Cloudflare vite plugin for the dev server and also holds the JWT secrets + `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`.
-- No manual setup step for deps or wasm: `bun run dev` self-provisions both via `predev` (`bun install`, ~seconds from the warm cache, then `build:wasm`, an instant cache hit when Rust sources are unchanged). Requires Rust + the `wasm32-unknown-unknown` rustup target for the rare actual recompile. `build:wasm` (`tools/build-wasm.sh`) shares its cargo target dir (`../.shared-cargo-target`) and a content-hashed wasm cache (`../.shared-wasm-cache`) across sibling worktrees.
+- No manual setup step for deps: `bun run dev` self-provisions via `predev` (`bun install`, ~seconds from the warm cache). The Wasm kernel (`src/durable-objects/argon2-do-hasher.wasm`) is committed, so dev/build/deploy never need Rust. Only `bun --bun run build:wasm` (`tools/build-wasm.sh`) needs Rust + the `wasm32-unknown-unknown` target, and only after editing `crates/argon2-do-hasher` — commit the rebuilt wasm with the source change.
 - `prepare` script runs `effect-tsgo patch` automatically on install.
 
 ## Commands (use `bun --bun` prefix when possible)
@@ -17,7 +17,8 @@ The `--bun` flag forces Bun's native runtime; without it, scripts may fall back 
 | Command                                                      | What                                                                                                 |
 | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
 | `bun run dev`                                                | Dev server on port 3000 - NEVER PREFIX WITH `bun --bun`                                              |
-| `bun --bun run build`                                        | `build:wasm` (Rust→Wasm) then `vite build`                                                           |
+| `bun --bun run build`                                        | `vite build` (committed Wasm kernel included)                                                        |
+| `bun --bun run build:wasm`                                   | Rebuild Wasm kernel from `crates/` after Rust edits (requires Rust toolchain; commit result)         |
 | `bun --bun run test`                                         | Vitest single run (no separate config; uses `vite.config.ts`)                                        |
 | `bun --bun run deploy`                                       | Build + `wrangler deploy`                                                                            |
 | `bun --bun run fmt` / `fmt:check`                            | oxfmt `src/` (write / check-only)                                                                    |

@@ -7,7 +7,7 @@
 	},
 	"scripts": {
 		"archive-old-activities": "dotenv -e .env.local -e .env -- bun --bun run src/scripts/archive-old-activities.ts",
-		"build": "bun run build:wasm && vite build",
+		"build": "vite build",
 		"build:preview": "vite build --mode development",
 		"build:wasm": "sh tools/build-wasm.sh",
 		"cf-typegen": "wrangler types",
@@ -26,7 +26,7 @@
 		"db:up": "bun --bun run db -- up",
 		"deploy": "bun run build && wrangler deploy",
 		"dev": "vite dev --port 3000",
-		"predev": "bun install && bun run build:wasm",
+		"predev": "bun install",
 		"dev:email": "email dev --dir src/email/templates --port 3001",
 		"fmt": "oxfmt src/",
 		"fmt:check": "oxfmt --check src/",

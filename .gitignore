@@ -15,6 +15,3 @@ todos.json
 
 # Rust build artifacts
 crates/*/target/
-
-# Generated Wasm binary (built from Rust)
-src/durable-objects/argon2-do-hasher.wasm

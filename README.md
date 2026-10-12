@@ -17,10 +17,6 @@ A full-stack TypeScript starter kit for building and deploying your own service:
 # Install dependencies
 bun install
 
-# Build the Wasm hashing kernel once (requires Rust + the wasm32-unknown-unknown target;
-# the artifact is gitignored, so this is required after every fresh clone)
-bun --bun run build:wasm
-
 # Start postgres (Docker)
 docker compose up -d
 
