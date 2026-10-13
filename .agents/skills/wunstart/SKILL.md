@@ -13,7 +13,7 @@ Full-stack TypeScript starter: TanStack Start (React) + Router + Query, Effect-w
 - `wunshot` owns: `src/db/models/`, `src/db/helpers/`, `src/db/ops/` (pure Effect, layers passed per run).
 - `wunstart` owns: `src/server-fns/` (compose ops via `runOp`), `src/routes/` (+ `_auth-*` placement), `src/middleware/`, `src/server.ts`, `src/start.ts`, `src/router.tsx`, `src/email/` transport wiring, `src/durable-objects/`, `wrangler.jsonc`, `drizzle.config.ts` path.
 
-Client never sends or receives db ids; server fns unwrap cookie identity. Fn accepting an id param is the exception: name it `...ById` + authorize it.
+Client never sends or receives db ids; server fns unwrap cookie identity (no `ById` fns exist today — convention if one appears: see `references/middleware.md`).
 
 ## Branch chooser
 

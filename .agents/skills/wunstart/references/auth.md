@@ -8,6 +8,10 @@ Refresh JWS carries `sessionId`, random nonce, `exp`, signed `generation`. Every
 
 Accepted limitation: access tokens carry no session id, so family revocation leaves already-issued access tokens valid up to 15 min.
 
+## Sudo-gated actions
+
+`useHasSudo()` gate + lazy `ReverifyDrawer` inside `AsyncBoundary` (see `remove-account.tsx`); the server fn's op rejects stale verification (`STALE_VERIFICATION` → re-verify first, see `remove-user.ts`). Provider placement: see `references/app.md` routes.
+
 ## Sessions list, no per-session revoke
 
 Settings page lists sessions with device + geolocation context (detection tool). No user-facing single-session revoke: attacker with a stolen cookie could run a watcher loop auto-revoking the victim's fresh sessions, neutralizing `signOutAll`. Eviction tool is `signOutAll` (revokes all incl. attacker's; without credentials they can't return). Selective revocation exists only server-side: refresh-reuse detection (`revokeForReuse`) + owner email. Revisit per-session revoke alongside unauthenticated email-verified recovery, with remote-revocation email + per-user rate limit + revoke-others-only. Linted by `wunstart/no-single-session-revoke`.
