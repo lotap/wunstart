@@ -31,6 +31,10 @@ tester.run(
 				code: "import type {verifyAccess as verifyAccessOpType} from '#/db/ops/auth/verify-access';",
 				filename: 'src/middleware/verify-auth.ts',
 			},
+			{
+				code: "import {type verifyAccess} from '#/db/ops/auth/verify-access';",
+				filename: 'src/middleware/verify-auth.ts',
+			},
 		],
 		invalid: [
 			{
@@ -73,6 +77,18 @@ tester.run('wunstart/no-single-session-revoke', noSingleSessionRevokeRule, {
 			code: 'export function revokeSessionById() {}',
 			errors: [{messageId: 'singleSessionRevoke'}],
 		},
+		{
+			code: 'const revokeSession = createOpsFn({}); export {revokeSession};',
+			errors: [{messageId: 'singleSessionRevoke'}],
+		},
+		{
+			code: 'const x = createOpsFn({}); export {x as revokeSession};',
+			errors: [{messageId: 'singleSessionRevoke'}],
+		},
+		{
+			code: 'export default function revokeSession() {}',
+			errors: [{messageId: 'singleSessionRevoke'}],
+		},
 	],
 })
 
@@ -86,11 +102,20 @@ tester.run('wunstart/email-layer-allowlist', emailLayerAllowlistRule, {
 			code: "import {emailLayer} from '#/email/layer.ts';",
 			filename: 'src/middleware/verify-auth.ts',
 		},
+		{
+			code: "import {renderSignInNotification} from '#/email/templates/sign-in-notification.tsx';",
+			filename: 'src/db/ops/auth/password-sign-in.ts',
+		},
 	],
 	invalid: [
 		{
 			code: "import {emailLayer} from '#/email/layer.ts';",
 			filename: 'src/routes/settings.tsx',
+			errors: [{messageId: 'emailLayerOutsideAllowlist'}],
+		},
+		{
+			code: "import {renderVerifyEmail} from '#/email/templates/verify-email.tsx';",
+			filename: 'src/routes/sign-up.tsx',
 			errors: [{messageId: 'emailLayerOutsideAllowlist'}],
 		},
 	],

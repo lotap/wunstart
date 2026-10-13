@@ -4,6 +4,16 @@ function isMiddlewareFile(filename: string): boolean {
 	return filename.replaceAll('\\', '/').includes('src/middleware/')
 }
 
+type ImportSpecifierLike = {type: string; importKind?: string}
+
+/** True when every specifier is an inline `type` import (erased at compile, always safe). */
+function isTypeOnlyImport(specifiers: ImportSpecifierLike[]): boolean {
+	return (
+		specifiers.length > 0 &&
+		specifiers.every((s) => s.type !== 'ImportSpecifier' || s.importKind === 'type')
+	)
+}
+
 /**
  * Request-bound op modules, by their basename without extension. Static VALUE
  * imports of these inside src/middleware/ recreate the flattenMiddlewares crash
@@ -42,6 +52,7 @@ export const noStaticWorkersImportInMiddlewareRule = defineRule({
 			ImportDeclaration(node) {
 				const source: string = node.source.value
 				if (node.importKind === 'type') return
+				if (isTypeOnlyImport(node.specifiers as unknown as ImportSpecifierLike[])) return
 				if (source === 'cloudflare:workers' || isRequestBoundOp(source)) {
 					context.report({node: node.source, messageId: 'staticWorkersImport', data: {source}})
 				}

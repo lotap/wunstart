@@ -1,6 +1,14 @@
 import {defineRule} from '@oxlint/plugins'
 
-const EMAIL_SOURCES = new Set(['#/email/layer.ts', '#/email/service.ts'])
+/**
+ * Any `#/email/` subpath: layer + service + templates + transports + format
+ * helpers. Email-sending capability must not leak into routes/components; only
+ * the approved code path (ops that send + the server fns / middleware that
+ * provide the layer) may touch it.
+ */
+function isEmailSource(source: string): boolean {
+	return source === '#/email' || source.startsWith('#/email/')
+}
 
 function isEmailPath(path: string): boolean {
 	const normalized = path.replaceAll('\\', '/')
@@ -35,7 +43,7 @@ export const emailLayerAllowlistRule = defineRule({
 		return {
 			ImportDeclaration(node) {
 				const source: string = node.source.value
-				if (!EMAIL_SOURCES.has(source)) return
+				if (!isEmailSource(source)) return
 				context.report({
 					node: node.source,
 					messageId: 'emailLayerOutsideAllowlist',

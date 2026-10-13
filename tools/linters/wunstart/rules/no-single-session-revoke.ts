@@ -7,8 +7,9 @@ const SESSION = /session/i
 const WHOLE_FAMILY = /all/i
 const REUSE = /reuse/i
 
-function exportedName(node: ESTree.ExportNamedDeclaration): string | null {
-	const declaration = node.declaration
+function declarationName(
+	declaration: ESTree.ExportNamedDeclaration['declaration'],
+): string | null {
 	if (declaration?.type === 'VariableDeclaration') {
 		const first = declaration.declarations[0]
 		if (first?.id.type === 'Identifier') return first.id.name
@@ -20,6 +21,21 @@ function exportedName(node: ESTree.ExportNamedDeclaration): string | null {
 		declaration.id !== null
 	) {
 		return declaration.id.name
+	}
+	return null
+}
+
+function isViolationName(name: string): boolean {
+	if (ALLOWED_NAMES.has(name)) return false
+	if (REUSE.test(name) || WHOLE_FAMILY.test(name)) return false
+	return REVOKE.test(name) && SESSION.test(name)
+}
+
+function specifierExportedName(spec: ESTree.ExportSpecifier): string | null {
+	if (spec.exported.type === 'Identifier') return spec.exported.name
+	// `export {x as 'revoke-session'}`: string-literal export names are rare; match literally.
+	if (spec.exported.type === 'Literal' && typeof spec.exported.value === 'string') {
+		return spec.exported.value
 	}
 	return null
 }
@@ -44,10 +60,32 @@ export const noSingleSessionRevokeRule = defineRule({
 	create(context) {
 		return {
 			ExportNamedDeclaration(node) {
-				const name = exportedName(node)
-				if (name === null || ALLOWED_NAMES.has(name)) return
-				if (REUSE.test(name) || WHOLE_FAMILY.test(name)) return
-				if (REVOKE.test(name) && SESSION.test(name)) {
+				// `export const revokeSession = …` / `export function revokeSession() …`
+				const name = declarationName(node.declaration)
+				if (name !== null && isViolationName(name)) {
+					context.report({node, messageId: 'singleSessionRevoke', data: {name}})
+					return
+				}
+				// `export {revokeSession}` / `export {x as revokeSession}` (public name is what matters)
+				for (const spec of node.specifiers) {
+					const specName = specifierExportedName(spec)
+					if (specName !== null && isViolationName(specName)) {
+						context.report({node: spec, messageId: 'singleSessionRevoke', data: {name: specName}})
+					}
+				}
+			},
+			ExportDefaultDeclaration(node) {
+				// `export default function revokeSession() …` / `export default revokeSession`
+				const declaration = node.declaration
+				const name =
+					(declaration.type === 'FunctionDeclaration' ||
+						declaration.type === 'ClassDeclaration') &&
+					declaration.id !== null
+						? declaration.id.name
+						: declaration.type === 'Identifier'
+							? declaration.name
+							: null
+				if (name !== null && isViolationName(name)) {
 					context.report({node, messageId: 'singleSessionRevoke', data: {name}})
 				}
 			},
