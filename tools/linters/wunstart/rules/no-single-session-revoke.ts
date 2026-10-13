@@ -1,23 +1,20 @@
 import {defineRule} from '@oxlint/plugins'
 import type {ESTree} from '@oxlint/plugins'
 
-const ALLOWED_NAMES = new Set(['revokeForReuse'])
+const ALLOWED_NAMES = new Set(['revokeForReuse', 'noSingleSessionRevokeRule'])
 const REVOKE = /revoke/i
 const SESSION = /session/i
 const WHOLE_FAMILY = /all/i
 const REUSE = /reuse/i
 
-function declarationName(
-	declaration: ESTree.ExportNamedDeclaration['declaration'],
-): string | null {
+function declarationName(declaration: ESTree.ExportNamedDeclaration['declaration']): string | null {
 	if (declaration?.type === 'VariableDeclaration') {
 		const first = declaration.declarations[0]
 		if (first?.id.type === 'Identifier') return first.id.name
 		return null
 	}
 	if (
-		(declaration?.type === 'FunctionDeclaration' ||
-			declaration?.type === 'ClassDeclaration') &&
+		(declaration?.type === 'FunctionDeclaration' || declaration?.type === 'ClassDeclaration') &&
 		declaration.id !== null
 	) {
 		return declaration.id.name
@@ -31,13 +28,10 @@ function isViolationName(name: string): boolean {
 	return REVOKE.test(name) && SESSION.test(name)
 }
 
-function specifierExportedName(spec: ESTree.ExportSpecifier): string | null {
+function specifierExportedName(spec: ESTree.ExportSpecifier): string {
 	if (spec.exported.type === 'Identifier') return spec.exported.name
 	// `export {x as 'revoke-session'}`: string-literal export names are rare; match literally.
-	if (spec.exported.type === 'Literal' && typeof spec.exported.value === 'string') {
-		return spec.exported.value
-	}
-	return null
+	return spec.exported.value
 }
 
 /**
@@ -45,6 +39,7 @@ function specifierExportedName(spec: ESTree.ExportSpecifier): string | null {
  * Server-side revokeForReuse and whole-family revokes (*All*) stay allowed.
  * Naming-convention guard only: it cannot catch evasive names (review is the backstop).
  */
+// oxlint-disable-next-line wunstart/no-single-session-revoke
 export const noSingleSessionRevokeRule = defineRule({
 	meta: {
 		type: 'problem',
@@ -54,7 +49,7 @@ export const noSingleSessionRevokeRule = defineRule({
 		},
 		messages: {
 			singleSessionRevoke:
-				'Do not expose single-session revocation `{{name}}`. Ship the sessions list for visibility and keep `signOutAll` as the only user-facing eviction tool (server-side `revokeForReuse` and whole-family revokes stay allowed).',
+				'Do not expose per-session revocation of other sessions `{{name}}` (sign-out ends your own session and is fine). Ship the sessions list for visibility and keep `signOutAll` as the only user-facing eviction tool (server-side `revokeForReuse` and whole-family revokes stay allowed).',
 		},
 	},
 	create(context) {
@@ -69,7 +64,7 @@ export const noSingleSessionRevokeRule = defineRule({
 				// `export {revokeSession}` / `export {x as revokeSession}` (public name is what matters)
 				for (const spec of node.specifiers) {
 					const specName = specifierExportedName(spec)
-					if (specName !== null && isViolationName(specName)) {
+					if (isViolationName(specName)) {
 						context.report({node: spec, messageId: 'singleSessionRevoke', data: {name: specName}})
 					}
 				}
@@ -78,8 +73,7 @@ export const noSingleSessionRevokeRule = defineRule({
 				// `export default function revokeSession() …` / `export default revokeSession`
 				const declaration = node.declaration
 				const name =
-					(declaration.type === 'FunctionDeclaration' ||
-						declaration.type === 'ClassDeclaration') &&
+					(declaration.type === 'FunctionDeclaration' || declaration.type === 'ClassDeclaration') &&
 					declaration.id !== null
 						? declaration.id.name
 						: declaration.type === 'Identifier'

@@ -31,10 +31,18 @@ tester.run(
 				code: "import type {verifyAccess as verifyAccessOpType} from '#/db/ops/auth/verify-access';",
 				filename: 'src/middleware/verify-auth.ts',
 			},
-			{
-				code: "import {type verifyAccess} from '#/db/ops/auth/verify-access';",
-				filename: 'src/middleware/verify-auth.ts',
-			},
+		{
+			code: "import {type verifyAccess} from '#/db/ops/auth/verify-access';",
+			filename: 'src/middleware/verify-auth.ts',
+		},
+		{
+			code: "import {x} from '#/lib/refresh.ts';",
+			filename: 'src/middleware/verify-auth.ts',
+		},
+		{
+			code: "export type {x} from '#/db/ops/auth/refresh';",
+			filename: 'src/middleware/verify-auth.ts',
+		},
 		],
 		invalid: [
 			{
@@ -52,11 +60,31 @@ tester.run(
 				filename: 'src/middleware/verify-auth.ts',
 				errors: [{messageId: 'staticWorkersImport'}],
 			},
-			{
-				code: "import {verifyAnon} from '#/db/ops/auth/verify-anon.ts';",
-				filename: 'src/middleware/verify-anon.ts',
-				errors: [{messageId: 'staticWorkersImport'}],
-			},
+		{
+			code: "import {verifyAnon} from '#/db/ops/auth/verify-anon.ts';",
+			filename: 'src/middleware/verify-anon.ts',
+			errors: [{messageId: 'staticWorkersImport'}],
+		},
+		{
+			code: "import refreshDefault from '#/db/ops/auth/refresh.ts';",
+			filename: 'src/middleware/verify-auth.ts',
+			errors: [{messageId: 'staticWorkersImport'}],
+		},
+		{
+			code: "import * as refreshNs from '#/db/ops/auth/refresh.ts';",
+			filename: 'src/middleware/verify-auth.ts',
+			errors: [{messageId: 'staticWorkersImport'}],
+		},
+		{
+			code: "export {refresh} from '#/db/ops/auth/refresh';",
+			filename: 'src/middleware/verify-auth.ts',
+			errors: [{messageId: 'staticWorkersImport'}],
+		},
+		{
+			code: "export * from '#/db/ops/auth/verify-access';",
+			filename: 'src/middleware/verify-auth.ts',
+			errors: [{messageId: 'staticWorkersImport'}],
+		},
 		],
 	},
 )
@@ -67,6 +95,8 @@ tester.run('wunstart/no-single-session-revoke', noSingleSessionRevokeRule, {
 		'export const revokeForReuse = createOpsFn({});',
 		'export const revokeAllSessions = createOpsFn({});',
 		'export const listSessions = createOpsFn({});',
+		'const revokeSession = createOpsFn({});',
+		'export const noSingleSessionRevokeRule = defineRule({});',
 	],
 	invalid: [
 		{
@@ -106,6 +136,14 @@ tester.run('wunstart/email-layer-allowlist', emailLayerAllowlistRule, {
 			code: "import {renderSignInNotification} from '#/email/templates/sign-in-notification.tsx';",
 			filename: 'src/db/ops/auth/password-sign-in.ts',
 		},
+		{
+			code: "export type {x} from '#/email/layer.ts';",
+			filename: 'src/routes/settings.tsx',
+		},
+		{
+			code: "import {x} from '#/server-fns/handle-email-request-passcode.ts';",
+			filename: 'src/routes/settings.tsx',
+		},
 	],
 	invalid: [
 		{
@@ -116,6 +154,26 @@ tester.run('wunstart/email-layer-allowlist', emailLayerAllowlistRule, {
 		{
 			code: "import {renderVerifyEmail} from '#/email/templates/verify-email.tsx';",
 			filename: 'src/routes/sign-up.tsx',
+			errors: [{messageId: 'emailLayerOutsideAllowlist'}],
+		},
+		{
+			code: "import {x} from '../../email/layer.ts';",
+			filename: 'src/routes/settings.tsx',
+			errors: [{messageId: 'emailLayerOutsideAllowlist'}],
+		},
+		{
+			code: "export {x} from '#/email/layer.ts';",
+			filename: 'src/routes/settings.tsx',
+			errors: [{messageId: 'emailLayerOutsideAllowlist'}],
+		},
+		{
+			code: "export * from '#/email/templates/verify-email.tsx';",
+			filename: 'src/routes/sign-up.tsx',
+			errors: [{messageId: 'emailLayerOutsideAllowlist'}],
+		},
+		{
+			code: "const m = await import('#/email/layer.ts');",
+			filename: 'src/routes/settings.tsx',
 			errors: [{messageId: 'emailLayerOutsideAllowlist'}],
 		},
 	],

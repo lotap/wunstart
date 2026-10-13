@@ -1,16 +1,16 @@
 import {defineRule} from '@oxlint/plugins'
+import type {ESTree} from '@oxlint/plugins'
 
 function isMiddlewareFile(filename: string): boolean {
 	return filename.replaceAll('\\', '/').includes('src/middleware/')
 }
 
-type ImportSpecifierLike = {type: string; importKind?: string}
-
 /** True when every specifier is an inline `type` import (erased at compile, always safe). */
-function isTypeOnlyImport(specifiers: ImportSpecifierLike[]): boolean {
+function isTypeOnlyImport(node: ESTree.ImportDeclaration): boolean {
+	if (node.importKind === 'type') return true
 	return (
-		specifiers.length > 0 &&
-		specifiers.every((s) => s.type !== 'ImportSpecifier' || s.importKind === 'type')
+		node.specifiers.length > 0 &&
+		node.specifiers.every((s) => s.type === 'ImportSpecifier' && s.importKind === 'type')
 	)
 }
 
@@ -24,8 +24,13 @@ function isTypeOnlyImport(specifiers: ImportSpecifierLike[]): boolean {
 const REQUEST_BOUND_OPS = new Set(['refresh', 'verify-access', 'verify-anon'])
 
 function isRequestBoundOp(source: string): boolean {
+	if (!source.includes('db/ops/')) return false
 	const basename = source.split('/').pop() ?? source
 	return REQUEST_BOUND_OPS.has(basename.replace(/\.tsx?$/u, ''))
+}
+
+function isDangerSource(source: string): boolean {
+	return source === 'cloudflare:workers' || isRequestBoundOp(source)
 }
 
 /**
@@ -50,10 +55,23 @@ export const noStaticWorkersImportInMiddlewareRule = defineRule({
 		if (!isMiddlewareFile(context.filename)) return {}
 		return {
 			ImportDeclaration(node) {
+				if (isTypeOnlyImport(node)) return
 				const source: string = node.source.value
-				if (node.importKind === 'type') return
-				if (isTypeOnlyImport(node.specifiers as unknown as ImportSpecifierLike[])) return
-				if (source === 'cloudflare:workers' || isRequestBoundOp(source)) {
+				if (isDangerSource(source)) {
+					context.report({node: node.source, messageId: 'staticWorkersImport', data: {source}})
+				}
+			},
+			ExportNamedDeclaration(node) {
+				if (node.exportKind === 'type' || !node.source) return
+				const source: string = node.source.value
+				if (isDangerSource(source)) {
+					context.report({node: node.source, messageId: 'staticWorkersImport', data: {source}})
+				}
+			},
+			ExportAllDeclaration(node) {
+				if (node.exportKind === 'type') return
+				const source: string = node.source.value
+				if (isDangerSource(source)) {
 					context.report({node: node.source, messageId: 'staticWorkersImport', data: {source}})
 				}
 			},
