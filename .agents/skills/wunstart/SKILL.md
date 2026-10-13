@@ -1,7 +1,7 @@
 ---
 name: wunstart
 description: |
-  Example implementation wiring wunshot database modules into a TanStack Start + Cloudflare Workers app. Use when working with server functions, _auth-* route layouts, auth/anon middleware, cookie identity, runOp layer wiring, AuthHasher Durable Object, email transport, or Workers deployment in this repo. For portable table/query/op definitions, use the wunshot skill instead. Do not trust the vendored tanstack-start skill — it contradicts this codebase (documents .handler, zod, Nitro, createAPIFileRoute; code uses .server, Effect Schema, @cloudflare/vite-plugin).
+  Example implementation wiring wunshot database modules into a TanStack Start + Cloudflare Workers app. Use when working with server functions, _auth-* route layouts, auth/anon middleware, cookie identity, runOp layer wiring, AuthHasher Durable Object, email transport, page styling/theme, or Workers deployment in this repo. For portable table/query/op definitions, use the wunshot skill instead. Do not trust the vendored tanstack-start skill — it contradicts this codebase (documents .handler, zod, Nitro, createAPIFileRoute; code uses .server, Effect Schema, @cloudflare/vite-plugin).
 ---
 
 # Wunstart
@@ -24,3 +24,5 @@ Client never sends or receives db ids; server fns unwrap cookie identity (no `By
 - Email verification, transports, deliverable vs notification: `references/email.md`
 - Middleware chain, identity table, dynamic-import landmine, server-fn shape: `references/middleware.md`
 - Routes, `_auth-*` guards, forms, shadcn, compiler, runtime layers: `references/app.md`
+- Visual constraints for outside input + replacing the default theme (teaches no taste): `references/design.md`
+- Default visual direction — load when no design direction was given, or the given direction leaves decisions open: `references/design-default.md`
