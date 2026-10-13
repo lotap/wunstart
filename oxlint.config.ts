@@ -26,6 +26,8 @@ const config = defineConfig({
 	jsPlugins: [
 		{name: 'anti-slop', specifier: './tools/linters/anti-slop/index.ts'},
 		{name: 'anti-slop-effect', specifier: './tools/linters/anti-slop/effect/index.ts'},
+		{name: 'wunshot', specifier: './tools/linters/wunshot/index.ts'},
+		{name: 'wunstart', specifier: './tools/linters/wunstart/index.ts'},
 	],
 	settings: {
 		'react-doctor': {
@@ -62,6 +64,12 @@ const config = defineConfig({
 		'anti-slop/no-unsafe-dictionary-type': 'error',
 		'anti-slop/no-widen-then-assert': 'error',
 		'anti-slop/require-safety-comment-for-type-assertion': 'error',
+		'wunshot/no-pgtable-direct': 'error',
+		'wunshot/no-zod-valibot': 'error',
+		'wunshot/no-failed-credential-in-denial': 'error',
+		'wunstart/no-static-workers-import-in-middleware': 'error',
+		'wunstart/no-single-session-revoke': 'error',
+		'wunstart/email-layer-allowlist': 'error',
 	},
 	overrides: [
 		/// REACT ///

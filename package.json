@@ -36,7 +36,8 @@
 		"prepare": "sh tools/setup-hooks.sh && effect-tsgo patch",
 		"preview": "vite preview --mode development",
 		"setup:hooks": "sh tools/setup-hooks.sh",
-		"test": "vitest run"
+		"test": "vitest run",
+		"test:lint": "vitest run --config tools/linters/vitest.config.ts"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.7.0",

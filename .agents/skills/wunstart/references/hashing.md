@@ -1,0 +1,8 @@
+# Hashing (AuthHasher DO)
+
+Workers free plan: 10 ms CPU/request; Argon2id needs ~700 ms at our params. Offload to `AuthHasher` Durable Object (30 s budget): ~2% per hash. Rust source in `crates/argon2-do-hasher/` (cdylib, argon2 + password-hash, `getrandom/js`, lto/strip), adapted from `cloudflare-auth-hasher-template` but params passed at the Wasm boundary at runtime (not compile-time `option_env!`), salt from JS host. The compiled kernel `src/durable-objects/argon2-do-hasher.wasm` is COMMITTED — dev/build/deploy never need Rust. Only `bun --bun run build:wasm` (`tools/build-wasm.sh`, plain cargo build into `crates/.../target/`) needs Rust + `wasm32-unknown-unknown`, and only after editing `crates/`; commit the rebuilt wasm with the source change (pre-commit hook in `tools/hooks/` enforces this: `crates/` edits without staged wasm are blocked).
+
+- Per-user sharding: `idFromName(userId)` isolates users + implicit rate limit. Rejected: single shared DO (global bottleneck/starvation), Web Crypto PBKDF2 (not memory-hard), `@noble/hashes` in Worker (70× over budget), `hash-wasm` / `@awasm/noble` WASM (Workers forbids `WebAssembly.compile`), external service (ops/cost/latency).
+- DO loads kernel once per instance (`getKernel`); alloc/write/read/output/error/clear/dealloc in try/finally; status 1=ok 2=err.
+- `HASHING_CONFIG` in `_hashing.ts` (`m=65536, t=3, p=1, dkLen=32`). `_check-rehash.ts` rehashes on login when stored PHC params lag.
+- `cloudflare:workers` `env` import ties hashing layer to Workers; rest of auth stays runtime-agnostic. Ops stay unaware of sharding: `HashingStub` (`service-bindings.ts`) carries DO name; call sites `HashingStub.get(name)` with userId else anonId.

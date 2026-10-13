@@ -1,0 +1,24 @@
+# Middleware + server functions
+
+## The static-import landmine
+
+Middleware modules must NOT statically import request-bound op modules (`refresh`, `verify-access`, `verify-anon` op). `verify-auth.ts` / `verify-anon.ts` `await import()` exactly those three inside `.server()`; `import type` of them at top is fine (erased). Static layers (`dbLayer`, `authLayer`), error classes (`AuthTokenError`, `RateLimitError`, `isOpsError`), and `signAnon` (jose + Config only) stay static — proven safe. A static value import of a request-bound op made the middleware `undefined` during TanStack's early `flattenMiddlewares` graph build → opaque `TypeError: Cannot read properties of undefined (reading 'options')`. ESM caches `import()` — no memoization needed. Linted by `wunstart/no-static-workers-import-in-middleware`. Dead end, don't re-try: deferring Hyperdrive access via `Layer.unwrap` was reverted (top-level `import {env}` is fine per Cloudflare docs). If a new op transitively needs the hashing stub / service bindings, add it to the lint's module list and import it dynamically.
+
+## Chain
+
+`start.ts` order is deliberate. Request: `[csrfMiddleware (server-fn only), sanitizeErrors]`. Function: `[createRateLimit(150), verifyAnon, rejectDegradedAuth]` — `rejectDegradedAuth` last so server fns never see degraded state. `verifyAnon(type: function).middleware([verifyAuth])`, `verifyAuth.middleware([getRequestInfo])` → every fn gets `{ip, ua, country, city, region, timezone, auth, anon}`. Anon issuing is inline in `verifyAnon` handler (`signAnon` + 8wk cookie), not a separate middleware.
+
+- Chained: `.middleware([getRequestInfo])` → typed context. Standalone (`createMiddleware({type: 'function'})`): context typed `undefined` → `const ctx: unknown = context` then `ctx as GlobalServerFnContext` behind `// SAFETY:` (require-*, rejectDegradedAuth pattern).
+- Identity decision table: `AuthTokenError` = definitively invalid → clear cookies, go anon. `RateLimitError` → keep cookies, go anon. Anything else incl. defects → `{status: 'degraded'}` → 503 before any server fn. `KnownServerError` first statement of every catch, rethrown untouched. Auth/anon contexts status-discriminated `'authenticated'` / `'verified'`, `null` = none.
+- `verify-auth`: needs access + refresh else refresh-only path; success rotates both + deletes anon cookie. `verify-anon`: degraded auth → degraded anon (no issue on outage); authed → `anon: null`; else verify anon JWT → verified, else `signAnon` + `setAnonCookie`; sign failure → degraded. `rejectDegradedAuth` → 503 `KnownServerError`. `requireAuth` (401) / `requireAnon` (400 if authed) / `requireAnonRegistered` (`anon.registered` check): read already-verified ctx, no re-verify, no degraded logic.
+- `get-request-info`: `ip = cf-connecting-ip ?? xForwardedFor ?? '0.0.0.0'`; `ua.slice(0, 512)`; `country = cf-ipcountry || 'XX'` sentinel, city/region null if absent, percent-decoded + length-capped, timezone IANA-validated.
+- `sanitize-errors` (request): ops-contract → 422 client-safe message; `KnownServerError` passthrough; else generic 500, cause preserved.
+- Rate-limit: in-memory per-IP (`THRESHOLD = 12600`, `WINDOW = 60s`, `weight = ceil(THRESHOLD / max)`), global 150/min + opt-in per-fn `rateLimit` (5/min). Not shared across isolates — defense-in-depth only. Op `RateLimitError` forwarded as extra event (can 429).
+
+## Server-fn shape
+
+`handle-*.ts`: `createServerFn({method: 'POST'})` for all fns (reads GET where applicable) → `.middleware([rateLimit?, require*])` → `.validator(Schema.toStandardSchemaV1(...))` (never deprecated `inputValidator`) → `.handler(({data, context}) => runOp({op, data: {ids from ctx, ipAddress}, layers: [authLayer, dbLayer(, emailLayer)]}) + cookie side-effects)`. Return type inferred — convert `DateTime.Utc → Date` on the way out. Mutations POST, reads GET. No id params; `...ById` + authorize is the exception.
+
+- `runOp` (`middleware/_run-op.server.ts`, `createServerOnlyFn`): `{op, data, layers}` → `Effect.provide` + `runPromise`. Layers per run (generics fail if incomplete). `dbLayer` lazy pool (no connect on build; `DATABASE_URL` else Hyperdrive via lazy `cloudflare:workers` import — DB only in CF runtime). `authLayer` (`id:secret` CSV configs incl. dedicated grace-token JWE secrets). `emailLayer` dev/prod. `HashingStub.layer(name)` (userId else anonId, `AUTH_HASHER.idFromName`) provided inside the op, not via `runOp`.
+- Pre-check dedup: `checkCurrentBansAndExcessiveActivities(targets)` stashes 12-arm union; logger reuses via `Ref.getAndSet`; fresh-vs-stale compensated with extra weight.
+- Cookies: httpOnly, lax, `/`, `secure = PROD`, `domain = VITE_COOKIE_DOMAIN`, `__Http-` prefix in PROD; auth-issue deletes anon; sign-out deletes auth + issues anon.

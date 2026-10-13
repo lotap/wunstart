@@ -85,8 +85,12 @@ src/
     └── date-helpers.ts
 crates/
 └── argon2-do-hasher/    # Rust/Wasm Argon2id kernel for AuthHasher DO
-docs/
-└── adr/                    # Architecture Decision Records (0001-0009)
+.agents/skills/
+├── wunshot/             # Portable DB-module rules (tables, ops, bans)
+└── wunstart/            # App wiring (routes, middleware, email, workers)
+tools/linters/
+├── wunshot/             # DB conformity rules
+└── wunstart/            # App-wiring conformity rules
 compose.yaml                # Postgres 16 + Mailpit for local dev
 ```
 
