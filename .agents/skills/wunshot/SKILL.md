@@ -14,8 +14,8 @@ Paths are shown rooted at your database directory (`db/`); if your tree nests it
 
 Core modules install via Shadcn from the `wunshot` registry. Install `init` first — every domain module imports `helpers/`:
 
-- `init` → `db/helpers/*` (factories, query/archive helpers, shared consts/types/validators) + `db/index.ts` + drizzle config. `db/index.ts` ships connection resolution for its home runtime — adapt it (your connection string/layer), don't copy it verbatim.
-- Domain items → `db/models/<domain>/` + `db/ops/<domain>/` (map `db/` to your tree)
+- `init` → `db/helpers/*` (factories, query/archive helpers, shared consts/types/validators) + `db/index.ts` + drizzle config. `db/index.ts` ships connection resolution for its home runtime — adapt it (your connection string/layer), don't copy it verbatim. Keep its contract: `export class DB`, `dbLayer`, the lazy pool, and the pg `customTypes` passthrough.
+- Domain items → `db/models/<domain>/` + `db/ops/<domain>/` (map `db/` to your tree). Installing ops also needs the shared machinery at `db/ops/` root: `ops-error.ts`, `_create-ops-fn.ts`, `_logging.ts`, `_retry.ts`, `_extract-pg-error.ts`, `_current-bans-and-excessive-activities.ts`, `rate-limit-error.ts`. Its import closure reaches further — `_logging.ts` pulls `models/{activities, activities---bans, anons, bans, users}` + `ops/auth/_calc-penalty-time.ts`; `ops-error.ts` pulls `models/activities/{consts,validations}`. Confirm your install source ships that closure; if not, install the named model modules too, or the imports break. `service-bindings.ts` is host Cloudflare code, not portable — keep the `HashingStub` tag, implement its layer for your runtime.
 - npm deps: `drizzle-orm` (includes `drizzle-orm/effect-schema`), `effect`, `@effect/sql-pg`, `pg`; dev: `drizzle-kit`, `@types/pg`
 
 ## Module anatomy
@@ -24,13 +24,16 @@ Each domain lives in `db/models/<domain>/`:
 
 | File | Purpose |
 | ---- | ------- |
-| `schemas.ts` | Table definitions via factories. Your drizzle-kit `schema` glob must cover `models/**/*(schema|view)s.ts` under your db root — don't name any other file `*schemas.ts` (the glob also matches `*views.ts`) |
+| `schemas.ts` | Table definitions via factories. Your drizzle-kit `schema` glob must cover `models/**/*(schema|view)s.ts` under your db root — don't name any other file `*schemas.ts` |
+| `views.ts` | Postgres views, only if a domain needs one. Same file-level contract as `schemas.ts` (location, naming, imports, comment voice) — but not factory twins |
 | `queries.ts` | Prepared queries via helpers |
 | `validations.ts` | Statement-input schemas via `drizzle-orm/effect-schema` |
 | `cascades.ts` | Archive/delete cascade logic |
 | `consts.ts` | Domain constants, when ops or other models need them shared (optional) |
 
 Ops live in `db/ops/<domain>/` — see `references/ops-contract.md`.
+
+Export contract: `tableName`, `activeTable`, `archiveTable` (+ internal `baseCols`, never exported); no barrel files under `models/` or `ops/`; `.ts` extensions on relative imports. First reads: `models/email-verifications/` (FKs, unique indexes, archive mirrors in one small module), `ops/auth/remove-user.ts` (sudo check, pre-check, cascade orchestration in one op).
 
 Cross-domain joins use `---` dirs, alphabetical (`activities---bans`): queries + validations, never tables of their own. A shared enum may live in their `schemas.ts` (e.g. `banScopes`). Never add `relations()` calls — the Drizzle init (`db/index.ts`) carries no schema object, so the relational Query API is unavailable; cross-model reads go in `---` dirs with explicit joins.
 
@@ -51,7 +54,8 @@ New/changed module, in order:
 
 1. `drizzle-kit generate` after any schema edit (twins migrate together), then `drizzle-kit check`.
 2. Typecheck (`tsgo --noEmit` / `tsc`).
-3. Lint, including the three wunshot rules above.
+3. Lint, including the three wunshot rules above. The plugin ships with `init`; register it as an oxlint `jsPlugin` and enable the three rules (the canonical repo's `oxlint.config.ts` shows the shape — adapt to your linter).
+4. Execute: run the op (scratch script or studio) — insert a row, archive it, confirm it moved to the archive twin.
 
 Map each to your project's script names; no product tests ship with the modules.
 
@@ -71,11 +75,12 @@ MORV: Model (migrations, connections, queries) + Operation (business logic, comp
 
 Read only what the task needs:
 
+- New domain from scratch, external-service integration, extending core models, entity-vs-event-stream choice: `references/module-walkthrough.md`
 - Tables, factories, archive pairs, column gotchas: `references/tables-archive.md`
 - Prepared queries, query fns, validations, naming, imports, drizzle gotchas: `references/queries-validations.md`
 - Op skeleton, `opsFailure`, labels, retry, hashing order, error contract: `references/ops-contract.md`
 - Weight routing, ban scopes, array references: `references/bans.md`
 
-New module: read tables-archive → queries-validations → ops-contract in order (the recipe in tables-archive).
+New module: start at `references/module-walkthrough.md`, then tables-archive → queries-validations → ops-contract as needed.
 
 Project Effect conventions take precedence over vendored `effect` / `effect-ts` skills.

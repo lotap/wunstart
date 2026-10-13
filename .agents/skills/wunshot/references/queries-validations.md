@@ -20,6 +20,24 @@ Queries live in `queries.ts`, built with helpers from `db/helpers/funcs.ts`. Bot
 - `int8` returns string → `BigInt(total ?? 0)`.
 - `eslint-plugin-drizzle` enforced as errors on your db tree: `enforce-delete-with-where`, `enforce-update-with-where`.
 
+Canonical prepared select — the whole artifact in one place (`sql.placeholder` keys equal the validation's Encoded keys; `.prepare()` suffixed with `labelPrefix = tableName`; `getColumns` destructure keeps secrets out of `returning`/`select`):
+
+```ts
+const {passcodeHash, ...nonsensitiveCols} = getColumns(activeTable)
+const {id} = nonsensitiveCols
+
+export const select = createPreparedQuery({
+	vSchema: V.Select, // statement input only: pick(['id'])
+	stmtFn: (qx) =>
+		qx
+			.select(nonsensitiveCols)
+			.from(activeTable)
+			.where(eq(id, sql.placeholder('id')))
+			.limit(1)
+			.prepare(`${labelPrefix}_select`),
+})
+```
+
 ## Calling conventions
 
 - Queries take `(input, tx?)` positionally and return rows: `const [session] = yield* sessionsQueries.select({id})`.
@@ -41,9 +59,9 @@ Refine db-inferred types via the `overrides` second arg (`inet` needs manual han
 
 ## Naming + imports
 
-Queries are short verbs in a per-model namespace, imported as `* as <model>Queries` (`sessionsQueries`, `sessionsUsersQueries` for `---` dirs): `select` (by id, no suffix), `selectByX` / `archiveSelectByActiveId` for other filters, action verbs otherwise (`insert`, `updatePasswordHash`, `rotate`, `revoke`). No model name in the fn, no `bulk` prefix. Cascades mirror queries: `archive`, `archiveByUser`, `archiveMany` (via `createArchiveFn` / `createArchiveManyFn`).
+Queries are short verbs in a per-model namespace, imported as `* as <model>Queries` (`sessionsQueries`, `sessionsUsersQueries` for `---` dirs): `select` (by id, no suffix), `selectByX` / `archiveSelectByActiveId` for other filters, action verbs otherwise (`insert`, `updatePasswordHash`, `rotate`, `revoke`). No model name in the fn, no `bulk` prefix. Validation exports are statement-named PascalCase matching the query (`Insert`, `Select`, `ByX`, `Update…`). Cascades mirror queries: `archive`, `archiveByUser`, `archiveMany` (via `createArchiveFn` / `createArchiveManyFn`).
 
-Model files stay self-contained:
+Model files stay self-contained. No barrel files under `models/` or `ops/` — import the file directly, always with the `.ts` extension on relative imports (`./schemas.ts`, never `./schemas` or a directory):
 
 | File | Imports from |
 | ---- | ------------ |

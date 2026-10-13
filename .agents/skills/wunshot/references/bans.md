@@ -35,4 +35,4 @@ Rejected: join table (N INSERTs per ban, unjustified for 1–60 rows), JSONB (un
 
 ## Weight math
 
-`rateAllowance → weight` via `allowRatePerWindow(n) = ceil(12600 / n)` (see `ops-error.ts`); omitted `rateAllowance` → `ACTIVITIES_BASELINE_WEIGHT`. `Infinity → weight 0` → server faults never feed ban thresholds.
+`rateAllowance → weight` via `allowRatePerWindow(n) = ceil(EXCESSIVE_ACTIVITIES_THRESHOLD / n)` (see `ops-error.ts`); omitted `rateAllowance` → `ACTIVITIES_BASELINE_WEIGHT`. `Infinity → weight 0` → server faults never feed ban thresholds.
