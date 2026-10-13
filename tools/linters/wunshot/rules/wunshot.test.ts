@@ -46,6 +46,26 @@ tester.run('wunshot/no-zod-valibot', noZodValibotRule, {
 			errors: [{messageId: 'zodValibot'}],
 		},
 		{
+			code: "import {z} from 'drizzle-zod';",
+			errors: [{messageId: 'zodValibot'}],
+		},
+		{
+			code: "import {createInsertSchema} from 'drizzle-valibot';",
+			errors: [{messageId: 'zodValibot'}],
+		},
+		{
+			code: "export {z} from 'zod';",
+			errors: [{messageId: 'zodValibot'}],
+		},
+		{
+			code: "export * from 'valibot';",
+			errors: [{messageId: 'zodValibot'}],
+		},
+		{
+			code: "const z = await import('zod');",
+			errors: [{messageId: 'zodValibot'}],
+		},
+		{
 			code: "import {email} from 'valibot/v1';",
 			errors: [{messageId: 'zodValibot'}],
 		},
@@ -60,6 +80,14 @@ tester.run('wunshot/no-failed-credential-in-denial', noFailedCredentialInDenialR
 	invalid: [
 		{
 			code: 'rateLimitFailure({rateAllowance: 1, failedCredential: email});',
+			errors: [{messageId: 'failedCredential'}],
+		},
+		{
+			code: 'rateLimitFailure({rateAllowance: 1, failedCredential});',
+			errors: [{messageId: 'failedCredential'}],
+		},
+		{
+			code: "rateLimitFailure({rateAllowance: 1, 'failedCredential': email});",
 			errors: [{messageId: 'failedCredential'}],
 		},
 	],

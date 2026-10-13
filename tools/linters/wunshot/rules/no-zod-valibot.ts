@@ -3,10 +3,12 @@ import {defineRule} from '@oxlint/plugins'
 const FORBIDDEN_EXACT = new Set([
 	'zod',
 	'valibot',
+	'drizzle-zod',
 	'drizzle-orm/zod',
 	'drizzle-orm/valibot',
 	'drizzle-valibot',
 	'@hono/zod-validator',
+	'@hono/valibot-validator',
 ])
 
 function isForbiddenSource(source: string): boolean {
@@ -37,6 +39,25 @@ export const noZodValibotRule = defineRule({
 				const source: string = node.source.value
 				if (!isForbiddenSource(source)) return
 				context.report({node: node.source, messageId: 'zodValibot', data: {source}})
+			},
+			ExportNamedDeclaration(node) {
+				if (!node.source) return
+				const source: string = node.source.value
+				if (!isForbiddenSource(source)) return
+				context.report({node: node.source, messageId: 'zodValibot', data: {source}})
+			},
+			ExportAllDeclaration(node) {
+				const source: string = node.source.value
+				if (!isForbiddenSource(source)) return
+				context.report({node: node.source, messageId: 'zodValibot', data: {source}})
+			},
+			ImportExpression(node) {
+				const source = node.source
+				if (source.type !== 'Literal') return
+				if (source.value === null) return
+				const text = `${source.value}`
+				if (!isForbiddenSource(text)) return
+				context.report({node: source, messageId: 'zodValibot', data: {source: text}})
 			},
 		}
 	},

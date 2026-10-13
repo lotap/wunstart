@@ -1,18 +1,11 @@
 import {defineRule} from '@oxlint/plugins'
+import type {ESTree} from '@oxlint/plugins'
 
-type ObjectProp = {
-	type: string
-	computed?: boolean
-	key?: {type: string; name?: string; value?: unknown}
-}
-
-function propertyKeyName(property: ObjectProp): string | null {
-	if (property.type !== 'Property' || property.computed === true) return null
-	if (property.key?.type === 'Identifier') return property.key.name ?? null
-	if (property.key?.type === 'Literal' && typeof property.key.value === 'string') {
-		return property.key.value
-	}
-	return null
+function isFailedCredentialKey(property: ESTree.ObjectProperty): boolean {
+	if (property.computed) return false
+	const key = property.key
+	if (key.type === 'Identifier') return key.name === 'failedCredential'
+	return key.type === 'Literal' && key.value === 'failedCredential'
 }
 
 /**
@@ -46,7 +39,8 @@ export const noFailedCredentialInDenialRule = defineRule({
 				for (const argument of node.arguments) {
 					if (argument.type !== 'ObjectExpression') continue
 					for (const property of argument.properties) {
-						if (propertyKeyName(property as unknown as ObjectProp) === 'failedCredential') {
+						if (property.type !== 'Property') continue
+						if (isFailedCredentialKey(property)) {
 							context.report({node: property, messageId: 'failedCredential'})
 						}
 					}
