@@ -4,8 +4,9 @@
 
 - `_`-prefixed dirs = pathless layouts; `-components/` = route-private, not routed. Never edit `routeTree.gen.ts` (regenerate via `generate-routes` or dev restart).
 - `_auth-*` placement IS the guard — moves across folders are security-relevant in review: `_auth-protected` (requires sign-in, redirect `/sign-in?redirect=`, wraps `HasSudoProvider`), `_auth-gateway` (sign-in/up only, authed bounce `/`), `_auth-dynamic` (no redirect, adapts; `HasSudoProvider key={auth ? 'user' : 'anon'}` resets stale sudo), `_auth-anon` (no guard/provider). Layout `route.tsx` often comment-only docs of the implied protection.
-- Auth verified exactly once in `__root.tsx` `beforeLoad` → `handleVerifyAuth()` (returns only `{sudoExpiresAt?}`, no db ids to client). Layouts read `context.auth`; never re-call in children. Zero loaders in codebase — data is `useQuery` + `useServerFn`. `validateSearch` also via `Schema.toStandardSchemaV1`. Route `head`/`meta` lives only in `__root` today — don't invent per-route head.
+- Auth verified exactly once in `__root.tsx` `beforeLoad` → `handleVerifyAuth()` (returns only `{sudoExpiresAt?}`, no db ids to client). Layouts read `context.auth`; never re-call in children. Zero loaders in codebase — data is `useQuery` + `useServerFn`. `validateSearch` also via `Schema.toStandardSchemaV1`. No dynamic `$` segments exist — ids never travel in path; validated search is the escape hatch. Route `head`/`meta` lives only in `__root` today — don't invent per-route head.
 - Settings nav: register in `routes/_auth-protected/settings/categories.ts` (`CATEGORIES`, section-component-free); components attach in `-components/page.tsx`.
+- Drawers: self-contained components with trigger props (`PasswordChangeDrawer triggerClassName/triggerVariant`, composed in `access-and-security.tsx`); lazy-load when heavy (`dashboard.tsx` → `welcome-drawer.tsx`). One-shot post-action UX via a `useLocation().state` flag cleared with `navigate({to, state})` on dismiss.
 
 ## Adding a page
 
@@ -17,13 +18,39 @@ Pick `_auth-*` placement → `handle-*.ts` (shape: see `references/middleware.md
 - Named exports everywhere except email templates (default required by email dev), `server.ts`, `theme-toggle.tsx`, `root-provider.tsx`, `integrations/tanstack-query/devtools.tsx`, `form-fields/password-strength-meter.tsx`.
 - Zero `React.FC` — prefer inline `props: {...}` object types over `interface` (a few infra `interface`s in `start-types.ts` / `auth-hasher.ts` predate this). `React.ReactNode` via global namespace, no React import. No `"use client"` in hand code.
 - No optimistic updates. Invalidate-then-refetch; one exception `setQueryData` with server-computed value on mutation success.
-- Feedback: forms → `OnSubmitErrors`; non-form mutations → `toast` (`components/ui/toast.tsx`); reads → inline pending/error inside `ErrorBoundary` (route-level `errorComponent: RouteError` + `notFoundComponent` live in `__root`).
+- Feedback: forms → `OnSubmitErrors`; non-form mutations → `toast` (`components/ui/toast.tsx`); reads → inline pending/error inside `ErrorBoundary` (route-level `errorComponent: RouteError` + `notFoundComponent` live in `__root`). `AsyncBoundary` wraps a lazy/async subtree in both so a failed query or chunk load degrades locally instead of unmounting the page.
 - Contexts recipe: `createContext<T | null>(null)` + throwing `use*` hook + `PropsWithChildren` provider. Theme tri-state (`null` = not hydrated; consumers must handle). Query client via `integrations/tanstack-query/root-provider: getContext() → {queryClient}`.
 - shadcn `base-nova` flavor, Base UI (`@base-ui/react`), neutral, cssVariables, lucide. `src/components/ui/**` generated — don't edit; override from caller via `cn()`; patch only for new export/variant/behavior, minimal. Caller pattern `render={<X />}` never `asChild`; `render={<Link to=… />}` works. Icons `lucide-react`, `data-icon` pattern per shadcn skill.
 - Forms (`hooks/use-app-form.ts`, TanStack Form alpha): `createFormHook({fieldComponents: CheckboxField/EmailField/PasscodeField/PasswordField, formComponents: SubmitButton/OnSubmitErrors})`; `useConfiguredAppForm({defaultValues, onSubmitTry, onSubmitSchema: ConstraintCodec})`, `validateAfterFirstSubmit` (silent until attempts > 0, then change + blur). Fields take `{field: FieldWithValue<string>}`, `isTouched && !isValid`, `ui/field` + `input`/`input-group`, sr-only labels, `aria-invalid`/`describedby`, min/maxLength mirrors schema. `components/auth/_*` private by `_` prefix. Shared `passcodeRequestQueryOptions` / `userProfileQueryOptions`; localStorage email/step with `DateTime` + 24h.
 - `useLocalStorageQuery({key, schema})`: Query over localStorage (`[localStorage, key]`, Infinity stale), schema-validated, `Expiry.expiresAt` eviction, merge-mutate + cross-tab invalidate.
 - Styling: Tailwind v4 CSS-first (`styles.css`): oklch vars `:root` / `.dark`, `@theme inline`, `@custom-variant dark`, Inter Variable, view-transition on main + reduced-motion guard. `cn()` from `'cn'` (`#/lib/utils.ts` is only a re-export shim); oxfmt sorts Tailwind (stylesheet `styles.css`, functions `[clsx, cn]`). Stock shadcn token names only.
 - `src/isomorphic/` stays pure es2022 (no node/browser): Email (trim + lower + 254 + regex) / Password (8char + NFKC + 72B) / Passcode (`/^\d{6}$/`), one export per shape in `validations/auth.ts`, `mask-email` (`j***@domain`), zxcvbn lazy dicts `MIN_SCORE = 3` + `['wunstart', ...userInputs]`. Shared client + server via `toStandardSchemaV1`.
+
+### Custom hooks
+
+Shared primitives live in `hooks/`; feature composition in `components/<domain>/_hooks.ts` (see `auth/_hooks.ts`).
+
+- Shared client state (e.g. a checkout cart visible on every page): `useLocalStorageQuery({key, schema})` → `{query, mutation, remove}`. Key `['localStorage', key]`, `staleTime: Infinity`, schema-validated reads (malformed/expired → null + evicted), merge-`mutate`, cross-tab invalidation via `storage` events. Same key on any page reads the same state; `mutation.mutate(partial)` from any page updates all mounted readers. Wrap per concern (`useLocalStorageEmail`-style) and stamp `expiresAt` on writes (24h in auth). Shape, following `useLocalStorageAuthFormState`:
+  ```ts
+  export function useCart() {
+  	const {query, mutation, remove} = useLocalStorageQuery({key: 'cart', schema: CartSchema})
+  	return {
+  		items: query.data?.items ?? [],
+  		isPending: query.isPending,
+  		upsertItem: (item: CartItem) => mutation.mutate({items: mergeInto(query.data?.items, item)}),
+  		clear: remove,
+  	}
+  }
+  ```
+- Action hooks follow `use-sign-out`: `useServerFn(fn)` → try → `router.invalidate()` → catch → `toast.add({type: 'error', …})`.
+- Context consumers: `useTheme()` gives `theme` (setting, incl. `system`) vs `resolved` (effective light/dark); `null` pre-hydration → render Skeleton; toggle cycles system→flip (see `theme-toggle.tsx`, `contexts/theme.tsx`).
+
+### Form interactions
+
+- `useConfiguredAppForm({defaultValues, onSubmitTry, onSubmitSchema})` with field components (`CheckboxField`/`EmailField`/`PasscodeField`/`PasswordField`). No generic text field ships — adding one is three steps (see `form-fields/email.tsx`): `({field}: {field: FieldWithValue<string>})` component built from `ui/field` + `input` (sr-only label, `isTouched && !isValid`, `aria-invalid`/`describedby`, `FieldError`); register via `fieldComponent.strict(Comp, 'field')` in `hooks/use-app-form.ts`; consume as `<field.XField />` render prop.
+- Validation splits two ways: `onSubmitSchema` (isomorphic `ConstraintCodec`, silent until first submit via `validateAfterFirstSubmit`) checks shape client-side; external checks (e.g. address/zip validation against an API) run server-side inside `onSubmitTry` — throw on failure. Server errors are form-level only (`fields: {}` in `use-app-form.ts`); there is no field-targeted server error path, so design external checks as pass/fail for the whole submission.
+- Drafts: prefill `defaultValues` from the localStorage query, persist via its mutation (see sign-up email); multi-step flows keep `step`/`setStep` in localStorage state (`useLocalStorageAuthFormState`).
+- Submit through a server fn (`useServerFn`) directly, or a feature mutation (`usePasscodeRequestMutation`-style, `setQueryData` on success).
 
 ## Runtime
 
