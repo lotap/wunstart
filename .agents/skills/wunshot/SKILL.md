@@ -1,7 +1,7 @@
 ---
 name: wunshot
 description: |
-  Portable Drizzle + Postgres + Effect database-module system. Use when finding/installing wunshot core modules (via Shadcn) or writing custom modules: tables, queries, validations, cascades, archive pairs, ban/activity references, or Effect ops with activity logging. Applies to any host project, regardless of frontend, runtime, or tree layout. Routing, middleware, cookies, and transport wiring belong to your app — this skill covers only the portable DB modules.
+  Portable Drizzle + Postgres + Effect database-module system. Use when finding/installing wunshot core modules (via Shadcn) or writing custom modules: tables, queries, validations, cascades, archive pairs, ban/activity references, auth module contract, or Effect ops with activity logging. Applies to any host project, regardless of frontend, runtime, or tree layout. Routing, middleware, cookies, and transport wiring belong to your app — this skill covers only the portable DB modules.
 ---
 
 # Wunshot
@@ -18,6 +18,7 @@ Read only what the task needs:
 - Tables, factories, archive pairs, column gotchas: `references/tables-archive.md`
 - Prepared queries, query fns, validations, naming, drizzle gotchas: `references/queries-validations.md`
 - Op skeleton, `opsFailure`, labels, retry, hashing order, error contract: `references/ops-contract.md`
+- Auth module composition + db-side invariants (eviction, email service, sudo, denial weight): `references/auth.md`
 - Weight routing, ban scopes, array references: `references/bans.md`
 
 New module: start at `references/module-walkthrough.md`, then tables-archive → queries-validations → ops-contract as needed.
@@ -67,7 +68,7 @@ Top-level `db/helpers/` serves all models: `tables.ts` (factories), `funcs.ts` (
 Core modules install via Shadcn from the `wunshot` registry. Install `init` first — every domain module imports `helpers/`:
 
 - `init` → `db/helpers/*` (factories, query/archive helpers, shared consts/types/validators) + `db/index.ts` + drizzle config. `db/index.ts` ships connection resolution for its home runtime — adapt it (your connection string/layer), don't copy it verbatim. Keep its contract: `export class DB`, `dbLayer`, the lazy pool, and the pg `customTypes` passthrough.
-- Domain items → `db/models/<domain>/` + `db/ops/<domain>/` (map `db/` to your tree). No registration step: the drizzle-kit glob auto-discovers `*schemas.ts`, and twins migrate together. Installing ops also needs the shared machinery at `db/ops/` root: `ops-error.ts`, `_create-ops-fn.ts`, `_logging.ts`, `_retry.ts`, `_extract-pg-error.ts`, `_current-bans-and-excessive-activities.ts`, `rate-limit-error.ts`. Its import closure reaches further — `_logging.ts` pulls `models/{activities, activities---bans, anons, bans, users}` + `ops/auth/_calc-penalty-time.ts`; `ops-error.ts` pulls `models/activities/{consts,validations}`. Confirm your install source ships that closure; if not, install the named model modules too, or the imports break. `service-bindings.ts` is host Cloudflare code, not portable — keep the `HashingStub` tag, implement its layer for your runtime.
+- Domain items → `db/models/<domain>/` + `db/ops/<domain>/` (map `db/` to your tree). No registration step: the drizzle-kit glob auto-discovers `*schemas.ts`, and twins migrate together. Installing ops also needs the shared machinery at `db/ops/` root: `ops-error.ts`, `_create-ops-fn.ts`, `_logging.ts`, `_retry.ts`, `_extract-pg-error.ts`, `_current-bans-and-excessive-activities.ts`, `rate-limit-error.ts`. Its import closure reaches further — `_logging.ts` pulls `models/{activities, activities---bans, anons, bans, users}` + `ops/auth/_calc-penalty-time.ts`; `ops-error.ts` pulls `models/activities/{consts,validations}`. Include those model modules in the install, or the imports break. `service-bindings.ts` is host Cloudflare code, not portable — keep the `HashingStub` tag, implement its layer for your runtime.
 - npm deps: `drizzle-orm` (includes `drizzle-orm/effect-schema`), `effect`, `@effect/sql-pg`, `pg`; dev: `drizzle-kit`, `@types/pg`
 
 ## Verifying
@@ -76,7 +77,7 @@ New/changed module, in order:
 
 1. `drizzle-kit generate` after any schema edit (twins migrate together), then `drizzle-kit check`.
 2. Typecheck (`tsgo --noEmit` / `tsc`).
-3. Lint, including the three wunshot rules above. The plugin ships with `init`; register it as an oxlint `jsPlugin` and enable the three rules (the canonical repo's `oxlint.config.ts` shows the shape — adapt to your linter).
+3. Lint, including the three wunshot rules above. The plugin ships with `init`; register it as an oxlint `jsPlugin` and enable the three rules (adapt the config shape to your linter).
 4. Execute: run the op (scratch script or studio) — insert a row, archive it, confirm it moved to the archive twin.
 
 Map each to your project's script names; no product tests ship with the modules.

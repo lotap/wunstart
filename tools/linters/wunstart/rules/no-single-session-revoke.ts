@@ -38,8 +38,8 @@ function specifierExportedName(spec: ESTree.ExportSpecifier): string {
  * No user-facing single-session revocation (watcher-loop lockout; signOutAll only).
  * Server-side revokeForReuse and whole-family revokes (*All*) stay allowed.
  * Naming-convention guard only: it cannot catch evasive names (review is the backstop).
+ * Invariant owned by the wunshot auth contract (`wunshot/references/auth.md`).
  */
-// oxlint-disable-next-line wunstart/no-single-session-revoke
 export const noSingleSessionRevokeRule = defineRule({
 	meta: {
 		type: 'problem',

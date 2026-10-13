@@ -28,6 +28,22 @@ export const noPgTableDirectRule = defineRule({
 					}
 				}
 			},
+			// Re-exporting pgTable (or the whole module) hands others the bypass.
+			// No ImportExpression visitor by design: bare `import('drizzle-orm/pg-core')`
+			// is legitimate (snakeCase et al. load this way); use is caught at the call site.
+			ExportNamedDeclaration(node) {
+				if (!node.source || node.source.value !== 'drizzle-orm/pg-core') return
+				for (const spec of node.specifiers) {
+					// String-literal locals (`export {'pgTable' as x}`) bypass this; review is the backstop.
+					if (spec.local.type === 'Identifier' && spec.local.name === 'pgTable') {
+						context.report({node: spec, messageId: 'pgTableDirect'})
+					}
+				}
+			},
+			ExportAllDeclaration(node) {
+				if (node.source.value !== 'drizzle-orm/pg-core') return
+				context.report({node: node.source, messageId: 'pgTableDirect'})
+			},
 			CallExpression(node) {
 				if (node.callee.type === 'Identifier' && node.callee.name === 'pgTable') {
 					context.report({node: node.callee, messageId: 'pgTableDirect'})

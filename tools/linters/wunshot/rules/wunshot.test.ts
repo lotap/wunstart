@@ -10,6 +10,9 @@ tester.run('wunshot/no-pgtable-direct', noPgTableDirectRule, {
 	valid: [
 		"import {snakeCase} from 'drizzle-orm/pg-core';",
 		"import {createActiveTable} from '#/db/helpers/tables.ts';",
+		"export {snakeCase} from 'drizzle-orm/pg-core';",
+		// Bare dynamic import is not use (legitimate members load this way); calls still flag.
+		"const pg = await import('drizzle-orm/pg-core');",
 	],
 	invalid: [
 		{
@@ -22,6 +25,14 @@ tester.run('wunshot/no-pgtable-direct', noPgTableDirectRule, {
 		},
 		{
 			code: 'const t = dor.pgTable("users", {});',
+			errors: [{messageId: 'pgTableDirect'}],
+		},
+		{
+			code: "export {pgTable} from 'drizzle-orm/pg-core';",
+			errors: [{messageId: 'pgTableDirect'}],
+		},
+		{
+			code: "export * from 'drizzle-orm/pg-core';",
 			errors: [{messageId: 'pgTableDirect'}],
 		},
 	],

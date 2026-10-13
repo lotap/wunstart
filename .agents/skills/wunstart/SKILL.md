@@ -10,14 +10,15 @@ Full-stack TypeScript starter: TanStack Start (React) + Router + Query, Effect-w
 
 ## Ownership boundary
 
-- `wunshot` owns: `src/db/models/`, `src/db/helpers/`, `src/db/ops/` (pure Effect, layers passed per run).
+- `wunshot` owns: `src/db/models/`, `src/db/helpers/`, `src/db/ops/` (pure Effect; external capabilities `EmailService`/`HashingStub` consumed as tags, layers passed per run).
 - `wunstart` owns: `src/server-fns/` (compose ops via `runOp`), `src/routes/` (+ `_auth-*` placement), `src/middleware/`, `src/server.ts`, `src/start.ts`, `src/router.tsx`, `src/email/` transport wiring, `src/durable-objects/`, `wrangler.jsonc`, `drizzle.config.ts` path.
+- Principle: `wunshot` modules state the data layer's guarantees; your app satisfies them through this wiring. Extend data logic in `db/` per the wunshot contracts, build product in routes/server fns, and heed the lints — they guard the seams.
 
 Client never sends or receives db ids; server fns unwrap cookie identity (no `ById` fns exist today — convention if one appears: see `references/middleware.md`).
 
 ## Branch chooser
 
-- Auth strategy, refresh rotation, session listing, no per-session revoke: `references/auth.md`
+- Auth wiring (sudo gate, sessions UI; strategy/invariants owned by `wunshot/references/auth.md`): `references/auth.md`
 - Anon token lifecycle + conversion cascade: `references/anon.md`
 - Argon2 DO + wasm kernel: `references/hashing.md`
 - Email verification, transports, deliverable vs notification: `references/email.md`

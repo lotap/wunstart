@@ -144,6 +144,10 @@ tester.run('wunstart/email-layer-allowlist', emailLayerAllowlistRule, {
 			code: "import {x} from '#/server-fns/handle-email-request-passcode.ts';",
 			filename: 'src/routes/settings.tsx',
 		},
+		{
+			code: "import {x} from '#/lib/nicamail/x.ts';",
+			filename: 'src/routes/settings.tsx',
+		},
 	],
 	invalid: [
 		{

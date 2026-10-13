@@ -8,7 +8,7 @@ import {defineRule} from '@oxlint/plugins'
  * relative traversals (`../../email/…`); `#/`-only is prose, not lint.
  */
 function isEmailSource(source: string): boolean {
-	return source === '#/email' || source.includes('/email/')
+	return source === '#/email' || source.split('/').includes('email')
 }
 
 function isEmailPath(path: string): boolean {
@@ -25,7 +25,8 @@ function isEmailPath(path: string): boolean {
  * Email-sending capability is constrained to one code path (abuse-surface minimization).
  * emailLayer is provided only where email actually sends (ops that send + the server
  * fns / middleware that provide it); new send sites need an explicit layer pass
- * visible in review.
+ * visible in review. Op-side invariant owned by the wunshot auth contract
+ * (`wunshot/references/auth.md`).
  */
 export const emailLayerAllowlistRule = defineRule({
 	meta: {

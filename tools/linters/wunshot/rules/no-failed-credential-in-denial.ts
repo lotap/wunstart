@@ -12,6 +12,8 @@ function isFailedCredentialKey(property: ESTree.ObjectProperty): boolean {
  * Rate-limit denials must never carry failedCredential into a persisted activity:
  * an attacker cycling IPs would extend a credential ban forever, locking the
  * legitimate owner out. Pass the email as meta: {credential} for audit only.
+ * Matches the literal `rateLimitFailure` callee and literal object keys only;
+ * aliased callees and pre-built/spread option objects bypass it (review is the backstop).
  */
 export const noFailedCredentialInDenialRule = defineRule({
 	meta: {
