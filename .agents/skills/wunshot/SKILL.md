@@ -35,6 +35,16 @@ Ops live in `db/ops/<domain>/` — see `references/ops-contract.md`.
 
 Export contract: `tableName`, `activeTable`, `archiveTable` (+ internal `baseCols`, never exported); no barrel files under `models/` or `ops/`; `.ts` extensions on relative imports. First reads: `models/email-verifications/` (FKs, unique indexes, archive mirrors in one small module), `ops/auth/remove-user.ts` (sudo check, pre-check, cascade orchestration in one op).
 
+Import rules (model files stay self-contained):
+
+| File | Imports from |
+| ---- | ------------ |
+| `schemas.ts` | `drizzle-orm`, `drizzle-orm/pg-core` column builders, `db/helpers/consts.ts` + `tables.ts`, related models' `schemas.ts` |
+| `validations.ts` | `drizzle-orm/effect-schema`, `effect`, `RefinementsFor` from `db/helpers/types.ts`, shared refinements from `db/helpers/validators.ts` (+ client-shared shapes from your app's shared validators), `./schemas.ts` |
+| `queries.ts` | `drizzle-orm` operators, `createPreparedQuery` / `createQueryFn` from `db/helpers/funcs.ts`, `./schemas.ts`, `./validations.ts`, `./views` (when the model has one) (+ connected models' schemas/validations/consts in `---` dirs) |
+| `cascades.ts` | `createArchiveFn` from `db/helpers/funcs.ts`, `./queries.ts`, `./schemas.ts` (+ other models' schemas/cascades for re-pointing) |
+| `consts.ts` | — (`UPPER_SNAKE` model constants consumed by ops / other models) |
+
 Cross-domain joins use `---` dirs, alphabetical (`activities---bans`): queries + validations, never tables of their own. A shared enum may live in their `schemas.ts` (e.g. `banScopes`). Never add `relations()` calls — the Drizzle init (`db/index.ts`) carries no schema object, so the relational Query API is unavailable; cross-model reads go in `---` dirs with explicit joins.
 
 Top-level `db/helpers/` serves all models: `tables.ts` (factories), `funcs.ts` (`createPreparedQuery` / `createQueryFn` / `createArchiveFn` / `createArchiveManyFn`), `consts.ts` (shared column config: `TIMESTAMPTZ_CONFIG`, `ARCHIVE_ID_CONFIG`), `types.ts` (`Tx`, `QueryExecutor`, …), `validators.ts` (shared Effect refinements: `IpAddress`, `Argon2Hash`, …).
