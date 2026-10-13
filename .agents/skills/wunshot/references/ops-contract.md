@@ -36,6 +36,6 @@ export const signOut = createOpsFn({fn: _signOut, label: 'AUTH_SIGN_OUT'})
 - Side-effect emails wrapped in `Effect.ignore({log: true})` — delivery failure never fails the op.
 - Error contract (`ops-error.ts`) is a `Schema.Struct`, not a base class: `OpsErrorSchema = {activity, message}`, `isOpsError = Schema.is`. Conforming `TaggedErrorClass` passes through, else wrapped `INTERNAL_ERROR` via `extractErrorProps` (never leak params; `EffectDrizzleQueryError.message` embeds params → `extractPgErrorMessage`). Declare a custom typed error only when a classifier must react by type (`OpsError`, `RateLimitError`, `AuthTokenError`). New conformer ~4 lines, no generic-file edits.
 - `Effect.fn` for anything with a tracing span; `Effect.gen` only for (a) `HashingStub` scoping, (b) transaction bodies, (c) isolating an `Effect.ignored` side effect. Plain arrow + `.pipe` for pure combinators.
-- `_`-prefixed helper ops are private. Comments are `/** */` everywhere incl. mid-function; `{@link Symbol}` for cross-refs; `// SAFETY:` on assertions (lint-enforced house voice).
+- `_`-prefixed helper ops are private.
 
 Canonical examples: minimal op `db/ops/auth/remove-user.ts`; full op `db/ops/auth/password-sign-in.ts` (ban pre-check + tx + hashing-before-tx order + post-commit notification). Anything touching pre-checks, bans, or identity resolution: read `db/ops/_logging.ts` alongside a real op — the skill states outcomes, not that mechanism.

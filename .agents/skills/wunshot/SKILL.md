@@ -32,7 +32,7 @@ Each domain lives in `db/models/<domain>/`:
 
 Ops live in `db/ops/<domain>/` — see `references/ops-contract.md`.
 
-Cross-domain joins use `---` dirs (e.g. `activities---bans`): queries + validations, never tables of their own. A shared enum may live in their `schemas.ts` (e.g. `banScopes`). Never add `relations()` calls — the Drizzle init (`db/index.ts`) carries no schema object, so the relational Query API is unavailable; cross-model reads go in `---` dirs with explicit joins.
+Cross-domain joins use `---` dirs, alphabetical (`activities---bans`): queries + validations, never tables of their own. A shared enum may live in their `schemas.ts` (e.g. `banScopes`). Never add `relations()` calls — the Drizzle init (`db/index.ts`) carries no schema object, so the relational Query API is unavailable; cross-model reads go in `---` dirs with explicit joins.
 
 Top-level `db/helpers/` serves all models: `tables.ts` (factories), `funcs.ts` (`createPreparedQuery` / `createQueryFn` / `createArchiveFn` / `createArchiveManyFn`), `consts.ts` (shared column config: `TIMESTAMPTZ_CONFIG`, `ARCHIVE_ID_CONFIG`), `types.ts` (`Tx`, `QueryExecutor`, …), `validators.ts` (shared Effect refinements: `IpAddress`, `Argon2Hash`, …).
 
@@ -65,13 +65,14 @@ MORV: Model (migrations, connections, queries) + Operation (business logic, comp
 - Validate then database: malformed input dies before connections open.
 - Server-side processing over DB functions (portable, scales horizontally); exception: dates via DB `now()` (timezone/latency consistency).
 - Casing: files `kebab-case`; columns `snake_case` SQL / `camelCase` TS; types + validations `PascalCase`; exported consts + env `UPPER_SNAKE`; everything else `camelCase`.
+- Comment voice: `/// SECTION ///` banners divide model files (`PRIMITIVES` / `INSERT` / `SELECT` / …). `/** */` is documentation — every export, plus statement-attached invariants a future editor must not undo (it surfaces in IDE hover, which is how installed modules get read). `//` is narration — step labels, line-tied caveats, multi-line rationale, `// SAFETY:` proofs; meaningful only while reading the body. `{@link Symbol}` for cross-refs.
 
 ## Branch chooser
 
 Read only what the task needs:
 
 - Tables, factories, archive pairs, column gotchas: `references/tables-archive.md`
-- Prepared queries, query fns, validations, drizzle gotchas: `references/queries-validations.md`
+- Prepared queries, query fns, validations, naming, imports, drizzle gotchas: `references/queries-validations.md`
 - Op skeleton, `opsFailure`, labels, retry, hashing order, error contract: `references/ops-contract.md`
 - Weight routing, ban scopes, array references: `references/bans.md`
 

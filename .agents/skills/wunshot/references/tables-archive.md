@@ -4,7 +4,7 @@ New-module recipe, in order: `schemas.ts` → `validations.ts` → `queries.ts` 
 
 1. `schemas.ts`: hand-write `export const tableName = 'snake_case'`; extract shared `baseCols` when twins share columns (see `bans`), duplicate when PII diverges (see `users`); FK refs lazy, e.g. `usersArchiveId: bigint(ARCHIVE_ID_CONFIG).references(() => usersArchive.archiveId)`; PII columns nullable in the archive twin (erasure keeps the row + FKs while wiping identity).
 2. `validations.ts`: primitives via `createInsertSchema` / `createSelectSchema` + `RefinementsFor`; shape with `pick` / `omit` / `assign` / `evolve` (see `references/queries-validations.md`).
-3. `queries.ts`: `const labelPrefix = tableName`; `getColumns` destructure to whitelist `returning`; `createPreparedQuery({vSchema, stmtFn})` with `.prepare()` suffixed per query (`` `${labelPrefix}_select` ``, `_insert`, `_select_by_email`); forward optional `tx`.
+3. `queries.ts`: `const labelPrefix = tableName`; `getColumns` destructure to whitelist `returning`; `createPreparedQuery({vSchema, stmtFn})` with `.prepare()` suffixed per query (`` `${labelPrefix}_select` ``, `_insert`, `_select_by_email`); forward optional `tx`. Query/cascade naming: see `Naming + imports` in `references/queries-validations.md`.
 4. `cascades.ts`: `createArchiveFn({selectFn, activeTable, archiveTable})` (+ `…ByX` variants); re-point related rows with `extraData: {xArchiveId}` (FK redirect onto the new archive row, e.g. `archiveByUser({userId}, {tx, extraData: {usersArchiveId: archiveId}})`); `Effect.catchTags({ArchiveNotFoundError: () => Effect.void, …})` for optional children.
 5. Verify: typecheck + lint + `drizzle-kit check`.
 
