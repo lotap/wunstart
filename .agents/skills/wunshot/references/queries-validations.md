@@ -57,7 +57,7 @@ export const ByEmail = selectPrimitive.mapFields(Struct.pick(['email']))
 
 Refine db-inferred types via the `overrides` second arg (`inet` needs manual handling — no automatic IP check); reshape with `pick` (subset) / `omit` (all-but) / `assign` (add or rename keys — renames align validation keys with `sql.placeholder` names) / `evolve` (transform types), nullables with `withNullDefault` / `NullishToNull`.
 
-## Naming + imports
+## Naming
 
 Queries are short verbs in a per-model namespace, imported as `* as <model>Queries` (`sessionsQueries`, `sessionsUsersQueries` for `---` dirs): `select` (by id, no suffix), `selectByX` / `archiveSelectByActiveId` for other filters, action verbs otherwise (`insert`, `updatePasswordHash`, `rotate`, `revoke`). No model name in the fn, no `bulk` prefix. Validation exports are statement-named PascalCase matching the query (`Insert`, `Select`, `ByX`, `Update…`). Cascades mirror queries: `archive`, `archiveByUser`, `archiveMany` (via `createArchiveFn` / `createArchiveManyFn`).
 

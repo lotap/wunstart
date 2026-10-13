@@ -10,13 +10,26 @@ Collection of copy-paste database modules (schemas + queries + validations + cas
 
 Paths are shown rooted at your database directory (`db/`); if your tree nests it deeper (e.g. under `src/`), prepend accordingly. Imports shown as `db/…` resolve via your project's path alias (or relative imports). Map script names to your equivalents. The invariants are the module-internal structure (`<domain>/{schemas,queries,validations,cascades,consts}`), the factory/helper contracts, and the op shape — those travel unchanged. Use your project's domain vocabulary in copy and code names.
 
-## Installing
+## Branch chooser
 
-Core modules install via Shadcn from the `wunshot` registry. Install `init` first — every domain module imports `helpers/`:
+Read only what the task needs:
 
-- `init` → `db/helpers/*` (factories, query/archive helpers, shared consts/types/validators) + `db/index.ts` + drizzle config. `db/index.ts` ships connection resolution for its home runtime — adapt it (your connection string/layer), don't copy it verbatim. Keep its contract: `export class DB`, `dbLayer`, the lazy pool, and the pg `customTypes` passthrough.
-- Domain items → `db/models/<domain>/` + `db/ops/<domain>/` (map `db/` to your tree). Installing ops also needs the shared machinery at `db/ops/` root: `ops-error.ts`, `_create-ops-fn.ts`, `_logging.ts`, `_retry.ts`, `_extract-pg-error.ts`, `_current-bans-and-excessive-activities.ts`, `rate-limit-error.ts`. Its import closure reaches further — `_logging.ts` pulls `models/{activities, activities---bans, anons, bans, users}` + `ops/auth/_calc-penalty-time.ts`; `ops-error.ts` pulls `models/activities/{consts,validations}`. Confirm your install source ships that closure; if not, install the named model modules too, or the imports break. `service-bindings.ts` is host Cloudflare code, not portable — keep the `HashingStub` tag, implement its layer for your runtime.
-- npm deps: `drizzle-orm` (includes `drizzle-orm/effect-schema`), `effect`, `@effect/sql-pg`, `pg`; dev: `drizzle-kit`, `@types/pg`
+- New domain from scratch, external-service integration, extending core models, entity-vs-event-stream choice: `references/module-walkthrough.md`
+- Tables, factories, archive pairs, column gotchas: `references/tables-archive.md`
+- Prepared queries, query fns, validations, naming, drizzle gotchas: `references/queries-validations.md`
+- Op skeleton, `opsFailure`, labels, retry, hashing order, error contract: `references/ops-contract.md`
+- Weight routing, ban scopes, array references: `references/bans.md`
+
+New module: start at `references/module-walkthrough.md`, then tables-archive → queries-validations → ops-contract as needed.
+
+## Hard rules
+
+- **Never `pgTable` directly.** Use factories in `db/helpers/tables.ts` (all wrap `snakeCase.table`). Linted by `wunshot/no-pgtable-direct`.
+- **Effect Schema only.** No zod, no valibot. Bridge via `drizzle-orm/effect-schema`. Linted by `wunshot/no-zod-valibot`.
+- **Every table has an active + archive pair.** Deletes move rows, never hard-delete audit data. Append-only event streams use the log factories (`createActiveLogTable`, e.g. `activities`); entities use the regular ones. See `references/tables-archive.md`.
+- **Denials never carry `failedCredential`.** Pass email as `meta: {credential}` for audit only. Linted by `wunshot/no-failed-credential-in-denial`.
+- **`failureCause` and activity `label` stay free-form text.** Deliberate maintenance decision; do not "fix" into enums.
+- **Ops ship here; server functions do not.** Effect ops, no HTTP/cookies. Cookie handling, routing, and op call sites live in the consumer (your app's router/server layer).
 
 ## Module anatomy
 
@@ -49,14 +62,13 @@ Cross-domain joins use `---` dirs, alphabetical (`activities---bans`): queries +
 
 Top-level `db/helpers/` serves all models: `tables.ts` (factories), `funcs.ts` (`createPreparedQuery` / `createQueryFn` / `createArchiveFn` / `createArchiveManyFn`), `consts.ts` (shared column config: `TIMESTAMPTZ_CONFIG`, `ARCHIVE_ID_CONFIG`), `types.ts` (`Tx`, `QueryExecutor`, …), `validators.ts` (shared Effect refinements: `IpAddress`, `Argon2Hash`, …).
 
-## Hard rules
+## Installing
 
-- **Never `pgTable` directly.** Use factories in `db/helpers/tables.ts` (all wrap `snakeCase.table`). Linted by `wunshot/no-pgtable-direct`.
-- **Effect Schema only.** No zod, no valibot. Bridge via `drizzle-orm/effect-schema`. Linted by `wunshot/no-zod-valibot`.
-- **Every table has an active + archive pair.** Deletes move rows, never hard-delete audit data. Append-only event streams use the log factories (`createActiveLogTable`, e.g. `activities`); entities use the regular ones. See `references/tables-archive.md`.
-- **Denials never carry `failedCredential`.** Pass email as `meta: {credential}` for audit only. Linted by `wunshot/no-failed-credential-in-denial`.
-- **`failureCause` and activity `label` stay free-form text.** Deliberate maintenance decision; do not "fix" into enums.
-- **Ops ship here; server functions do not.** Effect ops, no HTTP/cookies. Cookie handling, routing, and op call sites live in the consumer (your app's router/server layer).
+Core modules install via Shadcn from the `wunshot` registry. Install `init` first — every domain module imports `helpers/`:
+
+- `init` → `db/helpers/*` (factories, query/archive helpers, shared consts/types/validators) + `db/index.ts` + drizzle config. `db/index.ts` ships connection resolution for its home runtime — adapt it (your connection string/layer), don't copy it verbatim. Keep its contract: `export class DB`, `dbLayer`, the lazy pool, and the pg `customTypes` passthrough.
+- Domain items → `db/models/<domain>/` + `db/ops/<domain>/` (map `db/` to your tree). No registration step: the drizzle-kit glob auto-discovers `*schemas.ts`, and twins migrate together. Installing ops also needs the shared machinery at `db/ops/` root: `ops-error.ts`, `_create-ops-fn.ts`, `_logging.ts`, `_retry.ts`, `_extract-pg-error.ts`, `_current-bans-and-excessive-activities.ts`, `rate-limit-error.ts`. Its import closure reaches further — `_logging.ts` pulls `models/{activities, activities---bans, anons, bans, users}` + `ops/auth/_calc-penalty-time.ts`; `ops-error.ts` pulls `models/activities/{consts,validations}`. Confirm your install source ships that closure; if not, install the named model modules too, or the imports break. `service-bindings.ts` is host Cloudflare code, not portable — keep the `HashingStub` tag, implement its layer for your runtime.
+- npm deps: `drizzle-orm` (includes `drizzle-orm/effect-schema`), `effect`, `@effect/sql-pg`, `pg`; dev: `drizzle-kit`, `@types/pg`
 
 ## Verifying
 
@@ -80,17 +92,4 @@ MORV: Model (migrations, connections, queries) + Operation (business logic, comp
 - Server-side processing over DB functions (portable, scales horizontally); exception: dates via DB `now()` (timezone/latency consistency).
 - Casing: files `kebab-case`; columns `snake_case` SQL / `camelCase` TS; types + validations `PascalCase`; exported consts + env `UPPER_SNAKE`; everything else `camelCase`.
 - Comment voice: `/// SECTION ///` banners divide model files (`PRIMITIVES` / `INSERT` / `SELECT` / …). `/** */` is documentation — every export, plus statement-attached invariants a future editor must not undo (it surfaces in IDE hover, which is how installed modules get read). `//` is narration — step labels, line-tied caveats, multi-line rationale, `// SAFETY:` proofs; meaningful only while reading the body. `{@link Symbol}` for cross-refs.
-
-## Branch chooser
-
-Read only what the task needs:
-
-- New domain from scratch, external-service integration, extending core models, entity-vs-event-stream choice: `references/module-walkthrough.md`
-- Tables, factories, archive pairs, column gotchas: `references/tables-archive.md`
-- Prepared queries, query fns, validations, naming, imports, drizzle gotchas: `references/queries-validations.md`
-- Op skeleton, `opsFailure`, labels, retry, hashing order, error contract: `references/ops-contract.md`
-- Weight routing, ban scopes, array references: `references/bans.md`
-
-New module: start at `references/module-walkthrough.md`, then tables-archive → queries-validations → ops-contract as needed.
-
 Project Effect conventions take precedence over vendored `effect` / `effect-ts` skills.

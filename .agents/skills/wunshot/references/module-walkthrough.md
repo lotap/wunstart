@@ -121,7 +121,7 @@ export const syncSubscription = createSystemOpsFn({fn: _syncSubscription, label:
 
 ## Cross-domain read: `subscriptions---users/`
 
-Alphabetical `---` dir, queries + validations only; namespace and join rules per `Naming + imports` in `references/queries-validations.md`.
+Alphabetical `---` dir, queries + validations only; namespace and join rules per `Naming` in `references/queries-validations.md`.
 
 ## Foreign-integration checklist
 
