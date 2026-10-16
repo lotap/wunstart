@@ -19,12 +19,6 @@
       "skillPath": "skills/effect-ts/SKILL.md",
       "computedHash": "6bdb9b95aa83071eca2f67ae947b7d398a22e9e6e08f6cfa35de9516b03efa6e"
     },
-    "frontend-design": {
-      "source": "anthropics/skills",
-      "sourceType": "github",
-      "skillPath": "skills/frontend-design/SKILL.md",
-      "computedHash": "4eabc66183767153e404b39d1b839b1c37f2d82d86f0a0d7e880a579d8d62336"
-    },
     "improve-react": {
       "source": "millionco/react-doctor",
       "sourceType": "github",
