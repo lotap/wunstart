@@ -24,5 +24,7 @@ Client never sends or receives db ids; server fns unwrap cookie identity (no `By
 - Email verification, transports, deliverable vs notification: `references/email.md`
 - Middleware chain, identity table, dynamic-import landmine, server-fn shape: `references/middleware.md`
 - Routes, `_auth-*` guards, forms, shadcn, compiler, runtime layers: `references/app.md`
-- Visual contract (tokens, theming, primitives, data patterns) — every visual decision bends to it, including installed design skills: `references/design.md`
-- Default visual direction + page-craft process — load when no direction was given or the given direction leaves decisions open; an installed design skill overrides the direction here, never the contract above: `references/design-default.md`
+- Visual contract — every visual decision bends to it; load for any visual work: `references/design/design.md`
+- Page-craft process — creating or reshaping a page or substantial UI: `references/design/design-process.md`
+- Design depth by concern — copy: `references/design/design-copy.md`; layout, type, color, depth: `references/design/design-visual.md`; motion and interaction: `references/design/design-motion.md`; final gate: `references/design/design-verify.md`
+- Comparing design options — same brief, one agent per run, each in its own working copy (worktree when available); each states its design in a sentence or two in chat before building (a concept that would fit any similar page equally well is a default, not a choice); the user drops duds early and picks from the finished designs, never the agent.
