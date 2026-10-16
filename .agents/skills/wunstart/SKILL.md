@@ -24,5 +24,5 @@ Client never sends or receives db ids; server fns unwrap cookie identity (no `By
 - Email verification, transports, deliverable vs notification: `references/email.md`
 - Middleware chain, identity table, dynamic-import landmine, server-fn shape: `references/middleware.md`
 - Routes, `_auth-*` guards, forms, shadcn, compiler, runtime layers: `references/app.md`
-- Visual constraints for outside input + replacing the default theme (teaches no taste): `references/design.md`
-- Default visual direction — load when no design direction was given, or the given direction leaves decisions open: `references/design-default.md`
+- Visual contract (tokens, theming, primitives, data patterns) — every visual decision bends to it, including installed design skills: `references/design.md`
+- Default visual direction + page-craft process — load when no direction was given or the given direction leaves decisions open; an installed design skill overrides the direction here, never the contract above: `references/design-default.md`

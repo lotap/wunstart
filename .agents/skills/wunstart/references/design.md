@@ -1,6 +1,6 @@
 # Design: adapting input, replacing the look
 
-Teaches no taste — that comes from you, your designer, or a design skill you choose to install. This file is the contract visual decisions must satisfy, in both directions.
+This file is the hard contract every visual decision must satisfy, in both directions. Taste beyond it comes from `design-default.md` (the built-in direction) or an installed design skill, which outranks that default but never this contract.
 
 ## Adapting outside input
 
