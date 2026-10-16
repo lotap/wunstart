@@ -1,10 +1,10 @@
 import {createLink} from '@tanstack/react-router'
-import {forwardRef} from 'react'
+import type {Ref} from 'react'
 
 import {Button, type ButtonProps} from '#/components/ui/button.tsx'
 
 export const RouterButton = createLink(
-	forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
+	({ref, ...props}: ButtonProps & {ref?: Ref<HTMLButtonElement>}) => {
 		return <Button ref={ref} {...props} />
-	}),
+	},
 )
