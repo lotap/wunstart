@@ -2,31 +2,29 @@
 
 _Load for page- and section-scale visual work (ladder in `design-process.md`). Run before declaring that work done._
 
-If the answer to any applicable question is no, revise until all the answers are yes. At section scale, read "page" as the surface you are building. (page) marks whole-page-only questions — skip them below page scale; (chrome) marks header, footer, or nav changes; (data-bound) marks surfaces backed by queries.
+If the answer to any applicable question is no, revise until all the answers are yes. At section scale, read "page" as the surface you are building. (page) marks whole-page-only questions — skip them below page scale; (marketing) marks marketing surfaces; (chrome) marks header, footer, or nav changes; (data-bound) marks surfaces backed by queries.
 
-- Does the page fulfill the user's needs?
-- Is there a clear direction to go or action to take?
-- (page) Is the above-the-fold content striking, memorable, and actionable?
+- Is there a clear direction or action to take?
+- (page, marketing) Is the above-the-fold content striking, memorable, and actionable?
 - (page) Does each section have one object of focus?
 - (page) Can the page be understood by scanning the headlines?
 - Does each element earn its inclusion?
 - Is there one clear conceptual direction that anchors the design?
 - Do the spacings, typefaces, and colors adhere to the established system?
-- Do each of the borders, boundaries, and cards used provide genuine value to the user?
+- Does each of the borders, boundaries, and cards used provide genuine value to the user?
 - Is motion used to enhance the hierarchy and atmosphere?
-- Are the interactive elements smooth and responsive?
+- Do interactive elements respond on pointer-down and stay responsive (`design-motion.md`)?
 - (data-bound) Do empty, loading, and error states hold the same standard as the loaded view?
 - (chrome) Does it read correctly on every layout it mounts under?
 - Does all of the above hold true across screen sizes, devices, and both token modes?
 
 ## Run mechanics
 
-- Dev server: `bun run dev` (:3000, never `bun --bun`). Kill by PID only: `lsof -ti :3000 -sTCP:LISTEN | head -1 | xargs kill`.
-- Critique from screenshots — required for page- and section-scale work: chrome-devtools `filePath` resolves from the workspace root — save to `<worktree>/.tmp/<file>`.
+- Dev server: see `AGENTS.md` (`bun run dev`, kill by PID only).
+- Critique from screenshots — required for page- and section-scale work (save under `<worktree>/.tmp/`, see `AGENTS.md`).
 - Both token modes: chrome-devtools `emulate` `colorScheme` `dark`, then `light`. Mobile: emulate a phone viewport. Reduced motion: emulate `prefersReducedMotion`.
 - Interactive states: hover, pressed, disabled read correctly in both token modes; keyboard pass keeps focus visible (tab through every interactive element).
 - Data-bound UI: exercise default, empty, loading, and error states (`AsyncBoundary`/`ErrorBoundary`, skeleton) in every layout and identity mode the surface ships in.
 - Chrome changes: sample every layout under both identity modes.
 - Performance (page scale): `lighthouse_audit` via chrome-devtools, or the vendored `web-perf` skill for a deeper audit.
-- Typecheck + lint: `bunx tsgo --noEmit` and `bun run lint`.
-- If tokens changed, mirror the hex duplicate into the email templates (`references/email.md`).
+- Typecheck + lint: `bunx tsgo --noEmit` and `bun --bun run lint:check`.
