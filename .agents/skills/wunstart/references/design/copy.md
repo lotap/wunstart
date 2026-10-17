@@ -6,11 +6,9 @@ _Load when writing or changing user-facing copy._
 
 Plan for empty states when applicable. A search with no results deserves as much consideration as the results.
 
-### Hierarchy
-
 Order by reader need. Lead with the strongest solution or most critical information. Do not invent a call-to-action unless warranted.
 
-### Copy
+## Copy
 
 Do not treat words as decoration. Text should be scannable and convey a message.
 
@@ -28,7 +26,7 @@ If removing copy improves the page, keep deleting.
 
 Do not rely on obvious or go-to wording and phrases. They make the whole page feel templated and stale.
 
-#### Use
+### Use
 
 - Plain speech
 - Active voice
@@ -37,7 +35,7 @@ Do not rely on obvious or go-to wording and phrases. They make the whole page fe
 - Paragraphs of 2-4 sentences
 - Sentences around a 20-word target
 
-#### Avoid
+### Avoid
 
 - No em/en-dashes or colons as decoration; colons allowed only for labels and price/time headings
 - Vague, generic, or filler phrases (e.g. `Unlock your potential`, `in today's fast-paced world`)

@@ -46,11 +46,9 @@ State the concept in one or two sentences in chat before building. Test it: a co
 
 ## 3. Compose code
 
-### Abandon and restart
+### Build
 
 If exploration stalls or the concept fails its own test, discard the draft and restart rather than over-repairing it.
-
-### Build
 
 Start a dev server and critique and fix the work as you build, highest impact first. Take screenshots and assess as you go — mechanics in `verify.md`.
 

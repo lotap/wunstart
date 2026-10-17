@@ -24,21 +24,15 @@ Prefer CSS transitions to keyframes when animations could use either.
 
 ## Interactivity
 
-### Provide feedback
+**Feedback.** Respond during interaction for non-form feedback and update values in realtime; forms' validation stays silent until first submit with form-level errors (`references/app.md`).
 
-Respond during interaction for non-form feedback and update values in realtime; forms' validation stays silent until first submit with form-level errors (`references/app.md`).
-
-### Keep the user in control
-
-Use flows that allow the user to undo or eject early.
+**Control.** Use flows that allow the user to undo or eject early.
 
 Keep every flow ejectable and as frictionless as possible; prefer undo/eject over alerts/dialogs; add friction only for irreversible actions, so that friction still signals importance.
 
 Never obstruct a user's ability to interact with an input because of an animation or transition.
 
-### Eliminate lag and latency
-
-Respond on pointer-down, don't wait until release to show feedback.
+**Latency.** Respond on pointer-down, don't wait until release to show feedback.
 
 Remove non-essential debounces, delays, etc from input paths.
 
