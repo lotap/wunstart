@@ -5,14 +5,14 @@ _Load for page- and section-scale visual work (ladder in `design-process.md`). R
 If the answer to any applicable question is no, revise until all the answers are yes. At section scale, read "page" as the surface you are building. (page) marks whole-page-only questions — skip them below page scale; (marketing) marks marketing surfaces; (chrome) marks header, footer, or nav changes; (data-bound) marks surfaces backed by queries.
 
 - Is there a clear direction or action to take?
-- (page, marketing) Is the above-the-fold content striking, memorable, and actionable?
+- (page, marketing) Is the above-the-fold content striking and actionable, with one idea memorable after a single scan?
 - (page) Does each section have one object of focus?
 - (page) Can the page be understood by scanning the headlines?
 - Does each element earn its inclusion?
 - Is there one clear conceptual direction that anchors the design?
 - Do the spacings, typefaces, and colors adhere to the established system?
 - Does each of the borders, boundaries, and cards used provide genuine value to the user?
-- Is motion used to enhance the hierarchy and atmosphere?
+- When motion is present, does it enhance hierarchy/atmosphere? Does the page still feel complete if motion is disabled?
 - Do interactive elements respond on pointer-down and stay responsive (`design-motion.md`)?
 - (data-bound) Do empty, loading, and error states hold the same standard as the loaded view?
 - (chrome) Does it read correctly on every layout it mounts under?

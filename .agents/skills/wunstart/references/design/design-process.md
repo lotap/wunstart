@@ -23,8 +23,6 @@ Never present invented specifics as real. Route unknowns before building:
 
 ## 1. Conceptualize and contextualize
 
-Identify the subject matter and audience before any visual choice.
-
 Read the repo before assuming its shape. `src/routes/**` is the sitemap — the tree and each layout's comment describe what exists and what guards it. Read one or two existing pages closest to the work (`references/app.md` lists exemplars). `CONTEXT.md` is the domain glossary — translate the task's wording against it before that wording enters copy, code names, or file names (account → User, guest → Anon).
 
 Decide extend or replace explicitly (`design.md`). Once a house language exists, new work must read as the same site as its closest sibling; harvest existing motifs before inventing a parallel look. Be bold within the contract and tokens — originality lives in concept and composition, not in breaking the system.
@@ -54,16 +52,14 @@ If exploration stalls or the concept fails its own test, discard the draft and r
 
 ### Build
 
-Start a dev server and critique the work as you build. Take screenshots and assess as you go — mechanics in `design-verify.md`.
+Start a dev server and critique and fix the work as you build, highest impact first. Take screenshots and assess as you go — mechanics in `design-verify.md`.
 
 Explore prototypes to compare options against the concept: solo, iterate in place; genuinely open page-scale directions, run the `SKILL.md` compare flow (one agent per run) instead of stacking variants here.
-
-Fix execution bugs without breaking the concept — highest impact first, until none remain.
 
 Plans stay internal — no plan documents. Scratch: see `AGENTS.md` (`.tmp/`); commands: see `design-verify.md`.
 
 ## 4. Revise and refine
 
-Judge the page as a whole. If it's too busy, reduce content. If it's too loud, reduce competing elements. If it's too safe, amplify focal relationships. When it's too thin, reinforce hierarchy.
+Judge the page as a whole. If it's too busy, reduce content. If it's too loud, reduce competing elements. If it's too safe, amplify focal relationships. When it's too thin, add one focal contrast.
 
 Before declaring the work done, run the gate at your rung: `design-verify.md`.

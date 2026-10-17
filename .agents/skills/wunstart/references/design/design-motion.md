@@ -32,7 +32,7 @@ Respond during interaction for non-form feedback and update values in realtime; 
 
 Use flows that allow the user to undo or eject early.
 
-Remove alerts, dialogs, and other friction wherever possible — but add friction to irreversible actions.
+Keep every flow ejectable and as frictionless as possible; prefer undo/eject over alerts/dialogs; add friction only for irreversible actions, so that friction still signals importance.
 
 Never obstruct a user's ability to interact with an input because of an animation or transition.
 

@@ -14,7 +14,7 @@ Order by reader need. Lead with the strongest solution or most critical informat
 
 Do not treat words as decoration. Text should be scannable and convey a message.
 
-Let the surface set the voice, and do not manufacture personality — no fake whimsy or generated-copy slop.
+Let the surface set the voice, and do not manufacture personality — no fake whimsy or generated-copy slop. Marketing earns belief: for each claim-bearing section, one verifiable claim + proof; one honest next step. App helps finish a task: quiet, short, no selling. If facts are missing, use obviously-placeholder content (lorem ipsum, skeleton), never invented specifics (`design-process.md` facts rule).
 
 Tone should reflect the expected state the user will be in. Respect their time and energy.
 
@@ -39,7 +39,7 @@ Do not rely on obvious or go-to wording and phrases. They make the whole page fe
 
 ##### Avoid
 
-- Em dashes, en dashes/hyphens, or colons as decoration (overuse); colons for labels and price/time headings stay legitimate
+- No em/en-dashes or colons as decoration; colons allowed only for labels and price/time headings
 - Vague, generic, or filler phrases (e.g. `Unlock your potential`, `in today's fast-paced world`)
 - Passive voice
 - Rhetorical questions
@@ -49,7 +49,7 @@ Do not rely on obvious or go-to wording and phrases. They make the whole page fe
 - Paragraphs longer than 4 sentences
 - Subheadings of single generic words
 - Prompt language or design commentary
-- Bold for arbitrary emphasis instead of critical information
+- Use bold only for critical information, never for arbitrary emphasis
 
 Mechanics (sentence case, curly apostrophes, `…`, acronyms, no decorative emoji) live in `design.md` / `AGENTS.md` — this file is judgment, those lines are law.
 

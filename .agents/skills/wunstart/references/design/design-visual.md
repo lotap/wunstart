@@ -10,7 +10,7 @@ Mobile views should not break the established hierarchy.
 
 Do not save space for non-existent features.
 
-Compare two or three layout options against the user's objective before committing — then commit.
+Sketch or try two or three layouts against the objective, then commit to one. Do not build full variants here — open page-scale directions use the SKILL.md compare flow instead.
 
 #### Composition
 
@@ -70,7 +70,7 @@ Design in monochrome first. Use size, space, typography, and contrast to establi
 
 Once the hierarchy has cemented, use splashes of color to distinguish important sections or actions.
 
-Prefer decisive color over timid, evenly-distributed palettes when the brand calls for it — never at the cost of semantic colors or the token scale (`design.md`).
+Prefer decisive color over timid palettes when the concept names a brand reason — otherwise stay restrained; never at cost of semantic colors or token scale (`design.md`).
 
 Status does not always need color. Success does not need to be green. Only add color when highlighting the status adds meaning or value.
 
@@ -104,7 +104,7 @@ Animate shadows on interactivity to imply motion on the z-axis.
 
 When an element is floating above others, try small blur or gradient masks in place of borders.
 
-If an element on top is translucent, scale size of the blur with the size of the element. A larger blur implies a thicker material.
+If an element on top is translucent, scale the blur's size with the size of the element. A larger blur implies a thicker material.
 
 Never stack translucent elements on top of each other.
 
