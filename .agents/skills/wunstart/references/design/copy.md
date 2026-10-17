@@ -14,7 +14,7 @@ Order by reader need. Lead with the strongest solution or most critical informat
 
 Do not treat words as decoration. Text should be scannable and convey a message.
 
-Let the surface set the voice, and do not manufacture personality — no fake whimsy or generated-copy slop. Marketing earns belief: for each claim-bearing section, one verifiable claim + proof; one honest next step. App helps finish a task: quiet, short, no selling. If facts are missing, use obviously-placeholder content (lorem ipsum, skeleton), never invented specifics (`design-process.md` facts rule).
+Let the surface set the voice, and do not manufacture personality — no fake whimsy or generated-copy slop. Marketing earns belief: for each claim-bearing section, one verifiable claim + proof; one honest next step. App helps finish a task: quiet, short, no selling. If facts are missing, use obviously-placeholder content (lorem ipsum, skeleton), never invented specifics (`process.md` facts rule).
 
 Tone should reflect the expected state the user will be in. Respect their time and energy.
 
@@ -51,6 +51,6 @@ Do not rely on obvious or go-to wording and phrases. They make the whole page fe
 - Prompt language or design commentary
 - Use bold only for critical information, never for arbitrary emphasis
 
-Mechanics (sentence case, curly apostrophes, `…`, acronyms, no decorative emoji) live in `design.md` / `AGENTS.md` — this file is judgment, those lines are law.
+Mechanics (sentence case, curly apostrophes, `…`, acronyms, no decorative emoji) live in `contract.md` / `AGENTS.md` — this file is judgment, those lines are law.
 
 Form-level errors and toast patterns (when this file is loaded alone): `references/app.md`.

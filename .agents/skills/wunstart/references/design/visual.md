@@ -6,7 +6,7 @@ _Load for layout and styling work: composition, spacing, typography, color, medi
 
 Mobile views should not break the established hierarchy.
 
-(marketing) Above-the-fold content must provide a striking headline, image, video, or interactive experience. Style it as a poster, not a document. App surfaces answer to task clarity first (`design-process.md`); chrome is judged on every route. When no legitimate imagery exists, the headline is the image — set the type as the hero. Purposeful shader or canvas treatments count as crafted media; stock and generative filler do not (see Images and icons).
+(marketing) Above-the-fold content must provide a striking headline, image, video, or interactive experience. Style it as a poster, not a document. App surfaces answer to task clarity first (`process.md`); chrome is judged on every route. When no legitimate imagery exists, the headline is the image — set the type as the hero. Purposeful shader or canvas treatments count as crafted media; stock and generative filler do not (see Images and icons).
 
 Do not save space for non-existent features.
 
@@ -60,7 +60,7 @@ When using multiple font sizes in one line, align them along the baseline, not v
 
 Use the fonts set by the theme.
 
-To change typefaces, swap the fontsource imports per `design.md` — do not add a new font-loading mechanism.
+To change typefaces, swap the fontsource imports per `contract.md` — do not add a new font-loading mechanism.
 
 You don't need a different font for display, headline, and body. A single typeface can suffice. When you choose to use more than one, make each unique and distinct.
 
@@ -70,7 +70,7 @@ Design in monochrome first. Use size, space, typography, and contrast to establi
 
 Once the hierarchy has cemented, use splashes of color to distinguish important sections or actions.
 
-Prefer decisive color over timid palettes when the concept names a brand reason — otherwise stay restrained; never at cost of semantic colors or token scale (`design.md`).
+Prefer decisive color over timid palettes when the concept names a brand reason — otherwise stay restrained; never at cost of semantic colors or token scale (`contract.md`).
 
 Status does not always need color. Success does not need to be green. Only add color when highlighting the status adds meaning or value.
 
@@ -108,4 +108,4 @@ If an element on top is translucent, scale the blur's size with the size of the 
 
 Never stack translucent elements on top of each other.
 
-Grounding (when this file is loaded alone): tokens live in `src/styles.css` (`:root`/`.dark`); state→class maps live in colocated CVA maps; fonts follow the fontsource mechanism — see `design.md` (override patterns in `references/app.md`).
+Grounding (when this file is loaded alone): tokens live in `src/styles.css` (`:root`/`.dark`); state→class maps live in colocated CVA maps; fonts follow the fontsource mechanism — see `contract.md` (override patterns in `references/app.md`).

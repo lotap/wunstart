@@ -24,7 +24,7 @@ Client never sends or receives db ids; server fns unwrap cookie identity (no `By
 - Email verification, transports, deliverable vs notification: `references/email.md`
 - Middleware chain, identity table, dynamic-import landmine, server-fn shape: `references/middleware.md`
 - Routes, `_auth-*` guards, forms, shadcn, compiler, runtime layers: `references/app.md`
-- Visual contract — every visual decision bends to it; load for any visual work: `references/design/design.md`
-- Page-craft process — scope ladder (page / section / cosmetic), repo discovery, missing-facts protocol: `references/design/design-process.md`
-- Design depth by concern — copy: `references/design/design-copy.md`; layout, type, color, depth: `references/design/design-visual.md`; motion and interaction: `references/design/design-motion.md`; final gate (page/section): `references/design/design-verify.md`
-- Comparing design options — for page-scale work with a genuinely open direction (overkill for a card or footer): same brief, one agent per run, each in its own working copy (worktree when available); each states its concept per the `design-process.md` §2 checkpoint; the user drops duds early and picks from the finished designs, never the agent; inspect the winning diff, then merge per repo git rules after explicit confirmation; discard the losers.
+- Visual contract — every visual decision bends to it; load for any visual work: `references/design/contract.md`
+- Page-craft process — scope ladder (page / section / cosmetic), repo discovery, missing-facts protocol: `references/design/process.md`
+- Design depth by concern — copy: `references/design/copy.md`; layout, type, color, depth: `references/design/visual.md`; motion and interaction: `references/design/motion.md`; final gate (page/section): `references/design/verify.md`
+- Comparing design options — for page-scale work with a genuinely open direction (overkill for a card or footer): same brief, one agent per run, each in its own working copy (worktree when available); each states its concept per the `references/design/process.md` §2 checkpoint; the user drops duds early and picks from the finished designs, never the agent; inspect the winning diff, then merge per repo git rules after explicit confirmation; discard the losers.

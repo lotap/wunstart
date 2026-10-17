@@ -1,8 +1,8 @@
 # Design: adapting input, replacing the look
 
-This file is the hard contract every visual decision must satisfy. Taste beyond it: the craft refs (`design-copy.md`, `design-visual.md`, `design-motion.md`) or an installed design skill — see Precedence below.
+This file is the hard contract every visual decision must satisfy. Taste beyond it: the craft refs (`copy.md`, `visual.md`, `motion.md`) or an installed design skill — see Precedence below.
 
-Precedence when sources conflict: 1. direct instructions · 2. this contract · 3. an installed design skill's direction · 4. craft defaults (`design-copy.md`, `design-visual.md`, `design-motion.md`). An installed skill may override craft taste only — never this contract, `design-process.md`, or the `design-verify.md` gate. When craft refs collide, `design-visual.md` governs structure, `design-motion.md` governs interaction, and `design-copy.md` governs phrasing.
+Precedence when sources conflict: 1. direct instructions · 2. this contract · 3. an installed design skill's direction · 4. craft defaults (`copy.md`, `visual.md`, `motion.md`). An installed skill may override craft taste only — never this contract, `process.md`, or the `verify.md` gate. When craft refs collide, `visual.md` governs structure, `motion.md` governs interaction, and `copy.md` governs phrasing.
 
 ## Adapting outside input
 
@@ -15,7 +15,7 @@ Outside proposals (skill, mockups, screenshots) bend to these constraints, never
 - Data only through the established patterns: reads via `queryOptions` + `useSuspenseQuery`, drafts via the localStorage query hook (see `references/app.md`) — no ad-hoc fetching in components.
 - Copy voice: `…` not `...`, acronyms spelled out on first use, no decorative emoji; user-facing errors form-level (sentence case and curly apostrophes in app user copy, per `AGENTS.md` house voice).
 
-Quality floor for every change, however small: keyboard focus visible; `prefers-reduced-motion` respected; both token modes hold (detail above); mobile hierarchy holds (craft in `design-visual.md`).
+Quality floor for every change, however small: keyboard focus visible; `prefers-reduced-motion` respected; both token modes hold (detail above); mobile hierarchy holds (craft in `visual.md`).
 
 ## Replacing the default look
 
