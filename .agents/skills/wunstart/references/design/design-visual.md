@@ -6,7 +6,7 @@ _Load for layout and styling work: composition, spacing, typography, color, medi
 
 Design for mobile-first. Mobile views should not break the established hierarchy.
 
-Above-the-fold content must provide a striking headline, image, video, or interactive experience. Style it as a poster, not a document.
+Above-the-fold content must provide a striking headline, image, video, or interactive experience. Style it as a poster, not a document. When no legitimate imagery exists, the headline is the image — set the type as the hero. Purposeful shader or canvas treatments count as crafted media; stock and generative filler do not (see Images and icons).
 
 Do not save space for non-existent features.
 
