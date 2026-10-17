@@ -2,7 +2,7 @@
 
 _Load for layout and styling work: composition, spacing, typography, color, media, depth._
 
-### Layout
+## Layout
 
 Mobile views should not break the established hierarchy.
 
@@ -12,7 +12,7 @@ Do not save space for non-existent features.
 
 Sketch or try two or three layouts against the objective, then commit to one. Do not build full variants here — open page-scale directions use the SKILL.md compare flow instead.
 
-#### Composition
+### Composition
 
 Treat the page as a whole, not an assortment of components. Set a single core conceptual direction.
 
@@ -32,7 +32,7 @@ Do not allow secondary or tertiary actions to add clutter or noise. They can be 
 
 Build on familiar layout patterns and keep consistent by default; break convention only to make a statement the concept demands.
 
-#### Spacing
+### Spacing
 
 Start with swaths of extra space, then reduce until it looks good. Open space should amplify the focal elements.
 
@@ -44,7 +44,7 @@ Let parent containers handle internal rhythm. Avoid arbitrary one-off offsets.
 
 Beware compounding emptiness when a gap is next to an underfilled section or orphaned element. Resize or reflow the sections to balance the proportions.
 
-### Typography
+## Typography
 
 Aim for ~65 characters per line. Allow from 45-80 characters. Do not adjust the font size to achieve that, instead rewrite or reflow the content.
 
@@ -56,7 +56,7 @@ Left-align any text longer than 3 lines.
 
 When using multiple font sizes in one line, align them along the baseline, not vertical center.
 
-#### Choosing fonts
+### Choosing fonts
 
 Use the fonts set by the theme.
 
@@ -64,7 +64,7 @@ To change typefaces, swap the fontsource imports per `contract.md` — do not ad
 
 You don't need a different font for display, headline, and body. A single typeface can suffice. When you choose to use more than one, make each unique and distinct.
 
-### Color
+## Color
 
 Design in monochrome first. Use size, space, typography, and contrast to establish hierarchical order before applying color.
 
@@ -74,7 +74,7 @@ Prefer decisive color over timid palettes when the concept names a brand reason 
 
 Status does not always need color. Success does not need to be green. Only add color when highlighting the status adds meaning or value.
 
-### Images and icons
+## Images and icons
 
 Do not add stock images, generative illustrations, or fake screenshots.
 
@@ -88,7 +88,7 @@ To increase contrast between text and a background image, you can:
 
 If an icon needs to increase significantly in size, enclose it in a shape instead of increasing it directly.
 
-### Depth
+## Depth
 
 Pages generally operate on one continuous canvas. Add surface boundaries when a section must convey something spacing and alignment cannot express.
 
