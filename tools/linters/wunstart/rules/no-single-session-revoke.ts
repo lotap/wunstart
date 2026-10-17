@@ -1,10 +1,13 @@
 import {defineRule} from '@oxlint/plugins'
 import type {ESTree} from '@oxlint/plugins'
 
-const ALLOWED_NAMES = new Set(['revokeForReuse', 'noSingleSessionRevokeRule'])
+const ALLOWED_NAMES = new Set(['revokeForReuse'])
 const REVOKE = /revoke/i
 const SESSION = /session/i
-const WHOLE_FAMILY = /all/i
+// Whole-family revokes are camelCase `All` + new word or end (`revokeAllSessions`,
+// `signOutAll`). Case-sensitive with a boundary lookahead so `Fallback` / `Allowance`
+// / `Caller` (lowercase `all`) still flag.
+const WHOLE_FAMILY = /All(?=[A-Z]|$)/
 const REUSE = /reuse/i
 
 function declarationNames(declaration: ESTree.ExportNamedDeclaration['declaration']): string[] {

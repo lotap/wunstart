@@ -13,6 +13,9 @@ tester.run('wunshot/no-pgtable-direct', noPgTableDirectRule, {
 		"export {snakeCase} from 'drizzle-orm/pg-core';",
 		// Bare dynamic import is not use (legitimate members load this way); calls still flag.
 		"const pg = await import('drizzle-orm/pg-core');",
+		// An unrelated helper's own `.pgTable()` method is not drizzle's.
+		'const t = other.pgTable("users", {});',
+		"import * as helper from 'other-lib'; const t = helper.pgTable('users', {});",
 	],
 	invalid: [
 		{
@@ -24,7 +27,11 @@ tester.run('wunshot/no-pgtable-direct', noPgTableDirectRule, {
 			errors: [{messageId: 'pgTableDirect'}],
 		},
 		{
-			code: 'const t = dor.pgTable("users", {});',
+			code: "import * as dor from 'drizzle-orm/pg-core'; const t = dor.pgTable(\"users\", {});",
+			errors: [{messageId: 'pgTableDirect'}],
+		},
+		{
+			code: "const pg = await import('drizzle-orm/pg-core'); const t = pg.pgTable(\"users\", {});",
 			errors: [{messageId: 'pgTableDirect'}],
 		},
 		{
@@ -62,6 +69,14 @@ tester.run('wunshot/no-zod-valibot', noZodValibotRule, {
 		},
 		{
 			code: "import {createInsertSchema} from 'drizzle-valibot';",
+			errors: [{messageId: 'zodValibot'}],
+		},
+		{
+			code: "import {getTableColumns} from 'drizzle-orm/zod';",
+			errors: [{messageId: 'zodValibot'}],
+		},
+		{
+			code: "import {getTableColumns} from 'drizzle-orm/valibot/schema';",
 			errors: [{messageId: 'zodValibot'}],
 		},
 		{

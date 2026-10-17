@@ -14,11 +14,17 @@ export const noPgTableDirectRule = defineRule({
 		},
 	},
 	create(context) {
+		// Local names bound to the pg-core module object, via a namespace/default
+		// static import or a dynamic import. Only `.pgTable()` on these is drizzle's.
+		const drizzleModules = new Set<string>()
 		return {
 			ImportDeclaration(node) {
 				if (node.source.value !== 'drizzle-orm/pg-core') return
 				for (const specifier of node.specifiers) {
-					if (specifier.type !== 'ImportSpecifier') continue
+					if (specifier.type !== 'ImportSpecifier') {
+						if (specifier.local.type === 'Identifier') drizzleModules.add(specifier.local.name)
+						continue
+					}
 					const imported =
 						specifier.imported.type === 'Identifier'
 							? specifier.imported.name
@@ -31,6 +37,7 @@ export const noPgTableDirectRule = defineRule({
 			// Re-exporting pgTable (or the whole module) hands others the bypass.
 			// No ImportExpression visitor by design: bare `import('drizzle-orm/pg-core')`
 			// is legitimate (snakeCase et al. load this way); use is caught at the call site.
+			// The declarator below only records the binding name for the member check.
 			ExportNamedDeclaration(node) {
 				if (!node.source || node.source.value !== 'drizzle-orm/pg-core') return
 				for (const spec of node.specifiers) {
@@ -44,14 +51,28 @@ export const noPgTableDirectRule = defineRule({
 				if (node.source.value !== 'drizzle-orm/pg-core') return
 				context.report({node: node.source, messageId: 'pgTableDirect'})
 			},
+			// `const pg = await import('drizzle-orm/pg-core')` binds the module object.
+			VariableDeclarator(node) {
+				const init = node.init
+				if (!init) return
+				const awaited = init.type === 'AwaitExpression' ? init.argument : init
+				if (!awaited || awaited.type !== 'ImportExpression') return
+				const source = awaited.source
+				if (source.type !== 'Literal' || source.value !== 'drizzle-orm/pg-core') return
+				if (node.id.type === 'Identifier') drizzleModules.add(node.id.name)
+			},
 			CallExpression(node) {
 				if (node.callee.type === 'Identifier' && node.callee.name === 'pgTable') {
 					context.report({node: node.callee, messageId: 'pgTableDirect'})
 				}
+				// Member calls only flag on a known pg-core module binding, so an
+				// unrelated helper's own `.pgTable()` method is left alone.
 				if (
 					node.callee.type === 'MemberExpression' &&
 					node.callee.property.type === 'Identifier' &&
-					node.callee.property.name === 'pgTable'
+					node.callee.property.name === 'pgTable' &&
+					node.callee.object.type === 'Identifier' &&
+					drizzleModules.has(node.callee.object.name)
 				) {
 					context.report({node: node.callee.property, messageId: 'pgTableDirect'})
 				}

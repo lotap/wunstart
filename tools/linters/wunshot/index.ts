@@ -6,7 +6,9 @@ import {noZodValibotRule} from './rules/no-zod-valibot.ts'
 
 /**
  * Portable wunshot DB-module conformity rules.
- * New rules: cover import, re-export (`export … from`), and dynamic `import()` — ImportDeclaration-only misses two carriers.
+ * Module-source rules must cover import, re-export (`export … from`), and dynamic `import()`
+ * — ImportDeclaration-only misses two carriers. Call-shape rules (`no-failed-credential-in-denial`)
+ * have no import carriers to cover by nature.
  */
 const wunshotPlugin = eslintCompatPlugin({
 	meta: {name: 'wunshot'},

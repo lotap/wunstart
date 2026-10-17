@@ -105,7 +105,7 @@ tester.run('wunstart/no-single-session-revoke', noSingleSessionRevokeRule, {
 		'export const revokeAllSessions = createOpsFn({});',
 		'export const listSessions = createOpsFn({});',
 		'const revokeSession = createOpsFn({});',
-		'export const noSingleSessionRevokeRule = defineRule({});',
+		'export const signOutAllDevices = defineRule({});',
 	],
 	invalid: [
 		{
@@ -130,6 +130,18 @@ tester.run('wunstart/no-single-session-revoke', noSingleSessionRevokeRule, {
 		},
 		{
 			code: 'export const a = 1, revokeSession = createOpsFn({});',
+			errors: [{messageId: 'singleSessionRevoke'}],
+		},
+		{
+			code: 'export const revokeSessionFallback = createOpsFn({});',
+			errors: [{messageId: 'singleSessionRevoke'}],
+		},
+		{
+			code: 'export const revokeSessionAllowance = createOpsFn({});',
+			errors: [{messageId: 'singleSessionRevoke'}],
+		},
+		{
+			code: 'export const revokeSessionCaller = createOpsFn({});',
 			errors: [{messageId: 'singleSessionRevoke'}],
 		},
 	],
