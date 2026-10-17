@@ -32,7 +32,7 @@ Keep every flow ejectable and as frictionless as possible; prefer undo/eject ove
 
 Never obstruct a user's ability to interact with an input because of an animation or transition.
 
-**Latency.** Respond on pointer-down, don't wait until release to show feedback.
+**Latency.** Show pressed/reactivity feedback on pointer-down; commence the action on release (click). Never wait until release to show feedback, never fire the action on press.
 
 Remove non-essential debounces, delays, etc from input paths.
 
