@@ -10,16 +10,16 @@ _Load when creating or reshaping UI — route by scope first._
 
 Rungs are cumulative: every rung honors the contract, the quality floor, and the facts rule; section adds the §1 context pass and the §2 concept checkpoint; page adds whole-page composition (§3/§4) and the (page)-marked gate questions.
 
-Classify the surface alongside the rung: marketing page, app surface, or chrome. Marketing claims poster composition and marketing voice; app surfaces answer to task clarity first; chrome is judged on every route under both identity modes (signed-out anon vs signed-in user), never in isolation.
+Classify the surface alongside the rung: marketing page, app surface, or chrome (site frame: header, footer, nav). Marketing claims poster composition and marketing voice; app surfaces answer to task clarity first; chrome is judged on every route under both identity modes (signed-out anon vs signed-in user), never in isolation.
 
-Worked examples: pricing page → page rung, marketing surface, `_auth-anon` or `_auth-dynamic` when the call adapts by auth, prices are load-bearing facts. Status card → section rung, app surface, source its query via the `queryOptions` pattern (`references/app.md`). Footer restyle → section rung on chrome, site-wide consequences. Token tweak → cosmetic rung.
+Route by scope + surface + dependencies: auth-adaptive content → `_auth-dynamic`, else per `app.md`; load-bearing facts (prices, statuses, claims) → facts protocol before styling; data-bound section → `queryOptions` pattern; header/footer/nav → site-wide chrome consequences.
 
 With no design skill installed, the craft refs are the built-in taste — a floor, not a starting look. Precedence for any conflict: `contract.md` over the craft refs, per its Precedence list.
 
 Never present invented specifics as real. Route unknowns before building:
 
 - Load-bearing facts — prices, plan names, statuses, claims. Ask the user once, batched, before styling. Incidental unknowns — omit, don't ask.
-- Placeholder content is fine when it reads as placeholder: skeleton, lorem ipsum, visibly-labeled stub. Never a de facto value — a plausible-looking price or stat standing in for an unknown one is fabrication. Links resolve to real routes only.
+- Placeholder content is fine when it reads as placeholder: skeleton, lorem ipsum, visibly-labeled stub. Never a de facto value — a plausible-looking price or stat standing in for an unknown one is fabrication. Links resolve to real destinations only — internal routes or verified external URLs; never invented handles.
 
 ## 1. Conceptualize and contextualize
 

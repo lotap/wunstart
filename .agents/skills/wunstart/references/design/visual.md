@@ -66,7 +66,7 @@ You don't need a different font for display, headline, and body. A single typefa
 
 ## Color
 
-Design in monochrome first. Use size, space, typography, and contrast to establish hierarchical order before applying color.
+Design in monochrome first. Monochrome means one hue range + neutrals, not necessarily gray. Use size, space, typography, and contrast to establish hierarchical order before applying color.
 
 Once the hierarchy has cemented, use splashes of color to distinguish important sections or actions.
 
