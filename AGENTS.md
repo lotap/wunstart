@@ -1,10 +1,10 @@
 # Wunstart
 
-Stack: TanStack Start (React) + Router + Query + Drizzle/Effect + Postgres + Cloudflare Workers. Bare repo + worktrees: work inside a worktree (`trunk/`, `agentic-cleanup/`, `placeholder-content/`), never repo root.
+Stack: TanStack Start (React) + Router + Query + Drizzle/Effect + Postgres + Cloudflare Workers. Bare repo + worktrees: work inside a worktree, never repo root.
 
 ## Skills (read before coding)
 
-- `.agents/skills/wunshot/` — tables, queries, validations, cascades/archive pairs, ops contract, auth module contract, bans; install core modules from the `wunshot` registry via shadcn. Portable DB-module rules; canonical here, backfilled to the `wunshot` registry.
+- `.agents/skills/wunshot/` — tables, queries, validations, cascades/archive pairs, ops contract, auth module contract, bans (portable DB-module rules).
 - `.agents/skills/wunstart/` — server fns, `_auth-*` routes + adding-a-page recipe, middleware, cookies, forms (TanStack Form), shadcn/Base UI composition, styling/theme, contexts/hooks, isomorphic validation, DO hashing, email, Workers runtime, visual contract + page-craft process (`references/design/`).
 - `CONTEXT.md` — product glossary. Replace with your domain language; use its vocabulary in copy and code names (Anon not Guest, User not Account).
 - Vendored `.agents/skills/` (effect, shadcn, web-perf, …) are fallback, except where a project skill recommends one; project skills take precedence. Do NOT trust the `tanstack-start` skill — the wunstart skill documents why.
@@ -23,7 +23,7 @@ Stack: TanStack Start (React) + Router + Query + Drizzle/Effect + Postgres + Clo
 
 ## Hard rules
 
-- DB conventions (factories, free-form labels, Effect Schema only) live in the wunshot skill — backed by its lint rules where those are lintable; don't restate or second-guess them here.
+- DB conventions (factories, free-form labels, Effect Schema only) live in the wunshot skill — backed by its lint rules where those are lintable.
 - `no-underscore-dangle` off by design (`_`-prefix marks internal). Route/file placement rules (`_auth-*`, `-components/`) live in the wunstart skill's `references/app.md`.
 - Generated files (`routeTree.gen.ts`, `src/components/ui/**`): don't hand-edit; override from the caller via `cn()` (narrow patch exception in the wunstart skill's `references/app.md`).
 - Import via `#/...` — the only alias also registered at runtime (`package.json` `imports`); `@/...` is a tsconfig alias that Vite (`tsconfigPaths`) and Bun happen to resolve, so don't add new ones (`#/` survives any executor and registry porting). Always include `.ts`/`.tsx` extension on relative imports. Blocks grouped packages → `#/` → relative with blank lines; oxfmt sorts within blocks (Tailwind/`cn()` sorting: see wunstart `references/app.md`).
