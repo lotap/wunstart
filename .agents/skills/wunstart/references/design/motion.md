@@ -24,7 +24,7 @@ Prefer CSS transitions to keyframes when animations could use either.
 
 ## Interactivity
 
-**Feedback.** Respond during interaction for non-form feedback and update values in realtime; forms' validation stays silent until first submit with form-level errors (`references/app.md`). Optimistic: show the new value at once with pending affordance; on failure revert and explain via established feedback (toast/inline).
+**Feedback.** Respond during interaction for non-form feedback and update values in realtime; forms' validation stays silent until first submit with form-level errors (`references/app.md`). Optimistic: show the new value at once with dimmed pending treatment; on failure revert and explain via established feedback (toast/inline).
 
 **Control.** Use flows that allow the user to undo or eject early.
 

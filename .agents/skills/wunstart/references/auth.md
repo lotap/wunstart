@@ -8,4 +8,4 @@ Strategy, rotation, eviction posture, email-service and sudo-lease invariants ar
 
 ## Sessions list, no per-session revoke
 
-Settings page lists sessions with device + geolocation context (detection tool); eviction UI is `signOutAll` only. Linted by `wunstart/no-single-session-revoke`.
+Settings page lists sessions with device (`formatUserAgent`) + geolocation (`formatLocation`) context; eviction UI is `signOutAll` only. Linted by `wunstart/no-single-session-revoke`.
