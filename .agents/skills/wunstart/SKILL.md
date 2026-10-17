@@ -14,7 +14,7 @@ Full-stack TypeScript starter: TanStack Start (React) + Router + Query, Effect-w
 - `wunstart` owns: `src/server-fns/` (compose ops via `runOp`), `src/routes/` (+ `_auth-*` placement), `src/middleware/`, `src/server.ts`, `src/start.ts`, `src/router.tsx`, `src/email/` transport wiring, `src/durable-objects/`, `wrangler.jsonc`, `drizzle.config.ts` path.
 - Principle: `wunshot` modules state the data layer's guarantees; your app satisfies them through this wiring. Extend data logic in `db/` per the wunshot contracts, build product in routes/server fns, and heed the lints — they guard the seams.
 
-Client never sends or receives db ids; server fns unwrap cookie identity (no `ById` fns exist today — convention if one appears: see `references/middleware.md`).
+Client never sends or receives db ids; server fns unwrap cookie identity (convention if a `ById` fn becomes necessary: see `references/middleware.md`).
 
 ## Branch chooser
 
