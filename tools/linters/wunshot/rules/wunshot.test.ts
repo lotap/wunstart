@@ -16,6 +16,7 @@ tester.run('wunshot/no-pgtable-direct', noPgTableDirectRule, {
 		// An unrelated helper's own `.pgTable()` method is not drizzle's.
 		'const t = other.pgTable("users", {});',
 		"import * as helper from 'other-lib'; const t = helper.pgTable('users', {});",
+		'const t = (await import("other-lib")).pgTable("users", {});',
 	],
 	invalid: [
 		{
@@ -27,11 +28,15 @@ tester.run('wunshot/no-pgtable-direct', noPgTableDirectRule, {
 			errors: [{messageId: 'pgTableDirect'}],
 		},
 		{
-			code: "import * as dor from 'drizzle-orm/pg-core'; const t = dor.pgTable(\"users\", {});",
+			code: 'import * as dor from \'drizzle-orm/pg-core\'; const t = dor.pgTable("users", {});',
 			errors: [{messageId: 'pgTableDirect'}],
 		},
 		{
-			code: "const pg = await import('drizzle-orm/pg-core'); const t = pg.pgTable(\"users\", {});",
+			code: 'const pg = await import(\'drizzle-orm/pg-core\'); const t = pg.pgTable("users", {});',
+			errors: [{messageId: 'pgTableDirect'}],
+		},
+		{
+			code: 'const t = (await import("drizzle-orm/pg-core")).pgTable("users", {});',
 			errors: [{messageId: 'pgTableDirect'}],
 		},
 		{

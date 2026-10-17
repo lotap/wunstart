@@ -33,8 +33,7 @@ export const noFailedCredentialInDenialRule = defineRule({
 				const callee =
 					node.callee.type === 'Identifier'
 						? node.callee.name
-						: node.callee.type === 'MemberExpression' &&
-							  node.callee.property.type === 'Identifier'
+						: node.callee.type === 'MemberExpression' && node.callee.property.type === 'Identifier'
 							? node.callee.property.name
 							: null
 				if (callee !== 'rateLimitFailure') return

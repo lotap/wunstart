@@ -1,4 +1,13 @@
 import {defineRule} from '@oxlint/plugins'
+import type {ESTree} from '@oxlint/plugins'
+
+/** True for `(await import('drizzle-orm/pg-core'))` used inline as a member-call object. */
+function isInlinePgCoreImport(object: ESTree.MemberExpression['object']): boolean {
+	const awaited = object.type === 'AwaitExpression' ? object.argument : object
+	if (awaited.type !== 'ImportExpression') return false
+	const source = awaited.source
+	return source.type === 'Literal' && source.value === 'drizzle-orm/pg-core'
+}
 
 /** Never use pgTable directly; use createActive/Archive/LogTable factories (wunshot skill). */
 export const noPgTableDirectRule = defineRule({
@@ -61,6 +70,8 @@ export const noPgTableDirectRule = defineRule({
 				if (source.type !== 'Literal' || source.value !== 'drizzle-orm/pg-core') return
 				if (node.id.type === 'Identifier') drizzleModules.add(node.id.name)
 			},
+			// `(await import('drizzle-orm/pg-core')).pgTable(…)` — inline dynamic import
+			// as the call object, with no declarator binding it.
 			CallExpression(node) {
 				if (node.callee.type === 'Identifier' && node.callee.name === 'pgTable') {
 					context.report({node: node.callee, messageId: 'pgTableDirect'})
@@ -71,8 +82,9 @@ export const noPgTableDirectRule = defineRule({
 					node.callee.type === 'MemberExpression' &&
 					node.callee.property.type === 'Identifier' &&
 					node.callee.property.name === 'pgTable' &&
-					node.callee.object.type === 'Identifier' &&
-					drizzleModules.has(node.callee.object.name)
+					((node.callee.object.type === 'Identifier' &&
+						drizzleModules.has(node.callee.object.name)) ||
+						isInlinePgCoreImport(node.callee.object))
 				) {
 					context.report({node: node.callee.property, messageId: 'pgTableDirect'})
 				}

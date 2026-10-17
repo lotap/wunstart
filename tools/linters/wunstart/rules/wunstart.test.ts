@@ -31,22 +31,22 @@ tester.run(
 				code: "import type {verifyAccess as verifyAccessOpType} from '#/db/ops/auth/verify-access';",
 				filename: 'src/middleware/verify-auth.ts',
 			},
-		{
-			code: "import {type verifyAccess} from '#/db/ops/auth/verify-access';",
-			filename: 'src/middleware/verify-auth.ts',
-		},
-		{
-			code: "import {x} from '#/lib/refresh.ts';",
-			filename: 'src/middleware/verify-auth.ts',
-		},
-		{
-			code: "export type {x} from '#/db/ops/auth/refresh';",
-			filename: 'src/middleware/verify-auth.ts',
-		},
-		{
-			code: "export {type verifyAccess} from '#/db/ops/auth/verify-access';",
-			filename: 'src/middleware/verify-auth.ts',
-		},
+			{
+				code: "import {type verifyAccess} from '#/db/ops/auth/verify-access';",
+				filename: 'src/middleware/verify-auth.ts',
+			},
+			{
+				code: "import {x} from '#/lib/refresh.ts';",
+				filename: 'src/middleware/verify-auth.ts',
+			},
+			{
+				code: "export type {x} from '#/db/ops/auth/refresh';",
+				filename: 'src/middleware/verify-auth.ts',
+			},
+			{
+				code: "export {type verifyAccess} from '#/db/ops/auth/verify-access';",
+				filename: 'src/middleware/verify-auth.ts',
+			},
 		],
 		invalid: [
 			{
@@ -64,36 +64,36 @@ tester.run(
 				filename: 'src/middleware/verify-auth.ts',
 				errors: [{messageId: 'staticWorkersImport'}],
 			},
-		{
-			code: "import {verifyAnon} from '#/db/ops/auth/verify-anon.ts';",
-			filename: 'src/middleware/verify-anon.ts',
-			errors: [{messageId: 'staticWorkersImport'}],
-		},
-		{
-			code: "import refreshDefault from '#/db/ops/auth/refresh.ts';",
-			filename: 'src/middleware/verify-auth.ts',
-			errors: [{messageId: 'staticWorkersImport'}],
-		},
-		{
-			code: "import * as refreshNs from '#/db/ops/auth/refresh.ts';",
-			filename: 'src/middleware/verify-auth.ts',
-			errors: [{messageId: 'staticWorkersImport'}],
-		},
-		{
-			code: "export {refresh} from '#/db/ops/auth/refresh';",
-			filename: 'src/middleware/verify-auth.ts',
-			errors: [{messageId: 'staticWorkersImport'}],
-		},
-		{
-			code: "export * from '#/db/ops/auth/verify-access';",
-			filename: 'src/middleware/verify-auth.ts',
-			errors: [{messageId: 'staticWorkersImport'}],
-		},
-		{
-			code: "export {type x, refresh} from '#/db/ops/auth/refresh';",
-			filename: 'src/middleware/verify-auth.ts',
-			errors: [{messageId: 'staticWorkersImport'}],
-		},
+			{
+				code: "import {verifyAnon} from '#/db/ops/auth/verify-anon.ts';",
+				filename: 'src/middleware/verify-anon.ts',
+				errors: [{messageId: 'staticWorkersImport'}],
+			},
+			{
+				code: "import refreshDefault from '#/db/ops/auth/refresh.ts';",
+				filename: 'src/middleware/verify-auth.ts',
+				errors: [{messageId: 'staticWorkersImport'}],
+			},
+			{
+				code: "import * as refreshNs from '#/db/ops/auth/refresh.ts';",
+				filename: 'src/middleware/verify-auth.ts',
+				errors: [{messageId: 'staticWorkersImport'}],
+			},
+			{
+				code: "export {refresh} from '#/db/ops/auth/refresh';",
+				filename: 'src/middleware/verify-auth.ts',
+				errors: [{messageId: 'staticWorkersImport'}],
+			},
+			{
+				code: "export * from '#/db/ops/auth/verify-access';",
+				filename: 'src/middleware/verify-auth.ts',
+				errors: [{messageId: 'staticWorkersImport'}],
+			},
+			{
+				code: "export {type x, refresh} from '#/db/ops/auth/refresh';",
+				filename: 'src/middleware/verify-auth.ts',
+				errors: [{messageId: 'staticWorkersImport'}],
+			},
 		],
 	},
 )

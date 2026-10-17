@@ -4,7 +4,7 @@
 # Wasm is up to date, so run `bun --bun run build:wasm` after editing crates/.
 set -eu
 
-STAGED="$(git diff --cached --name-only)"
+STAGED="$(git diff --cached --name-only --diff-filter=ACMR)" # deletions stage no content
 
 has_staged() {
 	echo "$STAGED" | grep -q "^$1"
