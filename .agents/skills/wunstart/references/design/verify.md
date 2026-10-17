@@ -14,7 +14,7 @@ If the answer to any applicable question is no, revise until all the answers are
 - Does each of the borders, boundaries, and cards used provide genuine value to the user?
 - When motion is present, does it enhance hierarchy/atmosphere? Does the page still feel complete if motion is disabled?
 - Do interactive elements show pressed feedback on pointer-down and stay responsive (`motion.md`)?
-- (data-bound) Do empty, loading, and error states hold the same standard as the loaded view?
+- (data-bound) Do empty, loading, error, optimistic-pending, and rollback states hold the same standard as the loaded view?
 - (chrome) Does it read correctly on every layout it mounts under?
 - Does all of the above hold true across screen sizes, devices, and both token modes?
 
@@ -24,7 +24,7 @@ If the answer to any applicable question is no, revise until all the answers are
 - Critique from screenshots — required for page- and section-scale work (save under `<worktree>/.tmp/`, see `AGENTS.md`).
 - Both token modes: chrome-devtools `emulate` `colorScheme` `dark`, then `light`. Mobile: emulate a phone viewport. Reduced motion: emulate `prefersReducedMotion`.
 - Interactive states: hover, pressed, disabled read correctly in both token modes; keyboard pass keeps focus visible (tab through every interactive element).
-- Data-bound UI: exercise default, empty, loading, and error states (`AsyncBoundary`/`ErrorBoundary`, skeleton) in every layout and identity mode the surface ships in.
+- Data-bound UI: exercise default, empty, loading, error, optimistic-pending, and rollback states (`AsyncBoundary`/`ErrorBoundary`, skeleton) in every layout and identity mode the surface ships in.
 - Chrome changes: sample every layout under both identity modes.
 - Performance (page scale): `lighthouse_audit` via chrome-devtools, or the vendored `web-perf` skill for a deeper audit.
 - Typecheck + lint: `bunx tsgo --noEmit` and `bun --bun run lint:check`.
