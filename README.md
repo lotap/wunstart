@@ -52,11 +52,12 @@ src/
 ├── server.ts               # Cloudflare Workers entry point
 ├── start.ts                # createStart app factory + middleware
 ├── router.tsx              # Router factory (wired to TanStack Query)
-├── routeTree.gen.ts        # Auto-generated routes (read-only)
+├── routeTree.gen.ts        # Generated routes (don't hand-edit)
 ├── styles.css              # Tailwind v4 theme tokens
 ├── routes/                 # File-based routing (TanStack Router)
 ├── server-fns/             # TanStack Start server functions
 ├── middleware/              # Request/function middleware (auth, rate-limit, CSRF)
+├── scripts/                # One-off scripts (archive-old-activities)
 ├── db/
 │   ├── index.ts            # Effect-wrapped Drizzle client
 │   ├── models/             # Per-domain schemas, queries, validations, cascades
@@ -82,9 +83,9 @@ src/
 ├── integrations/
 │   └── tanstack-query/     # Query client setup + devtools
 ├── contexts/               # React context providers (theme, etc.)
+├── hooks/                  # Shared client hooks (forms, localStorage query)
 └── lib/
-    ├── utils.ts            # cn() re-export shim (import from 'cn')
-    └── date-helpers.ts
+    └── utils.ts            # cn() re-export shim (import from 'cn')
 crates/
 └── argon2-do-hasher/    # Rust/Wasm Argon2id kernel for AuthHasher DO
 .agents/skills/
@@ -92,7 +93,8 @@ crates/
 └── wunstart/            # App wiring (routes, middleware, email, workers)
 tools/linters/
 ├── wunshot/             # DB conformity rules
-└── wunstart/            # App-wiring conformity rules
+├── wunstart/            # App-wiring conformity rules
+└── anti-slop/           # Type-assertion + slop-pattern rules
 compose.yaml                # Postgres 16 + Mailpit for local dev
 ```
 
