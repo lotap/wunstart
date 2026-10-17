@@ -1,8 +1,8 @@
 import {Moon, Sun} from 'lucide-react'
 
+import {Button} from '#/components/ui/button.tsx'
 import {Tooltip, TooltipContent, TooltipTrigger} from '#/components/ui/tooltip.tsx'
 import {useTheme, type ThemeContextState} from '#/contexts/theme.tsx'
-import {Button} from '@/components/ui/button.tsx'
 
 import {Skeleton} from './ui/skeleton.tsx'
 

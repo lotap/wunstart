@@ -20,8 +20,10 @@ bun install
 # Start postgres (Docker)
 docker compose up -d
 
-# Set up your .env.local
-# DATABASE_URL=postgres://postgres:mypassword@localhost:5432/postgres
+# .env.development is committed and pre-wired for the local Docker stack
+# (DATABASE_URL, JWT *_SECRETS, Hyperdrive local string) — the dev server and
+# all db:* scripts read it; edit it as needed. (.env.local is only read by
+# `archive-old-activities`.)
 
 # Migrate the database
 bun --bun run db:migrate
@@ -74,14 +76,14 @@ src/
 ├── email/
 │   ├── service.ts          # EmailService Effect service
 │   ├── layer.ts            # Dev/prod email layer wiring
-│   ├── transports/         # Mailpit (dev) + Brevo (prod) transports
+│   ├── transports/         # Mailpit (dev) + send_email (prod) + Brevo (example fallback)
 │   └── templates/          # React Email templates
 ├── isomorphic/             # Shared validation schemas (server + client)
 ├── integrations/
 │   └── tanstack-query/     # Query client setup + devtools
 ├── contexts/               # React context providers (theme, etc.)
 └── lib/
-    ├── utils.ts            # cn() helper
+    ├── utils.ts            # cn() re-export shim (import from 'cn')
     └── date-helpers.ts
 crates/
 └── argon2-do-hasher/    # Rust/Wasm Argon2id kernel for AuthHasher DO
@@ -97,8 +99,8 @@ compose.yaml                # Postgres 16 + Mailpit for local dev
 ## Make it yours
 
 - Replace the glossary in [CONTEXT.md](./CONTEXT.md) with your product's domain language.
-- Rename the kit: `package.json` `name`, `wrangler.jsonc` worker name, and the `crates/` directory.
-- Add domain tables under `src/db/models/<domain>/` and ops under `src/db/ops/` — `AGENTS.md` documents the conventions.
+- Rename the kit: `package.json` `name` and the `wrangler.jsonc` worker name. Leave `crates/argon2-do-hasher/` and `src/durable-objects/argon2-do-hasher.wasm` alone — the paths are hardcoded in `tools/build-wasm.sh`, the pre-commit hook, and `auth-hasher.ts`.
+- Add domain tables under `src/db/models/<domain>/` and ops under `src/db/ops/` — the `.agents/skills/wunshot/` skill documents the conventions (lint-enforced by `tools/linters/wunshot/`).
 
 ## Kill the dev server
 

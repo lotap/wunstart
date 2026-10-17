@@ -4,16 +4,16 @@ Stack: TanStack Start (React) + Router + Query + Drizzle/Effect + Postgres + Clo
 
 ## Skills (read before coding)
 
-- `.agents/skills/wunshot/` — tables, queries, validations, ops, bans. Portable DB-module rules; canonical here, backfilled to the `wunshot` registry.
-- `.agents/skills/wunstart/` — server fns, `_auth-*` routes, middleware, cookies, DO hashing, email, Workers runtime.
+- `.agents/skills/wunshot/` — tables, queries, validations, cascades/archive pairs, ops contract, auth module contract, bans; install core modules from the `wunshot` registry via shadcn. Portable DB-module rules; canonical here, backfilled to the `wunshot` registry.
+- `.agents/skills/wunstart/` — server fns, `_auth-*` routes + adding-a-page recipe, middleware, cookies, forms (TanStack Form), shadcn/Base UI composition, styling/theme, contexts/hooks, isomorphic validation, DO hashing, email, Workers runtime, visual contract + page-craft process (`references/design/`).
 - `CONTEXT.md` — product glossary. Replace with your domain language; use its vocabulary in copy and code names (Anon not Guest, User not Account).
-- Vendored `.agents/skills/` (effect, shadcn, …) are fallback only; project skills above take precedence. Do NOT trust `tanstack-start` skill (documents `.handler`/zod/Nitro; code uses `.server`/Effect Schema/`@cloudflare/vite-plugin`).
+- Vendored `.agents/skills/` (effect, shadcn, web-perf, …) are fallback, except where a project skill recommends one; project skills take precedence. Do NOT trust the `tanstack-start` skill — the wunstart skill documents why.
 
 ## Setup
 
-- `bun install` (also enables repo-local git hooks via `prepare`; `bun run setup:hooks` re-runs manually). `bun run dev` (:3000, NEVER `bun --bun` for dev).
-- Wasm kernel (`src/durable-objects/argon2-do-hasher.wasm`) is committed — dev/build/deploy never need Rust. Only `bun --bun run build:wasm` needs Rust + `wasm32-unknown-unknown`, and only after editing `crates/argon2-do-hasher`; commit the rebuilt wasm with the source change (pre-commit hook enforces this).
-- Postgres: `docker compose up -d` (`mypassword`). `.env.local` = `DATABASE_URL` (for `db:*` via `dotenv -e`); `.env.development` = dev server + JWT `*_SECRETS` + Hyperdrive local string (via CF vite plugin).
+- `bun install` (also enables repo-local git hooks via `prepare`; `bun run setup:hooks` re-runs manually). `bun run dev` (:3000, NEVER `bun --bun` for dev) self-provisions deps via `predev` — fresh worktrees need no manual install.
+- Wasm kernel (`src/durable-objects/argon2-do-hasher.wasm`) is committed — dev/build/deploy never need Rust; rebuild only after editing `crates/` (see Commands below; pre-commit hook blocks `crates/` edits without a staged wasm; params, sharding, rejected alternatives: wunstart skill `references/hashing.md`).
+- Postgres: `docker compose up -d` (`mypassword`). `.env.development` (committed) = `DATABASE_URL` + JWT `*_SECRETS` + Hyperdrive local string + `VITE_COOKIE_DOMAIN` — read by the dev server (CF vite plugin) and by `db:*` (via `dotenv -e`). `.env.local` (gitignored via `*.local`) is read only by `archive-old-activities`.
 - No typecheck script: `bunx tsgo --noEmit` (`noUnusedLocals`/`noUnusedParameters` fail the build — no dead bindings). Tests: `bun --bun run test` is BROKEN pre-existing (Cloudflare vite plugin rejects vitest's `ssr.resolve.external` at startup, same on trunk); linter rule tests run via `bun run test:lint` (NEVER `bun --bun` — oxlint RuleTester needs node), zero product tests — verify with lint + tsgo + manual dev server.
 - Scratch: `.tmp/` only (never `/tmp`; `bun run clean:tmp` wipes). Chrome-devtools `filePath` resolves from workspace root → use `<worktree>/.tmp/<file>`.
 
@@ -23,10 +23,13 @@ Stack: TanStack Start (React) + Router + Query + Drizzle/Effect + Postgres + Clo
 
 ## Hard rules
 
-- Never `pgTable` — use `createActive/Archive/LogTable` factories. `failureCause`/activity `label` stay free-form text.
-- `_`-prefix = internal (`_auth-*` layouts, `_x` ops/helpers); `no-underscore-dangle` off by design. Distinct: `-components/` (dash) = TanStack route-tree exclusion, not internal-marking. `_auth-*` moves are security-relevant in review.
-- Never edit `routeTree.gen.ts` or `src/components/ui/**` (generated; override via caller `cn()`).
-- Import via `#/...` only — `@/...` is a tsconfig alias but NOT a runtime alias, so `@/` imports break at runtime. Always include `.ts`/`.tsx` extension on relative imports. Blocks grouped packages → `#/` → relative with blank lines; oxfmt sorts within blocks (+ Tailwind in `cn()`).
+- DB conventions (factories, free-form labels, Effect Schema only) live in the wunshot skill — backed by its lint rules where those are lintable; don't restate or second-guess them here.
+- `no-underscore-dangle` off by design (`_`-prefix marks internal). Route/file placement rules (`_auth-*`, `-components/`) live in the wunstart skill's `references/app.md`.
+- Generated files (`routeTree.gen.ts`, `src/components/ui/**`): don't hand-edit; override from the caller via `cn()` (narrow patch exception in the wunstart skill's `references/app.md`).
+- Import via `#/...` — the only alias also registered at runtime (`package.json` `imports`); `@/...` is a tsconfig alias that Vite (`tsconfigPaths`) and Bun happen to resolve, so don't add new ones (`#/` survives any executor and registry porting). Always include `.ts`/`.tsx` extension on relative imports. Blocks grouped packages → `#/` → relative with blank lines; oxfmt sorts within blocks (Tailwind/`cn()` sorting: see wunstart `references/app.md`).
 - Readability: flat over nested (guard clauses over ternaries, small named helpers over clever dispatch). Future cost: small structural change now beats expensive retrofit later (policy by construction over per-site discipline).
-- Every `as` needs preceding `// SAFETY:` comment. House voice, not linted: `/** */` comments + `{@link}` cross-refs, curly apostrophes (don't) + sentence-case in user copy.
+- `// SAFETY:` proof comment above every `as` — lint-enforced (`anti-slop/require-safety-comment-for-type-assertion`).
+- House voice (not linted): `/** */` doc comments + `{@link}` cross-refs; sentence case + curly apostrophes (`’`, not `'`) in user copy. Model/ops comment voice: wunshot skill.
+- Lint plugins (`oxlint.config.ts`): `wunstart` (app/Workers seams) · `wunshot` (portable DB invariants) · `anti-slop` (+ `anti-slop-effect`, type-assertion and slop patterns). Rules are the backstop — the skills are the spec. Before commit: `fmt`, then `lint:check` + `bunx tsgo --noEmit` clean.
+- Commit only on explicit request.
 - Kill dev by PID only: `lsof -ti :3000 -sTCP:LISTEN | head -1 | xargs kill`.
