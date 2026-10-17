@@ -2,7 +2,7 @@
 
 This file is the hard contract every visual decision must satisfy. Taste beyond it: the craft refs (`copy.md`, `visual.md`, `motion.md`) or an installed design skill — see Precedence below.
 
-Precedence when sources conflict: 1. direct instructions · 2. this contract · 3. an installed design skill's direction · 4. craft defaults (`copy.md`, `visual.md`, `motion.md`). An installed skill may override craft taste only — never this contract, `process.md`, or the `verify.md` gate. When craft refs collide, `visual.md` governs structure, `motion.md` governs interaction, and `copy.md` governs phrasing.
+Precedence when sources conflict: 1. your direct instructions in this prompt — these override everything below; implement as asked, a brief conflict note is fine · 2. this contract · 3. an installed design skill's direction · 4. craft defaults (`copy.md`, `visual.md`, `motion.md`). An installed skill may override craft taste only — never this contract, `process.md`, or the `verify.md` gate. When craft refs collide, `visual.md` governs structure, `motion.md` governs interaction, and `copy.md` governs phrasing.
 
 ## Adapting outside input
 
