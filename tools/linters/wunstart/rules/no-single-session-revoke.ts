@@ -7,19 +7,17 @@ const SESSION = /session/i
 const WHOLE_FAMILY = /all/i
 const REUSE = /reuse/i
 
-function declarationName(declaration: ESTree.ExportNamedDeclaration['declaration']): string | null {
+function declarationNames(declaration: ESTree.ExportNamedDeclaration['declaration']): string[] {
 	if (declaration?.type === 'VariableDeclaration') {
-		const first = declaration.declarations[0]
-		if (first?.id.type === 'Identifier') return first.id.name
-		return null
+		return declaration.declarations.flatMap((d) => (d.id.type === 'Identifier' ? [d.id.name] : []))
 	}
 	if (
 		(declaration?.type === 'FunctionDeclaration' || declaration?.type === 'ClassDeclaration') &&
 		declaration.id !== null
 	) {
-		return declaration.id.name
+		return [declaration.id.name]
 	}
-	return null
+	return []
 }
 
 function isViolationName(name: string): boolean {
@@ -56,8 +54,8 @@ export const noSingleSessionRevokeRule = defineRule({
 		return {
 			ExportNamedDeclaration(node) {
 				// `export const revokeSession = …` / `export function revokeSession() …`
-				const name = declarationName(node.declaration)
-				if (name !== null && isViolationName(name)) {
+				const name = declarationNames(node.declaration).find(isViolationName)
+				if (name !== undefined) {
 					context.report({node, messageId: 'singleSessionRevoke', data: {name}})
 					return
 				}

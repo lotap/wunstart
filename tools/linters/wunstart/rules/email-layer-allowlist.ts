@@ -1,4 +1,5 @@
 import {defineRule} from '@oxlint/plugins'
+import type {ESTree} from '@oxlint/plugins'
 
 /**
  * Any `#/email/` subpath: layer + service + templates + transports + format
@@ -19,6 +20,21 @@ function isEmailPath(path: string): boolean {
 		normalized.includes('src/server-fns/') ||
 		normalized.includes('src/middleware/')
 	)
+}
+
+/** True when every specifier is an inline `type` import (erased at compile, carries no capability). */
+function isTypeOnlyImport(node: ESTree.ImportDeclaration): boolean {
+	if (node.importKind === 'type') return true
+	return (
+		node.specifiers.length > 0 &&
+		node.specifiers.every((s) => s.type === 'ImportSpecifier' && s.importKind === 'type')
+	)
+}
+
+/** True when every specifier is an inline `type` re-export (erased at compile, carries no capability). */
+function isTypeOnlyExport(node: ESTree.ExportNamedDeclaration): boolean {
+	if (node.exportKind === 'type') return true
+	return node.specifiers.length > 0 && node.specifiers.every((s) => s.exportKind === 'type')
 }
 
 /**
@@ -44,6 +60,7 @@ export const emailLayerAllowlistRule = defineRule({
 		if (isEmailPath(context.filename)) return {}
 		return {
 			ImportDeclaration(node) {
+				if (isTypeOnlyImport(node)) return
 				const source: string = node.source.value
 				if (!isEmailSource(source)) return
 				context.report({
@@ -53,7 +70,7 @@ export const emailLayerAllowlistRule = defineRule({
 				})
 			},
 			ExportNamedDeclaration(node) {
-				if (node.exportKind === 'type' || !node.source) return
+				if (!node.source || isTypeOnlyExport(node)) return
 				const source: string = node.source.value
 				if (!isEmailSource(source)) return
 				context.report({

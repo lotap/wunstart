@@ -22,8 +22,8 @@ docker compose up -d
 
 # .env.development is committed and pre-wired for the local Docker stack
 # (DATABASE_URL, JWT *_SECRETS, Hyperdrive local string) — the dev server and
-# all db:* scripts read it; edit it as needed. (.env.local is only read by
-# `archive-old-activities`.)
+# all db:* scripts read it; edit it as needed. (.env.local is read only by
+# `archive-old-activities` and `db:seed`.)
 
 # Migrate the database
 bun --bun run db:migrate

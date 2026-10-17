@@ -43,6 +43,10 @@ tester.run(
 			code: "export type {x} from '#/db/ops/auth/refresh';",
 			filename: 'src/middleware/verify-auth.ts',
 		},
+		{
+			code: "export {type verifyAccess} from '#/db/ops/auth/verify-access';",
+			filename: 'src/middleware/verify-auth.ts',
+		},
 		],
 		invalid: [
 			{
@@ -85,6 +89,11 @@ tester.run(
 			filename: 'src/middleware/verify-auth.ts',
 			errors: [{messageId: 'staticWorkersImport'}],
 		},
+		{
+			code: "export {type x, refresh} from '#/db/ops/auth/refresh';",
+			filename: 'src/middleware/verify-auth.ts',
+			errors: [{messageId: 'staticWorkersImport'}],
+		},
 		],
 	},
 )
@@ -119,6 +128,10 @@ tester.run('wunstart/no-single-session-revoke', noSingleSessionRevokeRule, {
 			code: 'export default function revokeSession() {}',
 			errors: [{messageId: 'singleSessionRevoke'}],
 		},
+		{
+			code: 'export const a = 1, revokeSession = createOpsFn({});',
+			errors: [{messageId: 'singleSessionRevoke'}],
+		},
 	],
 })
 
@@ -148,6 +161,14 @@ tester.run('wunstart/email-layer-allowlist', emailLayerAllowlistRule, {
 			code: "import {x} from '#/lib/nicamail/x.ts';",
 			filename: 'src/routes/settings.tsx',
 		},
+		{
+			code: "export {type renderVerifyEmail} from '#/email/templates/verify-email.tsx';",
+			filename: 'src/routes/sign-up.tsx',
+		},
+		{
+			code: "import type {EmailService} from '#/email/service.ts';",
+			filename: 'src/routes/settings.tsx',
+		},
 	],
 	invalid: [
 		{
@@ -167,6 +188,11 @@ tester.run('wunstart/email-layer-allowlist', emailLayerAllowlistRule, {
 		},
 		{
 			code: "export {x} from '#/email/layer.ts';",
+			filename: 'src/routes/settings.tsx',
+			errors: [{messageId: 'emailLayerOutsideAllowlist'}],
+		},
+		{
+			code: "export {type x, emailLayer} from '#/email/layer.ts';",
 			filename: 'src/routes/settings.tsx',
 			errors: [{messageId: 'emailLayerOutsideAllowlist'}],
 		},

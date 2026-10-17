@@ -14,6 +14,12 @@ function isTypeOnlyImport(node: ESTree.ImportDeclaration): boolean {
 	)
 }
 
+/** True when every specifier is an inline `type` re-export (erased at compile, always safe). */
+function isTypeOnlyExport(node: ESTree.ExportNamedDeclaration): boolean {
+	if (node.exportKind === 'type') return true
+	return node.specifiers.length > 0 && node.specifiers.every((s) => s.exportKind === 'type')
+}
+
 /**
  * Request-bound op modules, by their basename without extension. Static VALUE
  * imports of these inside src/middleware/ recreate the flattenMiddlewares crash
@@ -62,7 +68,7 @@ export const noStaticWorkersImportInMiddlewareRule = defineRule({
 				}
 			},
 			ExportNamedDeclaration(node) {
-				if (node.exportKind === 'type' || !node.source) return
+				if (!node.source || isTypeOnlyExport(node)) return
 				const source: string = node.source.value
 				if (isDangerSource(source)) {
 					context.report({node: node.source, messageId: 'staticWorkersImport', data: {source}})
