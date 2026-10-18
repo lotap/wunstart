@@ -106,6 +106,10 @@ Agent coding guidance lives in [`AGENTS.md`](./AGENTS.md) and `.agents/skills/` 
 - Rename the kit: `package.json` `name` and the `wrangler.jsonc` worker name. Leave `crates/argon2-do-hasher/` and `src/durable-objects/argon2-do-hasher.wasm` alone — the paths are hardcoded in `tools/build-wasm.sh`, the pre-commit hook, and `auth-hasher.ts`.
 - Add domain tables under `src/db/models/<domain>/` and ops under `src/db/ops/` — the `.agents/skills/wunshot/` skill documents the conventions (lint-enforced by `tools/linters/wunshot/`).
 
+## License
+
+MIT — see [LICENSE](./LICENSE). Third-party notices (shadcn/ui components, fonts) remain under their own licenses.
+
 ## Kill the dev server
 
 ```bash
