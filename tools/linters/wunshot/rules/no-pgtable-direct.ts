@@ -31,7 +31,7 @@ export const noPgTableDirectRule = defineRule({
 				if (node.source.value !== 'drizzle-orm/pg-core') return
 				for (const specifier of node.specifiers) {
 					if (specifier.type !== 'ImportSpecifier') {
-						if (specifier.local.type === 'Identifier') drizzleModules.add(specifier.local.name)
+						drizzleModules.add(specifier.local.name)
 						continue
 					}
 					const imported =
@@ -48,7 +48,7 @@ export const noPgTableDirectRule = defineRule({
 			// is legitimate (snakeCase et al. load this way); use is caught at the call site.
 			// The declarator below only records the binding name for the member check.
 			ExportNamedDeclaration(node) {
-				if (!node.source || node.source.value !== 'drizzle-orm/pg-core') return
+				if (node.source?.value !== 'drizzle-orm/pg-core') return
 				for (const spec of node.specifiers) {
 					// String-literal locals (`export {'pgTable' as x}`) bypass this; review is the backstop.
 					if (spec.local.type === 'Identifier' && spec.local.name === 'pgTable') {
@@ -65,7 +65,7 @@ export const noPgTableDirectRule = defineRule({
 				const init = node.init
 				if (!init) return
 				const awaited = init.type === 'AwaitExpression' ? init.argument : init
-				if (!awaited || awaited.type !== 'ImportExpression') return
+				if (awaited.type !== 'ImportExpression') return
 				const source = awaited.source
 				if (source.type !== 'Literal' || source.value !== 'drizzle-orm/pg-core') return
 				if (node.id.type === 'Identifier') drizzleModules.add(node.id.name)
