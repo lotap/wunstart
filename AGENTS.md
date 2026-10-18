@@ -7,6 +7,7 @@ Stack: TanStack Start (React) + Router + Query + Drizzle/Effect + Postgres + Clo
 - `.agents/skills/wunshot/` — tables, queries, validations, cascades/archive pairs, ops contract, auth module contract, bans (portable DB-module rules).
 - `.agents/skills/wunstart/` — server fns, `_auth-*` routes + adding-a-page recipe, middleware, cookies, forms (TanStack Form), shadcn/Base UI composition, styling/theme, contexts/hooks, isomorphic validation, DO hashing, email, Workers runtime, visual contract + page-craft process (`references/design/`).
 - `CONTEXT.md` — product glossary. Replace with your domain language; use its vocabulary in copy and code names (Anon not Guest, User not Account).
+- Dictation artifacts: "one start" = `wunstart`, "one shot" = `wunshot`.
 - Vendored `.agents/skills/` (effect, shadcn, web-perf, …) are fallback, except where a project skill recommends one; project skills take precedence. Do NOT trust the `tanstack-start` skill — the wunstart skill documents why.
 
 ## Setup
