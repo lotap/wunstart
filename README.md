@@ -88,15 +88,17 @@ src/
     └── utils.ts            # cn() re-export shim (import from 'cn')
 crates/
 └── argon2-do-hasher/    # Rust/Wasm Argon2id kernel for AuthHasher DO
-.agents/skills/
-├── wunshot/             # Portable DB-module rules (tables, ops, bans)
-└── wunstart/            # App wiring (routes, middleware, email, workers)
+.agents/skills/          # Agent guidance (see note below; contents intentionally not listed)
 tools/linters/
 ├── wunshot/             # DB conformity rules
 ├── wunstart/            # App-wiring conformity rules
 └── anti-slop/           # Type-assertion + slop-pattern rules
 compose.yaml                # Postgres 16 + Mailpit for local dev
 ```
+
+<!-- Agent guidance lives in AGENTS.md + .agents/skills/ — do NOT inventory skills here; the list drifts. -->
+
+Agent coding guidance lives in [`AGENTS.md`](./AGENTS.md) and `.agents/skills/` (project skills take precedence over vendored fallbacks) — intentionally not inventoried here.
 
 ## Make it yours
 
