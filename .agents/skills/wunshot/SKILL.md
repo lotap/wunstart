@@ -65,7 +65,7 @@ Top-level `db/helpers/` serves all models: `tables.ts` (factories), `funcs.ts` (
 
 ## Installing
 
-Core modules install via Shadcn from the `wunshot` registry. Install `init` first — every domain module imports `helpers/`:
+In this repo the modules already live under `src/db/` — the install story below applies to a new host project. Core modules install via Shadcn from the `wunshot` registry. Install `init` first — every domain module imports `helpers/`:
 
 - `init` → `db/helpers/*` (factories, query/archive helpers, shared consts/types/validators) + `db/index.ts` + drizzle config. `db/index.ts` ships connection resolution for its home runtime — adapt it (your connection string/layer), don't copy it verbatim. Keep its contract: `export class DB`, `dbLayer`, the lazy pool, and the pg `customTypes` passthrough.
 - Domain items → `db/models/<domain>/` + `db/ops/<domain>/` (map `db/` to your tree). No registration step: the drizzle-kit glob auto-discovers `*schemas.ts`, and twins migrate together. Installing ops also needs the shared machinery at `db/ops/` root: `ops-error.ts`, `_create-ops-fn.ts`, `_logging.ts`, `_retry.ts`, `_extract-pg-error.ts`, `_current-bans-and-excessive-activities.ts`, `rate-limit-error.ts`. Its import closure reaches further — `_logging.ts` pulls `models/{activities, activities---bans, anons, bans, users}` + `ops/auth/_calc-penalty-time.ts`; `ops-error.ts` pulls `models/activities/{consts,validations}`. Include those model modules in the install, or the imports break. `service-bindings.ts` is host Cloudflare code, not portable — keep the `HashingStub` tag, implement its layer for your runtime.

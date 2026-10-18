@@ -6,7 +6,7 @@ description: |
 
 # Wunstart
 
-Full-stack TypeScript starter: TanStack Start (React) + Router + Query, Effect-wrapped Drizzle on Postgres, Cloudflare Workers deployment. Ships self-rolled auth core (sessions + JWT, anon identity, email verification) + weight-based ban/rate-limit. Server functions compose `wunshot` ops; this skill owns everything around the ops (cookies, routing, middleware, runtime).
+Full-stack TypeScript starter: TanStack Start (React) + Router + Query, Effect-wrapped Drizzle on Postgres, Cloudflare Workers deployment. Ships self-rolled auth core (sessions + JWT, anon identity, email verification) + weight-based ban/rate-limit. Server functions compose `wunshot` ops; this skill owns everything around the ops (cookies, routing, middleware, runtime). The vendored `tanstack-start` skill documents a different API surface than this codebase uses — treat this skill as source of truth.
 
 ## Ownership boundary
 
