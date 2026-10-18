@@ -6,7 +6,7 @@ import {useState, type ComponentType, type CSSProperties} from 'react'
 import {RouterButton} from '#/components/router-button.tsx'
 import {Card, CardAction, CardContent, CardHeader, CardTitle} from '#/components/ui/card.tsx'
 
-import {CATEGORIES, type CategoryId} from '../categories.ts'
+import {CATEGORIES, type CategoryId} from '../-categories.ts'
 import {AccessAndSecurity} from './access-and-security.tsx'
 import {PinButton} from './pin-button.tsx'
 import {Preferences} from './preferences.tsx'

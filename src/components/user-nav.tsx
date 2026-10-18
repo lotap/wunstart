@@ -17,7 +17,7 @@ import {
 } from '#/components/ui/dropdown-menu.tsx'
 import {Skeleton} from '#/components/ui/skeleton.tsx'
 import {useSignOut} from '#/hooks/use-sign-out.ts'
-import {CATEGORIES} from '#/routes/_auth-protected/settings/categories.ts'
+import {CATEGORIES} from '#/routes/_auth-protected/settings/-categories.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 
 export function UserNav() {
