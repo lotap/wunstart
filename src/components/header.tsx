@@ -1,5 +1,7 @@
 import {Link, getRouteApi} from '@tanstack/react-router'
 
+import {appInfo} from '#/app-info.ts'
+
 import {RouterButton} from './router-button.tsx'
 import ThemeToggle from './theme-toggle.tsx'
 import {UserNav} from './user-nav.tsx'
@@ -13,7 +15,7 @@ export function Header() {
 		<header className="border-b">
 			<nav className="mx-auto flex max-w-5xl flex-row items-center justify-between px-2">
 				<h1 className="font-heading text-2xl font-bold dark:font-semibold">
-					<Link to="/">wunstart</Link>
+					<Link to="/">{appInfo.name}</Link>
 				</h1>
 				<ul className="flex gap-4">
 					<li>

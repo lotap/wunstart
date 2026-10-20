@@ -1,9 +1,13 @@
+import {appInfo} from '#/app-info.ts'
+
 export function Footer() {
 	const year = new Date().getFullYear()
 
 	return (
 		<footer className="flex flex-row justify-center">
-			<small suppressHydrationWarning>© {year} wunstart</small>
+			<small suppressHydrationWarning>
+				© {year} {appInfo.name}
+			</small>
 		</footer>
 	)
 }

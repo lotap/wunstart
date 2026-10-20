@@ -5,6 +5,7 @@ import {HeadContent, Scripts, createRootRouteWithContext} from '@tanstack/react-
 import {TanStackRouterDevtoolsPanel} from '@tanstack/react-router-devtools'
 import {cva} from 'class-variance-authority'
 
+import {appInfo} from '#/app-info.ts'
 import {Footer} from '#/components/footer.tsx'
 import {Header} from '#/components/header.tsx'
 import {RouteError} from '#/components/route-error.tsx'
@@ -41,7 +42,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				content: 'width=device-width, initial-scale=1',
 			},
 			{
-				title: 'Wunstart',
+				name: 'description',
+				content: appInfo.description,
+			},
+			{
+				title: appInfo.name,
 			},
 		],
 		links: [

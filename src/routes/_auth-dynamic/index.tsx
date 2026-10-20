@@ -36,6 +36,62 @@ const SlashGrid = ({
 	</div>
 )
 
+const agentPrompts: Array<{label: string; body: string}> = [
+	{
+		label: '1 — Rename the kit',
+		body: 'Read AGENTS.md first — it is the source of truth. Run bun run setup <name>: it renames the kit (package.json + the wrangler.jsonc worker name; leaves crates/ and src/durable-objects/argon2-do-hasher.wasm alone) and ends with the validate-setup gate. Fix anything it flags.',
+	},
+	{
+		label: '2 — Add a domain table + op',
+		body: 'Read AGENTS.md and .agents/skills/wunshot/ first — they are the source of truth. Add a <domain> table under src/db/models/<domain>/ (active + archive pair via the table factories) and an op under src/db/ops/ following the ops contract, wired through runOp. Verify with lint and bunx tsgo --noEmit.',
+	},
+	{
+		label: '3 — Add a page',
+		body: 'Read AGENTS.md and .agents/skills/wunstart/ (adding-a-page recipe) first — they are the source of truth. Add a page at <route> in the correct _auth-* folder, with a handle-*.ts server fn and queryOptions beside the feature. Regenerate routes, then verify with lint and bunx tsgo --noEmit.',
+	},
+	{
+		label: '4 — Work in parallel with worktrees',
+		body: 'Read AGENTS.md and README.md (Parallel work section) first — they are the source of truth. Create a sibling worktree for branch <branch> (bare repo + `git worktree add`), then run bun run setup inside it: it claims dedicated ports and its own database so branches never collide. Tear down with the README Teardown section when done.',
+	},
+]
+
+function MakeItYours() {
+	return (
+		<section className="w-full max-w-5xl">
+			<div className="flex items-center gap-2">
+				<SlashGrid className="w-1/3 grid-cols-20 sm:hidden" contentLength={20} />
+				<SlashGrid className="hidden w-2/3 grid-cols-40 sm:grid lg:hidden" contentLength={40} />
+				<SlashGrid className="hidden w-3/4 grid-cols-45 lg:grid" contentLength={45} />
+				<p className="grow text-right font-mono text-xs tracking-widest whitespace-nowrap text-muted-foreground/75 uppercase">
+					<span>AGENTS ARE FIRST-CLASS</span>
+				</p>
+			</div>
+
+			<h3 className="px-6 py-3 text-3xl">Make it yours</h3>
+
+			<SlashGrid />
+
+			<div className="flex flex-col gap-4 px-6 py-6">
+				<p className="text-lg">
+					Paste one of these into your agent. <code>AGENTS.md</code> is the source of truth — these
+					just aim it. The same prompts live in <code>README.md</code>.
+				</p>
+				{agentPrompts.map((prompt) => (
+					<Card key={prompt.label}>
+						<CardContent className="flex flex-col gap-2">
+							<p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
+								{prompt.label}
+							</p>
+							<p className="font-mono text-sm whitespace-pre-wrap">{prompt.body}</p>
+						</CardContent>
+					</Card>
+				))}
+			</div>
+			<SlashGrid contentLength={60 * 2} />
+		</section>
+	)
+}
+
 function Home() {
 	const {auth} = Route.useRouteContext()
 
@@ -312,6 +368,8 @@ function Home() {
 					</div>
 				</section>
 			</div>
+
+			<MakeItYours />
 
 			{/* SIGN UP */}
 			<section>

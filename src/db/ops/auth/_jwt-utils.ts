@@ -23,7 +23,7 @@ export function deriveHashKey({
 	salt: Parameters<typeof hkdf>[2]
 }) {
 	return Effect.callback<Uint8Array, JwtKeyDerivationError>((resume) => {
-		hkdf('sha256', secret, salt, 'Generated for Wunstart', 32, (err, derivedKey) => {
+		hkdf('sha256', secret, salt, 'Generated for wunstart', 32, (err, derivedKey) => {
 			if (err) return resume(Effect.fail(new JwtKeyDerivationError({cause: err})))
 			resume(Effect.succeed(new Uint8Array(derivedKey)))
 		})
