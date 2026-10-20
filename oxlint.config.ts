@@ -17,7 +17,7 @@ for (const set of [
 }
 
 const config = defineConfig({
-	ignorePatterns: ['*.gen.ts', './tools/linters/**', 'src/components/ui/**'],
+	ignorePatterns: ['*.gen.ts', 'tools/linters/anti-slop/**', 'src/components/ui/**'],
 	options: {
 		typeAware: true,
 		typeCheck: true,
@@ -163,9 +163,9 @@ const config = defineConfig({
 			env: {node: true},
 		},
 
-		/// CLI SCRIPTS ///
+		/// SCRIPTS ///
 		{
-			files: ['src/scripts/**/*.ts'],
+			files: ['src/scripts/**/*.ts', 'tools/**/*.ts'],
 			env: {node: true},
 			rules: {
 				'eslint/no-console': 'off', // CLI scripts need console output and process.exit

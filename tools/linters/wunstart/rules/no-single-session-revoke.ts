@@ -1,7 +1,10 @@
 import {defineRule} from '@oxlint/plugins'
 import type {ESTree} from '@oxlint/plugins'
 
-const ALLOWED_NAMES = new Set(['revokeForReuse'])
+const ALLOWED_NAMES = new Set([
+	'revokeForReuse',
+	'noSingleSessionRevokeRule', // this rule's own definition export is not a user-facing revoke
+])
 const REVOKE = /revoke/i
 const SESSION = /session/i
 // Whole-family revokes are camelCase `All` + new word or end (`revokeAllSessions`,

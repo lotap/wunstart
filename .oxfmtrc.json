@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/oxfmt/configuration_schema.json",
-	"ignorePatterns": ["*.gen.ts", "**/db/migrations/**/snapshot.json", "worker-configuration.d.ts"],
+	"ignorePatterns": ["*.gen.ts", "**/db/migrations/**/snapshot.json", "worker-configuration.d.ts", "src/app-info.ts"],
 	"bracketSpacing": false,
 	"quoteProps": "consistent",
 	"semi": false,
