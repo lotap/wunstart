@@ -9,9 +9,9 @@ import {archiveOldActivities} from '#/db/ops/system/archive-old-activities.ts'
  * Cloudflare Workers runs this via the `scheduled` handler (src/server.ts).
  * Other platforms (e.g. a VPS system cron) run this file directly:
  *
- *   bun --bun run src/scripts/archive-old-activities.ts
+ *   bun run archive-old-activities
  *
- * Requires DATABASE_URL in the environment (see the `archive-activities` script in package.json).
+ * Requires DATABASE_URL in the environment (see the `archive-old-activities` script in package.json).
  */
 async function main() {
 	try {
