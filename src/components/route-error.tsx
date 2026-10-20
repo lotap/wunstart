@@ -22,7 +22,9 @@ export function RouteError({error, reset}: ErrorComponentProps) {
 				Try again
 			</Button>
 			{import.meta.env.DEV && (
-				<pre className="mt-6 overflow-auto rounded-md bg-muted p-4 text-sm">{error.message}</pre>
+				<pre className="mt-6 overflow-auto rounded-md bg-muted p-4 text-sm">
+					{error instanceof Error ? error.message : 'Unknown error'}
+				</pre>
 			)}
 		</section>
 	)
