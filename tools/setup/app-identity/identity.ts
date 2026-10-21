@@ -1,6 +1,6 @@
 // Identity files: readers, the app-info field patcher, and the state-free
 // synchronization across package.json, wrangler.jsonc, src/app-info.ts,
-// and public/llms.txt.
+// public/llms.txt, and CONTEXT.md.
 
 import {readFileSync, statSync, utimesSync} from 'node:fs'
 import {join} from 'node:path'
@@ -87,17 +87,26 @@ function readWranglerFile(): WranglerFile {
 	return {path, lines, index: found.line, at: found.at, name}
 }
 
-export type LlmsFile = {path: string; lines: Array<string>}
-
-function readLlmsFile(): LlmsFile {
-	const path: string = join(ROOT, 'public', 'llms.txt')
+function readLinesFile(path: string, label: string) {
 	let text: string
 	try {
 		text = readFileSync(path, 'utf8')
 	} catch {
-		fail('public/llms.txt is missing or unreadable', 'restore it: git checkout -- public/llms.txt')
+		fail(`${label} is missing or unreadable`, `restore it: git checkout -- ${label}`)
 	}
 	return {path, lines: text.split('\n')}
+}
+
+export type LlmsFile = {path: string; lines: Array<string>}
+
+function readLlmsFile(): LlmsFile {
+	return readLinesFile(join(ROOT, 'public', 'llms.txt'), 'public/llms.txt')
+}
+
+export type ContextFile = {path: string; lines: Array<string>}
+
+function readContextFile(): ContextFile {
+	return readLinesFile(join(ROOT, 'CONTEXT.md'), 'CONTEXT.md')
 }
 
 export type IdentitySnapshot = {
@@ -105,6 +114,7 @@ export type IdentitySnapshot = {
 	wrangler: WranglerFile
 	appInfo: AppInfoIdentityFile
 	llms: LlmsFile
+	context: ContextFile
 }
 
 export function readIdentitySnapshot(): IdentitySnapshot {
@@ -113,6 +123,7 @@ export function readIdentitySnapshot(): IdentitySnapshot {
 		wrangler: readWranglerFile(),
 		appInfo: readAppInfo(),
 		llms: readLlmsFile(),
+		context: readContextFile(),
 	}
 }
 
@@ -279,6 +290,61 @@ function syncLlms(llms: LlmsFile, values: IdentityValues, target: IdentityTarget
 }
 
 /**
+ * CONTEXT.md is title-managed only: the file is the built app's glossary,
+ * so the one-line app description never belongs in it (it would bloat every
+ * agent read). The sync below swaps the title on rename; everything below
+ * the title is user-owned glossary content and is never touched.
+ */
+function syncContextLines(
+	contextLines: Array<string>,
+	inputs: {wantTitle: string; prevTitle: string | null},
+): Array<string> | null {
+	const {wantTitle, prevTitle} = inputs
+	const lines: Array<string> = [...contextLines]
+	const titleIndex: number = lines.findIndex((line) => line.startsWith('# '))
+	if (
+		titleIndex === -1 ||
+		prevTitle === null ||
+		lines[titleIndex] !== prevTitle ||
+		lines[titleIndex] === wantTitle
+	) {
+		return null
+	}
+	lines[titleIndex] = wantTitle
+	if (lines[lines.length - 1] !== '') {
+		lines.push('')
+	}
+	return lines
+}
+
+function syncContext(context: ContextFile, values: IdentityValues, target: IdentityTarget): void {
+	const wantTitle: string = `# ${target.name}`
+	const prevTitle: string | null = values.prevName !== '' ? `# ${values.prevName}` : null
+	const synced: Array<string> | null = syncContextLines(context.lines, {
+		wantTitle,
+		prevTitle,
+	})
+	const lines: Array<string> = synced ?? context.lines
+	if (synced !== null && writeFileIfChanged(context.path, lines.join('\n'))) {
+		ok('CONTEXT.md updated')
+	}
+	const titleLine: string | undefined = lines.find((line) => line.startsWith('# '))
+	if (titleLine === undefined) {
+		warn(
+			'CONTEXT.md has no top-level title — identity not synchronized (restore it: git checkout -- CONTEXT.md)',
+		)
+		return
+	}
+	if (titleLine !== wantTitle) {
+		warn(
+			prevTitle === null
+				? `CONTEXT.md title '${titleLine}' does not match '${wantTitle}' — left untouched (hand-edited?)`
+				: `CONTEXT.md title '${titleLine}' did not match the last-written value — left untouched (hand-edited?)`,
+		)
+	}
+}
+
+/**
  * Replace the two managed fields in place. Everything else in the file —
  * other properties, comments, formatting — is preserved. The shared
  * locator guarantees the write lands on the top-level fields, and a
@@ -390,6 +456,7 @@ export function applyIdentity(
 			ok(`wrangler.jsonc worker name -> ${target.name}`)
 		}
 	}
+	syncContext(snapshot.context, values, target)
 	syncLlms(snapshot.llms, values, target)
 	if (writeFileIfChanged(snapshot.appInfo.path, appInfoText)) {
 		ok('src/app-info.ts identity updated')

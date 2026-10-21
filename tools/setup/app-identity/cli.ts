@@ -32,7 +32,8 @@ function usage(): void {
 
   Resolve the application name and description, validate the committed
   project shape, and synchronize package.json, wrangler.jsonc,
-  src/app-info.ts (name and description only), and public/llms.txt.
+   src/app-info.ts (name and description only), public/llms.txt, and
+   CONTEXT.md (title only).
   Stateless: every run derives its target from flags and the files
   themselves. Run install-deps after a rename to regenerate the active
   lockfile.
@@ -61,9 +62,9 @@ function usage(): void {
 }
 
 /**
- * One-line description guard: the value lands on a single llms.txt
- * paragraph line and inside a quoted TS string, so a line break would
- * produce an unprefixed second line.
+ * One-line description guard: the value lands on a single-line llms.txt
+ * line and inside a quoted TS string, so a line break would produce an
+ * unprefixed second line.
  */
 export function checkDescription(
 	raw: string,

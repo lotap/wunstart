@@ -1,7 +1,8 @@
 // Project-level identity setup: resolve the app name and description,
 // validate the committed project shape, and synchronize package.json,
-// wrangler.jsonc, src/app-info.ts, and public/llms.txt. Stateless by
-// design: every run derives its target from flags and the files themselves.
+// wrangler.jsonc, src/app-info.ts, public/llms.txt, and CONTEXT.md.
+// Stateless by design: every run derives its target from flags and the
+// files themselves.
 
 import {basename, join} from 'node:path'
 import process from 'node:process'
@@ -146,7 +147,7 @@ function printPlan(target: IdentityTarget, display: PlanDisplay): void {
 	write(`${header}
   app name:    ${target.name}
   description: ${description}
-  files:       package.json, wrangler.jsonc, src/app-info.ts (name/description only), public/llms.txt
+  files:       package.json, wrangler.jsonc, src/app-info.ts (name/description only), public/llms.txt, CONTEXT.md (title only)
   env:         .env.development ok
   wasm:        kernel present`)
 }

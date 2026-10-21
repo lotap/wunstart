@@ -1,42 +1,36 @@
-# Wunstart
+# wunstart
 
-A full-stack TypeScript starter kit: TanStack Start + Drizzle/Effect on Postgres, deployed to Cloudflare Workers, shipping a self-rolled auth core (sessions + JWT, anon identity, email verification) and a weight-based ban/rate-limit system.
-
-The vocabulary below describes what the kit ships. **Replace it with your product's domain language as you build** — this file is the glossary agents read before writing feature code.
+The vocabulary below is the built app’s glossary: the words to use in copy and code names, starting with the terms the kit ships. **Extend it with your product’s domain language as you build.** Implementation mechanics live in the wunshot and wunstart skills; add a term here only when it shapes how the product or its code is named or described.
 
 ## Language
 
 **Anon**:
-An anonymous visitor identified by a signed JWS token. Materialises a DB row on first meaningful action and can convert to a User at sign-up.
+A visitor with no account. Carries a durable anonymous identity, and becomes a User at sign-up.
 _Avoid_: Guest
 
 **User**:
-An individual with an account. The atomic identity for login, auth, and ban scoring.
-_Avoid_: Account
+A person with an account: the identity behind sign-in and the subject of bans. Code and models say User; product copy may say “account”.
 
 **Session**:
-A server-side DB row authorizing a User, keyed by a rotating refresh token and backed by short-lived stateless access tokens.
+A single sign-in for a User, backed by a refresh/access token pair. The unit of revocation: signing out all ends every Session.
 
-**Refresh generation**:
-A monotonic counter on a Session. Every authoritative rotation advances it; a short grace slot covers concurrent retries. Reuse of an older generation revokes the whole session family.
-
-**Activity**:
-An append-only security log row (success/failure, weight, IP, credential) written automatically by every Op.
-
-**Weight**:
-How strongly an Activity counts toward bans (e.g. a wrong password vs a rate-limit denial).
-
-**Ban**:
-A temporary block scoped to IP, credential, User, or Anon, created when a dimension's Activity weight crosses the threshold within the window.
+**Sudo**:
+A short-lived privileged window unlocked by re-entering credentials. Code says Sudo; copy says “reverify”.
 
 **Op**:
-An Effect-based business operation (`src/db/ops`) with automatic Activity logging, typed errors, and per-run Layers.
+The unit of business logic in `src/db/ops`, invoked from server code through `runOp`.
 
-**Layer**:
-An Effect dependency bundle (DB, auth secrets, email transport) supplied by the caller at each Op run.
+**Activity**:
+An append-only security log entry written by every Op: outcome, weight, IP, and credential.
+
+**Weight**:
+How strongly an Activity counts toward a Ban; a wrong password and a rate-limit denial carry different weight.
+
+**Ban**:
+A temporary block on one scope — IP, credential (the email the attempt claimed), User, or Anon — once weighted Activity crosses the threshold within a window.
 
 **Archive**:
-The active/archive table pair pattern: deletes move rows to the archive twin with FK redirection, preserving audit history forever.
+The app’s no-hard-delete guarantee: removed data leaves the live tables for an archive twin, so it disappears from the product while audit history survives.
 
 **Email verification**:
-Verify-before-create sign-up: a hashed 6-digit passcode authorizes user creation, so every User row is verified by construction.
+Verify-before-create: a 6-digit passcode authorizes User creation, so every User is verified by construction.

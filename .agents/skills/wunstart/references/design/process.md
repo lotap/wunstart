@@ -23,7 +23,7 @@ Never present invented specifics as real. Route unknowns before building:
 
 ## 1. Conceptualize and contextualize
 
-Read the repo before assuming its shape. `src/routes/**` is the sitemap — the tree and each layout's comment describe what exists and what guards it. Read one or two existing pages closest to the work (`references/app.md` lists exemplars). `CONTEXT.md` is the domain glossary — translate the task's wording against it before that wording enters copy, code names, or file names (account → User, guest → Anon).
+Read the repo before assuming its shape. `src/routes/**` is the sitemap — the tree and each layout's comment describe what exists and what guards it. Read one or two existing pages closest to the work (`references/app.md` lists exemplars). `CONTEXT.md` is the domain glossary — translate the task's wording against it before that wording enters copy, code names, or file names (User in code/models; account is fine in copy; guest → Anon).
 
 Decide extend or replace explicitly (`contract.md`). Once a house language exists, new work must read as the same site as its closest sibling; harvest existing motifs before inventing a parallel look. Be bold within the contract and tokens — originality lives in concept and composition, not in breaking the system.
 
