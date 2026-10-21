@@ -1,6 +1,6 @@
 # wunstart
 
-> TODO(setup): one paragraph for LLMs — what this product does, who it is for, and what a user can do with it.
+> Build on primitives that you can read and your agent can extend. A starter that’s fast, opinionated, and promptable.
 
 ## Docs
 

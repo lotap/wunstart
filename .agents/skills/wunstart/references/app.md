@@ -2,7 +2,7 @@
 
 ## Routes (TanStack file-based)
 
-- `_`-prefixed dirs = pathless layouts; `-components/` = route-private, not routed. Never edit `routeTree.gen.ts` (regenerate via `generate-routes` or dev restart).
+- `_`-prefixed dirs = pathless layouts; `-components/` = route-private, not routed. Never edit `routeTree.gen.ts` (restart dev — the TanStack Start plugin regenerates it, type registration included).
 - `_auth-*` placement IS the guard — moves across folders are security-relevant in review: `_auth-protected` (requires sign-in, redirect `/sign-in?redirect=`, wraps `HasSudoProvider`), `_auth-gateway` (auth-flow only, sign-in/up, authed bounce `/`), `_auth-dynamic` (no redirect, adapts; marketing that changes its call by auth — e.g. pricing with manage-vs-buy CTA; `HasSudoProvider key={auth ? 'user' : 'anon'}` resets stale sudo), `_auth-anon` (no guard/provider — public pages where auth state is irrelevant, e.g. static pricing). Layout `route.tsx` often comment-only docs of the implied protection.
 - Chrome: `Header`/`Footer` mount in the `__root` shell (`components/header.tsx`, `components/footer.tsx`); the header branches on `context.auth`. Chrome edits render on every route — verify across layouts and both identity modes.
 - Auth verified exactly once in `__root.tsx` `beforeLoad` → `handleVerifyAuth()` (returns only `{sudoExpiresAt?}`, no db ids to client). Layouts read `context.auth`; never re-call in children. Data via `useQuery` + `useServerFn`; loaders allowed where SSR/first-paint/SEO wins (public content), keeping auth verify in `beforeLoad` only. `validateSearch` also via `Schema.toStandardSchemaV1`. Db ids never travel client→server (path, search, or fn input) — identity unwraps from cookies; non-id params (slugs) allowed via validated search/path.
@@ -11,7 +11,7 @@
 
 ## Adding a page
 
-Pick `_auth-*` placement → `handle-*.ts` (shape: see `references/middleware.md`) → `queryOptions` beside the feature (shared ones in `components/<domain>/_utils.ts`; keys `['<thing>', ...params]`, e.g. `['passcodeRequest', email, intent]`) → reads via `useQuery` + inline pending/error inside `ErrorBoundary` (search via `Route.useSearch`) → navigate via `router.navigate({to, state})`; button-styled links via `RouterButton`, text links via `Link`; never `<a href>` for internal routes or `Button`+onClick nav → `generate-routes` → verify (lint + tsgo). Auth changes end with `router.invalidate()`. Exemplars: list query `settings/-components/sessions.tsx`, page with search `settings/`, sudo-gated mutation `components/auth/remove-account.tsx`, email flow `components/auth/email-change.tsx`.
+Pick `_auth-*` placement → `handle-*.ts` (shape: see `references/middleware.md`) → `queryOptions` beside the feature (shared ones in `components/<domain>/_utils.ts`; keys `['<thing>', ...params]`, e.g. `['passcodeRequest', email, intent]`) → reads via `useQuery` + inline pending/error inside `ErrorBoundary` (search via `Route.useSearch`) → navigate via `router.navigate({to, state})`; button-styled links via `RouterButton`, text links via `Link`; never `<a href>` for internal routes or `Button`+onClick nav → restart dev (regenerates routes) → verify (lint + tsgo). Auth changes end with `router.invalidate()`. Exemplars: list query `settings/-components/sessions.tsx`, page with search `settings/`, sudo-gated mutation `components/auth/remove-account.tsx`, email flow `components/auth/email-change.tsx`.
 
 ## Frontend
 

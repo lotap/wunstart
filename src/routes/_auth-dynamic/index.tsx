@@ -39,7 +39,7 @@ const SlashGrid = ({
 const agentPrompts: Array<{label: string; body: string}> = [
 	{
 		label: '1 — Rename the kit',
-		body: 'Read AGENTS.md first — it is the source of truth. Run bun run setup <name>: it renames the kit (package.json + the wrangler.jsonc worker name; leaves crates/ and src/durable-objects/argon2-do-hasher.wasm alone) and ends with the validate-setup gate. Fix anything it flags.',
+		body: 'Read AGENTS.md first — it is the source of truth. Run bun run app-identity <name> (renames the kit: package.json + the wrangler.jsonc worker name; leaves crates/ and src/durable-objects/argon2-do-hasher.wasm alone), then bun run install-deps, then bun run branch-env (ends with the validate-setup gate). Fix anything it flags.',
 	},
 	{
 		label: '2 — Add a domain table + op',
@@ -51,7 +51,7 @@ const agentPrompts: Array<{label: string; body: string}> = [
 	},
 	{
 		label: '4 — Work in parallel with worktrees',
-		body: 'Read AGENTS.md and README.md (Parallel work section) first — they are the source of truth. Create a sibling worktree for branch <branch> (bare repo + `git worktree add`), then run bun run setup inside it: it claims dedicated ports and its own database so branches never collide. Tear down with the README Teardown section when done.',
+		body: 'Read AGENTS.md and README.md (Parallel work section) first — they are the source of truth. Create a sibling worktree for branch <branch> (bare repo + `git worktree add`), then run bun run app-identity, bun run install-deps, and bun run branch-env inside it: they claim dedicated ports and its own database so branches never collide. Tear down with the README Teardown section when done.',
 	},
 ]
 

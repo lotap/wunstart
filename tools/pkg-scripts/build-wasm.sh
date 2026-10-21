@@ -4,7 +4,7 @@
 # Run this only after editing crates/argon2-do-hasher, then commit the result.
 set -eu
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 CRATE="$ROOT/crates/argon2-do-hasher"
 DEST="$ROOT/src/durable-objects/argon2-do-hasher.wasm"
 

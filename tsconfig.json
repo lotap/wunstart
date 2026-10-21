@@ -29,6 +29,7 @@
 		"noImplicitOverride": true,
 		"noPropertyAccessFromIndexSignature": true,
 		"noImplicitReturns": true,
+		"erasableSyntaxOnly": true,
 
 		"plugins": [
 			{
