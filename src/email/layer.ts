@@ -8,7 +8,7 @@ import {SendEmail, sendEmailLayer} from './transports/send-email.ts'
 type EmailLayer = Layer.Layer<EmailService, Config.ConfigError | EmailLayerBuildError>
 
 /** Dev-only layer-build failure: the mailpit transport module failed to load */
-class EmailLayerBuildError extends Schema.TaggedErrorClass<EmailLayerBuildError>()(
+class EmailLayerBuildError extends Schema.TaggedError<EmailLayerBuildError>()(
 	'EmailLayerBuildError',
 	{message: Schema.String, cause: Schema.Unknown},
 ) {}

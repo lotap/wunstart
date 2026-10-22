@@ -60,7 +60,7 @@ export const brevoLayer = Layer.effect(
 
 		return BrevoEmail.of({
 			send: Effect.fn('BrevoEmail.send')(function* (message: EmailMessage) {
-				const apiKey = yield* Config.option(Config.redacted('BREVO_API_KEY')).pipe(
+				const apiKey = yield* Config.option(Config.Redacted('BREVO_API_KEY')).pipe(
 					Effect.mapError(
 						() =>
 							new EmailSendError({

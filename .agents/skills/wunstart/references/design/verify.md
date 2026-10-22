@@ -27,4 +27,4 @@ If the answer to any applicable question is no, revise until all the answers are
 - Data-bound UI: exercise default, empty, loading, error, optimistic-pending, and rollback states (`AsyncBoundary`/`ErrorBoundary`, skeleton) in every layout and identity mode the surface ships in.
 - Chrome changes: sample every layout under both identity modes.
 - Performance (page scale): `lighthouse_audit` via chrome-devtools, or the vendored `web-perf` skill for a deeper audit.
-- Typecheck + lint: `bunx tsgo --noEmit` and `bun --bun run lint:check`.
+- Typecheck + lint: `bunx tsc --noEmit` and `bun --bun run lint:check`.

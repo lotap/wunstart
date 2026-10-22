@@ -177,7 +177,7 @@ Example prompts for agents:
 
 There is no product test suite yet.
 
-Run `bun run fmt`, `bun run lint:check`, and `bunx tsgo --noEmit` to format and check new code.
+Run `bun run fmt`, `bun run lint:check`, and `bunx tsc --noEmit` to format and check new code.
 
 Linter rule tests run with `bun run test:lint`. Run them when you edit linter rules.
 
@@ -189,6 +189,7 @@ Three things update three ways:
   - Caveats:
     - Keep `ua-parser-js` on v1. Version 2 relicensed from MIT to AGPL.
     - Keep TanStack Form on the v2 prerelease line, since the interactive updater lists the older v1 stable as an update. Don't take it.
+    - Keep Drizzle ORM and Drizzle Kit on the v1 release-candidate line (currently rc.5). The updater lists the older 0.x stable as an update. Don't take it. After a kit bump, run `db:up` then `db:generate` and expect no schema changes.
 - **Skills** (`.agents/skills/`): `npx skills check` shows what's drifted; `npx skills update` refreshes them.
 - **Lint rules:**
   - _Anti-slop_ (`tools/linters/anti-slop/`): paste this to an agent:

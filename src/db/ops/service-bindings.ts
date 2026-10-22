@@ -2,10 +2,10 @@ import type {env} from 'cloudflare:workers'
 import {Context, Effect, Layer, Schema} from 'effect'
 
 /** Layer-build failure: the Workers runtime or the `AUTH_HASHER` binding is unavailable */
-class HashingBindingError extends Schema.TaggedErrorClass<HashingBindingError>()(
-	'HashingBindingError',
-	{message: Schema.String, cause: Schema.Unknown},
-) {}
+class HashingBindingError extends Schema.TaggedError<HashingBindingError>()('HashingBindingError', {
+	message: Schema.String,
+	cause: Schema.Unknown,
+}) {}
 
 export class HashingStub extends Context.Service<
 	HashingStub,

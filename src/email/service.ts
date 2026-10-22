@@ -25,7 +25,7 @@ export const EmailFailureKind = Schema.Literals(['config', 'transient', 'ambiguo
 
 export type EmailFailureKind = Schema.Schema.Type<typeof EmailFailureKind>
 
-export class EmailSendError extends Schema.TaggedErrorClass<EmailSendError>()('EmailSendError', {
+export class EmailSendError extends Schema.TaggedError<EmailSendError>()('EmailSendError', {
 	transport: Schema.String,
 	code: Schema.String,
 	kind: EmailFailureKind,
@@ -33,10 +33,9 @@ export class EmailSendError extends Schema.TaggedErrorClass<EmailSendError>()('E
 }) {}
 
 /** A notification template failed to render. No send was ever attempted */
-export class EmailRenderError extends Schema.TaggedErrorClass<EmailRenderError>()(
-	'EmailRenderError',
-	{message: Schema.String},
-) {}
+export class EmailRenderError extends Schema.TaggedError<EmailRenderError>()('EmailRenderError', {
+	message: Schema.String,
+}) {}
 
 /**
  * Network-level failures cannot rule out provider-side acceptance, so unknown
@@ -71,8 +70,8 @@ export class EmailConfig extends Context.Service<
 		EmailConfig,
 		Effect.gen(function* () {
 			return EmailConfig.of({
-				from: yield* Config.string('EMAIL_FROM').pipe(Config.withDefault('noreply@wunstart.com')),
-				appUrl: yield* Config.string('APP_URL').pipe(Config.withDefault('http://localhost:3000')),
+				from: yield* Config.String('EMAIL_FROM').pipe(Config.withDefault('noreply@wunstart.com')),
+				appUrl: yield* Config.String('APP_URL').pipe(Config.withDefault('http://localhost:3000')),
 			})
 		}),
 	)

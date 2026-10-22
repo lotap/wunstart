@@ -21,7 +21,7 @@ const OpsErrorActivityPayload = InsertFailureVariant.mapFields(
  * (createOpsFn's sanitizer, logFailedActivity, sanitizeErrors) must recognize
  * any conforming error by structural shape, not by class identity. The
  * conformers are OpsError, RateLimitError, and ops' own duck-typed
- * TaggedErrorClass subclasses. Classes are the conformers; this Struct is the
+ * TaggedError subclasses. Classes are the conformers; this Struct is the
  * contract they conform to.
  *
  * An error conforming to this shape, a valid activity payload plus a
@@ -38,7 +38,7 @@ const OpsErrorActivityPayload = InsertFailureVariant.mapFields(
  * Conformers opt in by implementing the shape, with no generic-file edits:
  *
  * ```ts
- * export class FlagNotFoundError extends Schema.TaggedErrorClass<FlagNotFoundError>()(
+ * export class FlagNotFoundError extends Schema.TaggedError<FlagNotFoundError>()(
  * 	'FlagNotFoundError',
  * 	OpsErrorSchema,
  * ) {}
@@ -62,7 +62,7 @@ export const isOpsError = (cause: unknown): cause is OpsErrorContract =>
  * failures (`failureCause` is free-form audit vocabulary); the framework also
  * wraps unknown errors into it as `INTERNAL_ERROR` (see `createOpsFn`).
  */
-export class OpsError extends Schema.TaggedErrorClass<OpsError>()('OpsError', OpsErrorSchema) {}
+export class OpsError extends Schema.TaggedError<OpsError>()('OpsError', OpsErrorSchema) {}
 
 /** Flattened Ops Error schema for failures sugar */
 export type OpsFailureFields = Omit<(typeof OpsErrorActivityPayload)['Type'], 'weight'> & {
@@ -89,7 +89,7 @@ export const createOpsFailure =
 		rateAllowance,
 		...activity
 	}: OpsFailureFields): InstanceType<E> => {
-		// SAFETY: TS cannot express "constructor of a Schema.TaggedErrorClass subclass
+		// SAFETY: TS cannot express "constructor of a Schema.TaggedError subclass
 		// whose instance type extends OpsErrorContract" without a self-referencing
 		// constraint, so the fields are checked against OpsErrorContract and the
 		// bridge to the caller's exact class is asserted once here.

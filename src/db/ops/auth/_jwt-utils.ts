@@ -6,7 +6,7 @@ import type {JWTHeaderParameters} from 'jose'
 import {opsFailure} from '#/db/ops/ops-error.ts'
 
 /** Infrastructure failure while deriving a token key. */
-class JwtKeyDerivationError extends Schema.TaggedErrorClass<JwtKeyDerivationError>()(
+class JwtKeyDerivationError extends Schema.TaggedError<JwtKeyDerivationError>()(
 	'JwtKeyDerivationError',
 	{cause: Schema.Unknown},
 ) {}
@@ -70,7 +70,7 @@ export function getKeyFromSecretsMap(secretsMap: Map<string, Redacted.Redacted>)
 }
 
 /** Tagged Error for capturing if `jose` functions throw while reading/writing tokens */
-export class JwtHandlerError extends Schema.TaggedErrorClass<JwtHandlerError>()('JwtHandlerError', {
+export class JwtHandlerError extends Schema.TaggedError<JwtHandlerError>()('JwtHandlerError', {
 	operation: Schema.Literals(['sign', 'verify', 'encrypt', 'decrypt', 'parse'] as const),
 	cause: Schema.Unknown,
 }) {}

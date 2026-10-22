@@ -14,7 +14,7 @@ export const HASHING_CONFIG = {
 	dkLen: 32, // Hash length
 }
 
-export class HashingError extends Schema.TaggedErrorClass<HashingError>()('HashingError', {
+export class HashingError extends Schema.TaggedError<HashingError>()('HashingError', {
 	operation: Schema.Literals(['hash', 'verify'] as const),
 	cause: Schema.Unknown,
 }) {}

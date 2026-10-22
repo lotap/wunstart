@@ -1,4 +1,5 @@
 import {defineConfig} from 'oxlint'
+import {recommended as effectRecommended} from '@effect/tsgo/oxlint-presets'
 import {
 	REACT_COMPILER_RULES,
 	RECOMMENDED_RULES,
@@ -18,6 +19,7 @@ for (const set of [
 }
 
 const config = defineConfig({
+	extends: [effectRecommended],
 	ignorePatterns: ['*.gen.ts', 'tools/linters/anti-slop/**', 'src/components/ui/**'],
 	options: {
 		typeAware: true,

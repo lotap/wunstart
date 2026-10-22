@@ -7,7 +7,7 @@ import {
 	SqlError,
 	type SqlErrorReason,
 	StatementTimeoutError,
-} from 'effect/unstable/sql/SqlError'
+} from 'effect/sql/SqlError'
 
 /**
  * Finds the underlying SqlError in a drizzle error's cause, if any.

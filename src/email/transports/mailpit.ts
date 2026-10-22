@@ -1,6 +1,5 @@
 import {Config, Effect, Layer, Schema} from 'effect'
-import {FetchHttpClient, HttpClientRequest} from 'effect/unstable/http'
-import {execute} from 'effect/unstable/http/HttpClient'
+import {FetchHttpClient, HttpClient, HttpClientRequest} from 'effect/http'
 
 import {EmailConfig, EmailSendError, EmailService, type EmailMessage} from '#/email/service.ts'
 
@@ -25,7 +24,7 @@ export const mailpitLayer = Layer.effect(
 	Effect.gen(function* () {
 		const {from, appUrl} = yield* EmailConfig
 
-		const mailpitUrl = yield* Config.string('MAILPIT_URL').pipe(
+		const mailpitUrl = yield* Config.String('MAILPIT_URL').pipe(
 			Config.withDefault('http://localhost:8025'),
 		)
 
@@ -45,7 +44,7 @@ export const mailpitLayer = Layer.effect(
 					HttpClientRequest.post(`${mailpitUrl}/api/v1/send`),
 					body,
 				).pipe(
-					Effect.flatMap(execute),
+					Effect.flatMap(HttpClient.execute),
 					Effect.asVoid,
 					Effect.mapError(
 						(error) =>

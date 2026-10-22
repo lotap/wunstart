@@ -5,12 +5,9 @@ import {Schema} from 'effect'
 import {isOpsError} from '#/db/ops/ops-error.ts'
 
 /** Tagged error for known server errors that should surface to the client */
-export class KnownServerError extends Schema.TaggedErrorClass<KnownServerError>()(
-	'KnownServerError',
-	{
-		message: Schema.String,
-	},
-) {}
+export class KnownServerError extends Schema.TaggedError<KnownServerError>()('KnownServerError', {
+	message: Schema.String,
+}) {}
 
 export const sanitizeErrors = createMiddleware().server(async ({next}) => {
 	try {

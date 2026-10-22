@@ -1,12 +1,1323 @@
 {
-  "version": "8",
+  "type": "base",
+  "version": "9",
   "dialect": "postgres",
   "id": "57206118-7311-42de-905e-922d8c5944a7",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
+  "footprints": [
+    {
+      "statementType": "create_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "ban_scopes"
+      ],
+      "writes": [
+        "s|enum|public.ban_scopes",
+        "n|enum|public.ban_scopes",
+        "e|enum|public.ban_scopes",
+        "n|type|public.ban_scopes"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "activities"
+      ],
+      "writes": [
+        "s|tbl|public.activities",
+        "n|tbl|public.activities",
+        "e|tbl|public.activities",
+        "n|rel|public.activities",
+        "n|type|public.activities",
+        "n|rel|public.activities_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "activities_archive"
+      ],
+      "writes": [
+        "s|tbl|public.activities_archive",
+        "n|tbl|public.activities_archive",
+        "e|tbl|public.activities_archive",
+        "n|rel|public.activities_archive",
+        "n|type|public.activities_archive",
+        "n|rel|public.activities_archive_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "anons"
+      ],
+      "writes": [
+        "s|tbl|public.anons",
+        "n|tbl|public.anons",
+        "e|tbl|public.anons",
+        "n|rel|public.anons",
+        "n|type|public.anons",
+        "n|rel|public.anons_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "anons_archive"
+      ],
+      "writes": [
+        "s|tbl|public.anons_archive",
+        "n|tbl|public.anons_archive",
+        "e|tbl|public.anons_archive",
+        "n|rel|public.anons_archive",
+        "n|type|public.anons_archive",
+        "n|rel|public.anons_archive_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "bans"
+      ],
+      "writes": [
+        "s|tbl|public.bans",
+        "n|tbl|public.bans",
+        "e|tbl|public.bans",
+        "n|rel|public.bans",
+        "n|type|public.bans",
+        "n|rel|public.bans_pkey",
+        "n|rel|public.bans_scope_target_unique"
+      ],
+      "reads": [
+        "n|sch|public",
+        "n|enum|public.ban_scopes"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "bans_archive"
+      ],
+      "writes": [
+        "s|tbl|public.bans_archive",
+        "n|tbl|public.bans_archive",
+        "e|tbl|public.bans_archive",
+        "n|rel|public.bans_archive",
+        "n|type|public.bans_archive",
+        "n|rel|public.bans_archive_pkey"
+      ],
+      "reads": [
+        "n|sch|public",
+        "n|enum|public.ban_scopes"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "email_verifications"
+      ],
+      "writes": [
+        "s|tbl|public.email_verifications",
+        "n|tbl|public.email_verifications",
+        "e|tbl|public.email_verifications",
+        "n|rel|public.email_verifications",
+        "n|type|public.email_verifications",
+        "n|rel|public.email_verifications_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "email_verifications_archive"
+      ],
+      "writes": [
+        "s|tbl|public.email_verifications_archive",
+        "n|tbl|public.email_verifications_archive",
+        "e|tbl|public.email_verifications_archive",
+        "n|rel|public.email_verifications_archive",
+        "n|type|public.email_verifications_archive",
+        "n|rel|public.email_verifications_archive_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "sessions"
+      ],
+      "writes": [
+        "s|tbl|public.sessions",
+        "n|tbl|public.sessions",
+        "e|tbl|public.sessions",
+        "n|rel|public.sessions",
+        "n|type|public.sessions",
+        "n|rel|public.sessions_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "sessions_archive"
+      ],
+      "writes": [
+        "s|tbl|public.sessions_archive",
+        "n|tbl|public.sessions_archive",
+        "e|tbl|public.sessions_archive",
+        "n|rel|public.sessions_archive",
+        "n|type|public.sessions_archive",
+        "n|rel|public.sessions_archive_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "users"
+      ],
+      "writes": [
+        "s|tbl|public.users",
+        "n|tbl|public.users",
+        "e|tbl|public.users",
+        "n|rel|public.users",
+        "n|type|public.users",
+        "n|rel|public.users_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "users_archive"
+      ],
+      "writes": [
+        "s|tbl|public.users_archive",
+        "n|tbl|public.users_archive",
+        "e|tbl|public.users_archive",
+        "n|rel|public.users_archive",
+        "n|type|public.users_archive",
+        "n|rel|public.users_archive_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "activities",
+        "activities_timestamp_index"
+      ],
+      "writes": [
+        "s|idx|public.activities_timestamp_index",
+        "n|idx|public.activities_timestamp_index",
+        "e|idx|public.activities_timestamp_index",
+        "n|rel|public.activities_timestamp_index"
+      ],
+      "reads": [
+        "n|tbl|public.activities",
+        "n|sch|public",
+        "n|col|public.activities.timestamp"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "activities",
+        "activities_ip_address_timestamp_index"
+      ],
+      "writes": [
+        "s|idx|public.activities_ip_address_timestamp_index",
+        "n|idx|public.activities_ip_address_timestamp_index",
+        "e|idx|public.activities_ip_address_timestamp_index",
+        "n|rel|public.activities_ip_address_timestamp_index"
+      ],
+      "reads": [
+        "n|tbl|public.activities",
+        "n|sch|public",
+        "n|col|public.activities.ip_address",
+        "n|col|public.activities.timestamp"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "activities",
+        "activities_failed_credential_timestamp_index"
+      ],
+      "writes": [
+        "s|idx|public.activities_failed_credential_timestamp_index",
+        "n|idx|public.activities_failed_credential_timestamp_index",
+        "e|idx|public.activities_failed_credential_timestamp_index",
+        "n|rel|public.activities_failed_credential_timestamp_index"
+      ],
+      "reads": [
+        "n|tbl|public.activities",
+        "n|sch|public",
+        "n|col|public.activities.failed_credential",
+        "n|col|public.activities.timestamp"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "activities",
+        "activities_user_id_timestamp_index"
+      ],
+      "writes": [
+        "s|idx|public.activities_user_id_timestamp_index",
+        "n|idx|public.activities_user_id_timestamp_index",
+        "e|idx|public.activities_user_id_timestamp_index",
+        "n|rel|public.activities_user_id_timestamp_index"
+      ],
+      "reads": [
+        "n|tbl|public.activities",
+        "n|sch|public",
+        "n|col|public.activities.user_id",
+        "n|col|public.activities.timestamp"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "activities",
+        "activities_anon_id_timestamp_index"
+      ],
+      "writes": [
+        "s|idx|public.activities_anon_id_timestamp_index",
+        "n|idx|public.activities_anon_id_timestamp_index",
+        "e|idx|public.activities_anon_id_timestamp_index",
+        "n|rel|public.activities_anon_id_timestamp_index"
+      ],
+      "reads": [
+        "n|tbl|public.activities",
+        "n|sch|public",
+        "n|col|public.activities.anon_id",
+        "n|col|public.activities.timestamp"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "activities",
+        "activities_users_archive_id_timestamp_index"
+      ],
+      "writes": [
+        "s|idx|public.activities_users_archive_id_timestamp_index",
+        "n|idx|public.activities_users_archive_id_timestamp_index",
+        "e|idx|public.activities_users_archive_id_timestamp_index",
+        "n|rel|public.activities_users_archive_id_timestamp_index"
+      ],
+      "reads": [
+        "n|tbl|public.activities",
+        "n|sch|public",
+        "n|col|public.activities.users_archive_id",
+        "n|col|public.activities.timestamp"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "activities",
+        "activities_anons_archive_id_timestamp_index"
+      ],
+      "writes": [
+        "s|idx|public.activities_anons_archive_id_timestamp_index",
+        "n|idx|public.activities_anons_archive_id_timestamp_index",
+        "e|idx|public.activities_anons_archive_id_timestamp_index",
+        "n|rel|public.activities_anons_archive_id_timestamp_index"
+      ],
+      "reads": [
+        "n|tbl|public.activities",
+        "n|sch|public",
+        "n|col|public.activities.anons_archive_id",
+        "n|col|public.activities.timestamp"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "bans",
+        "bans_expires_at_index"
+      ],
+      "writes": [
+        "s|idx|public.bans_expires_at_index",
+        "n|idx|public.bans_expires_at_index",
+        "e|idx|public.bans_expires_at_index",
+        "n|rel|public.bans_expires_at_index"
+      ],
+      "reads": [
+        "n|tbl|public.bans",
+        "n|sch|public",
+        "n|col|public.bans.expires_at"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "bans",
+        "bans_activity_ids_index"
+      ],
+      "writes": [
+        "s|idx|public.bans_activity_ids_index",
+        "n|idx|public.bans_activity_ids_index",
+        "e|idx|public.bans_activity_ids_index",
+        "n|rel|public.bans_activity_ids_index"
+      ],
+      "reads": [
+        "n|tbl|public.bans",
+        "n|sch|public",
+        "n|col|public.bans.activity_ids"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "bans",
+        "bans_ip_address_index"
+      ],
+      "writes": [
+        "s|idx|public.bans_ip_address_index",
+        "n|idx|public.bans_ip_address_index",
+        "e|idx|public.bans_ip_address_index",
+        "n|rel|public.bans_ip_address_index"
+      ],
+      "reads": [
+        "n|tbl|public.bans",
+        "n|sch|public",
+        "n|col|public.bans.ip_address"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "bans",
+        "bans_failed_credential_index"
+      ],
+      "writes": [
+        "s|idx|public.bans_failed_credential_index",
+        "n|idx|public.bans_failed_credential_index",
+        "e|idx|public.bans_failed_credential_index",
+        "n|rel|public.bans_failed_credential_index"
+      ],
+      "reads": [
+        "n|tbl|public.bans",
+        "n|sch|public",
+        "n|col|public.bans.failed_credential"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "bans",
+        "bans_user_id_index"
+      ],
+      "writes": [
+        "s|idx|public.bans_user_id_index",
+        "n|idx|public.bans_user_id_index",
+        "e|idx|public.bans_user_id_index",
+        "n|rel|public.bans_user_id_index"
+      ],
+      "reads": [
+        "n|tbl|public.bans",
+        "n|sch|public",
+        "n|col|public.bans.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "bans",
+        "bans_anon_id_index"
+      ],
+      "writes": [
+        "s|idx|public.bans_anon_id_index",
+        "n|idx|public.bans_anon_id_index",
+        "e|idx|public.bans_anon_id_index",
+        "n|rel|public.bans_anon_id_index"
+      ],
+      "reads": [
+        "n|tbl|public.bans",
+        "n|sch|public",
+        "n|col|public.bans.anon_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "bans",
+        "bans_users_archive_id_index"
+      ],
+      "writes": [
+        "s|idx|public.bans_users_archive_id_index",
+        "n|idx|public.bans_users_archive_id_index",
+        "e|idx|public.bans_users_archive_id_index",
+        "n|rel|public.bans_users_archive_id_index"
+      ],
+      "reads": [
+        "n|tbl|public.bans",
+        "n|sch|public",
+        "n|col|public.bans.users_archive_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "bans",
+        "bans_anons_archive_id_index"
+      ],
+      "writes": [
+        "s|idx|public.bans_anons_archive_id_index",
+        "n|idx|public.bans_anons_archive_id_index",
+        "e|idx|public.bans_anons_archive_id_index",
+        "n|rel|public.bans_anons_archive_id_index"
+      ],
+      "reads": [
+        "n|tbl|public.bans",
+        "n|sch|public",
+        "n|col|public.bans.anons_archive_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "email_verifications",
+        "email_verifications_email_lower_anon_unique"
+      ],
+      "writes": [
+        "s|idx|public.email_verifications_email_lower_anon_unique",
+        "n|idx|public.email_verifications_email_lower_anon_unique",
+        "e|idx|public.email_verifications_email_lower_anon_unique",
+        "n|rel|public.email_verifications_email_lower_anon_unique"
+      ],
+      "reads": [
+        "n|tbl|public.email_verifications",
+        "n|sch|public",
+        "n|col|public.email_verifications.anon_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "email_verifications",
+        "email_verifications_email_lower_user_unique"
+      ],
+      "writes": [
+        "s|idx|public.email_verifications_email_lower_user_unique",
+        "n|idx|public.email_verifications_email_lower_user_unique",
+        "e|idx|public.email_verifications_email_lower_user_unique",
+        "n|rel|public.email_verifications_email_lower_user_unique"
+      ],
+      "reads": [
+        "n|tbl|public.email_verifications",
+        "n|sch|public",
+        "n|col|public.email_verifications.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "users",
+        "users_email_lower_unique"
+      ],
+      "writes": [
+        "s|idx|public.users_email_lower_unique",
+        "n|idx|public.users_email_lower_unique",
+        "e|idx|public.users_email_lower_unique",
+        "n|rel|public.users_email_lower_unique"
+      ],
+      "reads": [
+        "n|tbl|public.users",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activities"
+      ],
+      "writes": [
+        "s|fk|public.activities.activities_user_id_users_id_fkey",
+        "n|fk|public.activities.activities_user_id_users_id_fkey",
+        "e|fk|public.activities.activities_user_id_users_id_fkey",
+        "n|con|public.activities.activities_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activities",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.activities.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activities"
+      ],
+      "writes": [
+        "s|fk|public.activities.activities_users_archive_id_users_archive_archive_id_fkey",
+        "n|fk|public.activities.activities_users_archive_id_users_archive_archive_id_fkey",
+        "e|fk|public.activities.activities_users_archive_id_users_archive_archive_id_fkey",
+        "n|con|public.activities.activities_users_archive_id_users_archive_archive_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activities",
+        "n|sch|public",
+        "n|tbl|public.users_archive",
+        "n|sch|public",
+        "n|col|public.activities.users_archive_id",
+        "n|col|public.users_archive.archive_id",
+        "e|uniqueness|public.users_archive.archive_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activities"
+      ],
+      "writes": [
+        "s|fk|public.activities.activities_anon_id_anons_id_fkey",
+        "n|fk|public.activities.activities_anon_id_anons_id_fkey",
+        "e|fk|public.activities.activities_anon_id_anons_id_fkey",
+        "n|con|public.activities.activities_anon_id_anons_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activities",
+        "n|sch|public",
+        "n|tbl|public.anons",
+        "n|sch|public",
+        "n|col|public.activities.anon_id",
+        "n|col|public.anons.id",
+        "e|uniqueness|public.anons.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activities"
+      ],
+      "writes": [
+        "s|fk|public.activities.activities_anons_archive_id_anons_archive_archive_id_fkey",
+        "n|fk|public.activities.activities_anons_archive_id_anons_archive_archive_id_fkey",
+        "e|fk|public.activities.activities_anons_archive_id_anons_archive_archive_id_fkey",
+        "n|con|public.activities.activities_anons_archive_id_anons_archive_archive_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activities",
+        "n|sch|public",
+        "n|tbl|public.anons_archive",
+        "n|sch|public",
+        "n|col|public.activities.anons_archive_id",
+        "n|col|public.anons_archive.archive_id",
+        "e|uniqueness|public.anons_archive.archive_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activities_archive"
+      ],
+      "writes": [
+        "s|fk|public.activities_archive.activities_archive_user_id_users_id_fkey",
+        "n|fk|public.activities_archive.activities_archive_user_id_users_id_fkey",
+        "e|fk|public.activities_archive.activities_archive_user_id_users_id_fkey",
+        "n|con|public.activities_archive.activities_archive_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activities_archive",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.activities_archive.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activities_archive"
+      ],
+      "writes": [
+        "s|fk|public.activities_archive.activities_archive_UlPtyivnITiJ_fkey",
+        "n|fk|public.activities_archive.activities_archive_UlPtyivnITiJ_fkey",
+        "e|fk|public.activities_archive.activities_archive_UlPtyivnITiJ_fkey",
+        "n|con|public.activities_archive.activities_archive_UlPtyivnITiJ_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activities_archive",
+        "n|sch|public",
+        "n|tbl|public.users_archive",
+        "n|sch|public",
+        "n|col|public.activities_archive.users_archive_id",
+        "n|col|public.users_archive.archive_id",
+        "e|uniqueness|public.users_archive.archive_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activities_archive"
+      ],
+      "writes": [
+        "s|fk|public.activities_archive.activities_archive_anon_id_anons_id_fkey",
+        "n|fk|public.activities_archive.activities_archive_anon_id_anons_id_fkey",
+        "e|fk|public.activities_archive.activities_archive_anon_id_anons_id_fkey",
+        "n|con|public.activities_archive.activities_archive_anon_id_anons_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activities_archive",
+        "n|sch|public",
+        "n|tbl|public.anons",
+        "n|sch|public",
+        "n|col|public.activities_archive.anon_id",
+        "n|col|public.anons.id",
+        "e|uniqueness|public.anons.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "activities_archive"
+      ],
+      "writes": [
+        "s|fk|public.activities_archive.activities_archive_HTD6HTU05M1J_fkey",
+        "n|fk|public.activities_archive.activities_archive_HTD6HTU05M1J_fkey",
+        "e|fk|public.activities_archive.activities_archive_HTD6HTU05M1J_fkey",
+        "n|con|public.activities_archive.activities_archive_HTD6HTU05M1J_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.activities_archive",
+        "n|sch|public",
+        "n|tbl|public.anons_archive",
+        "n|sch|public",
+        "n|col|public.activities_archive.anons_archive_id",
+        "n|col|public.anons_archive.archive_id",
+        "e|uniqueness|public.anons_archive.archive_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "anons_archive"
+      ],
+      "writes": [
+        "s|fk|public.anons_archive.anons_archive_user_id_users_id_fkey",
+        "n|fk|public.anons_archive.anons_archive_user_id_users_id_fkey",
+        "e|fk|public.anons_archive.anons_archive_user_id_users_id_fkey",
+        "n|con|public.anons_archive.anons_archive_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.anons_archive",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.anons_archive.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "anons_archive"
+      ],
+      "writes": [
+        "s|fk|public.anons_archive.anons_archive_users_archive_id_users_archive_archive_id_fkey",
+        "n|fk|public.anons_archive.anons_archive_users_archive_id_users_archive_archive_id_fkey",
+        "e|fk|public.anons_archive.anons_archive_users_archive_id_users_archive_archive_id_fkey",
+        "n|con|public.anons_archive.anons_archive_users_archive_id_users_archive_archive_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.anons_archive",
+        "n|sch|public",
+        "n|tbl|public.users_archive",
+        "n|sch|public",
+        "n|col|public.anons_archive.users_archive_id",
+        "n|col|public.users_archive.archive_id",
+        "e|uniqueness|public.users_archive.archive_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bans"
+      ],
+      "writes": [
+        "s|fk|public.bans.bans_anon_id_anons_id_fkey",
+        "n|fk|public.bans.bans_anon_id_anons_id_fkey",
+        "e|fk|public.bans.bans_anon_id_anons_id_fkey",
+        "n|con|public.bans.bans_anon_id_anons_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bans",
+        "n|sch|public",
+        "n|tbl|public.anons",
+        "n|sch|public",
+        "n|col|public.bans.anon_id",
+        "n|col|public.anons.id",
+        "e|uniqueness|public.anons.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bans"
+      ],
+      "writes": [
+        "s|fk|public.bans.bans_anons_archive_id_anons_archive_archive_id_fkey",
+        "n|fk|public.bans.bans_anons_archive_id_anons_archive_archive_id_fkey",
+        "e|fk|public.bans.bans_anons_archive_id_anons_archive_archive_id_fkey",
+        "n|con|public.bans.bans_anons_archive_id_anons_archive_archive_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bans",
+        "n|sch|public",
+        "n|tbl|public.anons_archive",
+        "n|sch|public",
+        "n|col|public.bans.anons_archive_id",
+        "n|col|public.anons_archive.archive_id",
+        "e|uniqueness|public.anons_archive.archive_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bans"
+      ],
+      "writes": [
+        "s|fk|public.bans.bans_user_id_users_id_fkey",
+        "n|fk|public.bans.bans_user_id_users_id_fkey",
+        "e|fk|public.bans.bans_user_id_users_id_fkey",
+        "n|con|public.bans.bans_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bans",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.bans.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bans"
+      ],
+      "writes": [
+        "s|fk|public.bans.bans_users_archive_id_users_archive_archive_id_fkey",
+        "n|fk|public.bans.bans_users_archive_id_users_archive_archive_id_fkey",
+        "e|fk|public.bans.bans_users_archive_id_users_archive_archive_id_fkey",
+        "n|con|public.bans.bans_users_archive_id_users_archive_archive_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bans",
+        "n|sch|public",
+        "n|tbl|public.users_archive",
+        "n|sch|public",
+        "n|col|public.bans.users_archive_id",
+        "n|col|public.users_archive.archive_id",
+        "e|uniqueness|public.users_archive.archive_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bans_archive"
+      ],
+      "writes": [
+        "s|fk|public.bans_archive.bans_archive_anon_id_anons_id_fkey",
+        "n|fk|public.bans_archive.bans_archive_anon_id_anons_id_fkey",
+        "e|fk|public.bans_archive.bans_archive_anon_id_anons_id_fkey",
+        "n|con|public.bans_archive.bans_archive_anon_id_anons_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bans_archive",
+        "n|sch|public",
+        "n|tbl|public.anons",
+        "n|sch|public",
+        "n|col|public.bans_archive.anon_id",
+        "n|col|public.anons.id",
+        "e|uniqueness|public.anons.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bans_archive"
+      ],
+      "writes": [
+        "s|fk|public.bans_archive.bans_archive_anons_archive_id_anons_archive_archive_id_fkey",
+        "n|fk|public.bans_archive.bans_archive_anons_archive_id_anons_archive_archive_id_fkey",
+        "e|fk|public.bans_archive.bans_archive_anons_archive_id_anons_archive_archive_id_fkey",
+        "n|con|public.bans_archive.bans_archive_anons_archive_id_anons_archive_archive_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bans_archive",
+        "n|sch|public",
+        "n|tbl|public.anons_archive",
+        "n|sch|public",
+        "n|col|public.bans_archive.anons_archive_id",
+        "n|col|public.anons_archive.archive_id",
+        "e|uniqueness|public.anons_archive.archive_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bans_archive"
+      ],
+      "writes": [
+        "s|fk|public.bans_archive.bans_archive_user_id_users_id_fkey",
+        "n|fk|public.bans_archive.bans_archive_user_id_users_id_fkey",
+        "e|fk|public.bans_archive.bans_archive_user_id_users_id_fkey",
+        "n|con|public.bans_archive.bans_archive_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bans_archive",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.bans_archive.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "bans_archive"
+      ],
+      "writes": [
+        "s|fk|public.bans_archive.bans_archive_users_archive_id_users_archive_archive_id_fkey",
+        "n|fk|public.bans_archive.bans_archive_users_archive_id_users_archive_archive_id_fkey",
+        "e|fk|public.bans_archive.bans_archive_users_archive_id_users_archive_archive_id_fkey",
+        "n|con|public.bans_archive.bans_archive_users_archive_id_users_archive_archive_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.bans_archive",
+        "n|sch|public",
+        "n|tbl|public.users_archive",
+        "n|sch|public",
+        "n|col|public.bans_archive.users_archive_id",
+        "n|col|public.users_archive.archive_id",
+        "e|uniqueness|public.users_archive.archive_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "email_verifications"
+      ],
+      "writes": [
+        "s|fk|public.email_verifications.email_verifications_anon_id_anons_id_fkey",
+        "n|fk|public.email_verifications.email_verifications_anon_id_anons_id_fkey",
+        "e|fk|public.email_verifications.email_verifications_anon_id_anons_id_fkey",
+        "n|con|public.email_verifications.email_verifications_anon_id_anons_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.email_verifications",
+        "n|sch|public",
+        "n|tbl|public.anons",
+        "n|sch|public",
+        "n|col|public.email_verifications.anon_id",
+        "n|col|public.anons.id",
+        "e|uniqueness|public.anons.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "email_verifications"
+      ],
+      "writes": [
+        "s|fk|public.email_verifications.email_verifications_user_id_users_id_fkey",
+        "n|fk|public.email_verifications.email_verifications_user_id_users_id_fkey",
+        "e|fk|public.email_verifications.email_verifications_user_id_users_id_fkey",
+        "n|con|public.email_verifications.email_verifications_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.email_verifications",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.email_verifications.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "email_verifications_archive"
+      ],
+      "writes": [
+        "s|fk|public.email_verifications_archive.email_verifications_archive_anon_id_anons_id_fkey",
+        "n|fk|public.email_verifications_archive.email_verifications_archive_anon_id_anons_id_fkey",
+        "e|fk|public.email_verifications_archive.email_verifications_archive_anon_id_anons_id_fkey",
+        "n|con|public.email_verifications_archive.email_verifications_archive_anon_id_anons_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.email_verifications_archive",
+        "n|sch|public",
+        "n|tbl|public.anons",
+        "n|sch|public",
+        "n|col|public.email_verifications_archive.anon_id",
+        "n|col|public.anons.id",
+        "e|uniqueness|public.anons.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "email_verifications_archive"
+      ],
+      "writes": [
+        "s|fk|public.email_verifications_archive.email_verifications_archive_user_id_users_id_fkey",
+        "n|fk|public.email_verifications_archive.email_verifications_archive_user_id_users_id_fkey",
+        "e|fk|public.email_verifications_archive.email_verifications_archive_user_id_users_id_fkey",
+        "n|con|public.email_verifications_archive.email_verifications_archive_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.email_verifications_archive",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.email_verifications_archive.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "email_verifications_archive"
+      ],
+      "writes": [
+        "s|fk|public.email_verifications_archive.email_verifications_archive_a2JFgnYaZisD_fkey",
+        "n|fk|public.email_verifications_archive.email_verifications_archive_a2JFgnYaZisD_fkey",
+        "e|fk|public.email_verifications_archive.email_verifications_archive_a2JFgnYaZisD_fkey",
+        "n|con|public.email_verifications_archive.email_verifications_archive_a2JFgnYaZisD_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.email_verifications_archive",
+        "n|sch|public",
+        "n|tbl|public.anons_archive",
+        "n|sch|public",
+        "n|col|public.email_verifications_archive.anons_archive_id",
+        "n|col|public.anons_archive.archive_id",
+        "e|uniqueness|public.anons_archive.archive_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "email_verifications_archive"
+      ],
+      "writes": [
+        "s|fk|public.email_verifications_archive.email_verifications_archive_f5LjnxHR4TRD_fkey",
+        "n|fk|public.email_verifications_archive.email_verifications_archive_f5LjnxHR4TRD_fkey",
+        "e|fk|public.email_verifications_archive.email_verifications_archive_f5LjnxHR4TRD_fkey",
+        "n|con|public.email_verifications_archive.email_verifications_archive_f5LjnxHR4TRD_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.email_verifications_archive",
+        "n|sch|public",
+        "n|tbl|public.users_archive",
+        "n|sch|public",
+        "n|col|public.email_verifications_archive.users_archive_id",
+        "n|col|public.users_archive.archive_id",
+        "e|uniqueness|public.users_archive.archive_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "sessions"
+      ],
+      "writes": [
+        "s|fk|public.sessions.sessions_user_id_users_id_fkey",
+        "n|fk|public.sessions.sessions_user_id_users_id_fkey",
+        "e|fk|public.sessions.sessions_user_id_users_id_fkey",
+        "n|con|public.sessions.sessions_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.sessions",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.sessions.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "sessions_archive"
+      ],
+      "writes": [
+        "s|fk|public.sessions_archive.sessions_archive_user_id_users_id_fkey",
+        "n|fk|public.sessions_archive.sessions_archive_user_id_users_id_fkey",
+        "e|fk|public.sessions_archive.sessions_archive_user_id_users_id_fkey",
+        "n|con|public.sessions_archive.sessions_archive_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.sessions_archive",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.sessions_archive.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "sessions_archive"
+      ],
+      "writes": [
+        "s|fk|public.sessions_archive.sessions_archive_users_archive_id_users_archive_archive_id_fkey",
+        "n|fk|public.sessions_archive.sessions_archive_users_archive_id_users_archive_archive_id_fkey",
+        "e|fk|public.sessions_archive.sessions_archive_users_archive_id_users_archive_archive_id_fkey",
+        "n|con|public.sessions_archive.sessions_archive_users_archive_id_users_archive_archive_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.sessions_archive",
+        "n|sch|public",
+        "n|tbl|public.users_archive",
+        "n|sch|public",
+        "n|col|public.sessions_archive.users_archive_id",
+        "n|col|public.users_archive.archive_id",
+        "e|uniqueness|public.users_archive.archive_id"
+      ]
+    }
+  ],
   "ddl": [
     {
+      "schema": "public",
+      "name": "activities",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "activities_archive",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "anons",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "anons_archive",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "bans",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "bans_archive",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "email_verifications",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "email_verifications_archive",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "sessions",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "sessions_archive",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "users",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "users_archive",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "ban_scopes",
       "values": [
         "IP_ADDRESS",
         "USER",
@@ -15,83 +1326,12 @@
         "ARCHIVED_USER",
         "ARCHIVED_ANON"
       ],
-      "name": "ban_scopes",
-      "entityType": "enums",
-      "schema": "public"
+      "entityType": "enums"
     },
     {
-      "isRlsEnabled": false,
-      "name": "activities",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "activities_archive",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "anons",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "anons_archive",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "bans",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "bans_archive",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "email_verifications",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "email_verifications_archive",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "sessions",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "sessions_archive",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "users",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "users_archive",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
+      "schema": "public",
+      "table": "activities",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -99,12 +1339,12 @@
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "timestamp",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -112,12 +1352,12 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "timestamp",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "user_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -125,12 +1365,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "users_archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": false,
@@ -138,12 +1378,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "users_archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "label",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -151,12 +1391,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "label",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "success",
       "type": "boolean",
       "typeSchema": null,
       "notNull": true,
@@ -164,12 +1404,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "success",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "failure_cause",
       "type": "text",
       "typeSchema": null,
       "notNull": false,
@@ -177,12 +1417,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "failure_cause",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "meta",
       "type": "jsonb",
       "typeSchema": null,
       "notNull": false,
@@ -190,12 +1430,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "meta",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "failed_credential",
       "type": "varchar(255)",
       "typeSchema": null,
       "notNull": false,
@@ -203,12 +1443,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "failed_credential",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "anon_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -216,12 +1456,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "anon_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "anons_archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": false,
@@ -229,12 +1469,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "anons_archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "ip_address",
       "type": "inet",
       "typeSchema": null,
       "notNull": true,
@@ -242,12 +1482,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "ip_address",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "weight",
       "type": "smallint",
       "typeSchema": null,
       "notNull": true,
@@ -255,12 +1495,12 @@
       "default": "1",
       "generated": null,
       "identity": null,
-      "name": "weight",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -268,12 +1508,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "timestamp",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -281,12 +1521,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "timestamp",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": true,
@@ -303,12 +1543,12 @@
         "cache": 1,
         "cycle": false
       },
-      "name": "archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "archived_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -316,12 +1556,12 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "archived_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "user_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -329,12 +1569,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "users_archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": false,
@@ -342,12 +1582,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "users_archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "label",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -355,12 +1595,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "label",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "success",
       "type": "boolean",
       "typeSchema": null,
       "notNull": true,
@@ -368,12 +1608,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "success",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "failure_cause",
       "type": "text",
       "typeSchema": null,
       "notNull": false,
@@ -381,12 +1621,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "failure_cause",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "meta",
       "type": "jsonb",
       "typeSchema": null,
       "notNull": false,
@@ -394,12 +1634,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "meta",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "failed_credential",
       "type": "varchar(255)",
       "typeSchema": null,
       "notNull": false,
@@ -407,12 +1647,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "failed_credential",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "anon_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -420,12 +1660,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "anon_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "anons_archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": false,
@@ -433,12 +1673,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "anons_archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "ip_address",
       "type": "inet",
       "typeSchema": null,
       "notNull": true,
@@ -446,12 +1686,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "ip_address",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "weight",
       "type": "smallint",
       "typeSchema": null,
       "notNull": true,
@@ -459,12 +1699,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "weight",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "activities_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "anons",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -472,25 +1712,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons"
+      "entityType": "columns"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "anons",
       "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -498,12 +1725,25 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "anons",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "anons",
+      "name": "token_created_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -511,12 +1751,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "token_created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "anons",
+      "name": "ip_addresses",
       "type": "inet",
       "typeSchema": null,
       "notNull": true,
@@ -524,12 +1764,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "ip_addresses",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "anons_archive",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -537,25 +1777,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons_archive"
+      "entityType": "columns"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "anons_archive",
       "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons_archive"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": false,
@@ -563,12 +1790,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "anons_archive",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "anons_archive",
+      "name": "archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": true,
@@ -585,12 +1825,12 @@
         "cache": 1,
         "cycle": false
       },
-      "name": "archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "anons_archive",
+      "name": "archived_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -598,12 +1838,12 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "archived_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "anons_archive",
+      "name": "token_created_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -611,12 +1851,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "token_created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "anons_archive",
+      "name": "ip_addresses",
       "type": "inet",
       "typeSchema": null,
       "notNull": true,
@@ -624,12 +1864,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "ip_addresses",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "anons_archive",
+      "name": "user_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -637,12 +1877,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "anons_archive",
+      "name": "users_archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": false,
@@ -650,12 +1890,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "users_archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "anons_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -663,25 +1903,12 @@
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "columns"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "bans",
       "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -689,12 +1916,25 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "bans",
+      "name": "scope",
       "type": "ban_scopes",
       "typeSchema": "public",
       "notNull": true,
@@ -702,12 +1942,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "scope",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "ip_address",
       "type": "inet",
       "typeSchema": null,
       "notNull": false,
@@ -715,12 +1955,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "ip_address",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "failed_credential",
       "type": "varchar(255)",
       "typeSchema": null,
       "notNull": false,
@@ -728,25 +1968,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "failed_credential",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "columns"
     },
     {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 1,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "bans",
       "name": "activity_ids",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "activities_archive_ids",
       "type": "bigint",
       "typeSchema": null,
       "notNull": true,
@@ -754,38 +1994,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "activities_archive_ids",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "columns"
     },
     {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "bans",
       "name": "anon_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
-    },
-    {
-      "type": "bigint",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "anons_archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
-    },
-    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -793,12 +2007,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "anons_archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": false,
@@ -806,12 +2020,38 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "users_archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "bans",
+      "name": "users_archive_id",
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "bans",
+      "name": "total_weight",
       "type": "bigint",
       "typeSchema": null,
       "notNull": true,
@@ -819,12 +2059,12 @@
       "default": "0",
       "generated": null,
       "identity": null,
-      "name": "total_weight",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "expires_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": false,
@@ -832,12 +2072,12 @@
       "default": "now() + '10 minutes'",
       "generated": null,
       "identity": null,
-      "name": "expires_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -845,25 +2085,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
+      "entityType": "columns"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "bans_archive",
       "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -871,12 +2098,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": true,
@@ -893,12 +2133,12 @@
         "cache": 1,
         "cycle": false
       },
-      "name": "archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "archived_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -906,12 +2146,12 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "archived_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "scope",
       "type": "ban_scopes",
       "typeSchema": "public",
       "notNull": true,
@@ -919,12 +2159,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "scope",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "ip_address",
       "type": "inet",
       "typeSchema": null,
       "notNull": false,
@@ -932,12 +2172,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "ip_address",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "failed_credential",
       "type": "varchar(255)",
       "typeSchema": null,
       "notNull": false,
@@ -945,25 +2185,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "failed_credential",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
+      "entityType": "columns"
     },
     {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 1,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "bans_archive",
       "name": "activity_ids",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "activities_archive_ids",
       "type": "bigint",
       "typeSchema": null,
       "notNull": true,
@@ -971,38 +2211,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "activities_archive_ids",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
+      "entityType": "columns"
     },
     {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "bans_archive",
       "name": "anon_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
-    },
-    {
-      "type": "bigint",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "anons_archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
-    },
-    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -1010,12 +2224,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "anons_archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": false,
@@ -1023,12 +2237,38 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "users_archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "users_archive_id",
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "total_weight",
       "type": "bigint",
       "typeSchema": null,
       "notNull": true,
@@ -1036,12 +2276,12 @@
       "default": "0",
       "generated": null,
       "identity": null,
-      "name": "total_weight",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "expires_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": false,
@@ -1049,12 +2289,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "expires_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "bans_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "email_verifications",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -1062,25 +2302,12 @@
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications"
+      "entityType": "columns"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "email_verifications",
       "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1088,25 +2315,25 @@
       "default": "now()",
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "email_verifications",
       "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications"
-    },
-    {
-      "type": "uuid",
+      "type": "timestamp with time zone",
       "typeSchema": null,
-      "notNull": false,
+      "notNull": true,
       "dimensions": 0,
-      "default": null,
+      "default": "now()",
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "email_verifications",
       "name": "anon_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications"
-    },
-    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -1114,12 +2341,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "email_verifications",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "email_verifications",
+      "name": "attempts",
       "type": "smallint",
       "typeSchema": null,
       "notNull": true,
@@ -1127,12 +2367,12 @@
       "default": "0",
       "generated": null,
       "identity": null,
-      "name": "attempts",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "email_verifications",
+      "name": "email",
       "type": "varchar(254)",
       "typeSchema": null,
       "notNull": true,
@@ -1140,12 +2380,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "email",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "email_verifications",
+      "name": "passcode_hash",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -1153,12 +2393,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "passcode_hash",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "email_verifications",
+      "name": "expires_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1166,12 +2406,12 @@
       "default": "now() + '15 minutes'",
       "generated": null,
       "identity": null,
-      "name": "expires_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "email_verifications_archive",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -1179,25 +2419,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications_archive"
+      "entityType": "columns"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "email_verifications_archive",
       "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications_archive"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1205,12 +2432,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "email_verifications_archive",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "email_verifications_archive",
+      "name": "archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": true,
@@ -1227,12 +2467,12 @@
         "cache": 1,
         "cycle": false
       },
-      "name": "archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "email_verifications_archive",
+      "name": "archived_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1240,25 +2480,12 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "archived_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications_archive"
+      "entityType": "columns"
     },
     {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "email_verifications_archive",
       "name": "anon_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications_archive"
-    },
-    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -1266,12 +2493,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "email_verifications_archive",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "email_verifications_archive",
+      "name": "attempts",
       "type": "smallint",
       "typeSchema": null,
       "notNull": true,
@@ -1279,12 +2519,12 @@
       "default": "0",
       "generated": null,
       "identity": null,
-      "name": "attempts",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "email_verifications_archive",
+      "name": "email",
       "type": "varchar(254)",
       "typeSchema": null,
       "notNull": true,
@@ -1292,25 +2532,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "email",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications_archive"
+      "entityType": "columns"
     },
     {
-      "type": "bigint",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "email_verifications_archive",
       "name": "anons_archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications_archive"
-    },
-    {
       "type": "bigint",
       "typeSchema": null,
       "notNull": false,
@@ -1318,12 +2545,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "users_archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "email_verifications_archive",
+      "name": "users_archive_id",
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "email_verifications_archive",
+      "name": "verified_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": false,
@@ -1331,12 +2571,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "verified_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "email_verifications_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -1344,25 +2584,12 @@
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions"
+      "entityType": "columns"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "sessions",
       "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1370,12 +2597,25 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "ip_addresses",
       "type": "inet",
       "typeSchema": null,
       "notNull": true,
@@ -1383,12 +2623,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "ip_addresses",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions",
+      "name": "refresh_generation",
       "type": "smallint",
       "typeSchema": null,
       "notNull": true,
@@ -1396,12 +2636,12 @@
       "default": "0",
       "generated": null,
       "identity": null,
-      "name": "refresh_generation",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions",
+      "name": "user_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -1409,12 +2649,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions",
+      "name": "nonce_hash",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -1422,12 +2662,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "nonce_hash",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions",
+      "name": "expires_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1435,12 +2675,12 @@
       "default": "now() + '30 days'",
       "generated": null,
       "identity": null,
-      "name": "expires_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions",
+      "name": "grace_expires_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": false,
@@ -1448,12 +2688,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "grace_expires_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions",
+      "name": "grace_token",
       "type": "text",
       "typeSchema": null,
       "notNull": false,
@@ -1461,12 +2701,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "grace_token",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions",
+      "name": "revoked_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": false,
@@ -1474,12 +2714,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "revoked_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -1487,25 +2727,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions_archive"
+      "entityType": "columns"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "sessions_archive",
       "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions_archive"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1513,12 +2740,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": true,
@@ -1535,12 +2775,12 @@
         "cache": 1,
         "cycle": false
       },
-      "name": "archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "archived_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1548,12 +2788,12 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "archived_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "ip_addresses",
       "type": "inet",
       "typeSchema": null,
       "notNull": true,
@@ -1561,12 +2801,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "ip_addresses",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "refresh_generation",
       "type": "smallint",
       "typeSchema": null,
       "notNull": true,
@@ -1574,12 +2814,12 @@
       "default": "0",
       "generated": null,
       "identity": null,
-      "name": "refresh_generation",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "user_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": false,
@@ -1587,12 +2827,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "users_archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": false,
@@ -1600,12 +2840,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "users_archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "expires_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1613,12 +2853,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "expires_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "sessions_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "users",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -1626,25 +2866,12 @@
       "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "users"
+      "entityType": "columns"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "users",
       "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "users"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1652,12 +2879,25 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "users"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "users",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "email",
       "type": "varchar(254)",
       "typeSchema": null,
       "notNull": true,
@@ -1665,12 +2905,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "email",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "users"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "users",
+      "name": "password_hash",
       "type": "text",
       "typeSchema": null,
       "notNull": false,
@@ -1678,12 +2918,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "password_hash",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "users"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "users_archive",
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -1691,25 +2931,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "users_archive"
+      "entityType": "columns"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "users_archive",
       "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "users_archive"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1717,12 +2944,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "users_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "users_archive",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users_archive",
+      "name": "archive_id",
       "type": "bigint",
       "typeSchema": null,
       "notNull": true,
@@ -1739,12 +2979,12 @@
         "cache": 1,
         "cycle": false
       },
-      "name": "archive_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "users_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "users_archive",
+      "name": "archived_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -1752,12 +2992,12 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "archived_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "users_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "users_archive",
+      "name": "email",
       "type": "varchar(254)",
       "typeSchema": null,
       "notNull": false,
@@ -1765,12 +3005,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "email",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "users_archive"
+      "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "activities_timestamp_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -1786,12 +3026,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "activities_timestamp_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "activities_ip_address_timestamp_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -1814,12 +3054,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "activities_ip_address_timestamp_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "activities_failed_credential_timestamp_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -1842,12 +3082,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "activities_failed_credential_timestamp_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "activities_user_id_timestamp_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -1870,12 +3110,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "activities_user_id_timestamp_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "activities_anon_id_timestamp_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -1898,12 +3138,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "activities_anon_id_timestamp_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "activities_users_archive_id_timestamp_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -1926,12 +3166,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "activities_users_archive_id_timestamp_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "activities_anons_archive_id_timestamp_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -1954,12 +3194,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "activities_anons_archive_id_timestamp_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "activities"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "bans_expires_at_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -1975,12 +3215,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "bans_expires_at_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "bans_activity_ids_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -1996,12 +3236,12 @@
       "with": "",
       "method": "gin",
       "concurrently": false,
-      "name": "bans_activity_ids_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "bans_ip_address_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -2017,12 +3257,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "bans_ip_address_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "bans_failed_credential_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -2038,12 +3278,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "bans_failed_credential_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "bans_user_id_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -2059,12 +3299,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "bans_user_id_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "bans_anon_id_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -2080,12 +3320,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "bans_anon_id_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "bans_users_archive_id_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -2101,12 +3341,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "bans_users_archive_id_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "bans_anons_archive_id_index",
       "nameExplicit": false,
       "columns": [
         {
@@ -2122,12 +3362,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "bans_anons_archive_id_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "email_verifications",
+      "name": "email_verifications_email_lower_anon_unique",
       "nameExplicit": true,
       "columns": [
         {
@@ -2150,12 +3390,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "email_verifications_email_lower_anon_unique",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "email_verifications"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "email_verifications",
+      "name": "email_verifications_email_lower_user_unique",
       "nameExplicit": true,
       "columns": [
         {
@@ -2178,12 +3418,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "email_verifications_email_lower_user_unique",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "email_verifications"
+      "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "users",
+      "name": "users_email_lower_unique",
       "nameExplicit": true,
       "columns": [
         {
@@ -2199,591 +3439,591 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "users_email_lower_unique",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "users"
+      "entityType": "indexes"
     },
     {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "activities_user_id_users_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "activities"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "users_archive_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users_archive",
-      "columnsTo": [
-        "archive_id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "activities_users_archive_id_users_archive_archive_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "activities"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "anon_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "anons",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "activities_anon_id_anons_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "activities"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "anons_archive_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "anons_archive",
-      "columnsTo": [
-        "archive_id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "activities_anons_archive_id_anons_archive_archive_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "activities"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "activities_archive_user_id_users_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "activities_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "users_archive_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users_archive",
-      "columnsTo": [
-        "archive_id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "activities_archive_UlPtyivnITiJ_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "activities_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "anon_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "anons",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "activities_archive_anon_id_anons_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "activities_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "anons_archive_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "anons_archive",
-      "columnsTo": [
-        "archive_id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "activities_archive_HTD6HTU05M1J_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "activities_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "anons_archive_user_id_users_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "anons_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "users_archive_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users_archive",
-      "columnsTo": [
-        "archive_id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "anons_archive_users_archive_id_users_archive_archive_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "anons_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "anon_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "anons",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "bans_anon_id_anons_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "bans"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "anons_archive_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "anons_archive",
-      "columnsTo": [
-        "archive_id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "bans_anons_archive_id_anons_archive_archive_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "bans"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "bans_user_id_users_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "bans"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "users_archive_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users_archive",
-      "columnsTo": [
-        "archive_id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "bans_users_archive_id_users_archive_archive_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "bans"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "anon_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "anons",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "bans_archive_anon_id_anons_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "bans_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "anons_archive_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "anons_archive",
-      "columnsTo": [
-        "archive_id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "bans_archive_anons_archive_id_anons_archive_archive_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "bans_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "bans_archive_user_id_users_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "bans_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "users_archive_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users_archive",
-      "columnsTo": [
-        "archive_id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "bans_archive_users_archive_id_users_archive_archive_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "bans_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "anon_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "anons",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "email_verifications_anon_id_anons_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "email_verifications"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "email_verifications_user_id_users_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "email_verifications"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "anon_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "anons",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "email_verifications_archive_anon_id_anons_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "email_verifications_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "email_verifications_archive_user_id_users_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "email_verifications_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "anons_archive_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "anons_archive",
-      "columnsTo": [
-        "archive_id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "email_verifications_archive_a2JFgnYaZisD_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "email_verifications_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "users_archive_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users_archive",
-      "columnsTo": [
-        "archive_id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "email_verifications_archive_f5LjnxHR4TRD_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "email_verifications_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "sessions_user_id_users_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "sessions"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "sessions_archive_user_id_users_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "sessions_archive"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "users_archive_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users_archive",
-      "columnsTo": [
-        "archive_id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "sessions_archive_users_archive_id_users_archive_archive_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "sessions_archive"
-    },
-    {
-      "columns": [
-        "id"
-      ],
-      "nameExplicit": false,
-      "name": "activities_pkey",
       "schema": "public",
       "table": "activities",
-      "entityType": "pks"
+      "name": "activities_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "activities",
+      "name": "activities_users_archive_id_users_archive_archive_id_fkey",
+      "nameExplicit": false,
       "columns": [
+        "users_archive_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users_archive",
+      "columnsTo": [
         "archive_id"
       ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "activities",
+      "name": "activities_anon_id_anons_id_fkey",
       "nameExplicit": false,
-      "name": "activities_archive_pkey",
+      "columns": [
+        "anon_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "anons",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "activities",
+      "name": "activities_anons_archive_id_anons_archive_archive_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "anons_archive_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "anons_archive",
+      "columnsTo": [
+        "archive_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
       "schema": "public",
       "table": "activities_archive",
-      "entityType": "pks"
-    },
-    {
+      "name": "activities_archive_user_id_users_id_fkey",
+      "nameExplicit": false,
       "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
         "id"
       ],
-      "nameExplicit": false,
-      "name": "anons_pkey",
-      "schema": "public",
-      "table": "anons",
-      "entityType": "pks"
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "activities_archive_UlPtyivnITiJ_fkey",
+      "nameExplicit": false,
       "columns": [
+        "users_archive_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users_archive",
+      "columnsTo": [
         "archive_id"
       ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "activities_archive_anon_id_anons_id_fkey",
       "nameExplicit": false,
-      "name": "anons_archive_pkey",
+      "columns": [
+        "anon_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "anons",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "activities_archive_HTD6HTU05M1J_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "anons_archive_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "anons_archive",
+      "columnsTo": [
+        "archive_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
       "schema": "public",
       "table": "anons_archive",
-      "entityType": "pks"
-    },
-    {
+      "name": "anons_archive_user_id_users_id_fkey",
+      "nameExplicit": false,
       "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
         "id"
       ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "anons_archive",
+      "name": "anons_archive_users_archive_id_users_archive_archive_id_fkey",
       "nameExplicit": false,
-      "name": "bans_pkey",
+      "columns": [
+        "users_archive_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users_archive",
+      "columnsTo": [
+        "archive_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
       "schema": "public",
       "table": "bans",
-      "entityType": "pks"
+      "name": "bans_anon_id_anons_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "anon_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "anons",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "bans",
+      "name": "bans_anons_archive_id_anons_archive_archive_id_fkey",
+      "nameExplicit": false,
       "columns": [
+        "anons_archive_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "anons_archive",
+      "columnsTo": [
         "archive_id"
       ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "bans",
+      "name": "bans_user_id_users_id_fkey",
       "nameExplicit": false,
-      "name": "bans_archive_pkey",
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "bans",
+      "name": "bans_users_archive_id_users_archive_archive_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "users_archive_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users_archive",
+      "columnsTo": [
+        "archive_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
       "schema": "public",
       "table": "bans_archive",
-      "entityType": "pks"
-    },
-    {
+      "name": "bans_archive_anon_id_anons_id_fkey",
+      "nameExplicit": false,
       "columns": [
+        "anon_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "anons",
+      "columnsTo": [
         "id"
       ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "bans_archive_anons_archive_id_anons_archive_archive_id_fkey",
       "nameExplicit": false,
-      "name": "email_verifications_pkey",
+      "columns": [
+        "anons_archive_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "anons_archive",
+      "columnsTo": [
+        "archive_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "bans_archive_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "bans_archive_users_archive_id_users_archive_archive_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "users_archive_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users_archive",
+      "columnsTo": [
+        "archive_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
       "schema": "public",
       "table": "email_verifications",
-      "entityType": "pks"
+      "name": "email_verifications_anon_id_anons_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "anon_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "anons",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
     },
     {
-      "columns": [
-        "archive_id"
-      ],
+      "schema": "public",
+      "table": "email_verifications",
+      "name": "email_verifications_user_id_users_id_fkey",
       "nameExplicit": false,
-      "name": "email_verifications_archive_pkey",
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
       "schema": "public",
       "table": "email_verifications_archive",
-      "entityType": "pks"
-    },
-    {
+      "name": "email_verifications_archive_anon_id_anons_id_fkey",
+      "nameExplicit": false,
       "columns": [
+        "anon_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "anons",
+      "columnsTo": [
         "id"
       ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "email_verifications_archive",
+      "name": "email_verifications_archive_user_id_users_id_fkey",
       "nameExplicit": false,
-      "name": "sessions_pkey",
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "email_verifications_archive",
+      "name": "email_verifications_archive_a2JFgnYaZisD_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "anons_archive_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "anons_archive",
+      "columnsTo": [
+        "archive_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "email_verifications_archive",
+      "name": "email_verifications_archive_f5LjnxHR4TRD_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "users_archive_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users_archive",
+      "columnsTo": [
+        "archive_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
       "schema": "public",
       "table": "sessions",
-      "entityType": "pks"
+      "name": "sessions_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
     },
     {
-      "columns": [
-        "archive_id"
-      ],
-      "nameExplicit": false,
-      "name": "sessions_archive_pkey",
       "schema": "public",
       "table": "sessions_archive",
-      "entityType": "pks"
+      "name": "sessions_archive_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "sessions_archive_users_archive_id_users_archive_archive_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "users_archive_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users_archive",
+      "columnsTo": [
+        "archive_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "activities",
+      "name": "activities_pkey",
       "columns": [
         "id"
       ],
       "nameExplicit": false,
-      "name": "users_pkey",
-      "schema": "public",
-      "table": "users",
       "entityType": "pks"
     },
     {
+      "schema": "public",
+      "table": "activities_archive",
+      "name": "activities_archive_pkey",
       "columns": [
         "archive_id"
       ],
       "nameExplicit": false,
-      "name": "users_archive_pkey",
-      "schema": "public",
-      "table": "users_archive",
       "entityType": "pks"
     },
     {
+      "schema": "public",
+      "table": "anons",
+      "name": "anons_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "anons_archive",
+      "name": "anons_archive_pkey",
+      "columns": [
+        "archive_id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "bans",
+      "name": "bans_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "bans_archive",
+      "name": "bans_archive_pkey",
+      "columns": [
+        "archive_id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "email_verifications",
+      "name": "email_verifications_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "email_verifications_archive",
+      "name": "email_verifications_archive_pkey",
+      "columns": [
+        "archive_id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "sessions_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "sessions_archive_pkey",
+      "columns": [
+        "archive_id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "users_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "users_archive",
+      "name": "users_archive_pkey",
+      "columns": [
+        "archive_id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "bans",
+      "name": "bans_scope_target_unique",
       "nameExplicit": true,
       "columns": [
         "scope",
@@ -2795,18 +4035,14 @@
         "anons_archive_id"
       ],
       "nullsNotDistinct": true,
-      "name": "bans_scope_target_unique",
-      "entityType": "uniques",
-      "schema": "public",
-      "table": "bans"
+      "entityType": "uniques"
     },
     {
-      "value": "num_nonnulls(\"ip_address\", \"failed_credential\", \"user_id\", \"anon_id\", \"users_archive_id\", \"anons_archive_id\") = 1",
-      "name": "bans_single_target_check",
-      "entityType": "checks",
       "schema": "public",
-      "table": "bans"
+      "table": "bans",
+      "name": "bans_single_target_check",
+      "value": "num_nonnulls(\"ip_address\", \"failed_credential\", \"user_id\", \"anon_id\", \"users_archive_id\", \"anons_archive_id\") = 1",
+      "entityType": "checks"
     }
-  ],
-  "renames": []
+  ]
 }

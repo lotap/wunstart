@@ -24,7 +24,7 @@ import {authTokenFailure} from './token-error.ts'
 const genericFailureOutputMessage = 'Your session has expired. Sign in and try again.'
 
 /** Unexpected internal session state that prevents safe refresh resolution. Wrapped as INTERNAL_ERROR by createOpsFn */
-class RefreshStateError extends Schema.TaggedErrorClass<RefreshStateError>()('RefreshStateError', {
+class RefreshStateError extends Schema.TaggedError<RefreshStateError>()('RefreshStateError', {
 	message: Schema.String,
 }) {}
 

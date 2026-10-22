@@ -1,10 +1,9 @@
 import {PgClient} from '@effect/sql-pg'
 import * as PgDrizzle from 'drizzle-orm/effect-postgres'
 import {Config, Context, Effect, Layer, Option, Redacted, Schema} from 'effect'
-import {Pool as PgPool, types} from 'pg'
 
 /** Layer-build failure: no `DATABASE_URL` and the Workers runtime/binding is unavailable */
-class DbConfigError extends Schema.TaggedErrorClass<DbConfigError>()('DbConfigError', {
+class DbConfigError extends Schema.TaggedError<DbConfigError>()('DbConfigError', {
 	message: Schema.String,
 	cause: Schema.Unknown,
 }) {}
@@ -18,7 +17,7 @@ class DbConfigError extends Schema.TaggedErrorClass<DbConfigError>()('DbConfigEr
  * Workers runtime, so it's never loaded when `DATABASE_URL` is set (e.g. on a VPS).
  */
 const connectionString = Effect.gen(function* () {
-	const fromEnvironment = yield* Config.option(Config.redacted('DATABASE_URL'))
+	const fromEnvironment = yield* Config.option(Config.Redacted('DATABASE_URL'))
 
 	if (Option.isSome(fromEnvironment)) return fromEnvironment.value
 
@@ -35,56 +34,19 @@ const connectionString = Effect.gen(function* () {
 	return Redacted.make(env.HYPERDRIVE.connectionString)
 })
 
-// Date/time type parsers passed to pg so Drizzle can parse them itself
-const customTypes = {
-	// `format` is `'text' | 'binary'` per pg's own getTypeParser signature
-	getTypeParser: (typeId: number, format: 'text' | 'binary' | undefined = 'text') => {
-		// Return raw values for date/time types to let Drizzle handle parsing
-		// from: https://orm.drizzle.team/docs/connect-effect-postgres#step-2---initialize-the-driver-and-make-a-query
-		if ([1184, 1114, 1082, 1186, 1231, 1115, 1185, 1187, 1182].includes(typeId)) {
-			// The parameter must be `any`: pg's `TypeParser` types the callback as `(oid: number) =>
-			// TReturn`, which no narrower parameter signature is assignable to (contravariance). This
-			// mirrors Drizzle's own driver implementations (see neon-serverless session).
-			return (val: any) => val
-		}
-
-		return types.getTypeParser(typeId, format)
-	},
-}
-
 /**
- * The pg pool is built from a connection string, but the pool itself is lazy.
- * It opens no socket until the first query. Unlike `PgClient.layerConfig` (which
- * runs an eager `SELECT 1` probe when the layer is built), `fromPool` only
- * acquires the pool object, so building `dbLayer` never connects. This lets
- * JWT-only paths (anon verify) inject `dbLayer` without touching Postgres unless
- * a failure actually needs recording. Connect errors surface on the first query.
+ * The client layer builds the driver's pool structure but opens no socket
+ * until the first query (`@effect/sql-pg` runs no eager probe). This lets
+ * JWT-only paths (anon verify) inject `dbLayer` without touching Postgres
+ * unless a failure actually needs recording. Connect errors surface on the
+ * first query.
  */
-const pgClientLayer = PgClient.layerFrom(
+const pgClientLayer = Layer.unwrap(
 	connectionString.pipe(
-		Effect.flatMap((url) =>
-			PgClient.fromPool({
-				acquire: Effect.acquireRelease(
-					Effect.sync(() => {
-						const pool = new PgPool({
-							connectionString: Redacted.value(url),
-							connectionTimeoutMillis: 5_000,
-							types: customTypes,
-						})
-
-						// Absorb idle-client errors; query-level failures surface otherwise
-						pool.on('error', () => {})
-
-						return pool
-					}),
-					(pool) =>
-						Effect.tryPromise(() => pool.end()).pipe(
-							Effect.ignore({
-								log: true,
-								message: 'Failed to close database pool cleanly',
-							}),
-						),
-				),
+		Effect.map((url) =>
+			PgClient.layer({
+				url,
+				connectTimeout: 5_000,
 			}),
 		),
 	),

@@ -5,7 +5,7 @@ import type {PgTable, PgColumn} from 'drizzle-orm/pg-core'
 import type {PgEffectPreparedQuery} from 'drizzle-orm/pg-core/effect'
 import {Effect, Schema} from 'effect'
 import type {Constraint, SchemaError} from 'effect/Schema'
-import type {SqlError} from 'effect/unstable/sql/SqlError'
+import type {SqlError} from 'effect/sql/SqlError'
 
 import type {Tx, QueryExecutor} from '#/db/helpers/types.ts'
 import {DB} from '#/db/index.ts'
@@ -92,7 +92,7 @@ export function createPreparedQuery<
 	})
 }
 
-export class ArchiveNotFoundError extends Schema.TaggedErrorClass<ArchiveNotFoundError>()(
+export class ArchiveNotFoundError extends Schema.TaggedError<ArchiveNotFoundError>()(
 	'ArchiveNotFoundError',
 	{message: Schema.String},
 ) {}
@@ -102,7 +102,7 @@ export class ArchiveNotFoundError extends Schema.TaggedErrorClass<ArchiveNotFoun
  * (a concurrent writer archived a row between the two statements). The whole
  * archive transaction rolls back, so nothing partial is ever committed
  */
-export class ArchiveCountMismatchError extends Schema.TaggedErrorClass<ArchiveCountMismatchError>()(
+export class ArchiveCountMismatchError extends Schema.TaggedError<ArchiveCountMismatchError>()(
 	'ArchiveCountMismatchError',
 	{message: Schema.String},
 ) {}

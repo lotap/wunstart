@@ -35,8 +35,8 @@ function createTokenSecretsConfig<Tag extends string>(tag: Tag, envVar: string) 
 	class ConfigService extends Context.Service<ConfigService, ParsedSecrets>()(tag) {
 		static readonly layer = Layer.effect(
 			this,
-			Config.redacted(envVar).pipe(
-				Config.mapOrFail((secrets) => parseSecrets(Redacted.value(secrets))),
+			Config.Redacted(envVar).pipe(
+				Config.mapEffect((secrets) => parseSecrets(Redacted.value(secrets))),
 			),
 		)
 	}
