@@ -181,6 +181,23 @@ Run `bun run fmt`, `bun run lint:check`, and `bunx tsgo --noEmit` to format and 
 
 Linter rule tests run with `bun run test:lint`. Run them when you edit linter rules.
 
+### Updating dependencies
+
+Three things update three ways:
+
+- **npm packages** (`package.json`, `bun.lock`): `bun update -i`, then `bun run install-deps`.
+  - Caveats:
+    - Keep `ua-parser-js` on v1. Version 2 relicensed from MIT to AGPL.
+    - Keep TanStack Form on the v2 prerelease line, since the interactive updater lists the older v1 stable as an update. Don't take it.
+- **Skills** (`.agents/skills/`): `npx skills check` shows what's drifted; `npx skills update` refreshes them.
+- **Lint rules:**
+  - _Anti-slop_ (`tools/linters/anti-slop/`): paste this to an agent:
+    ```
+    Update anti-slop to latest while preserving local customizations.
+    ```
+    The agent identifies the revision and records it in `UPSTREAM.md`. Name a specific commit only to port selected fixes instead of everything.
+  - _React Doctor_: `bun update oxlint-plugin-react-doctor` is the whole update. The merge loop at the top of `oxlint.config.ts` applies the new rules on the next lint, with nothing else to run. You only step in for two edge cases. Both are visible in `bun run lint:check` output: a brand-new upstream set worth merging, or a renamed rule ID referenced in `doctor.config.json`. (The `improve-react` scanner runs at `@latest`, so it needs no update.)
+
 ### Deployment
 
 *By default, the auth module deploys a hashing method ([Argon2](https://en.wikipedia.org/wiki/Argon2)) using [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/). To use a different architecture, a different hashing algorithm needs to be used.
