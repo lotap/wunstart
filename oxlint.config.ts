@@ -49,6 +49,9 @@ const config = defineConfig({
 		'typescript/no-unsafe-type-assertion': 'off', // too many false positives to be useful as a rule
 		'typescript/no-unnecessary-type-assertion': 'off', // too many false positives to be useful as a rule
 		'import/extensions': ['error', 'ignorePackages'],
+		'oxc/no-accumulating-spread': 'error',
+		'anti-slop/no-array-filter-map': 'error',
+		'anti-slop/no-reduce-accumulator-copy': 'error',
 		'anti-slop/no-chained-type-assertions': 'error',
 		'anti-slop/no-conditional-empty-object-spread': 'error',
 		'anti-slop/no-known-value-widening': 'error',
@@ -63,7 +66,13 @@ const config = defineConfig({
 		'anti-slop/no-unknown-type-aliases': 'error',
 		'anti-slop/no-unsafe-dictionary-type': 'error',
 		'anti-slop/no-widen-then-assert': 'error',
+		'anti-slop/require-readable-spacing': 'error',
 		'anti-slop/require-safety-comment-for-type-assertion': 'error',
+		'anti-slop-effect/no-manual-effect-error-tag': 'error',
+		'anti-slop-effect/no-manual-tag-comparison': 'error',
+		'anti-slop-effect/no-manual-tagged-construction': 'error',
+		'anti-slop-effect/no-service-constructor-imports': 'error',
+		'anti-slop-effect/prefer-effect-match': 'error',
 		'wunshot/no-pgtable-direct': 'error',
 		'wunshot/no-zod-valibot': 'error',
 		'wunshot/no-failed-credential-in-denial': 'error',
