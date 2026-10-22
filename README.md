@@ -162,6 +162,20 @@ Click “Use this template” on [the project’s GitHub repository](https://git
 
 If setup fails, run `bun run validate-setup`. It reports what is wrong and how to fix it.
 
+### What runs on its own
+
+Installing packages and starting the dev server both do work without being asked. That work is worth knowing about in case there is any unexpected behavior.
+
+Setting up dependencies runs the [`prepare` script](https://docs.npmjs.com/cli/v11/using-npm/scripts). It tells git to use the repo's own commit hook (described below), and it modifies the installed TypeScript and Oxlint copies (inside `node_modules` only) to add Effect checks. `install-deps` triggers it through a normal install, and so does any later `bun install`, `add`, or `remove`.
+
+The hook blocks Rust changes that reach a commit without the rebuilt Wasm file alongside them; the kernel binary is committed so daily work never needs the Rust toolchain.
+
+The modified compiler is why `bunx tsc --version` shows an `+effect-tsgo` suffix and why the `@effect/language-service` block in `tsconfig.json` does anything at all. If Effect checks ever stop appearing, reinstall and look for the suffix.
+
+Starting the dev server reinstalls dependencies first, so switching branches or pulling never leaves the checkout broken.
+
+The typecheck (`bunx tsc --noEmit`) and the linter (`bun run lint:check`) share most of their Effect checks, so some findings appear in both. That overlap is on purpose: the typecheck runs 43 checks the linter cannot. Only errors fail the typecheck; warnings and suggestions are shown but do not fail it.
+
 ### Customize
 
 After setup, wunstart works like any other [TanStack Start](https://tanstack.com/start/latest) project.
