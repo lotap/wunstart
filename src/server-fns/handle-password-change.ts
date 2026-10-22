@@ -41,6 +41,7 @@ export const handlePasswordChange = createServerFn({method: 'POST'})
 			 * only fetched for actual password submissions
 			 */
 			const {isStrong, message} = await checkPasswordStrength(data.password)
+
 			if (!isStrong) throw new KnownServerError({message})
 
 			const {anonToken} = await runOp({

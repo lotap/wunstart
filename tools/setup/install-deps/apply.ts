@@ -30,6 +30,7 @@ function cleanup(plan: InstallPlan, retry: string): void {
 	for (const file of plan.foreignLockfiles) {
 		removeFile(file, `removed stale ${file} (superseded by ${plan.pm})`, retry)
 	}
+
 	if (plan.staleLockfile !== null) {
 		removeFile(
 			plan.staleLockfile,
@@ -37,9 +38,11 @@ function cleanup(plan: InstallPlan, retry: string): void {
 			retry,
 		)
 	}
+
 	if (plan.workspace === 'drop') {
 		removeFile('pnpm-workspace.yaml', 'removed pnpm-workspace.yaml (leaving pnpm)', retry)
 	}
+
 	if (plan.removeNodeModules) {
 		try {
 			rmSync(join(ROOT, 'node_modules'), {recursive: true, force: true})
@@ -53,15 +56,19 @@ function cleanup(plan: InstallPlan, retry: string): void {
 export function applyPlan(plan: InstallPlan): void {
 	const retry: string = phaseCommandWithArgs(plan.pm, 'install-deps', ['--pm', plan.pm])
 	cleanup(plan, retry)
+
 	if (plan.install) {
 		step(`installing dependencies with ${plan.pm}…`)
+
 		if (run(plan.pm, ['install'], {timeoutMs: INSTALL_TIMEOUT_MS, capture: isQuietMode()}) !== 0) {
 			fail(`${plan.pm} install failed`, `see the output above, then re-run: ${retry}`)
 		}
+
 		ok('dependencies installed')
 	} else {
 		ok('dependencies already installed')
 	}
+
 	// Record freshness on the checkout's own node_modules: a no-op install
 	// may leave its directory mtime untouched, and branch-env uses that
 	// mtime as the observable staleness boundary.
@@ -74,7 +81,9 @@ export function applyPlan(plan: InstallPlan): void {
 			'could not update node_modules freshness timestamp — branch-env may ask for install-deps again',
 		)
 	}
+
 	const hooks: string = join(ROOT, 'tools', 'pkg-scripts', 'setup-git-hooks.sh')
+
 	if (run('sh', [hooks], {timeoutMs: HOOKS_TIMEOUT_MS, capture: isQuietMode()}) !== 0) {
 		warn(`git hooks did not install — re-run: ${phaseCommand(plan.pm, 'setup:hooks')}`)
 	}

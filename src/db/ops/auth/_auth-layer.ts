@@ -12,6 +12,7 @@ function parseSecrets(secretPairsList: string) {
 
 	for (const pair of pairs) {
 		const [id, secret] = pair.split(':')
+
 		if (!id || !secret)
 			/** Misconfigured secrets should prevent the app from starting */
 			return Effect.fail(
@@ -39,6 +40,7 @@ function createTokenSecretsConfig<Tag extends string>(tag: Tag, envVar: string) 
 			),
 		)
 	}
+
 	return ConfigService
 }
 

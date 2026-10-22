@@ -83,6 +83,7 @@ export const DateFromDateTimeUtc = Schema.DateTimeUtc.pipe(
 	Schema.check(
 		Schema.makeFilter((date: Date) => {
 			const ms = date.getTime()
+
 			return Number.isFinite(ms) && Math.abs(ms) <= 8_640_000_000_000_000
 		}),
 	),

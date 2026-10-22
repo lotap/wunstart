@@ -13,6 +13,7 @@ const FORBIDDEN_EXACT = new Set([
 
 function isForbiddenSource(source: string): boolean {
 	if (FORBIDDEN_EXACT.has(source)) return true
+
 	return (
 		source.startsWith('zod/') ||
 		source.startsWith('valibot/') ||
@@ -37,25 +38,31 @@ export const noZodValibotRule = defineRule({
 		return {
 			ImportDeclaration(node) {
 				const source: string = node.source.value
+
 				if (!isForbiddenSource(source)) return
 				context.report({node: node.source, messageId: 'zodValibot', data: {source}})
 			},
 			ExportNamedDeclaration(node) {
 				if (!node.source) return
 				const source: string = node.source.value
+
 				if (!isForbiddenSource(source)) return
 				context.report({node: node.source, messageId: 'zodValibot', data: {source}})
 			},
 			ExportAllDeclaration(node) {
 				const source: string = node.source.value
+
 				if (!isForbiddenSource(source)) return
 				context.report({node: node.source, messageId: 'zodValibot', data: {source}})
 			},
 			ImportExpression(node) {
 				const source = node.source
+
 				if (source.type !== 'Literal') return
+
 				if (source.value === null) return
 				const text = `${source.value}`
+
 				if (!isForbiddenSource(text)) return
 				context.report({node: source, messageId: 'zodValibot', data: {source: text}})
 			},

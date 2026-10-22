@@ -213,6 +213,7 @@ function ReverifyFormSwitcher({email, hasPassword}: {email: string; hasPassword:
 function ReverifyError() {
 	const queryClient = useQueryClient()
 	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
+
 	return (
 		<div className="flex flex-col items-center gap-3 text-center">
 			<p>Couldn’t load the verification form. Please try again.</p>
@@ -267,6 +268,7 @@ export function ReverifyDrawer({
 			open={open && hasMounted}
 			onOpenChange={(isOpen) => {
 				setOpen(isOpen)
+
 				if (!isOpen && closeCallerDrawer) closeCallerDrawer()
 			}}
 		>

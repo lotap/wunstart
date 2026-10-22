@@ -7,6 +7,7 @@ import {
 } from 'oxlint-plugin-react-doctor'
 
 const reactDoctorRules: Record<string, 'error' | 'warn' | 'off'> = {}
+
 for (const set of [
 	RECOMMENDED_RULES,
 	TANSTACK_QUERY_RULES,
@@ -127,11 +128,7 @@ const config = defineConfig({
 		// only-export-components can't apply to them. Component files under
 		// `-components/` are excluded here and keep the rule.
 		{
-			files: [
-				'src/routes/**/*.tsx',
-				'src/contexts/**/*.tsx',
-				'src/integrations/**/*.tsx',
-			],
+			files: ['src/routes/**/*.tsx', 'src/contexts/**/*.tsx', 'src/integrations/**/*.tsx'],
 			excludeFiles: ['src/routes/**/-components/**'],
 			rules: {
 				'react-doctor/only-export-components': 'off',

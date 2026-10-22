@@ -63,6 +63,7 @@ export const insertOrMergeMany = createQueryFn({
 			.values(
 				inputs.map((input) => {
 					const {penaltyInterval, ...rest} = input
+
 					return {
 						...rest,
 						expiresAt: sql`now() + ${penaltyInterval}::interval`,

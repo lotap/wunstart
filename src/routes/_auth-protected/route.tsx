@@ -25,6 +25,7 @@ export const Route = createFileRoute('/_auth-protected')({
 
 function AuthProtected() {
 	const {auth} = Route.useRouteContext()
+
 	return (
 		<HasSudoProvider initialSudoExpiresAt={auth.sudoExpiresAt}>
 			<Outlet />

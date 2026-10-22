@@ -21,10 +21,13 @@ const findSqlError = (drizzleError: EffectDrizzleQueryError) => {
 	// `Cause<SqlError>` (drizzle-orm/effect-core wraps sql() failures in
 	// EffectDrizzleQueryError); Schema.is below validates the unwrapped error.
 	const sqlErrorOpt = Cause.findErrorOption(drizzleError.cause as Cause.Cause<unknown>)
+
 	if (Option.isSome(sqlErrorOpt)) {
 		const sqlError = sqlErrorOpt.value
+
 		if (Schema.is(SqlError)(sqlError)) return sqlError
 	}
+
 	return undefined
 }
 
@@ -46,7 +49,9 @@ export function extractPgError(drizzleError: EffectDrizzleQueryError) {
 
 const reasonOf = (cause: unknown): SqlErrorReason | undefined => {
 	if (Schema.is(EffectDrizzleQueryError)(cause)) return findSqlError(cause)?.reason
+
 	if (Schema.is(SqlError)(cause)) return cause.reason
+
 	return undefined
 }
 
@@ -73,5 +78,6 @@ const isRollbackSafeReason = (reason: SqlErrorReason) =>
  */
 export const isRollbackSafePgError = (cause: unknown) => {
 	const reason = reasonOf(cause)
+
 	return reason !== undefined && isRollbackSafeReason(reason)
 }

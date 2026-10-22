@@ -15,6 +15,7 @@ export const Route = createFileRoute('/_auth-dynamic')({
 
 function AuthDynamic() {
 	const {auth} = Route.useRouteContext()
+
 	return (
 		/**
 		 * Keyed by auth presence so the provider resets when the identity appears or

@@ -58,6 +58,7 @@ export function tryCapture(
 		if (error instanceof Error && killedBySigint((error as {signal?: ChildSignal}).signal)) {
 			process.exit(130)
 		}
+
 		return null
 	}
 }
@@ -79,6 +80,7 @@ const CAPTURE_BUFFER_BYTES = 10 * 1024 * 1024
  */
 export function run(cmd: string, args: Array<string>, options: RunOptions = {}): number {
 	const capture: boolean = options.capture === true
+
 	const result = spawnSync(cmd, args, {
 		cwd: ROOT,
 		stdio: capture ? ['ignore', 'pipe', 'pipe'] : 'inherit',
@@ -87,20 +89,26 @@ export function run(cmd: string, args: Array<string>, options: RunOptions = {}):
 		encoding: capture ? 'utf8' : undefined,
 		maxBuffer: capture ? CAPTURE_BUFFER_BYTES : undefined,
 	})
+
 	if (killedBySigint(result.signal)) {
 		process.exit(130)
 	}
+
 	const status: number = result.status ?? 1
+
 	if (capture && status !== 0) {
 		const stdout: string = result.stdout ? result.stdout.toString() : ''
 		const stderr: string = result.stderr ? result.stderr.toString() : ''
+
 		if (stdout !== '') {
 			process.stdout.write(stdout)
 		}
+
 		if (stderr !== '') {
 			process.stderr.write(stderr)
 		}
 	}
+
 	// SAFETY: spawnSync reports a timeout kill in error.code (ETIMEDOUT);
 	// status is null there, which would otherwise read as a plain failure.
 	if (result.error instanceof Error && (result.error as {code?: unknown}).code === 'ETIMEDOUT') {
@@ -108,6 +116,7 @@ export function run(cmd: string, args: Array<string>, options: RunOptions = {}):
 			`${cmd} timed out after ${options.timeoutMs ?? 0}ms — re-run (slow machines and networks can need a retry)`,
 		)
 	}
+
 	return status
 }
 
@@ -125,9 +134,11 @@ export function runQuiet(
 			env: env ?? spawnEnv(),
 			timeout: timeoutMs,
 		})
+
 		if (killedBySigint(result.signal)) {
 			process.exit(130)
 		}
+
 		return result.status ?? 1
 	} catch {
 		return 1
@@ -139,10 +150,13 @@ const toolPresenceCache = new Map<string, boolean>()
 
 export function hasCommand(cmd: string): boolean {
 	const hit: boolean | undefined = toolPresenceCache.get(cmd)
+
 	if (hit !== undefined) {
 		return hit
 	}
+
 	const present: boolean = tryCapture(cmd, ['--version']) !== null
 	toolPresenceCache.set(cmd, present)
+
 	return present
 }

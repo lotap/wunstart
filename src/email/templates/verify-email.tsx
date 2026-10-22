@@ -28,6 +28,7 @@ const variantCopy = {
 
 export default function VerifyEmail({code, variant = 'signup'}: VerifyEmailProps) {
 	const copy = variantCopy[variant]
+
 	return (
 		<Html>
 			<Tailwind config={emailTailwindConfig}>
@@ -63,5 +64,6 @@ export async function renderVerificationEmail(
 ) {
 	const component = <VerifyEmail code={code} variant={variant} />
 	const [html, text] = await Promise.all([render(component), render(component, {plainText: true})])
+
 	return {subject: 'Verify your email', html, text}
 }

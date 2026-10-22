@@ -30,6 +30,7 @@ let cleanCounter = 0
 const cleanup = () => {
 	for (const [ip, events] of store) {
 		const filteredEvents = events.filter((event) => event.timestamp > Date.now() - WINDOW_MS)
+
 		if (filteredEvents.length) {
 			store.set(ip, filteredEvents)
 		} else {
@@ -43,6 +44,7 @@ const cleanup = () => {
 /** Calculate the per-request weight for a given max-requests-per-window.*/
 export function allowPerWindow(maxAllowedPerWindow: number) {
 	if (maxAllowedPerWindow <= 0) throw new Error('maxAllowedPerWindow must be a positive integer')
+
 	return Math.ceil(THRESHOLD / maxAllowedPerWindow)
 }
 
@@ -96,6 +98,7 @@ export function createRateLimit(max: number) {
 		.middleware([getRequestInfo])
 		.server(async ({next, context: {ipAddress}}) => {
 			cleanCounter++
+
 			if (cleanCounter > 10_000) cleanup()
 
 			addRateLimitEvent({ipAddress, weight: allowPerWindow(max)})

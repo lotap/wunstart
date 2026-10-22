@@ -1,4 +1,4 @@
-import {Cause, Schema, Struct} from 'effect'
+import {Cause, Option, Schema, Struct} from 'effect'
 
 import {
 	EXCESSIVE_ACTIVITIES_THRESHOLD,
@@ -73,6 +73,7 @@ export type OpsFailureFields = Omit<(typeof OpsErrorActivityPayload)['Type'], 'w
 /** Calculate an activity's weight for a given maxAllowedPerWindow. */
 export const allowRatePerWindow = (maxAllowedPerWindow: number) => {
 	if (maxAllowedPerWindow <= 0) throw new Error('maxAllowedPerWindow must be a positive integer')
+
 	return Math.ceil(EXCESSIVE_ACTIVITIES_THRESHOLD / maxAllowedPerWindow)
 }
 
@@ -136,25 +137,34 @@ export type ExtractedErrorProps = {
 export function extractErrorProps(cause: unknown): ExtractedErrorProps {
 	if (isCause(cause)) {
 		const failure = Cause.findErrorOption(cause)
-		const failureValue = failure._tag === 'Some' ? failure.value : undefined
+		const failureValue = Option.getOrUndefined(failure)
 		const failureName = failureValue instanceof Error ? failureValue.name : undefined
 		const failureMessage = failureValue instanceof Error ? failureValue.message : undefined
+
 		const failureFallback =
 			failureValue !== undefined &&
 			!(failureValue instanceof Error) &&
 			Schema.is(DisplayableFailure)(failureValue)
 				? String(failureValue)
 				: undefined
+
 		const defectCount = cause.reasons.filter(Cause.isDieReason).length
 		const props: ExtractedErrorProps = {}
+
 		if (failureName !== undefined) props.name = failureName
+
 		if (failureMessage !== undefined) props.message = failureMessage
+
 		if (failureFallback !== undefined) props.failure = failureFallback
+
 		if (defectCount > 0) props.defectCount = String(defectCount)
+
 		return props
 	}
+
 	if (cause instanceof Error) {
 		return {name: cause.name, message: cause.message}
 	}
+
 	return {value: String(cause)}
 }

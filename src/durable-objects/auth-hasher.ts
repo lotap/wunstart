@@ -60,19 +60,23 @@ export class AuthHasher extends DurableObject {
 		// but this module is compiled from our curated Rust kernel whose exports are
 		// exactly the RustKernelExports interface.
 		this.exports = instance.exports as RustKernelExports
+
 		return this.exports
 	}
 
 	private writeString(exports: RustKernelExports, value: string): KernelBuffer {
 		const bytes = this.encoder.encode(value)
+
 		return this.writeBytes(exports, bytes)
 	}
 
 	private writeBytes(exports: RustKernelExports, bytes: Uint8Array): KernelBuffer {
 		const pointer = exports.alloc(bytes.length)
+
 		if (bytes.length > 0) {
 			new Uint8Array(exports.memory.buffer, pointer, bytes.length).set(bytes)
 		}
+
 		return {pointer, length: bytes.length}
 	}
 
@@ -86,6 +90,7 @@ export class AuthHasher extends DurableObject {
 		const message =
 			this.readString(exports, exports.error_ptr(), exports.error_len()) ||
 			'Rust Wasm kernel failed.'
+
 		return new Error(message)
 	}
 
@@ -106,6 +111,7 @@ export class AuthHasher extends DurableObject {
 				options.p,
 				options.dkLen,
 			)
+
 			if (status !== 1) throw this.readError(exports)
 
 			return this.readString(exports, exports.output_ptr(), exports.output_len())

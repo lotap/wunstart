@@ -164,6 +164,7 @@ const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 
 	if (!user) {
 		yield* Effect.logWarning('Session revoked for reuse, but the user was not found', userId)
+
 		return
 	}
 
@@ -446,6 +447,7 @@ const _refresh = Effect.fn('refresh')(function* ({
 		ipAddress,
 		userId: session.userId,
 	})
+
 	/**
 	 * If active bans or excessive activities are found
 	 * log the activity as a rate limit failure and return a generic error

@@ -40,6 +40,7 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 	const nextCats = (id: CategoryId, nextPinned: CategoryId[]) => {
 		if (activeCategories.includes(id)) {
 			const remaining = activeCategories.filter((c) => c !== id)
+
 			return remaining.length > 0 ? remaining : [id]
 		}
 
@@ -54,6 +55,7 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 			<nav className="contents gap-2 py-2 md:flex md:flex-col">
 				{CATEGORIES.map(({id, label, Icon}, i) => {
 					const isExpanded = activeCategories.includes(id)
+
 					return (
 						<div
 							key={id}
@@ -71,6 +73,7 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 								viewTransition={false}
 								onClick={() => {
 									const nextPinned = nextPins(id)
+
 									if (nextPinned.length !== pinned.length) setPinned(nextPinned)
 								}}
 								aria-expanded={isExpanded}
@@ -108,6 +111,7 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 				{CATEGORIES.map(({id, label}, i) => {
 					const catOrder = activeCategories.indexOf(id) + 1
 					const CatComponent = CATEGORY_COMPONENTS[id]
+
 					return (
 						activeCategories.includes(id) && (
 							<section

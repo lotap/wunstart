@@ -24,10 +24,12 @@ const getLocalStorageItem = <T extends ConstraintDecoder<unknown>>({
 
 	/** Parse the stored JSON string; remove and return null if it's malformed */
 	let rawState: unknown
+
 	try {
 		rawState = JSON.parse(stateStr)
 	} catch {
 		localStorage.removeItem(key)
+
 		return null
 	}
 
@@ -46,6 +48,7 @@ const getLocalStorageItem = <T extends ConstraintDecoder<unknown>>({
 
 	/** Otherwise, delete the bad or expired data and return null */
 	localStorage.removeItem(key)
+
 	return null
 }
 
@@ -65,8 +68,13 @@ export function useLocalStorageQuery<T extends ConstraintDecoder<unknown>>({
 	const query = useQuery(localStorageQueryOptions)
 
 	const mutation = useMutation({
+		// Partial<> of the unresolved schema Type reads as {} to the rule;
+		// every caller instantiates with an object schema, so the update
+		// shape is exact where used.
+		// oxlint-disable-next-line typescript/no-generated-empty-object-type
 		mutationFn: async (data: Partial<T['Type']>) => {
 			let newData
+
 			if (Schema.is(Schema.String)(data)) {
 				newData = data
 			} else if (query.isSuccess && query.data) {
@@ -75,7 +83,9 @@ export function useLocalStorageQuery<T extends ConstraintDecoder<unknown>>({
 				const storedData = getLocalStorageItem({key, schema})
 				newData = storedData === null ? data : {...storedData, ...data}
 			}
+
 			localStorage.setItem(key, JSON.stringify(newData))
+
 			return newData
 		},
 		onSettled: () => queryClient.invalidateQueries({queryKey: localStorageQueryOptions.queryKey}),
@@ -96,7 +106,9 @@ export function useLocalStorageQuery<T extends ConstraintDecoder<unknown>>({
 				void queryClient.invalidateQueries({queryKey: localStorageQueryOptions.queryKey})
 			}
 		}
+
 		window.addEventListener('storage', handleStorage)
+
 		return () => window.removeEventListener('storage', handleStorage)
 	}, [key, queryClient, localStorageQueryOptions.queryKey])
 

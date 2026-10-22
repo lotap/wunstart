@@ -31,6 +31,7 @@ const retryHasher = <A>(effect: Effect.Effect<A, HashingError>): Effect.Effect<A
 /** Transform given target into a hashed string using Argon2id */
 export const hashTarget = Effect.fn('hashTarget')(function* (password: string) {
 	const stub = yield* HashingStub
+
 	return yield* Effect.tryPromise({
 		try: () => stub.hashPassword(password, HASHING_CONFIG),
 		catch: (cause: unknown) => new HashingError({operation: 'hash', cause}),
@@ -40,6 +41,7 @@ export const hashTarget = Effect.fn('hashTarget')(function* (password: string) {
 /** Verifies that a given hashed string and target match using Argon2id */
 export const verifyTarget = Effect.fn('verifyTarget')(function* (hash: string, password: string) {
 	const stub = yield* HashingStub
+
 	return yield* Effect.tryPromise({
 		try: () => stub.verifyPassword(hash, password),
 		catch: (cause: unknown) => new HashingError({operation: 'verify', cause}),

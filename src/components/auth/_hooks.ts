@@ -13,6 +13,7 @@ import {
 
 export function useLocalStorageEmail() {
 	const queries = useLocalStorageQuery({key: 'auth-email', schema: LocalStorageEmailSchema})
+
 	return queries
 }
 
@@ -83,6 +84,7 @@ export function useLocalStorageAuthFormState({key}: {key: string}) {
 	})
 
 	const step = query.data?.step ?? 0
+
 	const setStep = (_step: number) => {
 		mutation.mutate({
 			step: _step,

@@ -44,6 +44,7 @@ export type InterruptMessages = {sigint: string; sigterm: string}
 export function setupPhase(flags: PhaseFlags, messages: InterruptMessages): PhaseSession {
 	setQuiet(flags.quiet)
 	const canPrompt: boolean = process.stdin.isTTY && !flags.yes && !flags.noInput && !flags.dryRun
+
 	if (!canPrompt && !flags.yes && !flags.dryRun) {
 		fail(
 			'cannot prompt for confirmation (stdin is not a TTY, or --no-input is set)',
@@ -51,21 +52,27 @@ export function setupPhase(flags: PhaseFlags, messages: InterruptMessages): Phas
 			2,
 		)
 	}
+
 	const {ask, close}: Asker = createAsker(canPrompt, messages.sigint)
 	process.on('SIGINT', () => {
 		close()
+
 		if (claimInterrupt()) {
 			console.error(messages.sigint)
 		}
+
 		process.exit(130)
 	})
 	process.on('SIGTERM', () => {
 		close()
+
 		if (claimInterrupt()) {
 			console.error(messages.sigterm)
 		}
+
 		process.exit(143)
 	})
+
 	return {canPrompt, ask, close}
 }
 
@@ -93,9 +100,11 @@ export function runEntry(
 	// entry is named main.ts, so a basename check cannot distinguish an
 	// imported phase from the invoked one.
 	const invoked: string = process.argv[1] ?? ''
+
 	if (invoked === '' || !sameFile(invoked, fileURLToPath(entryUrl))) {
 		return
 	}
+
 	// Deferred through .then so a synchronous throw in main reports through
 	// the same scrubbed path as a rejection.
 	Promise.resolve()

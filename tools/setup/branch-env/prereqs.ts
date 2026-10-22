@@ -46,6 +46,7 @@ function installDepsCommand(): string {
 
 function readPackage(): PackageJsonFile {
 	const pkg = readPackageJson()
+
 	if (!pkg.ok) {
 		const problem: string = pkg.reason === 'invalid' ? 'not valid JSON' : 'unreadable'
 		fail(
@@ -53,6 +54,7 @@ function readPackage(): PackageJsonFile {
 			`restore it: git checkout -- package.json — then run: ${appIdentityCommand()}`,
 		)
 	}
+
 	return pkg.file
 }
 
@@ -61,55 +63,67 @@ export function checkIdentity(): void {
 	const pkg: PackageJsonFile = readPackage()
 	const workerName: string | null = readWorkerName()
 	const appInfo = readAppInfoFile()
+
 	if (pkg.name === '') {
 		fail('package.json has no app name', `run: ${appIdentityCommand()} — then re-run branch-env`)
 	}
+
 	const pkgProblem: string | null = isValidSlug(pkg.name)
+
 	if (pkgProblem !== null) {
 		fail(
 			`package.json name '${pkg.name}' is not a valid app name (${pkgProblem})`,
 			`run: ${appIdentityCommand()} — then re-run branch-env`,
 		)
 	}
+
 	if (workerName === null) {
 		fail(
 			'wrangler.jsonc is missing, unreadable, or has no worker name',
 			`restore it: git checkout -- wrangler.jsonc — then run: ${appIdentityCommand()}`,
 		)
 	}
+
 	const workerProblem: string | null = isValidSlug(workerName)
+
 	if (workerProblem !== null) {
 		fail(
 			`wrangler.jsonc worker name '${workerName}' is not a valid slug (${workerProblem})`,
 			`run: ${appIdentityCommand()} — then re-run branch-env`,
 		)
 	}
+
 	if (appInfo === null) {
 		fail(
 			'src/app-info.ts is missing or unreadable',
 			'restore it: git checkout -- src/app-info.ts — then re-run branch-env',
 		)
 	}
+
 	if (appInfo.name === undefined || appInfo.description === undefined) {
 		fail(
 			'src/app-info.ts is missing its name or description field',
 			'restore it: git checkout -- src/app-info.ts — then re-run branch-env',
 		)
 	}
+
 	const appInfoName: string = appInfo.name
 	const appInfoProblem: string | null = isValidSlug(appInfoName)
+
 	if (appInfoProblem !== null) {
 		fail(
 			`src/app-info.ts name '${appInfoName}' is not a valid slug (${appInfoProblem})`,
 			`run: ${appIdentityCommand()} — then re-run branch-env`,
 		)
 	}
+
 	if (pkg.name !== workerName || pkg.name !== appInfoName) {
 		fail(
 			`project identity is not synchronized (package.json: ${pkg.name}, wrangler.jsonc: ${workerName}, src/app-info.ts: ${appInfoName})`,
 			`run: ${appIdentityCommand()} — then re-run branch-env`,
 		)
 	}
+
 	ok(`identity ${pkg.name}`)
 }
 
@@ -124,12 +138,15 @@ export function checkIdentity(): void {
 export function requireUnambiguousPm(): Pm {
 	const pkg: PackageJsonFile = readPackage()
 	const fieldPm: Pm | null = pmFromPackageManagerField(pkg.packageManager)
+
 	if (pkg.packageManager !== undefined && fieldPm === null) {
 		warn(
 			`ignoring unrecognized packageManager field '${pkg.packageManager}' (want ${PM_TOOLS.join(', ')})`,
 		)
 	}
+
 	const lockfiles = presentLockfiles()
+
 	if (lockfiles.length > 1) {
 		const files: string = lockfiles.map((lock) => lock.file).join(', ')
 		fail(
@@ -137,27 +154,35 @@ export function requireUnambiguousPm(): Pm {
 			`run: ${installDepsCommand()} — then re-run branch-env`,
 		)
 	}
+
 	if (lockfiles.length === 1) {
 		const lock = lockfiles[0]
+
 		if (lock === undefined) {
 			fail('no lockfile identifies the package manager', `run: ${installDepsCommand()}`)
 		}
+
 		if (fieldPm !== null && fieldPm !== lock.pm) {
 			warn(
 				`ignoring packageManager '${pkg.packageManager ?? ''}' (using ${lock.pm} from lockfile evidence)`,
 			)
 		}
+
 		if (!hasCommand(lock.pm)) {
 			fail(`${lock.pm} is not installed`, installHint(lock.pm))
 		}
+
 		return lock.pm
 	}
+
 	if (fieldPm !== null) {
 		if (!hasCommand(fieldPm)) {
 			fail(`${fieldPm} is not installed`, installHint(fieldPm))
 		}
+
 		return fieldPm
 	}
+
 	fail(
 		'no lockfile identifies the package manager',
 		`run: ${installDepsCommand()} — then re-run branch-env`,
@@ -168,24 +193,28 @@ export function requireUnambiguousPm(): Pm {
 export function checkDependencies(pm: Pm): void {
 	const rerun: string = phaseCommand(pm, 'install-deps')
 	const freshness = dependencyFreshness(pm)
+
 	if (!freshness.fresh) {
 		fail(
 			`dependencies are not fresh (${freshness.reason})`,
 			`run: ${rerun} — then re-run branch-env`,
 		)
 	}
+
 	ok('dependencies present and fresh')
 }
 
 /** Committed static files needed before provisioning; a miss is a restore case. */
 export function checkProjectFiles(): void {
 	const wasm = wasmState()
+
 	if (wasm.bytes <= 0 || !wasm.present) {
 		fail(
 			'wasm kernel missing or unreadable (src/durable-objects/argon2-do-hasher.wasm)',
 			'restore it: git checkout -- src/durable-objects/argon2-do-hasher.wasm — then re-run branch-env',
 		)
 	}
+
 	if (!existsSync(join(ROOT, 'compose.yaml'))) {
 		fail(
 			'compose.yaml is missing',
@@ -200,22 +229,27 @@ function firstLine(text: string | null): string {
 		.split('\n')
 		.map((entry) => entry.trim())
 		.find((entry) => entry !== '')
+
 	return line ?? ''
 }
 
 export function checkDocker(): void {
 	step('checking docker…')
+
 	if (!hasCommand('docker')) {
 		fail('docker is not installed', installHint('docker'))
 	}
+
 	const info = spawnSync('docker', ['info'], {
 		stdio: ['ignore', 'ignore', 'pipe'],
 		encoding: 'utf8',
 		timeout: 45000,
 	})
+
 	if (killedBySigint(info.signal)) {
 		process.exit(130)
 	}
+
 	if (info.status !== 0) {
 		const detail: string = firstLine(info.stderr)
 		const prefix: string = detail === '' ? '' : `docker said: ${detail} — `
@@ -224,7 +258,9 @@ export function checkDocker(): void {
 			`${prefix}start Docker Desktop (or dockerd) — then re-run branch-env`,
 		)
 	}
+
 	ok('docker daemon reachable')
+
 	if (runQuiet('docker', ['compose', 'version'], 15000) !== 0) {
 		fail(
 			'docker compose plugin is not installed',

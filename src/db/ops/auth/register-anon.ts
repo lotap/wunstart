@@ -55,6 +55,7 @@ const _registerAnon = Effect.fn('registerAnon')(function* ({
 		cities,
 		regions,
 	}
+
 	const {token} = yield* generateAnonToken(payload)
 
 	return {

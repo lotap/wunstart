@@ -19,6 +19,7 @@ export function ok(message: string): void {
 	if (quietMode) {
 		return
 	}
+
 	console.error(`ok   ${message}`)
 }
 
@@ -31,6 +32,7 @@ export function step(message: string): void {
 	if (quietMode) {
 		return
 	}
+
 	console.error(`...  ${message}`)
 }
 

@@ -47,6 +47,8 @@ export const checkCurrentBansAndExcessiveActivities = Effect.fn(
 )(function* (targets: (typeof ByManyTargets)['Encoded']) {
 	const rows = yield* activitiesBansQueries.selectCurrentAndExcessiveByTargets(targets)
 	const prefetchedRowsRef = yield* Effect.serviceOption(CurrentBansAndExcessiveActivities)
+
 	if (Option.isSome(prefetchedRowsRef)) yield* Ref.set(prefetchedRowsRef.value, rows)
+
 	return rows
 })

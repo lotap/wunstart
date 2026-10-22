@@ -24,6 +24,7 @@ export class ErrorBoundary extends Component<
 		if (this.state.error) {
 			return this.props.fallback ?? null
 		}
+
 		return this.props.children
 	}
 }

@@ -22,6 +22,7 @@ export type EmailMessage = {
  *   (network failure mid-flight, 5xx). Re-sending risks duplicates.
  */
 export const EmailFailureKind = Schema.Literals(['config', 'transient', 'ambiguous', 'rejected'])
+
 export type EmailFailureKind = Schema.Schema.Type<typeof EmailFailureKind>
 
 export class EmailSendError extends Schema.TaggedErrorClass<EmailSendError>()('EmailSendError', {
@@ -55,6 +56,7 @@ const errorCode = (cause: unknown): string => {
 	// SAFETY: Node-style errors attach a `code` property the Error interface does
 	// not declare; reading it is diagnostic only and re-validated as a string.
 	const {code} = cause as {code?: unknown}
+
 	return Schema.is(Schema.String)(code) ? code : ''
 }
 

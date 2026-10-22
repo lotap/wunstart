@@ -65,6 +65,7 @@ export function phaseCommand(pm: Pm | null, script: string): string {
 	if (pm === null) {
 		return `bun run ${script}`
 	}
+
 	return pm === 'bun' ? `bun run ${script}` : `${pm} run ${script}`
 }
 
@@ -79,7 +80,9 @@ export function phaseCommandWithArgs(pm: Pm, script: string, args: Array<string>
 	if (args.length === 0) {
 		return phaseCommand(pm, script)
 	}
+
 	const tail: string = args.join(' ')
+
 	return pm === 'npm' ? `${pm} run ${script} -- ${tail}` : `${pm} run ${script} ${tail}`
 }
 
@@ -100,8 +103,10 @@ export function pmFromPackageManagerField(value: string | undefined): Pm | null 
 	if (value === undefined || value === '') {
 		return null
 	}
+
 	const at: number = value.indexOf('@')
 	const name: string = at === -1 ? value : value.slice(0, at)
+
 	return PM_TOOLS.find((tool) => tool === name) ?? null
 }
 
@@ -110,12 +115,15 @@ export type PresentLockfile = {pm: Pm; file: string}
 /** Every manager whose lockfile exists in this checkout. */
 export function presentLockfiles(): Array<PresentLockfile> {
 	const found: Array<PresentLockfile> = []
+
 	for (const pm of PM_TOOLS) {
 		const file: string = LOCKFILES[pm]
+
 		if (existsSync(join(ROOT, file))) {
 			found.push({pm, file})
 		}
 	}
+
 	return found
 }
 
@@ -126,5 +134,6 @@ export function presentLockfiles(): Array<PresentLockfile> {
  */
 export function detectPm(): Pm | null {
 	const found: Array<Pm> = PM_TOOLS.filter((tool) => existsSync(join(ROOT, LOCKFILES[tool])))
+
 	return found.length === 1 ? (found[0] ?? null) : null
 }

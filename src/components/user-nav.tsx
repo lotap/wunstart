@@ -28,6 +28,7 @@ export function UserNav() {
 	 */
 	const [open, setOpen] = useState(false)
 	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
+
 	const {isPending, data: profile} = useQuery({
 		...userProfileQueryOptions({serverFn: handleGetUserProfileFn}),
 		enabled: open,

@@ -23,12 +23,16 @@ import {allowPerWindow, addRateLimitEvent} from './rate-limit.ts'
  * layers-supply check needs.
  */
 type Layers = [Layer.Any, ...Array<Layer.Any>]
+
 type Op<L extends Layers> = (
 	params: never,
 ) => Effect.Effect<unknown, unknown, Layer.Success<L[number]>>
+
 /** Function-shaped constraint for `Parameters`/`ReturnType` extraction; every op satisfies it */
 type OpFn = (params: never) => Effect.Effect<unknown, unknown, unknown>
+
 type OpArgs<T extends OpFn> = Parameters<T>[0]
+
 type OpResult<T extends OpFn> = Effect.Success<ReturnType<T>>
 
 type RunArgs<L extends Layers, T extends Op<L>> = {
@@ -48,6 +52,7 @@ const IpAddressParams = Schema.Struct({ipAddress: Schema.String})
  */
 function getOpIpAddress(data: {ipAddress?: unknown}): string | undefined {
 	const parsed = Schema.decodeUnknownResult(IpAddressParams)(data)
+
 	return Result.isSuccess(parsed) ? parsed.success.ipAddress : undefined
 }
 
@@ -68,6 +73,7 @@ export const runOp = createServerOnlyFn(
 	async <T extends Op<L>, const L extends Layers>(args: RunArgs<L, T>): Promise<OpResult<T>> => {
 		const {op, data, layers} = args
 		const ip = getOpIpAddress(data)
+
 		if (ip === undefined) throw new Error('runOp: op params must include a string ipAddress')
 
 		const effect = Effect.provide(op(data), layers).pipe(

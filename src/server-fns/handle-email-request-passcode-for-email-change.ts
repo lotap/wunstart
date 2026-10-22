@@ -27,6 +27,7 @@ export const handleEmailRequestPasscodeForEmailChange = createServerFn({method: 
 	.handler(
 		async ({data: {email}, context: {ipAddress, userAgent, country, city, region, auth, anon}}) => {
 			const {sudoExpiresAt} = auth
+
 			if (!sudoExpiresAt || DateTime.isPastUnsafe(sudoExpiresAt))
 				throw new KnownServerError({
 					message: 'Your verification has expired. Re-verify, then try again.',
@@ -40,6 +41,7 @@ export const handleEmailRequestPasscodeForEmailChange = createServerFn({method: 
 					data: {anonTokenPayload, ipAddress, userAgent, country, city, region},
 					layers: [authLayer, dbLayer],
 				})
+
 				anonTokenPayload = payload
 				setAnonCookie(token)
 			}

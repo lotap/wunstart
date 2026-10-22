@@ -50,15 +50,20 @@ let childEnvExtra: Record<string, string> = {}
  */
 export function refreshChildEnv(): EffectiveEnv {
 	const devPath: string = join(ROOT, '.env.development')
+
 	if (!existsSync(devPath)) {
 		childEnvExtra = {}
+
 		return {vars: new Map<string, string>(), overlaid: false, devVars: new Map<string, string>()}
 	}
+
 	const effective: EffectiveEnv = loadEffectiveEnv(devPath, join(ROOT, '.env.local'))
 	childEnvExtra = Object.fromEntries(effective.vars)
+
 	for (const key of RESERVED_ENV_KEYS) {
 		delete childEnvExtra[key]
 	}
+
 	return effective
 }
 
@@ -91,6 +96,7 @@ export function runQuiet(cmd: string, args: Array<string>, timeoutMs?: number): 
 
 export function tryCapture(cmd: string, args: Array<string>): string | null {
 	const options: CaptureOptions = {env: spawnEnv()}
+
 	return helperTryCapture(cmd, args, options)
 }
 
@@ -102,11 +108,13 @@ export function findCidLine(out: string | null): string {
 	if (out === null) {
 		return ''
 	}
+
 	for (const line of out.split('\n')) {
 		if (/^[0-9a-f]{12,64}$/i.test(line.trim())) {
 			return line.trim()
 		}
 	}
+
 	return ''
 }
 
@@ -118,12 +126,15 @@ export function findPort(out: string | null): string {
 	if (out === null) {
 		return ''
 	}
+
 	for (const line of out.split('\n')) {
 		const port: string = line.match(/:(\d+)\s*$/)?.[1] ?? ''
+
 		if (port !== '') {
 			return port
 		}
 	}
+
 	return ''
 }
 
@@ -138,18 +149,23 @@ export function reuseMailpitPorts(): MailpitReuse {
 	const mailpitCid: string = findCidLine(
 		tryCapture('docker', ['compose', 'ps', '-q', '--all', 'mailpit']),
 	)
+
 	if (mailpitCid === '') {
 		return {ownSmtpPort: '', ownHttpPort: ''}
 	}
+
 	const parsedSmtp: string = findPort(
 		tryCapture('docker', ['compose', 'port', 'mailpit', String(MAILPIT_SMTP_WANT)]),
 	)
+
 	const parsedHttp: string = findPort(
 		tryCapture('docker', ['compose', 'port', 'mailpit', String(MAILPIT_HTTP_WANT)]),
 	)
+
 	if (!/^\d+$/.test(parsedSmtp) || !/^\d+$/.test(parsedHttp)) {
 		return {ownSmtpPort: '', ownHttpPort: ''}
 	}
+
 	return {ownSmtpPort: parsedSmtp, ownHttpPort: parsedHttp}
 }
 
@@ -165,14 +181,18 @@ export async function waitForPostgres(
 ): Promise<'ready' | 'terminal' | 'timeout'> {
 	let dots = false
 	let outcome: 'terminal' | 'timeout' = 'timeout'
+
 	for (let i = 0; i < tries; i += 1) {
 		if (runQuiet('docker', ['exec', cid, 'pg_isready', '-U', 'postgres']) === 0) {
 			if (dots) {
 				console.error('')
 			}
+
 			return 'ready'
 		}
+
 		const state: string | null = tryCapture('docker', ['inspect', '-f', '{{.State.Status}}', cid])
+
 		if (
 			state === 'exited' ||
 			state === 'dead' ||
@@ -183,16 +203,20 @@ export async function waitForPostgres(
 			outcome = 'terminal'
 			break
 		}
+
 		if (i < tries - 1) {
 			await new Promise((resolve) => setTimeout(resolve, Math.min(1000 + i * 250, 3000)))
 		}
+
 		if (withDots && i % 5 === 4 && !isQuietMode() && process.stderr.isTTY) {
 			process.stderr.write('.')
 			dots = true
 		}
 	}
+
 	if (dots) {
 		console.error('')
 	}
+
 	return outcome
 }

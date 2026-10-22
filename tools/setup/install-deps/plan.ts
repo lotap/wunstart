@@ -33,8 +33,10 @@ export type PlanInputs = {
 export function buildPlan(inputs: PlanInputs): InstallPlan {
 	const {pm, source, foreignLockfiles, staleLockfile, removeNodeModules, workspace, freshness} =
 		inputs
+
 	const installReason: string =
 		staleLockfile !== null ? `${staleLockfile} still names the old package` : freshness.reason
+
 	return {
 		pm,
 		source,
@@ -57,20 +59,25 @@ export type DeriveInputs = {
 /** Derive plan inputs from resolution + checkout evidence (main stays orchestration). */
 export function derivePlanInputs(inputs: DeriveInputs): PlanInputs {
 	const {pm, source, evidence, workspace} = inputs
+
 	const foreignLockfiles: Array<string> = evidence.lockfiles
 		.filter((lock) => lock.pm !== pm)
 		.map((lock) => lock.file)
+
 	const ownLockfile: boolean = evidence.lockfiles.some((lock) => lock.pm === pm)
 	const stale = staleLockfileName(pm)
 	const staleLockfile: string | null = stale === null ? null : stale.file
+
 	const removeNodeModules: boolean =
 		evidence.hasNodeModules && (foreignLockfiles.length > 0 || !ownLockfile)
+
 	const freshness: Freshness = removeNodeModules
 		? {
 				fresh: false,
 				reason: `node_modules will be removed for the ${pm} toolchain`,
 			}
 		: dependencyFreshness(pm)
+
 	return {pm, source, foreignLockfiles, staleLockfile, removeNodeModules, workspace, freshness}
 }
 
@@ -89,12 +96,15 @@ export type PlanDisplay = {dryRun: boolean; canPrompt: boolean}
 /** Everything the plan removes, in apply order (plan display and result share it). */
 function cleanupList(plan: InstallPlan): Array<string> {
 	const cleanup: Array<string> = [...plan.foreignLockfiles]
+
 	if (plan.workspace === 'drop') {
 		cleanup.push('pnpm-workspace.yaml')
 	}
+
 	if (plan.removeNodeModules) {
 		cleanup.push('node_modules')
 	}
+
 	return cleanup
 }
 
@@ -104,26 +114,32 @@ export function printPlan(plan: InstallPlan, display: PlanDisplay): void {
 	if (isQuietMode() && !display.canPrompt && !display.dryRun) {
 		return
 	}
+
 	const cleanup: Array<string> = cleanupList(plan)
+
 	const lines: Array<string> = [
 		`  package manager: ${plan.pm} (${SOURCE_LABELS[plan.source]})`,
 		`  install:         ${plan.install ? `yes — ${plan.installReason}` : `skip — ${plan.installReason}`}`,
 	]
+
 	if (cleanup.length > 0) {
 		lines.push(`  cleanup:         remove ${cleanup.join(', ')} (superseded by ${plan.pm})`)
 	} else {
 		lines.push('  cleanup:         none')
 	}
+
 	if (plan.staleLockfile !== null) {
 		lines.push(
 			`  lockfile:        remove ${plan.staleLockfile} (stale package name; install regenerates it)`,
 		)
 	}
+
 	if (plan.workspace === 'keep' && plan.pm !== 'pnpm') {
 		lines.push(
 			'  workspace:       keep pnpm-workspace.yaml (pass --force or re-run interactively to remove it)',
 		)
 	}
+
 	lines.push('  hooks:           install git hooks (warn-only)')
 	const header: string = display.dryRun ? 'plan (nothing changed):' : 'plan:'
 	// Dry-run plans are the pipeable primary output (stdout); every other
@@ -136,12 +152,15 @@ export function printResult(plan: InstallPlan): void {
 	if (isQuietMode()) {
 		return
 	}
+
 	const removed: Array<string> = cleanupList(plan)
+
 	const lines: Array<string> = [
 		`  toolchain  ${plan.pm}`,
 		`  install    ${plan.install ? `yes — ${plan.installReason}` : `skip — ${plan.installReason}`}`,
 		removed.length > 0 ? `  cleanup    removed ${removed.join(', ')}` : '  cleanup    none',
 	]
+
 	console.log(
 		`\ninstall-deps complete — next: ${phaseCommand(plan.pm, 'branch-env')}\n${lines.join('\n')}`,
 	)

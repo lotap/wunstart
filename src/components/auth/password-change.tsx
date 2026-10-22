@@ -66,8 +66,10 @@ export function ChangePasswordForm({
 		onSubmitSchema: PasswordChangeCredentials,
 		onSubmitTry: async ({password, signOutAllSessions}) => {
 			await handlePasswordChangeFn({data: {password, signOutAllSessions}})
+
 			/** Every session was archived, including this one, so refresh app state */
 			if (signOutAllSessions) await router.invalidate()
+
 			if (closePasswordChangeDrawer) closePasswordChangeDrawer()
 			toast.add({
 				type: 'success',
@@ -138,7 +140,9 @@ export function ChangePasswordForm({
 									 * password is also checked against the user's own email
 									 */
 									const {isStrong, message} = await checkPasswordStrength(value, strengthUserInputs)
+
 									if (isStrong) return undefined
+
 									return message
 								}),
 							]}
@@ -181,6 +185,7 @@ export function PasswordChangeDrawer({
 	triggerVariant?: ButtonProps['variant']
 }) {
 	const [open, setOpen] = useState(false)
+
 	return (
 		<Drawer showSwipeHandle open={open} onOpenChange={setOpen}>
 			<DrawerTrigger render={<Button variant={triggerVariant} className={triggerClassName} />}>

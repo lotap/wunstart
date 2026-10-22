@@ -49,23 +49,30 @@ function ambiguousHint(): string {
 
 async function askPm(ask: Asker['ask']): Promise<Pm> {
 	const present: Array<Pm> = installedPms()
+
 	if (present.length === 0) {
 		fail('no package manager is installed', installHint(KIT_PM))
 	}
+
 	const answer: string = await ask(`Package manager (${PM_TOOLS.join(', ')})`, {
 		defaultValue: present[0] ?? KIT_PM,
 		validate: (value: string) => {
 			const normalized: string = value.toLowerCase()
+
 			if (PM_TOOLS.find((tool) => tool === normalized) === undefined) {
 				return `choose ${PM_TOOLS.join(', ')}`
 			}
+
 			return hasCommand(normalized) ? null : `${normalized} is not installed`
 		},
 	})
+
 	const found: Pm | undefined = PM_TOOLS.find((tool) => tool === answer.toLowerCase())
+
 	if (found === undefined) {
 		fail(`unknown package manager: ${answer}`, ambiguousHint())
 	}
+
 	return found
 }
 
@@ -77,6 +84,7 @@ async function resolveAmbiguous(
 	if (!canPrompt) {
 		fail(`package manager is ambiguous: ${reason} — refusing to guess`, ambiguousHint())
 	}
+
 	return askPm(ask)
 }
 
@@ -91,13 +99,16 @@ type PmInputs = {
 export async function resolvePm(inputs: PmInputs): Promise<PmResolution> {
 	const {cliPm, evidence, canPrompt, dryRun, ask} = inputs
 	const fieldPm: Pm | null = pmFromPackageManagerField(evidence.packageManagerField)
+
 	if (evidence.packageManagerField !== undefined && fieldPm === null) {
 		warn(
 			`ignoring unrecognized packageManager field '${evidence.packageManagerField}' (want ${PM_TOOLS.join(', ')})`,
 		)
 	}
+
 	let pm: Pm
 	let source: PmSource
+
 	if (cliPm !== undefined) {
 		pm = cliPm
 		source = 'flag'
@@ -126,6 +137,7 @@ export async function resolvePm(inputs: PmInputs): Promise<PmResolution> {
 		source = 'fresh-default'
 	} else {
 		const present: Array<Pm> = installedPms()
+
 		if (present.length === 1) {
 			pm = present[0] ?? KIT_PM
 			source = 'fresh-default'
@@ -146,9 +158,11 @@ export async function resolvePm(inputs: PmInputs): Promise<PmResolution> {
 			source = 'prompt'
 		}
 	}
+
 	if (fieldPm !== null && fieldPm !== pm) {
 		warn(`ignoring packageManager '${evidence.packageManagerField ?? ''}' (using ${pm})`)
 	}
+
 	if (!hasCommand(pm)) {
 		if (dryRun) {
 			warn(`${pm} is not installed — dry-run plan only`)
@@ -156,6 +170,7 @@ export async function resolvePm(inputs: PmInputs): Promise<PmResolution> {
 			fail(`${pm} is not installed`, installHint(pm))
 		}
 	}
+
 	return {pm, source}
 }
 
@@ -166,19 +181,24 @@ export async function resolvePm(inputs: PmInputs): Promise<PmResolution> {
  */
 export async function resolveWorkspace(inputs: WorkspaceInputs): Promise<WorkspaceAction> {
 	const {evidence, pm, source, force, canPrompt, ask} = inputs
+
 	if (!evidence.hasPnpmWorkspace) {
 		return 'none'
 	}
+
 	if (pm === 'pnpm') {
 		return 'keep'
 	}
+
 	const leavingPnpm: boolean =
 		evidence.lockfiles.some((lock) => lock.pm === 'pnpm') ||
 		source === 'flag' ||
 		source === 'packageManager'
+
 	if (!leavingPnpm) {
 		return 'keep'
 	}
+
 	if (canPrompt) {
 		const answer: string = await ask(
 			'pnpm-workspace.yaml is pnpm-only config (kept if you return to pnpm); delete it? (y/N)',
@@ -187,13 +207,17 @@ export async function resolveWorkspace(inputs: WorkspaceInputs): Promise<Workspa
 				validate: confirmValidator('n'),
 			},
 		)
+
 		return answer.toLowerCase().startsWith('y') ? 'drop' : 'keep'
 	}
+
 	if (force) {
 		return 'drop'
 	}
+
 	warn(
 		'keeping pnpm-workspace.yaml (leaving pnpm; re-run interactively to decide, or pass --force to remove it)',
 	)
+
 	return 'keep'
 }

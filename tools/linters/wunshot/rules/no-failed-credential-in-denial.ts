@@ -4,7 +4,9 @@ import type {ESTree} from '@oxlint/plugins'
 function isFailedCredentialKey(property: ESTree.ObjectProperty): boolean {
 	if (property.computed) return false
 	const key = property.key
+
 	if (key.type === 'Identifier') return key.name === 'failedCredential'
+
 	return key.type === 'Literal' && key.value === 'failedCredential'
 }
 
@@ -36,11 +38,15 @@ export const noFailedCredentialInDenialRule = defineRule({
 						: node.callee.type === 'MemberExpression' && node.callee.property.type === 'Identifier'
 							? node.callee.property.name
 							: null
+
 				if (callee !== 'rateLimitFailure') return
+
 				for (const argument of node.arguments) {
 					if (argument.type !== 'ObjectExpression') continue
+
 					for (const property of argument.properties) {
 						if (property.type !== 'Property') continue
+
 						if (isFailedCredentialKey(property)) {
 							context.report({node: property, messageId: 'failedCredential'})
 						}

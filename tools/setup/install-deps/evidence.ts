@@ -19,10 +19,12 @@ export type Evidence = {
 
 export function readEvidence(): Evidence {
 	const pkg = readPackageJson()
+
 	if (!pkg.ok) {
 		const problem: string = pkg.reason === 'invalid' ? 'not valid JSON' : 'unreadable'
 		fail(`package.json is ${problem}`, 'restore it: git checkout -- package.json')
 	}
+
 	return {
 		packageManagerField: pkg.file.packageManager,
 		lockfiles: presentLockfiles(),

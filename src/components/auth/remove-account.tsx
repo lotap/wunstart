@@ -85,6 +85,7 @@ function ConfirmRemoval({closeRemoveAccountDrawer}: {closeRemoveAccountDrawer?: 
 						disabled={isRemoving}
 						onClick={async () => {
 							setIsRemoving(true)
+
 							try {
 								await handleRemoveUserFn()
 								/** The account is gone, so leave the protected area before refreshing auth state */
@@ -127,6 +128,7 @@ function ConfirmRemoval({closeRemoveAccountDrawer}: {closeRemoveAccountDrawer?: 
 
 export function RemoveAccountDrawer({triggerClassName}: {triggerClassName?: string}) {
 	const [open, setOpen] = useState(false)
+
 	return (
 		<Drawer showSwipeHandle open={open} onOpenChange={setOpen}>
 			<DrawerTrigger render={<Button variant="destructive" className={triggerClassName} />}>

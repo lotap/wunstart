@@ -29,6 +29,7 @@ const timezoneHeaderValue = () => {
 
 	try {
 		new Intl.DateTimeFormat('en-US', {timeZone: raw}).format(new Date())
+
 		return raw
 	} catch {
 		return null

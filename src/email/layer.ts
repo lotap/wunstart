@@ -14,6 +14,7 @@ class EmailLayerBuildError extends Schema.TaggedErrorClass<EmailLayerBuildError>
 ) {}
 
 const TransportSchema = Schema.Literals(['sendemail', 'brevo'] as const)
+
 type TransportName = Schema.Schema.Type<typeof TransportSchema>
 
 const FallbackChainSchema = Schema.String.pipe(
@@ -43,6 +44,7 @@ const fallbackChainConfig = (
 const exhaustedFailure = (failures: readonly EmailSendError[]): EmailSendError => {
 	const attempts = failures.filter((failure) => failure.kind !== 'config')
 	const last = attempts[attempts.length - 1] ?? failures[failures.length - 1]
+
 	return new EmailSendError({
 		transport: last?.transport ?? 'sendemail',
 		code: last?.code ?? 'chain-empty',
@@ -66,7 +68,9 @@ const tryProviders = (
 	message: EmailMessage,
 ): Effect.Effect<void, EmailSendError> => {
 	const [head, ...rest] = chain
+
 	if (head === undefined) return Effect.fail(exhaustedFailure(failures))
+
 	return senders[head](message).pipe(
 		Effect.catch((error) =>
 			error.kind === 'rejected'
@@ -87,6 +91,7 @@ const emailServiceLayer = (chain: readonly TransportName[]): EmailLayer =>
 					const sendEmail = yield* SendEmail
 					const brevo = yield* BrevoEmail
 					const {from, appUrl} = yield* EmailConfig
+
 					const senders = {
 						sendemail: (message: EmailMessage) => sendEmail.send(message),
 						brevo: (message: EmailMessage) => brevo.send(message),
@@ -94,6 +99,7 @@ const emailServiceLayer = (chain: readonly TransportName[]): EmailLayer =>
 						TransportName,
 						(message: EmailMessage) => Effect.Effect<void, EmailSendError>
 					>
+
 					return EmailService.of({
 						from,
 						appUrl,
@@ -133,6 +139,7 @@ const devEmailLayer = (): EmailLayer =>
 				Schema.Literals(['mailpit', 'sendemail', 'brevo']),
 				'EMAIL_TRANSPORT',
 			).pipe(Config.withDefault('mailpit'))
+
 			if (transport === 'mailpit') {
 				const {mailpitLayer} = yield* Effect.tryPromise({
 					try: () => import('./transports/mailpit.ts'),
@@ -142,9 +149,12 @@ const devEmailLayer = (): EmailLayer =>
 							cause,
 						}),
 				})
+
 				return Layer.provide(mailpitLayer, EmailConfig.layer)
 			}
+
 			const fallbacks = yield* fallbackChainConfig([])
+
 			return buildEmailLayer(transport, fallbacks)
 		}),
 	)
@@ -155,7 +165,9 @@ const prodEmailLayer = (): EmailLayer =>
 			const transport = yield* Config.schema(TransportSchema, 'EMAIL_TRANSPORT').pipe(
 				Config.withDefault('sendemail'),
 			)
+
 			const fallbacks = yield* fallbackChainConfig(['brevo'])
+
 			return buildEmailLayer(transport, fallbacks)
 		}),
 	)

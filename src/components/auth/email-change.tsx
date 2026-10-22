@@ -96,6 +96,7 @@ function VerifyNewEmailForm({
 	const handleEmailRequestPasscodeForEmailChangeFn = useServerFn(
 		handleEmailRequestPasscodeForEmailChange,
 	)
+
 	const handleEmailChangeFn = useServerFn(handleEmailChange)
 	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
 
@@ -128,6 +129,7 @@ function VerifyNewEmailForm({
 					await queryClient.invalidateQueries({
 						queryKey: userProfileQueryOptions({serverFn: handleGetUserProfileFn}).queryKey,
 					})
+
 					if (closeEmailChangeDrawer) closeEmailChangeDrawer()
 					toast.add({
 						type: 'success',
@@ -241,6 +243,7 @@ export function ChangeEmailForm({closeEmailChangeDrawer}: {closeEmailChangeDrawe
 
 export function EmailChangeDrawer({triggerClassName}: {triggerClassName?: string}) {
 	const [open, setOpen] = useState(false)
+
 	return (
 		<Drawer showSwipeHandle open={open} onOpenChange={setOpen}>
 			<DrawerTrigger

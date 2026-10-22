@@ -18,8 +18,11 @@ const BrevoApiUrl = 'https://api.brevo.com/v3/smtp/email'
  */
 const statusKind = (status: number): EmailFailureKind => {
 	if (status === 401 || status === 403) return 'config'
+
 	if (status === 429) return 'transient'
+
 	if (status >= 400 && status < 500) return 'rejected'
+
 	return 'ambiguous'
 }
 
@@ -54,6 +57,7 @@ export const brevoLayer = Layer.effect(
 	BrevoEmail,
 	Effect.gen(function* () {
 		const {from} = yield* EmailConfig
+
 		return BrevoEmail.of({
 			send: Effect.fn('BrevoEmail.send')(function* (message: EmailMessage) {
 				const apiKey = yield* Config.option(Config.redacted('BREVO_API_KEY')).pipe(
@@ -67,6 +71,7 @@ export const brevoLayer = Layer.effect(
 							}),
 					),
 				)
+
 				if (Option.isNone(apiKey)) {
 					return yield* new EmailSendError({
 						transport: 'brevo',
@@ -75,11 +80,14 @@ export const brevoLayer = Layer.effect(
 						message: 'BREVO_API_KEY is not configured',
 					})
 				}
+
 				const response = yield* sendRequest(Redacted.value(apiKey.value), from, message)
+
 				if (!response.ok) {
 					const body = yield* Effect.tryPromise(() => response.text()).pipe(
 						Effect.orElseSucceed(() => ''),
 					)
+
 					return yield* new EmailSendError({
 						transport: 'brevo',
 						code: String(response.status),

@@ -1,3 +1,4 @@
+import {Match} from 'effect'
 import {UAParser} from 'ua-parser-js'
 
 /**
@@ -18,9 +19,14 @@ export const formatUserAgent = (userAgent: string): string | null => {
 			? `${browser.name} ${browser.major}`
 			: browser.name
 		: undefined
+
 	const parts = [browserLabel, os.name].filter((part) => part !== undefined)
-	const deviceLabel =
-		device.type === 'tablet' ? 'Tablet' : device.type === 'mobile' ? 'Mobile' : 'Desktop'
+
+	const deviceLabel = Match.value(device.type).pipe(
+		Match.when('tablet', () => 'Tablet'),
+		Match.when('mobile', () => 'Mobile'),
+		Match.orElse(() => 'Desktop'),
+	)
 
 	return `${parts.join(' on ')} (${deviceLabel})`
 }

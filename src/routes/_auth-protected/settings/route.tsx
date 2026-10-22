@@ -15,5 +15,6 @@ export const Route = createFileRoute('/_auth-protected/settings')({
 
 function RouteComponent() {
 	const {categories = ['preferences']} = Route.useSearch()
+
 	return <SettingsPage activeCategories={categories} />
 }

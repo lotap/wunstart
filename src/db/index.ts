@@ -19,6 +19,7 @@ class DbConfigError extends Schema.TaggedErrorClass<DbConfigError>()('DbConfigEr
  */
 const connectionString = Effect.gen(function* () {
 	const fromEnvironment = yield* Config.option(Config.redacted('DATABASE_URL'))
+
 	if (Option.isSome(fromEnvironment)) return fromEnvironment.value
 
 	const {env} = yield* Effect.tryPromise({
@@ -30,6 +31,7 @@ const connectionString = Effect.gen(function* () {
 				cause,
 			}),
 	})
+
 	return Redacted.make(env.HYPERDRIVE.connectionString)
 })
 
@@ -45,6 +47,7 @@ const customTypes = {
 			// mirrors Drizzle's own driver implementations (see neon-serverless session).
 			return (val: any) => val
 		}
+
 		return types.getTypeParser(typeId, format)
 	},
 }
@@ -68,8 +71,10 @@ const pgClientLayer = PgClient.layerFrom(
 							connectionTimeoutMillis: 5_000,
 							types: customTypes,
 						})
+
 						// Absorb idle-client errors; query-level failures surface otherwise
 						pool.on('error', () => {})
+
 						return pool
 					}),
 					(pool) =>

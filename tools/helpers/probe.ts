@@ -17,10 +17,12 @@ export async function probeBoth(host: string, port: number, timeoutMs: number): 
 	if (host !== 'localhost') {
 		return probeTcp(host, port, timeoutMs)
 	}
+
 	const [v4, v6] = await Promise.all([
 		probeTcp('127.0.0.1', port, timeoutMs),
 		probeTcp('::1', port, timeoutMs),
 	])
+
 	return v4 || v6
 }
 

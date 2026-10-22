@@ -27,6 +27,7 @@ export class HashingStub extends Context.Service<
 			Effect.tryPromise({
 				try: async () => {
 					const {env} = await import('cloudflare:workers')
+
 					return env.AUTH_HASHER.get(env.AUTH_HASHER.idFromName(name))
 				},
 				catch: (cause: unknown) =>

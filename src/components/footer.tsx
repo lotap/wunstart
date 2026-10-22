@@ -1,8 +1,9 @@
 import {appInfo} from '#/app-info.ts'
 
-export function Footer() {
-	const year = new Date().getFullYear()
+/** Calendar year, computed once at module load rather than on every render. */
+const year = new Date().getFullYear()
 
+export function Footer() {
 	return (
 		<footer className="flex flex-row justify-center">
 			<small suppressHydrationWarning>

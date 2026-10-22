@@ -31,6 +31,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 	ipAddress: string
 }) {
 	const hasherId = userId ?? anonTokenPayload?.id
+
 	if (!hasherId)
 		return yield* opsFailure({
 			failureCause: 'INVALID_PARAMS',
@@ -54,6 +55,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 		failedCredential: email,
 		userId,
 	})
+
 	if (currentBansAndExcessiveActivities.length)
 		return yield* rateLimitFailure({
 			message: genericFailureOutputMessage,
@@ -65,8 +67,10 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 
 	/** Get the user's email if it's undefined */
 	let derivedEmail = email
+
 	if (!derivedEmail && userId) {
 		const [user] = yield* usersQueries.select({id: userId})
+
 		if (!user)
 			return yield* opsFailure({
 				failureCause: 'USER_NOT_FOUND',
@@ -93,11 +97,15 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 	const CODE_LIMIT = 1_000_000
 	const unbiasedBound = 2 ** 32 - (2 ** 32 % CODE_LIMIT)
 	const buffer = new Uint32Array(1)
+
 	const nextDraw = () => {
 		crypto.getRandomValues(buffer)
+
 		return buffer[0]
 	}
+
 	let draw = nextDraw()
+
 	while (draw === undefined || draw >= unbiasedBound) draw = nextDraw()
 	const code = (draw % CODE_LIMIT).toString().padStart(6, '0')
 

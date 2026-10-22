@@ -47,14 +47,18 @@ type EnvLine = {key: string; value: string}
 
 function parseEnvLine(line: string): EnvLine | null {
 	const match: RegExpExecArray | null = ENV_LINE.exec(line)
+
 	if (match === null) {
 		return null
 	}
+
 	const key: string | undefined = match[1]
 	const value: string | undefined = match[2]
+
 	if (key === undefined) {
 		return null
 	}
+
 	return {key, value: value ?? ''}
 }
 
@@ -77,19 +81,25 @@ export function envKeyOf(line: string): string | null {
  */
 function parseEnvFile(text: string): Map<string, string> {
 	const vars = new Map<string, string>()
+
 	for (const line of text.split('\n')) {
 		const parsed: EnvLine | null = parseEnvLine(line)
+
 		if (parsed === null) {
 			continue
 		}
+
 		const {key} = parsed
 		let value: string = parsed.value.trim()
+
 		// Unquoted: cut at the first `#` like dotenv does (see above).
 		if (!value.startsWith('"') && !value.startsWith("'") && !value.startsWith('`')) {
 			const hash: number = value.indexOf('#')
 			value = (hash === -1 ? value : value.slice(0, hash)).trimEnd()
 		}
+
 		let quote = ''
+
 		if (value.startsWith('"')) {
 			quote = '"'
 		} else if (value.startsWith("'")) {
@@ -97,16 +107,20 @@ function parseEnvFile(text: string): Map<string, string> {
 		} else if (value.startsWith('`')) {
 			quote = '`'
 		}
+
 		if (quote !== '') {
 			// Quoted: honor `\"`/`\\`/`\n`/`\r`/`\t` escapes (branch-env's
 			// envQuote writes them), end at the closing quote, and ignore
 			// anything after it (trailing ` # comment` is not content).
 			let out = ''
 			let closed = false
+
 			for (let i = 1; i < value.length; i += 1) {
 				const ch: string = value[i] ?? ''
+
 				if (quote === '"' && ch === '\\' && i + 1 < value.length) {
 					const next: string = value[i + 1] ?? ''
+
 					if (next === 'n') {
 						out += '\n'
 					} else if (next === 'r') {
@@ -116,6 +130,7 @@ function parseEnvFile(text: string): Map<string, string> {
 					} else {
 						out += next
 					}
+
 					i += 1
 				} else if (ch === quote) {
 					closed = true
@@ -124,6 +139,7 @@ function parseEnvFile(text: string): Map<string, string> {
 					out += ch
 				}
 			}
+
 			if (closed) {
 				vars.set(key, out)
 			} else {
@@ -132,10 +148,13 @@ function parseEnvFile(text: string): Map<string, string> {
 				// a misleading "missing" for a key that is plainly present.
 				vars.set(key, value)
 			}
+
 			continue
 		}
+
 		vars.set(key, value)
 	}
+
 	return vars
 }
 
@@ -143,19 +162,23 @@ function parseEnvFile(text: string): Map<string, string> {
 function isValidSecrets(value: string): boolean {
 	for (const pair of value.split(',')) {
 		const colon: number = pair.indexOf(':')
+
 		if (colon <= 0) {
 			return false
 		}
+
 		// Exactly one colon: the consumer splits on ':' and keeps the
 		// first two segments, so a second colon would silently drop part
 		// of the secret instead of failing loudly here.
 		if (pair.indexOf(':', colon + 1) !== -1) {
 			return false
 		}
+
 		if (pair.slice(0, colon) === '' || pair.slice(colon + 1) === '') {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -186,11 +209,13 @@ export function loadEffectiveEnv(devPath: string, localPath: string): EffectiveE
 	const devVars: Map<string, string> = loadEnvFile(devPath)
 	const vars: Map<string, string> = new Map(devVars)
 	const overlaid: boolean = existsSync(localPath)
+
 	if (overlaid) {
 		for (const [key, value] of loadEnvFile(localPath)) {
 			vars.set(key, value)
 		}
 	}
+
 	return {vars, overlaid, devVars}
 }
 
@@ -203,27 +228,32 @@ export type EnvReadFailure = {culprit: string; hint: string}
  */
 export function envReadFailure(devPath: string, localPath: string): EnvReadFailure {
 	let culprit: string = devPath
+
 	try {
 		readFileSync(devPath, 'utf8')
 		culprit = localPath
 	} catch {
 		// The committed file itself is the culprit.
 	}
+
 	if (culprit === localPath) {
 		return {
 			culprit,
 			hint: 'delete it (gitignored) or fix its permissions, then re-run',
 		}
 	}
+
 	if (basename(culprit) === '.env.development') {
 		return {culprit, hint: 'restore it: git checkout -- .env.development'}
 	}
+
 	return {culprit, hint: 'check the path and its permissions'}
 }
 
 function isPostgresUrl(value: string): boolean {
 	try {
 		const url = new URL(value)
+
 		return url.protocol === 'postgres:' || url.protocol === 'postgresql:'
 	} catch {
 		return false
@@ -233,16 +263,21 @@ function isPostgresUrl(value: string): boolean {
 /** Validate already-loaded vars (lets callers read the files once and reuse them). */
 export function validateEnvVars(vars: Map<string, string>): Array<EnvIssue> {
 	const issues: Array<EnvIssue> = []
+
 	for (const key of REQUIRED_ENV_KEYS) {
 		const value: string | undefined = vars.get(key)
+
 		if (value === undefined || value === '') {
 			issues.push({key, problem: 'is missing or empty'})
 		}
 	}
+
 	const databaseUrl: string | undefined = vars.get('DATABASE_URL')
+
 	if (databaseUrl !== undefined && databaseUrl !== '' && !isPostgresUrl(databaseUrl)) {
 		issues.push({key: 'DATABASE_URL', problem: 'does not parse as a postgres:// URL'})
 	}
+
 	for (const key of [
 		'ACCESS_TOKEN_SECRETS',
 		'ANON_TOKEN_SECRETS',
@@ -250,24 +285,30 @@ export function validateEnvVars(vars: Map<string, string>): Array<EnvIssue> {
 		'REFRESH_GRACE_TOKEN_SECRETS',
 	]) {
 		const value: string | undefined = vars.get(key)
+
 		if (value !== undefined && value !== '' && !isValidSecrets(value)) {
 			issues.push({key, problem: 'must be comma-separated `id:secret` pairs'})
 		}
 	}
+
 	return issues
 }
 
 export function validateRequiredEnv(devPath: string, localPath: string): EnvValidation {
 	const issues: Array<EnvIssue> = []
+
 	if (!existsSync(devPath)) {
 		return {
 			issues: [{key: devPath, problem: 'file is missing (it is committed — restore it)'}],
 			overlaid: false,
 		}
 	}
+
 	const {vars, overlaid} = loadEffectiveEnv(devPath, localPath)
+
 	for (const issue of validateEnvVars(vars)) {
 		issues.push(issue)
 	}
+
 	return {issues, overlaid}
 }

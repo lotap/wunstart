@@ -34,6 +34,7 @@ const _passwordReverify = Effect.fn('passwordReverify')(function* ({
 		ipAddress,
 		userId,
 	})
+
 	if (currentBansAndExcessiveActivities.length)
 		return yield* rateLimitFailure({message: genericFailureOutputMessage, userId})
 

@@ -74,6 +74,7 @@ export function ResetEmailVerificationButton({
 			disabled={isDisabled}
 			onClick={async () => {
 				onRequestNewCode?.()
+
 				try {
 					await mutateAsync()
 					toast.add({title: `New code sent to ${email}`, type: 'success', timeout: 2500})

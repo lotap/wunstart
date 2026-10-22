@@ -13,6 +13,7 @@ export const requireAuth = createMiddleware({type: 'function'}).server(async ({n
 	// were already rejected. The framework types the standalone context as `undefined`,
 	// so it is widened to `unknown` before the single assertion.
 	const {auth} = ctx as GlobalServerFnContext
+
 	if (!auth) {
 		setResponseStatus(401)
 		throw new KnownServerError({message: 'You need to sign in to do that.'})

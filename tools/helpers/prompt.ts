@@ -28,7 +28,9 @@ export function claimInterrupt(): boolean {
 	if (interruptClaimed) {
 		return false
 	}
+
 	interruptClaimed = true
+
 	return true
 }
 
@@ -59,21 +61,25 @@ export function createAsker(canPrompt: boolean, interruptMessage: string): Asker
 			close: () => {},
 		}
 	}
+
 	const rl = createInterface({
 		input: process.stdin,
 		output: process.stderr,
 	})
+
 	let pending: ((value: string | null) => void) | null = null
 	rl.on('close', () => {
 		const resolvePending = pending
 		pending = null
 		resolvePending?.(null)
 	})
+
 	const ask = async (label: string, options?: AskOptions): Promise<string> => {
 		const suffix: string =
 			options?.defaultValue !== undefined && options.defaultValue !== ''
 				? ` [${options.defaultValue}]`
 				: ''
+
 		for (;;) {
 			const raw: string | null = await new Promise((resolve) => {
 				pending = resolve
@@ -82,19 +88,25 @@ export function createAsker(canPrompt: boolean, interruptMessage: string): Asker
 					resolve(answer)
 				})
 			})
+
 			if (raw === null) {
 				if (claimInterrupt()) {
 					console.error(interruptMessage)
 				}
+
 				process.exit(130)
 			}
+
 			const answer: string = raw.trim() === '' ? (options?.defaultValue ?? '') : raw.trim()
 			const problem: string | null = options?.validate?.(answer) ?? null
+
 			if (problem === null) {
 				return answer
 			}
+
 			console.error(`  ${problem} — try again`)
 		}
 	}
+
 	return {ask, close: () => rl.close()}
 }

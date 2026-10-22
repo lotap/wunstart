@@ -53,6 +53,7 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 		ipAddress,
 		userId,
 	})
+
 	/**
 	 * If active bans or excessive activities are found for the ip address
 	 * log the activity as a rate limit failure and return a generic error

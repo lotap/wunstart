@@ -34,6 +34,7 @@ const _emailReverify = Effect.fn('emailReverify')(function* ({
 		ipAddress,
 		userId,
 	})
+
 	if (currentBansAndExcessiveActivities.length)
 		return yield* rateLimitFailure({message: genericFailureOutputMessage, userId})
 

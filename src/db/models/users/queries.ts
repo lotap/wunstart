@@ -53,6 +53,7 @@ export const selectByEmail = createPreparedQuery({
 })
 
 const {id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...profileCols} = nonsensitiveCols
+
 export const selectProfile = createPreparedQuery({
 	vSchema: V.Select,
 	stmtFn: (qx) =>

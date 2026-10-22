@@ -14,6 +14,7 @@ export const requireAnonRegistered = createMiddleware({type: 'function'}).server
 		// were already rejected. The framework types the standalone context as `undefined`,
 		// so it is widened to `unknown` before the single assertion.
 		const {anon} = ctx as GlobalServerFnContext
+
 		if (!anon?.registered) {
 			setResponseStatus(400)
 			throw new KnownServerError({

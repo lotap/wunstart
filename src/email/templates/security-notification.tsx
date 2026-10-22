@@ -107,5 +107,6 @@ export function SecurityDetailRows({
 /** Renders a security email to html + plain text with the given subject */
 export async function renderSecurityNotification(component: ReactElement, subject: string) {
 	const [html, text] = await Promise.all([render(component), render(component, {plainText: true})])
+
 	return {subject, html, text}
 }

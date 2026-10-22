@@ -42,6 +42,7 @@ import {probeSharedPostgres, readOwnPostgres, reuseOwnPostgres, startStack} from
 
 async function main(): Promise<void> {
 	const cfg: CliConfig = parseCliArgs(process.argv.slice(2))
+
 	const {canPrompt, ask, close} = setupPhase(
 		{quiet: cfg.quiet, yes: cfg.yes, noInput: cfg.noInput, dryRun: cfg.dryRun},
 		{
@@ -49,12 +50,14 @@ async function main(): Promise<void> {
 			sigterm: 'terminated — completed steps are kept; re-run branch-env to continue',
 		},
 	)
+
 	try {
 		step('checking prerequisites…')
 		checkIdentity()
 		checkProjectFiles()
 		const pm: Pm = requireUnambiguousPm()
 		checkDependencies(pm)
+
 		if (!cfg.dryRun) {
 			checkDocker()
 		}
@@ -62,14 +65,17 @@ async function main(): Promise<void> {
 		// Nothing before this point writes env files; reuse these vars for
 		// the plan, the preflight, and validation instead of re-reading.
 		let initialEnv: EffectiveEnv
+
 		try {
 			initialEnv = refreshChildEnv()
 		} catch {
 			const failure = envReadFailure(join(ROOT, '.env.development'), join(ROOT, '.env.local'))
 			fail(`${failure.culprit} is missing or unreadable`, failure.hint)
 		}
+
 		const initialVars: Map<string, string> = initialEnv.vars
 		const committedVars: Map<string, string> = initialEnv.devVars
+
 		// Validated on dry runs too: this reads files and writes nothing,
 		// so a dry-run plan never describes a provisioning that validation
 		// would refuse. An empty devVars means the committed file is
@@ -78,11 +84,14 @@ async function main(): Promise<void> {
 		if (initialEnv.devVars.size === 0) {
 			fail('.env.development is missing or empty', 'restore it: git checkout -- .env.development')
 		}
+
 		const envIssues = validateEnvVars(initialVars)
+
 		if (envIssues.length > 0) {
 			for (const issue of envIssues) {
 				console.error(`env (.env.local over .env.development): ${issue.key} ${issue.problem}`)
 			}
+
 			fail(
 				'env is invalid',
 				'fix .env.local (override) or .env.development (committed) — see the issues above',
@@ -92,12 +101,15 @@ async function main(): Promise<void> {
 		const gitBranch: string | null = tryCapture('git', ['branch', '--show-current'])
 		const branch: string = gitBranch === null || gitBranch === '' ? basename(ROOT) : gitBranch
 		const {canonical, sibling} = inspectWorktrees(branch, ROOT)
+
 		if (canonical.length > 1) {
 			warn(
 				`multiple canonical branches claim the same database and ports (${canonical.join(', ')}) — keep one canonical branch`,
 			)
 		}
+
 		const {dbWant, devPortWant, pgPortWant} = claimIdentity(branch)
+
 		if (gitBranch !== null && gitBranch !== '' && sibling !== null) {
 			warn(
 				`another checkout at '${sibling}' is on branch '${branch}' — both claim database '${dbWant}' and the same ports (migrations would collide); work in one checkout per branch`,
@@ -106,6 +118,7 @@ async function main(): Promise<void> {
 
 		const committedUrl: string = committedVars.get('DATABASE_URL') ?? ''
 		const committedPort: string = portOf(committedUrl)
+
 		const planDbPort: string = portOf(
 			initialVars.get('DATABASE_URL') ?? committedUrl,
 			committedPort,
@@ -116,6 +129,7 @@ async function main(): Promise<void> {
 		// port taken in between fails loudly on bind.
 		step('claiming ports…')
 		const {ownSmtpPort, ownHttpPort} = reuseMailpitPorts()
+
 		const {devPort, smtpFree, httpFree, pgFree} = await scanClaimedPorts({
 			devPortWant,
 			pgPortWant,
@@ -127,12 +141,15 @@ async function main(): Promise<void> {
 		})
 
 		let mailpitUrlOverride = ''
+
 		if (httpFree !== MAILPIT_HTTP_WANT) {
 			mailpitUrlOverride = `http://localhost:${httpFree}`
+
 			if (ownHttpPort === '' && !cfg.dryRun) {
 				ok(`mailpit UI shifted to :${httpFree}`)
 			}
 		}
+
 		const mailpitSmtpPort: string = String(smtpFree)
 		const mailpitHttpPort: string = String(httpFree)
 		const ownPostgres = readOwnPostgres()
@@ -152,6 +169,7 @@ async function main(): Promise<void> {
 			pgPin: cfg.postgresPort,
 			httpPin: cfg.mailpitPort,
 		})
+
 		if (await printPlanAndConfirm({plan, dryRun: cfg.dryRun, canPrompt, ask})) {
 			return
 		}
@@ -169,6 +187,7 @@ async function main(): Promise<void> {
 		const managedOverrides = new Map<string, string>()
 
 		step('checking postgres…')
+
 		const reused = await reuseOwnPostgres({
 			own: ownPostgres,
 			preflightUrl,
@@ -176,11 +195,13 @@ async function main(): Promise<void> {
 			revivePort: pgFree === null ? '' : String(pgFree),
 			pm,
 		})
+
 		if (reused !== null) {
 			effectiveUrl = reused.url
 			reusedPostgresPort = reused.port
 		} else {
 			const probePort: string = portOf(preflightUrl, committedPort)
+
 			const shared = await probeSharedPostgres({
 				preflightUrl,
 				dbWant,
@@ -188,6 +209,7 @@ async function main(): Promise<void> {
 				pgFree,
 				pm,
 			})
+
 			effectiveUrl = shared.effectiveUrl
 			postgresPort = shared.postgresPort
 			startOwnPostgres = shared.startOwnPostgres
@@ -196,10 +218,13 @@ async function main(): Promise<void> {
 		if (!sameDbUrl(effectiveUrl, committedUrl)) {
 			managedOverrides.set('DATABASE_URL', effectiveUrl)
 		}
+
 		managedOverrides.set('DEV_PORT', String(devPort))
+
 		if (mailpitUrlOverride !== '') {
 			managedOverrides.set('MAILPIT_URL', mailpitUrlOverride)
 		}
+
 		persistLocal(managedOverrides)
 
 		effectiveUrl = await startStack({
@@ -214,18 +239,21 @@ async function main(): Promise<void> {
 		})
 
 		step('applying migrations…')
+
 		if (runScript(pm, 'db:migrate', MIGRATE_TIMEOUT_MS) !== 0) {
 			fail(
 				'db:migrate failed',
 				`see the output above — is postgres reachable? then re-run: ${phaseCommand(pm, 'branch-env')}`,
 			)
 		}
+
 		ok('migrations applied')
 
 		// Final gate: green only if validate-setup is. It stays available
 		// standalone for agents and for humans when stuck.
 		step('running final validation…')
 		const gate: string = join(ROOT, 'tools', 'pkg-scripts', 'validate-setup.ts')
+
 		if (run(process.execPath, [gate], undefined, GATE_TIMEOUT_MS) !== 0) {
 			fail(
 				'branch-env finished but validate-setup is not green',

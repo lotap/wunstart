@@ -58,9 +58,11 @@ export function getKeyFromSecretsMap(secretsMap: Map<string, Redacted.Redacted>)
 		s?: string
 	}) {
 		if (!kid) throw new Error('`kid` claim is missing in the header parameters')
+
 		if (!s) throw new Error('`s` claim is missing in the header parameters')
 
 		const secret = secretsMap.get(kid)
+
 		if (!secret) throw new Error('Unknown `kid` claim')
 
 		return Effect.runPromise(deriveHashKey({secret: Redacted.value(secret), salt: s}))

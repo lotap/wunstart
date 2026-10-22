@@ -11,6 +11,7 @@ const ACCESS_TOKEN_EXPIRATION_MILLISECONDS = 15 * 60 * 1000 // 15 minutes
 
 /** Set the algorithm for the JWE */
 const alg = 'dir'
+
 /** Set the encoding for the JWE */
 const enc = 'A256GCM'
 

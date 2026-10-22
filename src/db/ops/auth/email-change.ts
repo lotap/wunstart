@@ -53,6 +53,7 @@ const _emailChange = Effect.fn('emailChange')(function* ({
 		ipAddress,
 		userId,
 	})
+
 	/**
 	 * If active bans or excessive activities are found for the ip address
 	 * log the activity as a rate limit failure and return a generic error
@@ -107,6 +108,7 @@ const _emailChange = Effect.fn('emailChange')(function* ({
 			const [rowData] = yield* usersQueries.updateEmail({id: userId, email: newEmail}, tx).pipe(
 				Effect.catchTag('EffectDrizzleQueryError', (drizzleError) => {
 					if (extractPgError(drizzleError) === 'UniqueViolation') return Effect.succeed([] as const)
+
 					return Effect.fail(drizzleError)
 				}),
 			)

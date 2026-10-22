@@ -27,12 +27,15 @@ export type ProbeResult =
 /** In-process probe; null when `pg` is not importable (caller falls back to the child). */
 async function probeInProcess(base: string, want: string): Promise<ProbeResult | null> {
 	let pg: typeof import('pg')
+
 	try {
 		pg = await import('pg')
 	} catch {
 		return null
 	}
+
 	const urls = probeUrls(base, want)
+
 	if (urls === null) {
 		// Deliberately unreachable, not error: the own-stack arm re-derives
 		// the port with withPort (also null) and fails with the accurate
@@ -41,7 +44,9 @@ async function probeInProcess(base: string, want: string): Promise<ProbeResult |
 		// pre-confirm validation checks the URL shape before any probe runs.
 		return {status: 'unreachable'}
 	}
+
 	const {adminUrl, readyUrl} = urls
+
 	// connectionTimeoutMillis bounds connect; query_timeout bounds a wedged
 	// server that accepts the socket but stalls the query (else branch-env hangs
 	// — the startStack readiness loop cannot help, it is a later phase).
@@ -50,13 +55,16 @@ async function probeInProcess(base: string, want: string): Promise<ProbeResult |
 		connectionTimeoutMillis: PROBE_CONNECT_TIMEOUT_MS,
 		query_timeout: PROBE_QUERY_TIMEOUT_MS,
 	})
+
 	// Guarded teardown in `finally`: an `await pool.end()` inside a `catch`
 	// would mask the original error if teardown itself throws.
 	try {
 		const kind = await runProbe((text, params) => pool.query(text, params), want)
+
 		if (kind === 'ready') {
 			return {status: 'ready', url: readyUrl}
 		}
+
 		return {status: kind}
 	} finally {
 		try {
@@ -69,10 +77,13 @@ async function probeInProcess(base: string, want: string): Promise<ProbeResult |
 
 export async function probePostgres(base: string, want: string): Promise<ProbeResult> {
 	const local: ProbeResult | null = await probeInProcess(base, want)
+
 	if (local !== null) {
 		return local
 	}
+
 	let out: string
+
 	try {
 		// pg timeouts bound queries, not a wedged runtime/loader: the child
 		// gets its own wall clock (timeout kill surfaces as a signal, which
@@ -98,6 +109,7 @@ export async function probePostgres(base: string, want: string): Promise<ProbeRe
 		const code: unknown = info?.code
 		const status: unknown = info?.status
 		const signal: unknown = info?.signal
+
 		if (
 			typeof code === 'string' ||
 			(typeof status === 'number' && status !== 0) ||
@@ -105,29 +117,38 @@ export async function probePostgres(base: string, want: string): Promise<ProbeRe
 		) {
 			return {status: 'error'}
 		}
+
 		return {status: 'unreachable'}
 	}
+
 	// Verdict is the last non-empty line, not the whole blob: a stray
 	// warning line from the child must not mask the verdict it printed.
 	const lines: Array<string> = out
 		.split('\n')
 		.map((line) => line.trim())
 		.filter((line) => line !== '')
+
 	const verdict: string = lines.length > 0 ? (lines[lines.length - 1] ?? '') : ''
+
 	if (verdict.startsWith('READY ')) {
 		return {status: 'ready', url: verdict.slice('READY '.length)}
 	}
+
 	if (verdict === 'NOADMIN') {
 		return {status: 'noadmin'}
 	}
+
 	if (verdict === 'AUTHFAIL') {
 		return {status: 'authfail'}
 	}
+
 	if (verdict === 'BUSY') {
 		return {status: 'busy'}
 	}
+
 	if (verdict === 'ERROR') {
 		return {status: 'error'}
 	}
+
 	return {status: 'unreachable'}
 }

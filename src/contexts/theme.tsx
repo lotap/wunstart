@@ -21,6 +21,7 @@ const ThemeContext = createContext<ThemeContextState | null>(null)
 
 const resolveTheme = (theme: Theme | null) => {
 	if (theme === 'dark' || theme === 'light') return theme
+
 	return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
@@ -42,6 +43,7 @@ export function ThemeProvider({children}: PropsWithChildren) {
 
 export function useTheme() {
 	const context = useContext(ThemeContext)
+
 	if (!context) throw new Error('useTheme must be used within a ThemeProvider')
 
 	return context

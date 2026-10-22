@@ -5,8 +5,10 @@ const ALLOWED_NAMES = new Set([
 	'revokeForReuse',
 	'noSingleSessionRevokeRule', // this rule's own definition export is not a user-facing revoke
 ])
+
 const REVOKE = /revoke/i
 const SESSION = /session/i
+
 // Whole-family revokes are camelCase `All` + new word or end (`revokeAllSessions`,
 // `signOutAll`). Case-sensitive with a boundary lookahead so `Fallback` / `Allowance`
 // / `Caller` (lowercase `all`) still flag.
@@ -17,23 +19,28 @@ function declarationNames(declaration: ESTree.ExportNamedDeclaration['declaratio
 	if (declaration?.type === 'VariableDeclaration') {
 		return declaration.declarations.flatMap((d) => (d.id.type === 'Identifier' ? [d.id.name] : []))
 	}
+
 	if (
 		(declaration?.type === 'FunctionDeclaration' || declaration?.type === 'ClassDeclaration') &&
 		declaration.id !== null
 	) {
 		return [declaration.id.name]
 	}
+
 	return []
 }
 
 function isViolationName(name: string): boolean {
 	if (ALLOWED_NAMES.has(name)) return false
+
 	if (REUSE.test(name) || WHOLE_FAMILY.test(name)) return false
+
 	return REVOKE.test(name) && SESSION.test(name)
 }
 
 function specifierExportedName(spec: ESTree.ExportSpecifier): string {
 	if (spec.exported.type === 'Identifier') return spec.exported.name
+
 	// `export {x as 'revoke-session'}`: string-literal export names are rare; match literally.
 	return spec.exported.value
 }
@@ -61,13 +68,17 @@ export const noSingleSessionRevokeRule = defineRule({
 			ExportNamedDeclaration(node) {
 				// `export const revokeSession = …` / `export function revokeSession() …`
 				const name = declarationNames(node.declaration).find(isViolationName)
+
 				if (name !== undefined) {
 					context.report({node, messageId: 'singleSessionRevoke', data: {name}})
+
 					return
 				}
+
 				// `export {revokeSession}` / `export {x as revokeSession}` (public name is what matters)
 				for (const spec of node.specifiers) {
 					const specName = specifierExportedName(spec)
+
 					if (isViolationName(specName)) {
 						context.report({node: spec, messageId: 'singleSessionRevoke', data: {name: specName}})
 					}
@@ -76,6 +87,7 @@ export const noSingleSessionRevokeRule = defineRule({
 			ExportDefaultDeclaration(node) {
 				// `export default function revokeSession() …` / `export default revokeSession`
 				const declaration = node.declaration
+
 				const name =
 					(declaration.type === 'FunctionDeclaration' || declaration.type === 'ClassDeclaration') &&
 					declaration.id !== null
@@ -83,6 +95,7 @@ export const noSingleSessionRevokeRule = defineRule({
 						: declaration.type === 'Identifier'
 							? declaration.name
 							: null
+
 				if (name !== null && isViolationName(name)) {
 					context.report({node, messageId: 'singleSessionRevoke', data: {name}})
 				}

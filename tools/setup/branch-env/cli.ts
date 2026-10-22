@@ -69,10 +69,13 @@ function parsePortFlag(raw: string | undefined, flag: string): number | undefine
 	if (raw === undefined) {
 		return undefined
 	}
+
 	const port: number = Number(raw)
+
 	if (!Number.isInteger(port) || port < 1 || port > 65535) {
 		fail(`invalid ${flag} ${JSON.stringify(raw)}`, `pass ${flag} <1-65535>`, 2)
 	}
+
 	return port
 }
 
@@ -80,6 +83,7 @@ function parsePortFlag(raw: string | undefined, flag: string): number | undefine
 export function parseCliArgs(argv: Array<string>): CliConfig {
 	const {values, positionals} = parseCli(argv, CLI_OPTIONS, usage)
 	rejectPositionals(positionals, 'this program takes flags only (see --help)')
+
 	return {
 		devPort: parsePortFlag(values['dev-port'], '--dev-port'),
 		postgresPort: parsePortFlag(values['postgres-port'], '--postgres-port'),

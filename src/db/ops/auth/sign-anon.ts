@@ -26,6 +26,7 @@ const _signAnon = Effect.fn('signAnon')(function* ({
 	const regions = new Set(existingData?.regions ?? [])
 
 	if (city) cities.add(city)
+
 	if (region) regions.add(region)
 
 	return yield* generateAnonToken({

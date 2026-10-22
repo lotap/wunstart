@@ -38,6 +38,7 @@ const resolveActivityEntities = Effect.fn('resolveActivityEntities')(
 
 			if (anonId && !anonsArchiveId) {
 				const [active] = yield* anonsQueries.select({id: anonId})
+
 				if (active) {
 					data.anonsArchiveId = null
 				} else {
@@ -49,6 +50,7 @@ const resolveActivityEntities = Effect.fn('resolveActivityEntities')(
 
 			if (userId && !usersArchiveId) {
 				const [active] = yield* usersQueries.select({id: userId})
+
 				if (active) {
 					data.usersArchiveId = null
 				} else {
@@ -188,6 +190,7 @@ const logActivityAndHandleBans = Effect.fn('logActivityAndHandleBans')(
 							))
 
 						const extendableBanIds: string[] = []
+
 						const existingBansScopes: (typeof currentBansAndExcessiveActivities)[number]['scope'][] =
 							[]
 
@@ -213,6 +216,7 @@ const logActivityAndHandleBans = Effect.fn('logActivityAndHandleBans')(
 							// active_bans should always have an id, the extra check prevents typescript errors
 							if (source === 'active_bans' && id !== null) {
 								existingBansScopes.push(scope)
+
 								if (!implicatesScope[scope]) continue
 
 								extendableBanIds.push(id)
@@ -257,6 +261,7 @@ const logActivityAndHandleBans = Effect.fn('logActivityAndHandleBans')(
 											toTargetInput(ban),
 											tx,
 										)
+
 										/**
 										 * Pre-op snapshots exclude the just-inserted activity; fresh
 										 * in-transaction aggregates include it. Adding the delta to

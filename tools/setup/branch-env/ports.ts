@@ -22,10 +22,12 @@ const PORT_SCAN_BATCH = 8
  */
 function branchHash(branch: string): number {
 	let hash: number = 0x811c9dc5
+
 	for (let i = 0; i < branch.length; i += 1) {
 		hash ^= branch.charCodeAt(i)
 		hash = Math.imul(hash, 0x01000193)
 	}
+
 	return hash >>> 0
 }
 
@@ -48,11 +50,13 @@ async function freePort(start: number): Promise<number | null> {
 	if (!(await isPortOpen(start))) {
 		return start
 	}
+
 	// Otherwise scan in small batches (not 49 sockets at once, not 49
 	// serial probes): same result, far fewer FDs — at most ~7 sequential
 	// batches when the range is full.
 	for (let base = start + 1; base < start + PORT_SCAN_WIDTH; base += PORT_SCAN_BATCH) {
 		const ports: Array<number> = []
+
 		for (
 			let port = base;
 			port < Math.min(base + PORT_SCAN_BATCH, start + PORT_SCAN_WIDTH);
@@ -60,12 +64,15 @@ async function freePort(start: number): Promise<number | null> {
 		) {
 			ports.push(port)
 		}
+
 		const open: Array<boolean> = await Promise.all(ports.map((port) => isPortOpen(port)))
 		const free: number | undefined = ports.find((_, i) => open[i] === false)
+
 		if (free !== undefined) {
 			return free
 		}
 	}
+
 	return null
 }
 
@@ -94,16 +101,20 @@ export function claimIdentity(branch: string): IdentityClaims {
 	if (CANONICAL_BRANCHES.has(branch)) {
 		return {dbWant: 'postgres', devPortWant: 3000, pgPortWant: 5432}
 	}
+
 	// Sanitizing maps `feat-foo` and `feat/foo` to the same stem; the hash
 	// is over the full branch string, so the 6-hex fragment still keeps
 	// one database per branch (56 chars worst case — inside the 63-char
 	// Postgres limit).
 	const hash: number = branchHash(branch)
+
 	const dbSane: string = branch
 		.toLowerCase()
 		.replace(/[^a-z0-9]/g, '_')
 		.slice(0, 40)
+
 	const frag: string = (hash % 0x1000000).toString(16).padStart(6, '0')
+
 	return {
 		dbWant: `wunstart_${dbSane}_${frag}`,
 		devPortWant: 3100 + (hash % 100),
@@ -130,6 +141,7 @@ function parseWorktrees(listOut: string): Array<WorktreeEntry> {
 	const entries: Array<WorktreeEntry> = []
 	let path: string | null = null
 	let ref: string | null = null
+
 	// Trailing blank synthesizes the final block boundary: porcelain's last
 	// block may or may not end with one, and the flush must run either way.
 	for (const line of [...listOut.split('\n'), '']) {
@@ -137,16 +149,19 @@ function parseWorktrees(listOut: string): Array<WorktreeEntry> {
 			if (path !== null) {
 				entries.push({path, ref})
 			}
+
 			path = null
 			ref = null
 			continue
 		}
+
 		if (line.startsWith('worktree ')) {
 			path = line.slice('worktree '.length)
 		} else if (line.startsWith('branch ')) {
 			ref = line.slice('branch '.length).trim()
 		}
 	}
+
 	return entries
 }
 
@@ -165,27 +180,34 @@ export type WorktreeInspection = {
  */
 export function inspectWorktrees(branch: string, root: string): WorktreeInspection {
 	const out: string | null = tryCapture('git', ['worktree', 'list', '--porcelain'])
+
 	if (out === null) {
 		return {canonical: [], sibling: null}
 	}
+
 	const normRoot: string = root.replace(/\/+$/, '')
 	const wantRef: string = `refs/heads/${branch}`
 	const canonical = new Set<string>()
 	let sibling: string | null = null
+
 	for (const entry of parseWorktrees(out)) {
 		if (entry.ref === null) {
 			continue
 		}
+
 		const name: string = entry.ref.startsWith('refs/heads/')
 			? entry.ref.slice('refs/heads/'.length)
 			: entry.ref
+
 		if (CANONICAL_BRANCHES.has(name)) {
 			canonical.add(name)
 		}
+
 		if (sibling === null && entry.ref === wantRef && entry.path.replace(/\/+$/, '') !== normRoot) {
 			sibling = entry.path
 		}
 	}
+
 	return {canonical: [...canonical], sibling}
 }
 
@@ -208,6 +230,7 @@ async function requireFreePort(pin: number, flag: string): Promise<number> {
 	if (!(await isPortOpen(pin))) {
 		return pin
 	}
+
 	fail(
 		`${flag} :${pin} is taken`,
 		`free :${pin} (${PORT_OWNER_TRIAGE}), or pin another port, then re-run`,
@@ -222,12 +245,15 @@ async function requireFreePort(pin: number, flag: string): Promise<number> {
  */
 export async function scanClaimedPorts(inputs: ScanInputs): Promise<ScannedPorts> {
 	const {devPortWant, pgPortWant, ownSmtpPort, ownHttpPort, devPin, pgPin, httpPin} = inputs
+
 	// If two branch-env runs ever race, the loser fails loudly on bind and converges on re-run.
 	// A pin overrides our own mailpit's mapping for that side: the explicit
 	// request wins, and compose recreates the mapping downstream.
 	const smtpProbe: Promise<number | null> =
 		ownSmtpPort !== '' ? Promise.resolve(Number(ownSmtpPort)) : freePort(MAILPIT_SMTP_WANT)
+
 	let httpProbe: Promise<number | null>
+
 	if (httpPin !== undefined) {
 		httpProbe = requireFreePort(httpPin, '--mailpit-port')
 	} else if (ownHttpPort !== '') {
@@ -235,45 +261,58 @@ export async function scanClaimedPorts(inputs: ScanInputs): Promise<ScannedPorts
 	} else {
 		httpProbe = freePort(MAILPIT_HTTP_WANT)
 	}
+
 	const devProbe: Promise<number | null> =
 		devPin !== undefined ? requireFreePort(devPin, '--dev-port') : freePort(devPortWant)
+
 	const pgProbe: Promise<number | null> =
 		pgPin !== undefined ? requireFreePort(pgPin, '--postgres-port') : freePort(pgPortWant)
+
 	const [devPort, smtpFree, httpFree, pgFree] = await Promise.all([
 		devProbe,
 		smtpProbe,
 		httpProbe,
 		pgProbe,
 	])
+
 	if (devPort === null) {
 		fail(
 			'no free dev port found',
 			`stop the process holding :${devPortWant} (lsof -ti :${devPortWant} -sTCP:LISTEN shows the owner — likely another worktree: git worktree list) or free one in the scan window, then re-run`,
 		)
 	}
+
 	if (devPin === undefined && devPort !== devPortWant) {
 		warn(`claimed dev port :${devPortWant} was taken — using :${devPort} instead`)
 	}
+
 	if (smtpFree === null) {
 		fail('no free SMTP port found', `stop an unused stack (${PORT_OWNER_TRIAGE}), then re-run`)
 	}
+
 	if (httpFree === null) {
 		fail(
 			'no free mailpit HTTP port found',
 			`stop an unused stack (${PORT_OWNER_TRIAGE}), then re-run`,
 		)
 	}
+
 	// After the null fails: a half-reused scan must not print a :null side.
 	const httpReused: boolean = httpPin === undefined && ownHttpPort !== ''
+
 	if (ownSmtpPort !== '' || httpReused) {
 		const sides: Array<string> = []
+
 		if (ownSmtpPort !== '') {
 			sides.push(`:${smtpFree} (smtp)`)
 		}
+
 		if (httpReused) {
 			sides.push(`:${httpFree} (http)`)
 		}
+
 		ok(`reusing our mailpit on ${sides.join(' ')} — no port shift`)
 	}
+
 	return {devPort, smtpFree, httpFree, pgFree}
 }

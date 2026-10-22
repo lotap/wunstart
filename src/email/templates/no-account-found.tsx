@@ -34,5 +34,6 @@ NoAccountFound.PreviewProps = {} as Record<string, never>
 export async function renderNoAccountFound() {
 	const component = <NoAccountFound />
 	const [html, text] = await Promise.all([render(component), render(component, {plainText: true})])
+
 	return {subject: 'No account found for this address', html, text}
 }

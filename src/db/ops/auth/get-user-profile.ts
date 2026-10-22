@@ -7,6 +7,7 @@ import {maskEmail} from '#/isomorphic/mask-email.ts'
 
 const _getUserProfile = Effect.fn('getUserProfile')(function* ({userId}: {userId: string}) {
 	const [user] = yield* usersQueries.selectProfile({id: userId})
+
 	if (!user)
 		return yield* opsFailure({
 			failureCause: 'USER_NOT_FOUND',
@@ -15,6 +16,7 @@ const _getUserProfile = Effect.fn('getUserProfile')(function* ({userId}: {userId
 			rateAllowance: 6,
 			message: 'Something went wrong. Please try again.',
 		})
+
 	/** The full address never leaves the server unprivileged; clients get the masked form */
 	return {...user, email: maskEmail(user.email)}
 })

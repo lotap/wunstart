@@ -114,6 +114,7 @@ export const verifyAuth = createMiddleware()
 				if (Schema.is(AuthTokenError)(error)) {
 					deleteCookie(ACCESS_TOKEN_COOKIE_NAME, authCookiesConfig)
 					deleteCookie(REFRESH_TOKEN_COOKIE_NAME, authCookiesConfig)
+
 					// SAFETY: definitive invalid token, so null is the cleared-identity context.
 					return next({context: {auth: null} as AuthContext})
 				}

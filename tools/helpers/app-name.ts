@@ -15,12 +15,14 @@ export function isValidSlug(value: string): string | null {
 	if (value.length > 63) {
 		return 'keep it to 63 characters or fewer (workers.dev subdomain cap)'
 	}
+
 	// Trailing hyphens are rejected too: npm tolerates them but worker
 	// names (Cloudflare) must end alphanumeric, so allowing `foo-` here
 	// just moves the failure to deploy.
 	if (value === '' || /[^a-z0-9-]/.test(value) || value.startsWith('-') || value.endsWith('-')) {
 		return 'use lowercase letters, digits, and hyphens, starting with a letter or digit and not ending with a hyphen'
 	}
+
 	return null
 }
 
@@ -40,9 +42,11 @@ function stripJsoncLine(line: string, state: JsoncState): string {
 	let out = ''
 	let inString = false
 	let i = 0
+
 	while (i < line.length) {
 		const ch: string = line[i] ?? ''
 		const next: string = line[i + 1] ?? ''
+
 		if (state.inBlock) {
 			if (ch === '*' && next === '/') {
 				state.inBlock = false
@@ -58,9 +62,11 @@ function stripJsoncLine(line: string, state: JsoncState): string {
 				i += 2
 			} else {
 				out += ch
+
 				if (ch === '"') {
 					inString = false
 				}
+
 				i += 1
 			}
 		} else if (ch === '"') {
@@ -79,6 +85,7 @@ function stripJsoncLine(line: string, state: JsoncState): string {
 			i += 1
 		}
 	}
+
 	return out
 }
 
@@ -86,8 +93,10 @@ function stripJsoncLine(line: string, state: JsoncState): string {
 function braceDepthDelta(code: string): number {
 	let delta = 0
 	let inString = false
+
 	for (let i = 0; i < code.length; i += 1) {
 		const ch: string = code[i] ?? ''
+
 		if (inString) {
 			if (ch === '\\') {
 				i += 1
@@ -102,6 +111,7 @@ function braceDepthDelta(code: string): number {
 			delta -= 1
 		}
 	}
+
 	return delta
 }
 
@@ -121,15 +131,21 @@ export function extractTopLevelName(
 	if (found === null) {
 		return null
 	}
+
 	const line: string | undefined = lines[found.line]
+
 	if (line === undefined) {
 		return null
 	}
+
 	const match: RegExpExecArray | null = /"name"\s*:\s*"([^"]*)"/.exec(line.slice(found.at))
+
 	if (match === null) {
 		return null
 	}
+
 	const raw: string | undefined = match[1]
+
 	return raw ?? null
 }
 
@@ -148,23 +164,31 @@ export function extractTopLevelName(
 export function findTopLevelName(lines: Array<string>): TopLevelName | null {
 	let depth = 0
 	const state: JsoncState = {inBlock: false}
+
 	for (let i = 0; i < lines.length; i += 1) {
 		const code: string = stripJsoncLine(lines[i] ?? '', state)
 		// No /g + matchAll (iterator typing): rescan past each non-top-level
 		// match; matches cannot overlap, so +1 always advances.
 		let scanFrom = 0
+
 		for (;;) {
 			const at: number = code.slice(scanFrom).search(/"name"\s*:\s*"/)
+
 			if (at === -1) {
 				break
 			}
+
 			const absAt: number = scanFrom + at
+
 			if (depth + braceDepthDelta(code.slice(0, absAt)) === 1) {
 				return {line: i, at: absAt}
 			}
+
 			scanFrom = absAt + 1
 		}
+
 		depth = Math.max(0, depth + braceDepthDelta(code))
 	}
+
 	return null
 }

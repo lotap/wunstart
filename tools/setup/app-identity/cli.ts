@@ -73,36 +73,46 @@ export function checkDescription(
 	hint = 'use a single line with no line breaks',
 ): string {
 	const value: string = raw.trim()
+
 	if (/[\n\r\v\f\u2028\u2029]/.test(value)) {
 		fail(`bad app description in ${source} (one line only)`, hint, code)
 	}
+
 	return value
 }
 
 /** Parse argv into validated config; --help wins over everything. */
 export function parseCliArgs(argv: Array<string>): CliConfig {
 	const {values, positionals} = parseCli(argv, CLI_OPTIONS, usage)
+
 	if (positionals.length > 1) {
 		fail(`unexpected argument: ${positionals[1]}`, 'pass at most one app name', 2)
 	}
+
 	const positionalName: string | undefined = positionals[0]
 	const flagName: string | undefined = values.name
+
 	if (positionalName !== undefined && flagName !== undefined) {
 		fail('app name given twice', 'pass it once: `app-identity my-app` or `--name my-app`', 2)
 	}
+
 	const name: string | undefined = positionalName ?? flagName
+
 	// Empty is never a keep-the-current spelling (unlike --description "",
 	// which clears): it is almost always a quoting accident (`--name ""`),
 	// and silently keeping would hide it. Omit --name to keep.
 	if (name !== undefined && name === '') {
 		fail('app name is empty', 'omit --name to keep the current name, or pass a valid slug', 2)
 	}
+
 	if (name !== undefined) {
 		const problem: string | null = isValidSlug(name)
+
 		if (problem !== null) {
 			fail(`bad app name '${name}'`, problem, 2)
 		}
 	}
+
 	return {
 		name,
 		description:

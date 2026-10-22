@@ -24,6 +24,7 @@ export const handleEmailRequestPasscode = createServerFn({method: 'POST'})
 				data: {anonTokenPayload, ipAddress, userAgent, country, city, region},
 				layers: [authLayer, dbLayer],
 			})
+
 			anonTokenPayload = payload
 			setAnonCookie(token)
 		}

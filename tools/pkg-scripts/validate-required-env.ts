@@ -21,9 +21,11 @@ function usage(): void {
 
 function main(): void {
 	const parsed = parseCli(process.argv.slice(2), {}, usage)
+
 	if (parsed.positionals.length > 1) {
 		fail(`unexpected argument: ${parsed.positionals[1]}`, 'pass at most one env file', 2)
 	}
+
 	// Anchor at the repo root like validate-setup: a bare relative path
 	// resolves the same from any subdirectory.
 	try {
@@ -32,12 +34,15 @@ function main(): void {
 		console.error('FAIL could not anchor at the repo root')
 		console.error('hint: run from inside the worktree')
 		process.exitCode = 1
+
 		return
 	}
+
 	const arg: string | undefined = parsed.positionals[0]
 	const path: string = arg === undefined || arg === '' ? '.env.development' : arg
 	let issues: EnvValidation['issues']
 	let overlaid: boolean
+
 	try {
 		;({issues, overlaid} = validateRequiredEnv(path, '.env.local'))
 	} catch {
@@ -47,16 +52,22 @@ function main(): void {
 		console.error(`FAIL ${failure.culprit} is missing or unreadable`)
 		console.error(`hint: ${failure.hint}`)
 		process.exitCode = 1
+
 		return
 	}
+
 	const suffix: string = overlaid ? ' (+ .env.local)' : ''
+
 	if (issues.length === 0) {
 		console.log(`env ${path}${suffix}: ok`)
+
 		return
 	}
+
 	for (const issue of issues) {
 		console.log(`env ${path}: ${issue.key} ${issue.problem}`)
 	}
+
 	process.exitCode = 1
 }
 

@@ -20,30 +20,39 @@ async function main(): Promise<void> {
 	const base: string = process.env['PROBE_BASE'] ?? process.argv[2] ?? ''
 	const want: string = process.env['PROBE_WANT'] ?? process.argv[3] ?? ''
 	let pg: typeof import('pg')
+
 	try {
 		pg = await import('pg')
 	} catch {
 		console.log('ERROR')
+
 		return
 	}
+
 	const urls = probeUrls(base, want)
+
 	if (urls === null) {
 		// UNREACHABLE, not ERROR: the parent maps it to the own-stack arm,
 		// which fails with the accurate 'DATABASE_URL is invalid' hint.
 		console.log('UNREACHABLE')
+
 		return
 	}
+
 	const {adminUrl, readyUrl} = urls
+
 	// Same bounds as the in-process probe: a stalled query must not hang branch-env.
 	const pool = new pg.Pool({
 		connectionString: adminUrl,
 		connectionTimeoutMillis: PROBE_CONNECT_TIMEOUT_MS,
 		query_timeout: PROBE_QUERY_TIMEOUT_MS,
 	})
+
 	// Single teardown in `finally` (guarded): an `await pool.end()` inside a
 	// `catch` would mask the original error if teardown itself throws.
 	try {
 		const kind = await runProbe((text, params) => pool.query(text, params), want)
+
 		if (kind === 'ready') {
 			console.log(`READY ${readyUrl}`)
 		} else {
@@ -62,6 +71,7 @@ async function main(): Promise<void> {
 // importing this module would otherwise look "directly invoked" and run
 // main() on import.
 const invokedDirectly: boolean = basename(process.argv[1] ?? '') === 'probe-postgres-child.ts'
+
 if (invokedDirectly) {
 	main().catch(() => {
 		console.log('ERROR')

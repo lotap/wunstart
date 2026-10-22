@@ -10,6 +10,7 @@ export const resolveEmailTimezone = (timezone: string | null | undefined): strin
 
 	try {
 		new Intl.DateTimeFormat('en-US', {timeZone: timezone}).format(new Date())
+
 		return timezone
 	} catch {
 		return EMAIL_FALLBACK_TIMEZONE
@@ -23,11 +24,13 @@ export const resolveEmailTimezone = (timezone: string | null | undefined): strin
  */
 export const formatEmailTime = (date: Date, timezone: string | null | undefined): string => {
 	const resolved = resolveEmailTimezone(timezone)
+
 	const dateTime = new Intl.DateTimeFormat('en-US', {
 		dateStyle: 'long',
 		timeStyle: 'short',
 		timeZone: resolved,
 	}).format(date)
+
 	const abbreviation = new Intl.DateTimeFormat('en-US', {
 		timeZone: resolved,
 		timeZoneName: 'short',

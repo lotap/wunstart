@@ -213,6 +213,7 @@ export const selectActivityIdsByTarget = createQueryFn({
 			.filter((entry): entry is [keyof typeof targetColumns, string | bigint] => entry[1] != null)
 			.map(([name, value]) => {
 				const column = targetColumns[name]
+
 				return and(isNotNull(column), eq(column, value))
 			})
 
@@ -258,6 +259,7 @@ const selectPairedIdsCTE = (qx: QueryExecutor) =>
  */
 const selectMatchedBansCTE = (qx: QueryExecutor) => {
 	const pairs = selectPairedIdsCTE(qx)
+
 	return qx.$with('select_matched_bans_cte').as(
 		qx
 			.select({

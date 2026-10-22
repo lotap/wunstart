@@ -34,12 +34,14 @@ function safeRedirectTarget(raw?: string) {
 	if (raw) {
 		try {
 			const url = new URL(raw, window.location.origin)
+
 			if (url.origin === window.location.origin) return `${url.pathname}${url.search}${url.hash}`
 		} catch {
 			// Adversarial or malformed params (e.g. `redirect=https://[`) can throw here;
 			// fall through to the dashboard rather than failing the sign-in
 		}
 	}
+
 	return '/'
 }
 
@@ -66,9 +68,11 @@ export function SignInForm() {
 	})
 
 	const [branch, setBranch] = useState<'password' | 'passcode-send' | 'passcode-skip'>('password')
+
 	const [submittedBranch, setSubmittedBranch] = useState<
 		'password' | 'passcode-send' | 'passcode-skip'
 	>('password')
+
 	/** Set synchronously on click so onSubmitTry reliably observes the intended branch */
 	const branchRef = useRef<'password' | 'passcode-send' | 'passcode-skip'>('password')
 
@@ -80,6 +84,7 @@ export function SignInForm() {
 		onSubmitTry: async ({password}) => {
 			handleEmailChange(email)
 			setSubmittedBranch(branchRef.current)
+
 			if (branchRef.current === 'password') {
 				await handlePasswordSignInFn({data: {email, password}})
 				removeLocalStorageSignInState()

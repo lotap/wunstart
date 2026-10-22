@@ -43,6 +43,7 @@ export function HasSudoProvider({
 
 export function useHasSudo() {
 	const context = useContext(HasSudoContext)
+
 	if (!context) throw new Error('useHasSudo must be used within a HasSudoProvider')
 
 	return context

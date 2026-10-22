@@ -67,6 +67,7 @@ function usage(): void {
 export function parseCliArgs(argv: Array<string>): CliConfig {
 	const {values, positionals} = parseCli(argv, CLI_OPTIONS, usage)
 	rejectPositionals(positionals, 'this program takes flags only (see --help)')
+
 	return {
 		pm:
 			values.pm !== undefined

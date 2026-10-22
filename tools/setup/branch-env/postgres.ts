@@ -18,12 +18,15 @@
 function mutateUrl(base: string, change: {port?: string; pathname?: string}): string | null {
 	try {
 		const url = new URL(base)
+
 		if (change.port !== undefined) {
 			url.port = change.port
 		}
+
 		if (change.pathname !== undefined) {
 			url.pathname = change.pathname
 		}
+
 		return url.toString()
 	} catch {
 		return null
@@ -34,9 +37,11 @@ function mutateUrl(base: string, change: {port?: string; pathname?: string}): st
 export function probeUrls(base: string, want: string): {adminUrl: string; readyUrl: string} | null {
 	const adminUrl: string | null = mutateUrl(base, {pathname: '/postgres'})
 	const readyUrl: string | null = mutateUrl(base, {pathname: `/${want}`})
+
 	if (adminUrl === null || readyUrl === null) {
 		return null
 	}
+
 	return {adminUrl, readyUrl}
 }
 
@@ -69,8 +74,10 @@ function isBusy(error: Error | null): boolean {
 	if (error?.message === 'Query read timeout') {
 		return true
 	}
+
 	// SAFETY: pg attaches sqlstate/errno in `code`; a non-pg Error has none.
 	const code: PgErrorCode = error === null ? undefined : (error as {code?: PgErrorCode}).code
+
 	return code === '53300'
 }
 
@@ -96,6 +103,7 @@ function isConnectionLoss(code: PgErrorCode): boolean {
 	if (code === null || code === undefined) {
 		return true
 	}
+
 	// SAFETY: numbers (exit codes) never equal a string set member, so
 	// membership-testing without narrowing cannot misclassify.
 	return CONNECTION_LOSS_CODES.has(code as string)
@@ -132,38 +140,48 @@ export async function runProbe(query: ProbeQueryFn, want: string): Promise<Probe
 		if (isBusy(error instanceof Error ? error : null)) {
 			return 'busy'
 		}
+
 		// SAFETY: pg surfaces SQLSTATE in `code` (28P01 = bad password) and
 		// syscall failures as errno-style codes; anything else is unreachable.
 		const code: PgErrorCode = (error as {code?: PgErrorCode} | null)?.code
+
 		return isAuthFailure(code) ? 'authfail' : 'unreachable'
 	}
+
 	try {
 		const found = await query('SELECT 1 FROM pg_database WHERE datname = $1', [want])
+
 		if (found.rows.length === 0) {
 			await query(`CREATE DATABASE ${quoteIdent(want)}`)
 		}
+
 		return 'ready'
 	} catch (error) {
 		if (isBusy(error instanceof Error ? error : null)) {
 			return 'busy'
 		}
+
 		// SAFETY: pg surfaces SQLSTATE in `code`; a won CREATE race means
 		// the database exists, so report success.
 		const code: PgErrorCode = (error as {code?: PgErrorCode} | null)?.code
+
 		if (isRaceWon(code)) {
 			return 'ready'
 		}
+
 		// A drop after a successful connect is the server going away, not a
 		// permissions problem: unreachable keeps the caller on the revive /
 		// start-own path instead of reporting "cannot create databases".
 		if (isConnectionLoss(code)) {
 			return 'unreachable'
 		}
+
 		// admin_shutdown means the server is going away — retry (or fall to
 		// an own stack) instead of reporting "cannot create databases".
 		if (code === '57P01') {
 			return 'unreachable'
 		}
+
 		return 'noadmin'
 	}
 }
@@ -209,14 +227,17 @@ export function sameDbUrl(a: string, b: string): boolean {
  */
 function normalizeDbUrl(raw: string): string {
 	const url = new URL(raw)
+
 	if ((url.protocol === 'postgres:' || url.protocol === 'postgresql:') && url.port === '') {
 		url.port = '5432'
 	}
+
 	// A trailing slash carries no database identity (`/db` vs `/db/`), but
 	// `new URL(...).toString()` preserves it — strip it so a hand-edited
 	// committed URL still matches the probe-normalized form.
 	if (url.pathname.length > 1 && url.pathname.endsWith('/')) {
 		url.pathname = url.pathname.slice(0, -1)
 	}
+
 	return url.toString()
 }

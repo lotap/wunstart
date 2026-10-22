@@ -20,8 +20,10 @@ import {
  */
 export function calculatePenaltyTime(totalWeight: bigint | null) {
 	if (totalWeight === null) return PENALTY_INTERVAL_INITIAL
+
 	if (totalWeight > Number.MAX_SAFE_INTEGER || totalWeight < Number.MIN_SAFE_INTEGER)
 		return `${PENALTY_INTERVAL_MAX_QTY} ${PENALTY_INTERVAL_UNIT}`
+
 	/**
 	 * 2^0 = 1, so the calculated time equals the initial penalty time exactly at the threshold.
 	 *

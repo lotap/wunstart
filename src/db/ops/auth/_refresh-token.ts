@@ -15,6 +15,7 @@ const alg = 'HS256'
 /** Generates a cspr base64 url-encoded string and its hash */
 export const generateNonce = Effect.fn('generateNonce')(function* () {
 	const nonce = randomBytes(32).toString('base64url')
+
 	return {
 		nonce,
 		nonceHash: yield* hashTarget(nonce),

@@ -33,6 +33,7 @@ export function createQueryFn<VSchema extends StructLike | ArrayOfStructLikes, T
 		if (tx) return yield* query(tx, parsed)
 
 		const db = yield* DB
+
 		return yield* query(db, parsed)
 	})
 }
@@ -73,6 +74,7 @@ export function createPreparedQuery<
 
 		if (tx) {
 			const txStmt = stmtFn(tx)
+
 			// SAFETY: the guard above proves `parsed` is a plain object whose entries
 			// the schema already validated; `Record<string, unknown>` is drizzle's own
 			// driver contract for execute(), not a dictionary we designed.
@@ -81,6 +83,7 @@ export function createPreparedQuery<
 		}
 
 		const stmt = yield* cachedStmt
+
 		// SAFETY: the guard above proves `parsed` is a plain object whose entries
 		// the schema already validated; `Record<string, unknown>` is drizzle's own
 		// driver contract for execute(), not a dictionary we designed.
@@ -176,9 +179,17 @@ function runArchival<
 			extraData,
 		}: {
 			tx?: Tx
-			extraData?: ArchiveValidation extends StructLike
-				? Partial<ArchiveValidation['Encoded']>
-				: Partial<(typeof _autoValidation)['Encoded']>
+			// The rule reads Partial<> through the unresolved generic
+			// constraint as {}; every instantiation passes a struct schema
+			// with an object Encoded, so the annotation is exact where used.
+			// (Partial distributes over the union, so hoisting it out of the
+			// conditional changes nothing.)
+			// oxlint-disable-next-line typescript/no-generated-empty-object-type
+			extraData?: Partial<
+				ArchiveValidation extends StructLike
+					? ArchiveValidation['Encoded']
+					: (typeof _autoValidation)['Encoded']
+			>
 		} = {},
 	) {
 		const _archive = Effect.fn(function* (_tx: Tx) {
@@ -210,6 +221,7 @@ function runArchival<
 			 * row) would grow the transaction with the batch size.
 			 */
 			const cascadeEffects = cascades?.(_tx, input, rowData, archiveIds)
+
 			if (cascadeEffects) yield* Effect.all(cascadeEffects)
 
 			// Delete the row data from the active table
@@ -235,6 +247,7 @@ function runArchival<
 
 		// Process with a newly generated transaction
 		const db = yield* DB
+
 		return yield* db.transaction((_tx) => _archive(_tx))
 	})
 }
@@ -294,8 +307,11 @@ export function createArchiveFn<
 					rows.map((row) => row.id),
 				),
 			]
+
 			const extra = deleteWhere?.(input)
+
 			if (extra) conditions.push(extra)
+
 			return tx
 				.delete(activeTable)
 				.where(and(...conditions))

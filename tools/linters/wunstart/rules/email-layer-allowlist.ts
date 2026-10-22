@@ -14,6 +14,7 @@ function isEmailSource(source: string): boolean {
 
 function isEmailPath(path: string): boolean {
 	const normalized = path.replaceAll('\\', '/')
+
 	return (
 		normalized.includes('src/email/') ||
 		normalized.includes('src/db/ops/') ||
@@ -25,6 +26,7 @@ function isEmailPath(path: string): boolean {
 /** True when every specifier is an inline `type` import (erased at compile, carries no capability). */
 function isTypeOnlyImport(node: ESTree.ImportDeclaration): boolean {
 	if (node.importKind === 'type') return true
+
 	return (
 		node.specifiers.length > 0 &&
 		node.specifiers.every((s) => s.type === 'ImportSpecifier' && s.importKind === 'type')
@@ -34,6 +36,7 @@ function isTypeOnlyImport(node: ESTree.ImportDeclaration): boolean {
 /** True when every specifier is an inline `type` re-export (erased at compile, carries no capability). */
 function isTypeOnlyExport(node: ESTree.ExportNamedDeclaration): boolean {
 	if (node.exportKind === 'type') return true
+
 	return node.specifiers.length > 0 && node.specifiers.every((s) => s.exportKind === 'type')
 }
 
@@ -58,10 +61,12 @@ export const emailLayerAllowlistRule = defineRule({
 	},
 	create(context) {
 		if (isEmailPath(context.filename)) return {}
+
 		return {
 			ImportDeclaration(node) {
 				if (isTypeOnlyImport(node)) return
 				const source: string = node.source.value
+
 				if (!isEmailSource(source)) return
 				context.report({
 					node: node.source,
@@ -72,6 +77,7 @@ export const emailLayerAllowlistRule = defineRule({
 			ExportNamedDeclaration(node) {
 				if (!node.source || isTypeOnlyExport(node)) return
 				const source: string = node.source.value
+
 				if (!isEmailSource(source)) return
 				context.report({
 					node: node.source,
@@ -82,6 +88,7 @@ export const emailLayerAllowlistRule = defineRule({
 			ExportAllDeclaration(node) {
 				if (node.exportKind === 'type') return
 				const source: string = node.source.value
+
 				if (!isEmailSource(source)) return
 				context.report({
 					node: node.source,
@@ -91,9 +98,12 @@ export const emailLayerAllowlistRule = defineRule({
 			},
 			ImportExpression(node) {
 				const source = node.source
+
 				if (source.type !== 'Literal') return
+
 				if (source.value === null) return
 				const text = `${source.value}`
+
 				if (!isEmailSource(text)) return
 				context.report({
 					node: source,

@@ -78,6 +78,7 @@ const documentVariants = cva('h-full', {
 
 function RootDocument({children}: {children: React.ReactNode}) {
 	const {resolved} = useTheme()
+
 	return (
 		<html lang="en" suppressHydrationWarning className={documentVariants({theme: resolved})}>
 			<head>

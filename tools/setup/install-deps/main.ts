@@ -20,6 +20,7 @@ import {resolvePm, resolveWorkspace} from './resolve.ts'
 
 async function main(): Promise<void> {
 	const cfg: CliConfig = parseCliArgs(process.argv.slice(2))
+
 	const {canPrompt, ask, close} = setupPhase(
 		{quiet: cfg.quiet, yes: cfg.yes, noInput: cfg.noInput, dryRun: cfg.dryRun},
 		{
@@ -27,9 +28,11 @@ async function main(): Promise<void> {
 			sigterm: 'terminated — completed steps are kept; re-run install-deps to continue',
 		},
 	)
+
 	try {
 		step('reading checkout evidence…')
 		const evidence: Evidence = readEvidence()
+
 		const pmResolution: PmResolution = await resolvePm({
 			cliPm: cfg.pm,
 			evidence,
@@ -37,6 +40,7 @@ async function main(): Promise<void> {
 			dryRun: cfg.dryRun,
 			ask,
 		})
+
 		const workspace: WorkspaceAction = await resolveWorkspace({
 			evidence,
 			pm: pmResolution.pm,
@@ -45,6 +49,7 @@ async function main(): Promise<void> {
 			canPrompt,
 			ask,
 		})
+
 		const plan: InstallPlan = buildPlan(
 			derivePlanInputs({
 				pm: pmResolution.pm,
@@ -53,10 +58,13 @@ async function main(): Promise<void> {
 				workspace,
 			}),
 		)
+
 		printPlan(plan, {dryRun: cfg.dryRun, canPrompt})
+
 		if (cfg.dryRun) {
 			return
 		}
+
 		// Switch cleanup deletes files, so it needs explicit consent: an
 		// explicit --pm flag, a packageManager field driving the switch, an
 		// answered prompt (the confirm gate below), or --force. Stale
@@ -67,11 +75,13 @@ async function main(): Promise<void> {
 			...(plan.removeNodeModules ? ['node_modules'] : []),
 			...(plan.workspace === 'drop' ? ['pnpm-workspace.yaml'] : []),
 		]
+
 		const consented: boolean =
 			cfg.force ||
 			pmResolution.source === 'flag' ||
 			pmResolution.source === 'packageManager' ||
 			canPrompt
+
 		if (switchCleanup.length > 0 && !consented) {
 			fail(
 				`refusing to remove ${switchCleanup.join(', ')} without consent`,
@@ -79,11 +89,13 @@ async function main(): Promise<void> {
 				1,
 			)
 		}
+
 		if (canPrompt) {
 			const proceed: string = await ask('apply this plan? (Y/n)', {
 				defaultValue: 'y',
 				validate: confirmValidator('y'),
 			})
+
 			if (isDeclined(proceed)) {
 				fail(
 					'install-deps aborted — no changes were made',
@@ -92,6 +104,7 @@ async function main(): Promise<void> {
 				)
 			}
 		}
+
 		applyPlan(plan)
 		printResult(plan)
 	} finally {

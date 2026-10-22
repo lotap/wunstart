@@ -56,6 +56,7 @@ export function SignUpForm() {
 		onSubmitSchema: branch === 'default' ? EmailCredentials : undefined,
 		onSubmitTry: async () => {
 			handleEmailChange(email)
+
 			if (branchRef.current === 'default') await mutatePasscodeRequest()
 			setStep(1)
 		},

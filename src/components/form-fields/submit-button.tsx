@@ -17,6 +17,7 @@ export function SubmitButton({
 	buttonProps?: ComponentProps<typeof Button>
 }) {
 	const form = useFormContext()
+
 	return (
 		<form.Subscribe selector={(state) => state.isSubmitting}>
 			{(isSubmitting) => (

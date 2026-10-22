@@ -30,15 +30,19 @@ export function readOwnPostgres(): OwnPostgres | null {
 	const cid: string = findCidLine(
 		tryCapture('docker', ['compose', 'ps', '-q', '--all', 'postgres']),
 	)
+
 	if (cid === '') {
 		return null
 	}
+
 	const state: string =
 		tryCapture('docker', ['inspect', '-f', '{{.State.Status}}', cid]) ?? 'unknown'
+
 	const port: string =
 		state === 'running' || state === 'paused'
 			? findPort(tryCapture('docker', ['compose', 'port', 'postgres', '5432']))
 			: ''
+
 	return {cid, state, port}
 }
 
@@ -51,10 +55,13 @@ const PROBE_RETRY_DELAY_MS = 1500
  */
 async function probeWithRetry(base: string, want: string): Promise<ProbeResult> {
 	const first: ProbeResult = await probePostgres(base, want)
+
 	if (first.status !== 'unreachable' && first.status !== 'busy') {
 		return first
 	}
+
 	await new Promise((resolve) => setTimeout(resolve, PROBE_RETRY_DELAY_MS))
+
 	return probePostgres(base, want)
 }
 
@@ -102,28 +109,35 @@ function failProbe(
 	// not a cue to start another stack.
 	const kind: 'authfail' | 'noadmin' | 'error' | 'unhealthy' | 'busy' =
 		status === 'unreachable' ? 'unhealthy' : status
+
 	const tail = ` — then re-run: ${rerun}`
+
 	if (kind === 'authfail') {
 		fail(`${subject} rejected these credentials`, `${hints.authfail}${tail}`)
 	}
+
 	if (kind === 'noadmin') {
 		fail(
 			`${subject} accepts these credentials but cannot create databases`,
 			`${hints.noadmin}${tail}`,
 		)
 	}
+
 	if (kind === 'error') {
 		fail('postgres probe failed before connecting', `${hints.error}${tail}`)
 	}
+
 	if (kind === 'busy') {
 		fail(`${subject} accepted the connection but did not answer in time`, `${hints.busy}${tail}`)
 	}
+
 	fail(`${subject} is unhealthy`, `${hints.unhealthy}${tail}`)
 }
 
 /** Wait for a revived/ready container, failing with logs rather than a data wipe. */
 async function waitOrFail(cid: string, rerun: string): Promise<void> {
 	const waited: 'ready' | 'terminal' | 'timeout' = await waitForPostgres(cid, 10, true)
+
 	if (waited !== 'ready') {
 		fail(
 			'our postgres container did not become ready',
@@ -144,13 +158,17 @@ async function reviveOwnPostgres(
 ): Promise<string> {
 	if (own.state === 'paused') {
 		step('our postgres container is paused — unpausing…')
+
 		if (runQuiet('docker', ['unpause', own.cid]) !== 0) {
 			fail('could not unpause our postgres container', `check its state, then re-run: ${rerun}`)
 		}
+
 		await waitOrFail(own.cid, rerun)
 		ok('our postgres container unpaused')
+
 		return own.cid
 	}
+
 	// `up -d` does not unpause, so paused containers take the branch above.
 	// Pass the scanned port explicitly: an exported POSTGRES_PORT or stray
 	// .env must not recreate on a port branch-env never scanned, and the
@@ -161,7 +179,9 @@ async function reviveOwnPostgres(
 			`stop an unused stack to free a port (${PORT_OWNER_TRIAGE}), then re-run: ${rerun}`,
 		)
 	}
+
 	step(`our postgres container is ${own.state} — starting it on :${revivePort} (data intact)…`)
+
 	if (
 		run(
 			'docker',
@@ -175,16 +195,20 @@ async function reviveOwnPostgres(
 			`check the compose logs and that :${revivePort} is still free, then re-run: ${rerun}`,
 		)
 	}
+
 	// Re-resolve like startStack: up -d keeps the ID for a stopped container,
 	// but a daemon that recreates it would leave own.cid pointing at a dead ID.
 	const revivedCid: string = findCidLine(
 		tryCapture('docker', ['compose', 'ps', '-q', '--all', 'postgres']),
 	)
+
 	if (revivedCid === '') {
 		fail('postgres container never became ready', `check the compose logs, then re-run: ${rerun}`)
 	}
+
 	await waitOrFail(revivedCid, rerun)
 	ok('our postgres container started')
+
 	return revivedCid
 }
 
@@ -208,9 +232,11 @@ export async function reuseOwnPostgres(
 ): Promise<{url: string; port: string} | null> {
 	const {own, preflightUrl, dbWant, revivePort, pm} = inputs
 	const rerun: string = phaseCommand(pm, 'branch-env')
+
 	if (own === null) {
 		return null
 	}
+
 	if (own.state === 'running') {
 		if (runQuiet('docker', ['exec', own.cid, 'pg_isready', '-U', 'postgres']) !== 0) {
 			step('our postgres container is running but not ready — waiting…')
@@ -219,27 +245,35 @@ export async function reuseOwnPostgres(
 	} else {
 		await reviveOwnPostgres(own, revivePort, rerun)
 	}
+
 	// findPort: trailing-port match, not split(':') — IPv6 compose output
 	// (`[::]:5433`) has no usable last colon segment.
 	const ownPort: string = findPort(tryCapture('docker', ['compose', 'port', 'postgres', '5432']))
+
 	if (!/^\d+$/.test(ownPort)) {
 		fail(
 			'our postgres container has no published port',
 			`check the postgres service ports in compose.yaml, then recreate it without deleting data: docker compose up -d --force-recreate postgres — then re-run: ${rerun}`,
 		)
 	}
+
 	const ownUrl: string | null = withPort(preflightUrl, ownPort)
+
 	if (ownUrl === null) {
 		fail(
 			'DATABASE_URL is invalid',
 			'check .env.local (override) and .env.development (committed) — restore the committed one: git checkout -- .env.development',
 		)
 	}
+
 	const probe: ProbeResult = await probeWithRetry(ownUrl, dbWant)
+
 	if (probe.status !== 'ready') {
 		failProbe(probe.status, `our postgres on :${ownPort}`, OWN_PROBE_HINTS, rerun)
 	}
+
 	ok(`reusing our postgres on :${ownPort} — branch database '${dbWant}' ensured`)
+
 	return {url: probe.url, port: ownPort}
 }
 
@@ -264,35 +298,45 @@ export async function probeSharedPostgres(
 	// Retry once before falling back to an own stack, or every transient
 	// shared hiccup would permanently pin this worktree to its own container.
 	const probe: ProbeResult = await probeWithRetry(preflightUrl, dbWant)
+
 	if (probe.status === 'ready') {
 		ok(`postgres on :${probePort} shared — branch database '${dbWant}' ensured (no new container)`)
+
 		return {effectiveUrl: probe.url, postgresPort: '', startOwnPostgres: false}
 	}
+
 	if (probe.status !== 'unreachable') {
 		failProbe(probe.status, `postgres on :${probePort}`, SHARED_PROBE_HINTS, rerun)
 	}
+
 	if (pgFree === null) {
 		fail('no free postgres port found', `stop an unused stack (${PORT_OWNER_TRIAGE}), then re-run`)
 	}
+
 	const postgresPort: string = String(pgFree)
 	const portSwapped: string | null = withPort(preflightUrl, postgresPort)
+
 	if (portSwapped === null) {
 		fail(
 			'DATABASE_URL is invalid',
 			'check .env.local (override) and .env.development (committed) — restore the committed one: git checkout -- .env.development',
 		)
 	}
+
 	const ownUrl: string | null = withDb(portSwapped, dbWant)
+
 	if (ownUrl === null) {
 		fail(
 			'DATABASE_URL is invalid',
 			'check .env.local (override) and .env.development (committed) — restore the committed one: git checkout -- .env.development',
 		)
 	}
+
 	// Unreachable here means down, filtered, or held by a non-postgres
 	// service (ready/authfail/noadmin/error all returned above) — all
 	// that is certain is no usable postgres answers on this port.
 	ok(`no usable postgres on :${probePort} — our own postgres will run on :${postgresPort}`)
+
 	return {effectiveUrl: ownUrl, postgresPort, startOwnPostgres: true}
 }
 
@@ -325,15 +369,20 @@ export async function startStack(inputs: StackInputs): Promise<string> {
 		managedOverrides,
 		pm,
 	} = inputs
+
 	const rerun: string = phaseCommand(pm, 'branch-env')
+
 	const sharedPorts = {
 		MAILPIT_SMTP_PORT: mailpitSmtpPort,
 		MAILPIT_HTTP_PORT: mailpitHttpPort,
 	}
+
 	const composePorts = startOwnPostgres
 		? {...sharedPorts, POSTGRES_PORT: postgresPort}
 		: sharedPorts
+
 	step('starting containers…')
+
 	if (!startOwnPostgres) {
 		if (run('docker', ['compose', 'up', '-d', 'mailpit'], composePorts, COMPOSE_TIMEOUT_MS) !== 0) {
 			fail(
@@ -341,14 +390,17 @@ export async function startStack(inputs: StackInputs): Promise<string> {
 				`check the compose logs and that :${mailpitSmtpPort}/:${mailpitHttpPort} are still free, then re-run: ${rerun}`,
 			)
 		}
+
 		return effectiveUrl
 	}
+
 	if (run('docker', ['compose', 'up', '-d'], composePorts, COMPOSE_TIMEOUT_MS) !== 0) {
 		fail(
 			'docker compose up failed',
 			`check the compose logs and that :${postgresPort}/:${mailpitSmtpPort}/:${mailpitHttpPort} are still free, then re-run: ${rerun}`,
 		)
 	}
+
 	// The container id is stable after `up -d`: resolve it once, then poll
 	// readiness with backoff. Capped at ~36s total when the daemon answers
 	// (a healthy postgres answers pg_isready in seconds); a wedged daemon
@@ -359,31 +411,40 @@ export async function startStack(inputs: StackInputs): Promise<string> {
 	const freshCid: string = findCidLine(
 		tryCapture('docker', ['compose', 'ps', '-q', '--all', 'postgres']),
 	)
+
 	if (freshCid === '') {
 		fail('postgres container never became ready', 'check docker compose logs, then re-run')
 	}
+
 	const waited: 'ready' | 'terminal' | 'timeout' = await waitForPostgres(freshCid, 15, true)
+
 	if (waited === 'terminal') {
 		fail('postgres container stopped while starting', 'check docker compose logs, then re-run')
 	}
+
 	if (waited !== 'ready') {
 		fail('postgres container never became ready', 'check docker compose logs, then re-run')
 	}
+
 	// Fresh stack, fresh port: ensure the branch database exists and
 	// normalize the URL (the preflight runs before the container does,
 	// so it cannot CREATE here — without this, migrate would land in
 	// the `postgres` system database).
 	const ensure: ProbeResult = await probeWithRetry(effectiveUrl, dbWant)
+
 	if (ensure.status !== 'ready') {
 		failProbe(ensure.status, `our postgres on :${postgresPort}`, OWN_PROBE_HINTS, rerun)
 	}
+
 	// Re-persist only when the normalized URL differs, keeping fresh
 	// stacks to a single write. URL-normalized compare: the probe rebuilds
 	// via `new URL`, which can differ textually for the same database.
 	if (!sameDbUrl(ensure.url, effectiveUrl)) {
 		managedOverrides.set('DATABASE_URL', ensure.url)
 		persistLocal(managedOverrides)
+
 		return ensure.url
 	}
+
 	return effectiveUrl
 }

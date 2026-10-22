@@ -33,38 +33,50 @@ type NameInputs = {
 
 async function resolveName(inputs: NameInputs): Promise<string> {
 	const {cliName, skipRename, canPrompt, ask, currentName, dirName, rerun} = inputs
+
 	if (skipRename) {
 		warn('skipping rename (--skip-rename)')
+
 		if (cliName !== undefined) {
 			warn(`ignoring app name '${cliName}' (--skip-rename wins)`)
 		}
+
 		const problem: string | null = currentName === '' ? 'no app name' : isValidSlug(currentName)
+
 		if (problem !== null) {
 			fail(
 				`cannot keep the current app name: ${problem}`,
 				`drop --skip-rename and pass a valid name: ${rerun} my-app`,
 			)
 		}
+
 		return currentName
 	}
+
 	if (cliName !== undefined) {
 		return cliName
 	}
+
 	const defaultName: string =
 		currentName !== '' && isValidSlug(currentName) === null ? currentName : dirName
+
 	if (canPrompt) {
 		return ask('App name (lowercase letters, digits, hyphens; empty takes the default)', {
 			defaultValue: defaultName,
 			validate: (value: string) => (value === '' ? null : isValidSlug(value)),
 		})
 	}
+
 	if (currentName === '') {
 		fail('no app name found', `pass one: ${rerun} my-app`)
 	}
+
 	const problem: string | null = isValidSlug(currentName)
+
 	if (problem !== null) {
 		fail(`current app name '${currentName}' is not valid`, `pass a valid one: ${rerun} my-app`)
 	}
+
 	return currentName
 }
 
@@ -78,9 +90,11 @@ type DescriptionInputs = {
 
 async function resolveDescription(inputs: DescriptionInputs): Promise<string> {
 	const {cliDescription, canPrompt, ask, currentDescription, rerun} = inputs
+
 	if (cliDescription !== null) {
 		return cliDescription
 	}
+
 	if (canPrompt) {
 		return checkDescription(
 			await ask('One-line app description (empty keeps it unchanged)', {
@@ -93,6 +107,7 @@ async function resolveDescription(inputs: DescriptionInputs): Promise<string> {
 			`use one line, or pass one: ${rerun} --description "one line"`,
 		)
 	}
+
 	return checkDescription(
 		currentDescription,
 		'current app description',
@@ -104,6 +119,7 @@ async function resolveDescription(inputs: DescriptionInputs): Promise<string> {
 function checkProjectFiles(): void {
 	const envPath: string = join(ROOT, '.env.development')
 	let vars: Map<string, string>
+
 	try {
 		vars = loadEnvFile(envPath)
 	} catch {
@@ -112,17 +128,22 @@ function checkProjectFiles(): void {
 			'restore it: git checkout -- .env.development',
 		)
 	}
+
 	const issues = validateEnvVars(vars)
+
 	if (issues.length > 0) {
 		for (const issue of issues) {
 			console.error(`env (.env.development): ${issue.key} ${issue.problem}`)
 		}
+
 		fail(
 			'.env.development is invalid',
 			'fix the committed env file — .env.local overrides are checked by branch-env',
 		)
 	}
+
 	const wasm = wasmState()
+
 	if (wasm.bytes <= 0 || !wasm.present) {
 		fail(
 			'wasm kernel missing or unreadable (src/durable-objects/argon2-do-hasher.wasm)',
@@ -139,6 +160,7 @@ function printPlan(target: IdentityTarget, display: PlanDisplay): void {
 	if (isQuietMode() && !display.canPrompt && !display.dryRun) {
 		return
 	}
+
 	const description: string = target.description !== '' ? target.description : '(cleared)'
 	const header: string = display.dryRun ? 'plan (nothing changed):' : 'plan:'
 	// Dry-run plans are the pipeable primary output (stdout); every other
@@ -154,6 +176,7 @@ function printPlan(target: IdentityTarget, display: PlanDisplay): void {
 
 async function main(): Promise<void> {
 	const cfg: CliConfig = parseCliArgs(process.argv.slice(2))
+
 	const {canPrompt, ask, close} = setupPhase(
 		{quiet: cfg.quiet, yes: cfg.yes, noInput: cfg.noInput, dryRun: cfg.dryRun},
 		{
@@ -161,12 +184,14 @@ async function main(): Promise<void> {
 			sigterm: 'terminated — re-run app-identity to converge any partial identity writes',
 		},
 	)
+
 	try {
 		step('checking project identity…')
 		const snapshot: IdentitySnapshot = readIdentitySnapshot()
 		const values = identityValues(snapshot)
 		checkProjectFiles()
 		const rerun: string = phaseCommand(detectPm(), 'app-identity')
+
 		const targetName: string = await resolveName({
 			cliName: cfg.name,
 			skipRename: cfg.skipRename,
@@ -176,6 +201,7 @@ async function main(): Promise<void> {
 			dirName: basename(ROOT),
 			rerun,
 		})
+
 		const description: string = await resolveDescription({
 			cliDescription: cfg.description,
 			canPrompt,
@@ -183,22 +209,28 @@ async function main(): Promise<void> {
 			currentDescription: values.description,
 			rerun,
 		})
+
 		const target: IdentityTarget = {name: targetName, description}
 		printPlan(target, {dryRun: cfg.dryRun, canPrompt})
+
 		if (cfg.dryRun) {
 			return
 		}
+
 		if (canPrompt) {
 			const proceed: string = await ask('apply this identity? (Y/n)', {
 				defaultValue: 'y',
 				validate: confirmValidator('y'),
 			})
+
 			if (isDeclined(proceed)) {
 				fail('app-identity aborted — no changes were made', `re-run when ready: ${rerun}`, 1)
 			}
 		}
+
 		applyIdentity(snapshot, values, target)
 		ok(`app identity is ${target.name}`)
+
 		if (!isQuietMode()) {
 			console.log(`app-identity complete — next: ${phaseCommand(detectPm(), 'install-deps')}`)
 		}

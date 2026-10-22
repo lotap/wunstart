@@ -46,50 +46,66 @@ export function persistLocal(managed: Map<string, string>): void {
 			)
 		}
 	}
+
 	const localPath: string = join(ROOT, '.env.local')
 	let previous: string | null
+
 	try {
 		previous = readFileSync(localPath, 'utf8')
 	} catch {
 		previous = null
 	}
+
 	const keptRaw: Array<string> = []
+
 	if (previous !== null) {
 		for (const line of previous.split('\n')) {
 			const stripped: string = line.trimStart()
+
 			if (stripped.startsWith('# auto-written by') || stripped.startsWith('# Delete this file')) {
 				continue
 			}
+
 			const key: string | null = envKeyOf(line)
+
 			if (key !== null && MANAGED_ENV_KEYS.has(key)) {
 				continue
 			}
+
 			keptRaw.push(line)
 		}
+
 		while (keptRaw.length > 0 && keptRaw[keptRaw.length - 1] === '') {
 			keptRaw.pop()
 		}
 	}
+
 	const lines: Array<string> = [
 		'# auto-written by branch-env — per-worktree overrides (gitignored).',
 		'# Delete this file and re-run branch-env to regenerate its managed keys.',
 	]
+
 	for (const [key, value] of managed) {
 		lines.push(`${key}=${envQuote(value)}`)
 	}
+
 	for (const line of keptRaw) {
 		lines.push(line)
 	}
+
 	const wanted: string = `${lines.join('\n')}\n`
 	const needsWrite: boolean = previous !== wanted
+
 	if (!needsWrite) {
 		try {
 			chmodSync(localPath, 0o600)
 		} catch {
 			// Non-fatal (exotic filesystems); the content is correct.
 		}
+
 		return
 	}
+
 	writeFileAtomic(localPath, wanted, 0o600)
 	ok('.env.local written (per-worktree overrides)')
 	refreshChildEnv()

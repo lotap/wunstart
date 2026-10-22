@@ -24,6 +24,7 @@ export const mailpitLayer = Layer.effect(
 	EmailService,
 	Effect.gen(function* () {
 		const {from, appUrl} = yield* EmailConfig
+
 		const mailpitUrl = yield* Config.string('MAILPIT_URL').pipe(
 			Config.withDefault('http://localhost:8025'),
 		)

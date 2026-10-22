@@ -67,6 +67,7 @@ const createFormOptions = <T extends object>({
 		onSubmit: async ({value, createValidationError}) => {
 			try {
 				await onSubmitTry(value)
+
 				return undefined
 			} catch (error) {
 				return createValidationError({

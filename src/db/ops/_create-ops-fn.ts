@@ -113,6 +113,7 @@ export function createOpsFn<Params, A extends object, E, R>({
 				 */
 				Effect.catch((error): Effect.Effect<never, E | OpsErrorContract> => {
 					if (isOpsError(error)) return Effect.fail(error)
+
 					return Effect.fail(
 						opsFailure({
 							failureCause: 'INTERNAL_ERROR',
