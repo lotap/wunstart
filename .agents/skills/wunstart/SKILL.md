@@ -1,12 +1,12 @@
 ---
 name: wunstart
 description: |
-  Example implementation wiring wunshot database modules into a TanStack Start + Cloudflare Workers app. Use when working with server functions, _auth-* route layouts, auth/anon middleware, cookie identity, runOp layer wiring, AuthHasher Durable Object, email transport, page styling/theme, or Workers deployment in this repo. For portable table/query/op definitions, use the wunshot skill instead. Do not trust the vendored tanstack-start skill — it documents a different API surface than this codebase uses; this skill is source of truth.
+  Example implementation wiring wunshot database modules into a TanStack Start + Cloudflare Workers app. Use when working with server functions, _auth-* route layouts, auth/anon middleware, cookie identity, runOp layer wiring, AuthHasher Durable Object, email transport, page styling/theme, or Workers deployment in this repo. For portable table/query/op definitions, use the wunshot skill instead. Do not trust the vendored tanstack-start skill — it documents the Vinxi-era API, but this repo uses modern Start via `@tanstack/react-start/plugin/vite`; this skill is source of truth.
 ---
 
 # Wunstart
 
-Full-stack TypeScript starter: TanStack Start (React) + Router + Query, Effect-wrapped Drizzle on Postgres, Cloudflare Workers deployment. Ships self-rolled auth core (sessions + JWT, anon identity, email verification) + weight-based ban/rate-limit. Server functions compose `wunshot` ops; this skill owns everything around the ops (cookies, routing, middleware, runtime). The vendored `tanstack-start` skill documents a different API surface than this codebase uses — treat this skill as source of truth.
+Full-stack TypeScript starter: TanStack Start (React) + Router + Query, Effect-wrapped Drizzle on Postgres, Cloudflare Workers deployment. Ships self-rolled auth core (sessions + JWT, anon identity, email verification) + weight-based ban/rate-limit. Server functions compose `wunshot` ops; this skill owns everything around the ops (cookies, routing, middleware, runtime). The vendored `tanstack-start` skill documents the Vinxi-era API, but this repo uses modern Start via `@tanstack/react-start/plugin/vite` — treat this skill as source of truth.
 
 ## Ownership boundary
 

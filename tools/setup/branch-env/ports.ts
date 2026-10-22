@@ -120,7 +120,7 @@ type ScannedPorts = {devPort: number; smtpFree: number; httpFree: number; pgFree
  * as a fragment (not a full hint) so callers keep their own re-run tails.
  */
 export const PORT_OWNER_TRIAGE =
-	'git worktree list maps worktrees to branches (each claims its own ports; branch databases are wunstart_<slug>_<6hex> — drop that database first if its branch is done)'
+	'git worktree list maps worktrees to branches (each claims its own ports; branch databases are wunstart_<branch>_<6hex> — drop that database first if its branch is done)'
 
 /** One `git worktree list --porcelain` block. */
 type WorktreeEntry = {path: string; ref: string | null}
