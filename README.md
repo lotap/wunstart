@@ -24,7 +24,7 @@ Clone it, rename it, and start building.
 
 - Check the prerequisites below first: a JavaScript runtime, a package manager, and Docker running. If something is missing, stop and tell the user what it is. Do not push through failures.
 - Ask for the target directory, app name, and one-line description if the user hasn’t provided them. If they don’t specify a directory or accept the default, use `./<slug>` (a new subdirectory). The target directory must not exist yet, or it must be empty. If it exists and is not empty, stop and ask. Never delete its contents. Use `.` only when the current directory is empty. Turn the name into a lowercase slug of at most 63 characters that starts and ends with a letter or digit. Replace spaces and underscores with hyphens, and drop any other character that is not a letter, digit, or hyphen. Re-ask if the result is empty or still invalid.
-- Use the user’s preferred manager. If they have no preference, use Bun when it is installed; otherwise use another installed manager. Under any manager other than Bun, run each phase as `<pm> run <script> -- <args>` (for example, `npm run branch-env -- --yes`). To switch managers, pass `--pm` to `install-deps`. The target manager must already be installed (for example, `bun run install-deps --pm pnpm --yes`). If Bun is missing, run `npm run install-deps -- --pm pnpm --yes` instead. Then use that manager for the remaining commands.
+- Use the user’s preferred manager. If they have no preference, use Bun when it is installed; otherwise use another installed manager. npm is the only manager that needs `--` to forward script args (`npm run branch-env -- --yes`); Bun, Nub, pnpm, yarn, and aube take them directly (for example, `nub run branch-env --yes`). To switch managers, pass `--pm` to `install-deps`. The target manager must already be installed (for example, `bun run install-deps --pm pnpm --yes`). If Bun is missing, run `npm run install-deps -- --pm pnpm --yes` instead. Then use that manager for the remaining commands.
 - Ask whether they plan to work on more than one thing at a time. Mention the worktree option explicitly. Default to the Clone and Setup steps for a single project, and use the worktree layout only for parallel work.
 - Create the project non-interactively. Pass `--yes` to each setup command; non-interactive runs fail instead of prompting without it:
 
@@ -60,7 +60,7 @@ Clone it, rename it, and start building.
 
 ### Prerequisites
 
-- A JavaScript runtime and package manager: [Bun](https://bun.sh) 1.x (the default), [nub](https://nubjs.com/docs), or [Node](https://nodejs.org/en) 22.18+ with one of [npm](https://www.npmjs.com/), [yarn](https://yarnpkg.com/), [pnpm](https://pnpm.io/), or [aube](https://aube.sh).
+- A JavaScript runtime and package manager: [Bun](https://bun.sh) 1.x (the default, runtime and package manager), [Nub](https://nubjs.com/docs) (runtime and package manager), or [Node](https://nodejs.org/en) 22.18+ with one of [npm](https://www.npmjs.com/), [yarn](https://yarnpkg.com/), [pnpm](https://pnpm.io/), or [aube](https://aube.sh).
 - [Docker](https://www.docker.com/products/docker-desktop/) installed and running (it starts Postgres and Mailpit through `docker compose`).
 - Rust and the `wasm32-unknown-unknown` target are optional. You need them only if you edit `crates/` for the auth hasher. The compiled wasm kernel is committed, so no other build needs Rust.
 
@@ -93,7 +93,7 @@ Click “Use this template” on [the project’s GitHub repository](https://git
    <details>
    <summary>For other runtimes and package managers:</summary>
 
-   Pass script flags after `--` (`npm run branch-env -- --yes`, `pnpm run branch-env -- --yes`, `aube run branch-env -- --yes`). Bare flags go to the manager, not the script. For one-off packages, use `npx` (npm), `pnpm dlx` (pnpm), `yarn dlx` (yarn), or `aubx` (aube) instead of `bunx`.
+   Only npm needs `--` before script flags (`npm run branch-env -- --yes`); Bun, Nub, pnpm, yarn, and aube take the args directly (`pnpm run branch-env --yes`, `nub run branch-env --yes`). Bare flags go to the manager, not the script. For one-off packages, use `npx` (npm), `pnpm dlx` (pnpm), `yarn dlx` (yarn), `aubx` (aube), or `nubx` (Nub) instead of `bunx`.
    </details>
 
    Interactive terminal:

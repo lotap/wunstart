@@ -7,13 +7,13 @@ import {join} from 'node:path'
 
 import {ROOT} from './paths.ts'
 
-export type Pm = 'bun' | 'npm' | 'yarn' | 'pnpm' | 'aube'
+export type Pm = 'bun' | 'npm' | 'yarn' | 'pnpm' | 'aube' | 'nub'
 
 /** The committed lockfile's manager: the default for a fresh tree. */
 export const KIT_PM: Pm = 'bun'
 
 /** Package managers a phase can install with (presence probed, never assumed). */
-export const PM_TOOLS: Array<Pm> = [KIT_PM, 'npm', 'yarn', 'pnpm', 'aube']
+export const PM_TOOLS: Array<Pm> = [KIT_PM, 'npm', 'yarn', 'pnpm', 'aube', 'nub']
 
 /**
  * Lockfile per package manager (satisfies, not a chain: a new Pm without a
@@ -25,6 +25,7 @@ export const LOCKFILES = {
 	yarn: 'yarn.lock',
 	pnpm: 'pnpm-lock.yaml',
 	aube: 'aube-lock.yaml',
+	nub: 'nub.lock',
 } satisfies Record<Pm, string>
 
 const INSTALL_HINTS = new Map<string, string>([
@@ -33,6 +34,7 @@ const INSTALL_HINTS = new Map<string, string>([
 	['yarn', 'install yarn: npm i -g yarn — then re-run this script'],
 	['pnpm', 'install pnpm: npm i -g pnpm — then re-run this script'],
 	['aube', 'install aube: mise use -g aube (https://aube.sh) — then re-run this script'],
+	['nub', 'install nub: npm i -g @nubjs/nub (https://nubjs.com) — then re-run this script'],
 	[
 		'docker',
 		'install Docker Desktop (https://docker.com/products/docker-desktop) or the docker engine — then re-run this script',
@@ -66,13 +68,19 @@ export function phaseCommand(pm: Pm | null, script: string): string {
 	return pm === 'bun' ? `bun run ${script}` : `${pm} run ${script}`
 }
 
-/** Copy-pasteable phase command with args (npm/yarn/pnpm need the `--`). */
+/**
+ * Copy-pasteable phase command with args. npm is the only manager that
+ * needs the explicit `--` separator to forward flags; every other manager
+ * passes the args after the script name straight through. pnpm also echoes
+ * the separator into the script's argv, which the phase parsers read as a
+ * positional.
+ */
 export function phaseCommandWithArgs(pm: Pm, script: string, args: Array<string>): string {
 	if (args.length === 0) {
 		return phaseCommand(pm, script)
 	}
 	const tail: string = args.join(' ')
-	return pm === 'bun' ? `bun run ${script} ${tail}` : `${pm} run ${script} -- ${tail}`
+	return pm === 'npm' ? `${pm} run ${script} -- ${tail}` : `${pm} run ${script} ${tail}`
 }
 
 /**

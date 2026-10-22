@@ -68,10 +68,11 @@ export function staleLockfileName(pm: Pm): StaleLockfile | null {
 		return null
 	}
 	// Only npm and bun embed the root name in their lockfiles (npm:
-	// packages[""].name; bun: workspaces[""].name). yarn.lock and
-	// pnpm-lock.yaml carry no root name, so a rename can never stale them
-	// and there is nothing to regenerate — null is the correct answer,
-	// not a gap. If aube's format embeds the name, parse it here.
+	// packages[""].name; bun: workspaces[""].name). yarn.lock,
+	// pnpm-lock.yaml, and nub.lock (pnpm v9 bytes) carry no root name, so a
+	// rename can never stale them and there is nothing to regenerate — null
+	// is the correct answer, not a gap. If aube's format embeds the name,
+	// parse it here.
 	const lockName: string | null = lockfileRootName(pm)
 	if (lockName === null || lockName === pkg.file.name) {
 		return null

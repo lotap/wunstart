@@ -41,7 +41,7 @@ function usage(): void {
     ${phaseExample(pm, 'install-deps', ['--dry-run'])}  show the plan, change nothing
     ${phaseExample(pm, 'install-deps', ['--yes'])}      never prompt (CI and agents)
 
-  --pm            switch this checkout to the given package manager (bun|npm|yarn|pnpm|aube); removes other managers' lockfiles and incompatible node_modules
+  --pm            switch this checkout to the given package manager (${pmChoices}); removes other managers' lockfiles and incompatible node_modules
   --force, -f     permit destructive cleanup without prompting (removes superseded lockfiles, node_modules, pnpm-workspace.yaml when leaving pnpm)
   --dry-run, -n   print the plan and exit before changing anything
   --yes, -y       accept all defaults without prompting (non-TTY implies this)
