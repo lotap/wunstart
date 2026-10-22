@@ -164,17 +164,19 @@ If setup fails, run `bun run validate-setup`. It reports what is wrong and how t
 
 ### What runs on its own
 
-Installing packages and starting the dev server both do work without being asked. That work is worth knowing about in case there is any unexpected behavior.
+The repo has some automated processes designed to make development easier. But they can result in some brittleness and unexpected behavior.
 
-Setting up dependencies runs the [`prepare` script](https://docs.npmjs.com/cli/v11/using-npm/scripts). It tells git to use the repo's own commit hook (described below), and it modifies the installed TypeScript and Oxlint copies (inside `node_modules` only) to add Effect checks. `install-deps` triggers it through a normal install, and so does any later `bun install`, `add`, or `remove`.
+**On install.** Setting up dependencies runs the [`prepare` script](https://docs.npmjs.com/cli/v11/using-npm/scripts). It tells git to use the repo's own commit hook (described below), and it modifies the installed TypeScript and Oxlint copies (inside `node_modules` only) to add Effect checks. `install-deps` triggers it through a normal install, and so does any later `bun install`, `add`, or `remove`.
 
-The hook blocks Rust changes that reach a commit without the rebuilt Wasm file alongside them; the kernel binary is committed so daily work never needs the Rust toolchain.
+**The commit hook.** The hook blocks Rust changes that reach a commit without the rebuilt Wasm file alongside them; the kernel binary is committed so daily work never needs the Rust toolchain.
 
-The modified compiler is why `bunx tsc --version` shows an `+effect-tsgo` suffix and why the `@effect/language-service` block in `tsconfig.json` does anything at all. If Effect checks ever stop appearing, reinstall and look for the suffix.
+**The patched compiler.** The modified compiler is why `bunx tsc --version` shows an `+effect-tsgo` suffix and why the `@effect/language-service` block in `tsconfig.json` does anything at all. If Effect checks ever stop appearing, reinstall and look for the suffix.
 
-Starting the dev server reinstalls dependencies first, so switching branches or pulling never leaves the checkout broken.
+**On dev start.** Starting the dev server reinstalls dependencies first, so switching branches or pulling never leaves the checkout broken.
 
-The typecheck (`bunx tsc --noEmit`) and the linter (`bun run lint:check`) share most of their Effect checks, so some findings appear in both. That overlap is on purpose: the typecheck runs 43 checks the linter cannot. Only errors fail the typecheck; warnings and suggestions are shown but do not fail it.
+**Config files beat exports.** The dev server and the database scripts load `.env.development` then `.env.local`, and the files win over anything exported in the shell, with `.env.local` winning between the two. `branch-env` owns the per-worktree values there (`DATABASE_URL`, ports, mail URLs); anything else you add survives beside them. So a `DATABASE_URL` exported from another checkout never leaks across, and overrides belong in `.env.local`, never in exports. The one exception is the `archive-old-activities` cron job, which reads an exported `DATABASE_URL` first because production has no files.
+
+**Double Effect reports are on purpose.** The typecheck (`bunx tsc --noEmit`) and the linter (`bun run lint:check`) share most of their Effect checks, so some findings appear in both. That overlap is on purpose: the typecheck runs 43 checks the linter cannot. Only errors fail the typecheck; warnings and suggestions are shown but do not fail it.
 
 ### Customize
 
