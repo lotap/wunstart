@@ -35,8 +35,9 @@ export class BrevoEmail extends Context.Service<
 
 const sendRequest = (apiKey: string, from: string, message: EmailMessage) =>
 	Effect.tryPromise({
-		try: () =>
+		try: (signal) =>
 			fetch(BrevoApiUrl, {
+				signal,
 				method: 'POST',
 				headers: {
 					'api-key': apiKey,

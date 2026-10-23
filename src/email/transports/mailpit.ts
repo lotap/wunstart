@@ -5,7 +5,7 @@
  * typecheck here instead of spreading through the mail code.
  */
 import {Config, Effect, Layer, Schema} from 'effect'
-import {FetchHttpClient, HttpClient, HttpClientRequest} from 'effect/http'
+import {FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse} from 'effect/http'
 
 import {EmailConfig, EmailSendError, EmailService, type EmailMessage} from '#/email/service.ts'
 
@@ -55,6 +55,8 @@ export const mailpitLayer = Layer.effect(
 					body,
 				).pipe(
 					Effect.flatMap((request) => httpClient.execute(request)),
+					// @effect-diagnostics-next-line unstableApiUsage:off
+					Effect.flatMap(HttpClientResponse.filterStatusOk),
 					Effect.asVoid,
 					Effect.mapError(
 						(error) =>

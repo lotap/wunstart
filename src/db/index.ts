@@ -7,7 +7,7 @@ class DbConfigError extends Schema.TaggedError<DbConfigError, {readonly brand: u
 	'DbConfigError',
 	{
 		message: Schema.String,
-		cause: Schema.Unknown,
+		cause: Schema.Defect(),
 	},
 ) {}
 

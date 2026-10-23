@@ -11,7 +11,7 @@ type EmailLayer = Layer.Layer<EmailService, Config.ConfigError | EmailLayerBuild
 class EmailLayerBuildError extends Schema.TaggedError<
 	EmailLayerBuildError,
 	{readonly brand: unique symbol}
->()('EmailLayerBuildError', {message: Schema.String, cause: Schema.Unknown}) {}
+>()('EmailLayerBuildError', {message: Schema.String, cause: Schema.Defect()}) {}
 
 const TransportSchema = Schema.Literals(['sendemail', 'brevo'] as const)
 
@@ -122,7 +122,7 @@ const emailServiceLayer = (chain: readonly TransportName[]): EmailLayer =>
 					})
 				}),
 			),
-			Layer.merge(sendEmailLayer, brevoLayer),
+			Layer.mergeAll(sendEmailLayer, brevoLayer),
 		),
 		EmailConfig.layer,
 	)

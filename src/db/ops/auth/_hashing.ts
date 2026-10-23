@@ -19,7 +19,7 @@ export class HashingError extends Schema.TaggedError<
 	{readonly brand: unique symbol}
 >()('HashingError', {
 	operation: Schema.Literals(['hash', 'verify'] as const),
-	cause: Schema.Unknown,
+	cause: Schema.Defect(),
 }) {}
 
 /** Retry Durable Object RPC failures. Hashing is a pure function, so re-running is safe */

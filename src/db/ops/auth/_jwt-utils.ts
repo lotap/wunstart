@@ -13,7 +13,7 @@ import {opsFailure} from '#/db/ops/ops-error.ts'
 class JwtKeyDerivationError extends Schema.TaggedError<
 	JwtKeyDerivationError,
 	{readonly brand: unique symbol}
->()('JwtKeyDerivationError', {cause: Schema.Unknown}) {}
+>()('JwtKeyDerivationError', {cause: Schema.Defect()}) {}
 
 /**
  * Derives an encryption key from the provided secret and salt.
@@ -79,7 +79,7 @@ export class JwtHandlerError extends Schema.TaggedError<
 	{readonly brand: unique symbol}
 >()('JwtHandlerError', {
 	operation: Schema.Literals(['sign', 'verify', 'encrypt', 'decrypt', 'parse'] as const),
-	cause: Schema.Unknown,
+	cause: Schema.Defect(),
 }) {}
 
 /** Determine if passed JwtHandlerError is a JwtKeyDerivationError */

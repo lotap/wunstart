@@ -83,17 +83,16 @@ export const runOp = createServerOnlyFn(
 		if (ip === undefined) throw new Error('runOp: op params must include a string ipAddress')
 
 		const effect = Effect.provide(op(data), layers).pipe(
-			Effect.catch((cause) => {
-				if (Schema.is(RateLimitError)(cause))
-					addRateLimitEvent({ipAddress: ip, weight: allowPerWindow(1)})
-
-				return Effect.fail(cause)
-			}),
+			Effect.tapError((cause) =>
+				Schema.is(RateLimitError)(cause)
+					? Effect.sync(() => addRateLimitEvent({ipAddress: ip, weight: allowPerWindow(1)}))
+					: Effect.void,
+			),
 		)
 
 		// SAFETY: `Op<L>` erases the concrete op's success type to `unknown`, and this cast
 		// restores the exact success type `T` declares. The failure channel is left exactly
-		// as `Effect.provide` and the catch above produce it.
+		// as `Effect.provide` and the tap above leave it.
 		return Effect.runPromise(
 			effect as Effect.Effect<OpResult<T>, Layer.Error<L[number]> | OpFailure>,
 		)

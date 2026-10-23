@@ -7,7 +7,7 @@ class HashingBindingError extends Schema.TaggedError<
 	{readonly brand: unique symbol}
 >()('HashingBindingError', {
 	message: Schema.String,
-	cause: Schema.Unknown,
+	cause: Schema.Defect(),
 }) {}
 
 const bindingError = (cause: unknown) =>
