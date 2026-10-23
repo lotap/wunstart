@@ -1,11 +1,15 @@
 import {GrainGradient} from '@paper-design/shaders-react'
 import {createFileRoute} from '@tanstack/react-router'
 import {cn} from 'cn'
-import {Dot} from 'lucide-react'
+import {Check, Copy, Dot} from 'lucide-react'
+import {useState} from 'react'
 
 import {SignUpForm} from '#/components/auth/sign-up-form.tsx'
 import {Dashboard} from '#/components/dashboard.tsx'
+import {Button} from '#/components/ui/button.tsx'
 import {Card, CardContent} from '#/components/ui/card.tsx'
+import {toast} from '#/components/ui/toast.tsx'
+import {Tooltip, TooltipContent, TooltipTrigger} from '#/components/ui/tooltip.tsx'
 
 export const Route = createFileRoute('/_auth-dynamic/')({
 	component: Home,
@@ -38,57 +42,86 @@ const SlashGrid = ({
 
 const agentPrompts: Array<{label: string; body: string}> = [
 	{
-		label: '1 — Rename the kit',
-		body: 'Read AGENTS.md first — it is the source of truth. Run bun run app-identity <name> (renames the kit: package.json + the wrangler.jsonc worker name; leaves crates/ and src/durable-objects/argon2-do-hasher.wasm alone), then bun run install-deps, then bun run branch-env (ends with the validate-setup gate). Fix anything it flags.',
+		label: '1 — Show me around',
+		body: 'I just got this running. Can you show me around and help me check it works? Walk me through creating an account, finding the passcode email in Mailpit (the URL is in .env.local), signing in, and opening settings. Tell me what to click and what I should see, and help me fix anything that’s broken before I start changing things.',
 	},
 	{
-		label: '2 — Add a domain table + op',
-		body: 'Read AGENTS.md and .agents/skills/wunshot/ first — they are the source of truth. Add a <domain> table under src/db/models/<domain>/ (active + archive pair via the table factories) and an op under src/db/ops/ following the ops contract, wired through runOp. Verify with lint and bunx tsgo --noEmit.',
+		label: '2 — Make it mine',
+		body: 'I want this to feel like my app, not a starter. Ask me about the name, audience, and tone, then update the app identity, landing page, and theme tokens. Strip the starter copy that doesn’t fit, but leave the auth flow alone. Show me the result and tell me what changed.',
 	},
 	{
-		label: '3 — Add a page',
-		body: 'Read AGENTS.md and .agents/skills/wunstart/ (adding-a-page recipe) first — they are the source of truth. Add a page at <route> in the correct _auth-* folder, with a handle-*.ts server fn and queryOptions beside the feature. Regenerate routes, then verify with lint and bunx tsgo --noEmit.',
+		label: '3 — Build my first screen',
+		body: 'The dashboard is a stub. Help me turn it into the first real screen of my app. Ask me what it should show, then build it end to end — data, server logic, and UI — using the patterns already in the repo. Run fmt, lint:check, and tsc, then tell me where to click.',
 	},
 	{
-		label: '4 — Work in parallel with worktrees',
-		body: 'Read AGENTS.md and README.md (Parallel work section) first — they are the source of truth. Create a sibling worktree for branch <branch> (bare repo + `git worktree add`), then run bun run app-identity, bun run install-deps, and bun run branch-env inside it: they claim dedicated ports and its own database so branches never collide. Tear down with the README Teardown section when done.',
+		label: '4 — Get ready to ship',
+		body: 'I want to know what it will take to put this online. Give me a checklist covering secrets and env vars, the production database and migrations, real email delivery, and anything still stubbed or unfinished. Don’t deploy anything yet — flag the gaps and ask me what to tackle first.',
 	},
 ]
 
-function MakeItYours() {
+function CopyPromptButton({text, label}: {text: string; label: string}) {
+	const [copied, setCopied] = useState(false)
+	const [tooltipOpen, setTooltipOpen] = useState(false)
+	const [tooltipText, setTooltipText] = useState('Copy prompt')
+
 	return (
-		<section className="w-full max-w-5xl">
-			<div className="flex items-center gap-2">
-				<SlashGrid className="w-1/3 grid-cols-20 sm:hidden" contentLength={20} />
-				<SlashGrid className="hidden w-2/3 grid-cols-40 sm:grid lg:hidden" contentLength={40} />
-				<SlashGrid className="hidden w-3/4 grid-cols-45 lg:grid" contentLength={45} />
-				<p className="grow text-right font-mono text-xs tracking-widest whitespace-nowrap text-muted-foreground/75 uppercase">
-					<span>AGENTS ARE FIRST-CLASS</span>
-				</p>
-			</div>
+		<>
+			<Tooltip
+				open={copied || tooltipOpen}
+				onOpenChange={setTooltipOpen}
+				onOpenChangeComplete={(open) => {
+					if (!open) setTooltipText('Copy prompt')
+				}}
+			>
+				<TooltipTrigger
+					delay={300}
+					closeOnClick={false}
+					render={
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon-xs"
+							aria-label={copied ? 'Copied to clipboard' : `Copy prompt: ${label}`}
+							onClick={async () => {
+								try {
+									await navigator.clipboard.writeText(text)
+									setCopied(true)
+									setTooltipText('Copied')
+									setTimeout(() => {
+										setCopied(false)
+										setTooltipOpen(false)
+									}, 2000)
+								} catch {
+									toast.add({title: 'Could not copy prompt', type: 'error'})
+								}
+							}}
+						>
+							{copied ? <Check /> : <Copy />}
+						</Button>
+					}
+				/>
+				<TooltipContent side="top" className="motion-reduce:animate-none!">
+					{tooltipText}
+				</TooltipContent>
+			</Tooltip>
+			{copied && <output className="sr-only">Copied to clipboard</output>}
+		</>
+	)
+}
 
-			<h3 className="px-6 py-3 text-3xl">Make it yours</h3>
-
-			<SlashGrid />
-
-			<div className="flex flex-col gap-4 px-6 py-6">
-				<p className="text-lg">
-					Paste one of these into your agent. <code>AGENTS.md</code> is the source of truth — these
-					just aim it. The same prompts live in <code>README.md</code>.
-				</p>
-				{agentPrompts.map((prompt) => (
-					<Card key={prompt.label}>
-						<CardContent className="flex flex-col gap-2">
-							<p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
-								{prompt.label}
-							</p>
-							<p className="font-mono text-sm whitespace-pre-wrap">{prompt.body}</p>
-						</CardContent>
-					</Card>
-				))}
-			</div>
-			<SlashGrid contentLength={60 * 2} />
-		</section>
+function PromptCard({label, body}: {label: string; body: string}) {
+	return (
+		<Card size="sm">
+			<CardContent className="flex items-start justify-between gap-4">
+				<div className="flex flex-col gap-2">
+					<p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
+						{label}
+					</p>
+					<p className="font-mono text-sm whitespace-pre-wrap">{body}</p>
+				</div>
+				<CopyPromptButton text={body} label={label} />
+			</CardContent>
+		</Card>
 	)
 }
 
@@ -364,12 +397,21 @@ function Home() {
 							When you sign in, this route (<code>"/"</code>) will display the{' '}
 							<code>&lt;Dashboard /&gt;</code> component
 						</p>
+						<div className="flex flex-col gap-4 pt-6">
+							<p className="text-sm tracking-widest uppercase">Example prompts</p>
+							<p className="text-lg">Paste into your preferred harness.</p>
+							{agentPrompts.map((prompt) => (
+								<PromptCard key={prompt.label} label={prompt.label} body={prompt.body} />
+							))}
+						</div>
 						<p className="pt-6 text-2xl">Create an account using the form below</p>
+						<p className="pt-2 text-sm text-muted-foreground">
+							Local sign-up emails land in Mailpit — the URL is <code>MAILPIT_URL</code> in{' '}
+							<code>.env.local</code>.
+						</p>
 					</div>
 				</section>
 			</div>
-
-			<MakeItYours />
 
 			{/* SIGN UP */}
 			<section>
