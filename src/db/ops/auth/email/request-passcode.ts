@@ -231,7 +231,10 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 		)
 
 		return data
-	}).pipe(Effect.provide(HashingStub.layer(hasherId)))
+	}).pipe(
+		// oxlint-disable-next-line effecttsgo/strict-effect-provide
+		Effect.provide(HashingStub.layer(hasherId)),
+	)
 })
 
 export const emailRequestPasscode = createOpsFn({

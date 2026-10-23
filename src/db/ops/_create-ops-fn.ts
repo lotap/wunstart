@@ -5,7 +5,7 @@ import {
 	type CurrentBansAndExcessiveActivitiesCtx,
 } from './_current-bans-and-excessive-activities.ts'
 import {logFailedActivity, logSuccessfulActivity} from './_logging.ts'
-import {extractErrorProps, isOpsError, opsFailure, type OpsErrorContract} from './ops-error.ts'
+import {extractErrorProps, isOpsError, opsFailure} from './ops-error.ts'
 
 /** Optional logging overrides an op's success value may carry. */
 type LoggingFields = {
@@ -111,18 +111,18 @@ export function createOpsFn<Params, A extends object, E, R>({
 				 * pass through untouched; everything else is wrapped
 				 * into a generic INTERNAL_ERROR.
 				 */
-				Effect.catch((error): Effect.Effect<never, E | OpsErrorContract> => {
-					if (isOpsError(error)) return Effect.fail(error)
-
-					return Effect.fail(
-						opsFailure({
-							failureCause: 'INTERNAL_ERROR',
-							rateAllowance: Infinity,
-							meta: extractErrorProps(error),
-							message: 'Something went wrong. Please try again later.',
-						}),
-					)
-				}),
+				Effect.catchIf(
+					(error) => !isOpsError(error),
+					(error) =>
+						Effect.fail(
+							opsFailure({
+								failureCause: 'INTERNAL_ERROR',
+								rateAllowance: Infinity,
+								meta: extractErrorProps(error),
+								message: 'Something went wrong. Please try again later.',
+							}),
+						),
+				),
 				/** Traces the whole op, body plus logging taps, under the op's label */
 				Effect.withSpan(label),
 			)

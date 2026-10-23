@@ -9,6 +9,8 @@ export {AuthHasher} from './durable-objects/auth-hasher.ts'
 /** Daily cron (06:30 UTC): archives activities older than 30 days */
 export const scheduled = async () => {
 	await Effect.runPromise(
+		// Cron entry point: the DB layer is provided once per cron run.
+		// oxlint-disable-next-line effecttsgo/strict-effect-provide
 		archiveOldActivities({retentionWindow: '30 days'}).pipe(Effect.provide(dbLayer)),
 	)
 }

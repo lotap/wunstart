@@ -31,7 +31,7 @@ export const passcodeRequestQueryOptions = ({
 		queryFn: () => serverFn(),
 		select: (data) =>
 			Result.getOrThrow(
-				Schema.decodeUnknownResult(Schema.Struct({expiresAt: Schema.DateTimeUtcFromDate}))(data),
+				Schema.decodeResult(Schema.Struct({expiresAt: Schema.DateTimeUtcFromDate}))(data),
 			),
 		staleTime: ({state: {data}}) => (data ? data.expiresAt.getTime() - Date.now() : 60 * 1000),
 		gcTime: 15 * 60 * 1000,

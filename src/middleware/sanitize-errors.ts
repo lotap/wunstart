@@ -5,7 +5,10 @@ import {Schema} from 'effect'
 import {isOpsError} from '#/db/ops/ops-error.ts'
 
 /** Tagged error for known server errors that should surface to the client */
-export class KnownServerError extends Schema.TaggedError<KnownServerError>()('KnownServerError', {
+export class KnownServerError extends Schema.TaggedError<
+	KnownServerError,
+	{readonly brand: unique symbol}
+>()('KnownServerError', {
 	message: Schema.String,
 }) {}
 

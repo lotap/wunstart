@@ -99,7 +99,10 @@ const _passwordReverify = Effect.fn('passwordReverify')(function* ({
 		})
 
 		return {...tokenData, sudoExpiresAt}
-	}).pipe(Effect.provide(HashingStub.layer(userId)))
+	}).pipe(
+		// oxlint-disable-next-line effecttsgo/strict-effect-provide
+		Effect.provide(HashingStub.layer(userId)),
+	)
 })
 
 export const passwordReverify = createOpsFn({

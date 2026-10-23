@@ -1,3 +1,7 @@
+// `nodeBuiltinImport` suggests Effect's Crypto service, which needs a platform
+// layer this app does not install. node:crypto is available in both the Workers
+// and Node runtimes.
+// @effect-diagnostics-next-line nodeBuiltinImport:off
 import {randomUUID} from 'node:crypto'
 
 import {DateTime, Effect, Schema} from 'effect'

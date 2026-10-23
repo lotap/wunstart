@@ -151,7 +151,10 @@ const _emailChange = Effect.fn('emailChange')(function* ({
 			)
 
 			return {email: rowData.email}
-		}).pipe(Effect.provide(HashingStub.layer(userId))),
+		}).pipe(
+			// oxlint-disable-next-line effecttsgo/strict-effect-provide
+			Effect.provide(HashingStub.layer(userId)),
+		),
 	)
 })
 

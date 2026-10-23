@@ -116,5 +116,8 @@ export const signInWithVerifiedCode = Effect.fn('emailVerifyPasscode.signIn')(fu
 			access,
 			logging: {anonId: null, anonsArchiveId: retiredAnon.archiveId, userId},
 		}
-	}).pipe(Effect.provide(HashingStub.layer(userId)))
+	}).pipe(
+		// oxlint-disable-next-line effecttsgo/strict-effect-provide
+		Effect.provide(HashingStub.layer(userId)),
+	)
 })

@@ -1,3 +1,7 @@
+// `nodeBuiltinImport` suggests Effect's Crypto service; it exposes random bytes
+// and digests but not the HKDF that key derivation needs. node:crypto provides
+// HKDF in both the Workers and Node runtimes.
+// @effect-diagnostics-next-line nodeBuiltinImport:off
 import {hkdf, randomBytes} from 'node:crypto'
 
 import {Effect, Redacted, Schema} from 'effect'
@@ -6,10 +10,10 @@ import type {JWTHeaderParameters} from 'jose'
 import {opsFailure} from '#/db/ops/ops-error.ts'
 
 /** Infrastructure failure while deriving a token key. */
-class JwtKeyDerivationError extends Schema.TaggedError<JwtKeyDerivationError>()(
-	'JwtKeyDerivationError',
-	{cause: Schema.Unknown},
-) {}
+class JwtKeyDerivationError extends Schema.TaggedError<
+	JwtKeyDerivationError,
+	{readonly brand: unique symbol}
+>()('JwtKeyDerivationError', {cause: Schema.Unknown}) {}
 
 /**
  * Derives an encryption key from the provided secret and salt.
@@ -70,7 +74,10 @@ export function getKeyFromSecretsMap(secretsMap: Map<string, Redacted.Redacted>)
 }
 
 /** Tagged Error for capturing if `jose` functions throw while reading/writing tokens */
-export class JwtHandlerError extends Schema.TaggedError<JwtHandlerError>()('JwtHandlerError', {
+export class JwtHandlerError extends Schema.TaggedError<
+	JwtHandlerError,
+	{readonly brand: unique symbol}
+>()('JwtHandlerError', {
 	operation: Schema.Literals(['sign', 'verify', 'encrypt', 'decrypt', 'parse'] as const),
 	cause: Schema.Unknown,
 }) {}

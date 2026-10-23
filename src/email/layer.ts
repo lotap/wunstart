@@ -8,10 +8,10 @@ import {SendEmail, sendEmailLayer} from './transports/send-email.ts'
 type EmailLayer = Layer.Layer<EmailService, Config.ConfigError | EmailLayerBuildError>
 
 /** Dev-only layer-build failure: the mailpit transport module failed to load */
-class EmailLayerBuildError extends Schema.TaggedError<EmailLayerBuildError>()(
-	'EmailLayerBuildError',
-	{message: Schema.String, cause: Schema.Unknown},
-) {}
+class EmailLayerBuildError extends Schema.TaggedError<
+	EmailLayerBuildError,
+	{readonly brand: unique symbol}
+>()('EmailLayerBuildError', {message: Schema.String, cause: Schema.Unknown}) {}
 
 const TransportSchema = Schema.Literals(['sendemail', 'brevo'] as const)
 
@@ -72,12 +72,12 @@ const tryProviders = (
 	if (head === undefined) return Effect.fail(exhaustedFailure(failures))
 
 	return senders[head](message).pipe(
-		Effect.catch((error) =>
-			error.kind === 'rejected'
-				? /** The message itself was permanently refused. No transport will take it */
-					Effect.fail(error)
-				: /** Config/transient/ambiguous never prove another transport must fail too */
-					tryProviders(rest, senders, [...failures, error], message),
+		// A refused message stays refused; no other transport will take it
+		Effect.catchIf(
+			(error) => error.kind !== 'rejected',
+			// Config, transient, or ambiguous failures say nothing about the next
+			// transport, so keep trying
+			(error) => tryProviders(rest, senders, [...failures, error], message),
 		),
 	)
 }

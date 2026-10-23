@@ -137,7 +137,10 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 		 * output shape uniform for callers when sessions were left untouched
 		 */
 		return {anonToken}
-	}).pipe(Effect.provide(HashingStub.layer(userId)))
+	}).pipe(
+		// oxlint-disable-next-line effecttsgo/strict-effect-provide
+		Effect.provide(HashingStub.layer(userId)),
+	)
 })
 
 export const passwordChange = createOpsFn({

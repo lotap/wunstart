@@ -78,7 +78,10 @@ const _emailReverify = Effect.fn('emailReverify')(function* ({
 			})
 
 			return {...tokenData, sudoExpiresAt}
-		}).pipe(Effect.provide(HashingStub.layer(userId))),
+		}).pipe(
+			// oxlint-disable-next-line effecttsgo/strict-effect-provide
+			Effect.provide(HashingStub.layer(userId)),
+		),
 	)
 })
 

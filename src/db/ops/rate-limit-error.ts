@@ -8,10 +8,10 @@ import {createOpsFailure, OpsErrorSchema, type OpsFailureFields} from '#/db/ops/
  * limiter); the persisted audit row keeps `failureCause: 'RATE_LIMIT'` by
  * convention. Construct via {@link rateLimitFailure} to keep them aligned.
  */
-export class RateLimitError extends Schema.TaggedError<RateLimitError>()(
-	'RateLimitError',
-	OpsErrorSchema,
-) {}
+export class RateLimitError extends Schema.TaggedError<
+	RateLimitError,
+	{readonly brand: unique symbol}
+>()('RateLimitError', OpsErrorSchema) {}
 
 /**
  * Constructs the framework's rate-limit rejection: standardizes the audit

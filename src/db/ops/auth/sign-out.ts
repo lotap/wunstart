@@ -56,6 +56,7 @@ const _signOut = Effect.fn('signOut')(function* ({
 
 	/** Ensure the refresh token matches the hashed one stored in the database */
 	const isNonceVerified = yield* verifyTarget(nonceHash, nonce).pipe(
+		// oxlint-disable-next-line effecttsgo/strict-effect-provide
 		Effect.provide(HashingStub.layer(userId)),
 	)
 

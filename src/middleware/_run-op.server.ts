@@ -1,6 +1,7 @@
 import {createServerOnlyFn} from '@tanstack/react-start'
 import {Effect, Layer, Result, Schema} from 'effect'
 
+import type {OpsErrorContract} from '#/db/ops/ops-error.ts'
 import {RateLimitError} from '#/db/ops/rate-limit-error.ts'
 
 import {allowPerWindow, addRateLimitEvent} from './rate-limit.ts'
@@ -17,19 +18,24 @@ import {allowPerWindow, addRateLimitEvent} from './rate-limit.ts'
  * the caller's layers don't provide.
  *
  * The op's params position is `never` rather than `any`. Any concrete op function is
- * assignable to `(params: never) => ...` by contravariance, while the success/error channels
- * are `unknown`. That leaves the requirement union `Layer.Success<L[number]>` as the only
- * part of the constraint that actually checks anything, which is exactly what the
- * layers-supply check needs.
+ * assignable to `(params: never) => ...` by contravariance, and the success channel
+ * is `unknown`, so the requirement union `Layer.Success<L[number]>` is the only part
+ * of the constraint that still checks anything (besides the failure channel). That
+ * is exactly the layers-supply check this needs.
+ *
+ * `OpFailure` covers every failure an op can produce: tagged ops errors conform to
+ * the ops-error contract, while driver, schema, and config failures extend `Error`.
  */
 type Layers = [Layer.Any, ...Array<Layer.Any>]
 
+type OpFailure = Error | OpsErrorContract
+
 type Op<L extends Layers> = (
 	params: never,
-) => Effect.Effect<unknown, unknown, Layer.Success<L[number]>>
+) => Effect.Effect<unknown, OpFailure, Layer.Success<L[number]>>
 
 /** Function-shaped constraint for `Parameters`/`ReturnType` extraction; every op satisfies it */
-type OpFn = (params: never) => Effect.Effect<unknown, unknown, unknown>
+type OpFn = (params: never) => Effect.Effect<unknown, OpFailure, unknown>
 
 type OpArgs<T extends OpFn> = Parameters<T>[0]
 
@@ -85,10 +91,11 @@ export const runOp = createServerOnlyFn(
 			}),
 		)
 
-		// SAFETY: `L` covers every service `op` needs (enforced by `T extends Op<L>`);
-		// TypeScript can't reduce `Exclude<Layer.Success<L[number]>, Layer.Success<L[number]>>`
-		// when `L` is a generic tuple, so the fully-provided effect is re-contracted
-		// to the caller's exact success type.
-		return Effect.runPromise(effect as Effect.Effect<OpResult<T>, unknown>)
+		// SAFETY: `Op<L>` erases the concrete op's success type to `unknown`, and this cast
+		// restores the exact success type `T` declares. The failure channel is left exactly
+		// as `Effect.provide` and the catch above produce it.
+		return Effect.runPromise(
+			effect as Effect.Effect<OpResult<T>, Layer.Error<L[number]> | OpFailure>,
+		)
 	},
 )

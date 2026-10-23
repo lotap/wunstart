@@ -1,3 +1,9 @@
+/**
+ * `unstableApiUsage` warns that the Effect HTTP client, request, and Fetch layer
+ * may change in any release. They are the only HTTP surface the package exposes
+ * and are confined to this dev-only transport, so an upstream change breaks the
+ * typecheck here instead of spreading through the mail code.
+ */
 import {Config, Effect, Layer, Schema} from 'effect'
 import {FetchHttpClient, HttpClient, HttpClientRequest} from 'effect/http'
 
@@ -23,6 +29,8 @@ export const mailpitLayer = Layer.effect(
 	EmailService,
 	Effect.gen(function* () {
 		const {from, appUrl} = yield* EmailConfig
+		// @effect-diagnostics-next-line unstableApiUsage:off
+		const httpClient = yield* HttpClient.HttpClient
 
 		const mailpitUrl = yield* Config.String('MAILPIT_URL').pipe(
 			Config.withDefault('http://localhost:8025'),
@@ -40,11 +48,13 @@ export const mailpitLayer = Layer.effect(
 					Text: message.text,
 				}
 
+				// @effect-diagnostics-next-line unstableApiUsage:off
 				yield* HttpClientRequest.schemaBodyJson(MailpitBody)(
+					// @effect-diagnostics-next-line unstableApiUsage:off
 					HttpClientRequest.post(`${mailpitUrl}/api/v1/send`),
 					body,
 				).pipe(
-					Effect.flatMap(HttpClient.execute),
+					Effect.flatMap((request) => httpClient.execute(request)),
 					Effect.asVoid,
 					Effect.mapError(
 						(error) =>
@@ -55,9 +65,9 @@ export const mailpitLayer = Layer.effect(
 								message: `to=${message.to} from=${from} subject=${message.subject} body=${message.text} error=${String(error)}`,
 							}),
 					),
-					Effect.provide(FetchHttpClient.layer),
 				)
 			}),
 		})
 	}),
-)
+	// @effect-diagnostics-next-line unstableApiUsage:off
+).pipe(Layer.provide(FetchHttpClient.layer))

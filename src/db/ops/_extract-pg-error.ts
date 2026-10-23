@@ -1,3 +1,11 @@
+/**
+ * `unstableApiUsage` warns that the driver's `SqlError` model may change in any
+ * release. Postgres failure classification needs its typed reasons (deadlocks,
+ * serialization conflicts, timeouts) to decide retries and rollback safety, and
+ * the stable Effect surface exposes no equivalent. Each usage below is suppressed
+ * because this module is the only adapter to that model: an upstream shape change
+ * breaks the typecheck here, and only here.
+ */
 import {EffectDrizzleQueryError} from 'drizzle-orm/effect-core'
 import {Cause, Option, Schema} from 'effect'
 import {
@@ -25,6 +33,7 @@ const findSqlError = (drizzleError: EffectDrizzleQueryError) => {
 	if (Option.isSome(sqlErrorOpt)) {
 		const sqlError = sqlErrorOpt.value
 
+		// @effect-diagnostics-next-line unstableApiUsage:off
 		if (Schema.is(SqlError)(sqlError)) return sqlError
 	}
 
@@ -41,15 +50,18 @@ const findSqlError = (drizzleError: EffectDrizzleQueryError) => {
  * treat the message as untrusted when persisting it.
  */
 export const extractPgErrorMessage = (drizzleError: EffectDrizzleQueryError) =>
+	// @effect-diagnostics-next-line unstableApiUsage:off
 	findSqlError(drizzleError)?.message
 
 export function extractPgError(drizzleError: EffectDrizzleQueryError) {
 	return findSqlError(drizzleError)?.reason._tag
 }
 
+// @effect-diagnostics-next-line unstableApiUsage:off
 const reasonOf = (cause: unknown): SqlErrorReason | undefined => {
 	if (Schema.is(EffectDrizzleQueryError)(cause)) return findSqlError(cause)?.reason
 
+	// @effect-diagnostics-next-line unstableApiUsage:off
 	if (Schema.is(SqlError)(cause)) return cause.reason
 
 	return undefined
@@ -60,12 +72,18 @@ const reasonOf = (cause: unknown): SqlErrorReason | undefined => {
  * Retryability is classified by effect's SqlErrorReason (connection drops, deadlocks, and
  * serialization conflicts are retryable; constraint/auth violations are not).
  */
+// @effect-diagnostics-next-line unstableApiUsage:off
 export const isTransientPgError = (cause: unknown) => reasonOf(cause)?.isRetryable ?? false
 
+// @effect-diagnostics-next-line unstableApiUsage:off
 const isRollbackSafeReason = (reason: SqlErrorReason) =>
+	// @effect-diagnostics-next-line unstableApiUsage:off
 	Schema.is(DeadlockError)(reason) ||
+	// @effect-diagnostics-next-line unstableApiUsage:off
 	Schema.is(SerializationError)(reason) ||
+	// @effect-diagnostics-next-line unstableApiUsage:off
 	Schema.is(LockTimeoutError)(reason) ||
+	// @effect-diagnostics-next-line unstableApiUsage:off
 	Schema.is(StatementTimeoutError)(reason)
 
 /**

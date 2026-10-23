@@ -26,6 +26,7 @@ export const signUpWithVerifiedCode = Effect.fn('emailVerifyPasscode.signUp')(fu
 	 * Generate the refresh nonce/hash through the AuthHasher DO before the
 	 * transaction opens. Hashing must never run inside a database transaction
 	 */
+	// oxlint-disable-next-line effecttsgo/strict-effect-provide
 	const sessionNonce = yield* Effect.provide(generateNonce(), HashingStub.layer(anonId))
 
 	return yield* retryTransientDb(

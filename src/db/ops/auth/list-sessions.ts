@@ -16,7 +16,7 @@ const _listSessions = Effect.fn('listSessions')(function* ({
 }) {
 	const currentSessionId = yield* extractRefreshTokenPayload(refreshToken).pipe(
 		Effect.map((payload) => payload.sessionId),
-		Effect.catch(() => Effect.succeed(null)),
+		Effect.orElseSucceed(() => null),
 	)
 
 	const sessions = yield* sessionsQueries.selectFromUnexpiredUnrevokedByUser({userId})

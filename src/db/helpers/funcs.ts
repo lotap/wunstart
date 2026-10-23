@@ -92,20 +92,20 @@ export function createPreparedQuery<
 	})
 }
 
-export class ArchiveNotFoundError extends Schema.TaggedError<ArchiveNotFoundError>()(
-	'ArchiveNotFoundError',
-	{message: Schema.String},
-) {}
+export class ArchiveNotFoundError extends Schema.TaggedError<
+	ArchiveNotFoundError,
+	{readonly brand: unique symbol}
+>()('ArchiveNotFoundError', {message: Schema.String}) {}
 
 /**
  * Thrown when the archive's delete removed fewer rows than its select found
  * (a concurrent writer archived a row between the two statements). The whole
  * archive transaction rolls back, so nothing partial is ever committed
  */
-export class ArchiveCountMismatchError extends Schema.TaggedError<ArchiveCountMismatchError>()(
-	'ArchiveCountMismatchError',
-	{message: Schema.String},
-) {}
+export class ArchiveCountMismatchError extends Schema.TaggedError<
+	ArchiveCountMismatchError,
+	{readonly brand: unique symbol}
+>()('ArchiveCountMismatchError', {message: Schema.String}) {}
 
 /** An active table keyed by a uuid id column */
 type ActiveTable = PgTable & {id: PgColumn & {_: {data: string; notNull: true}}}
@@ -125,6 +125,10 @@ type ArchiveCascade = Effect.Effect<
 	| EffectDrizzleQueryError
 	| ArchiveNotFoundError
 	| ArchiveCountMismatchError
+	// `unstableApiUsage` flags the SqlError type. Drizzle's Effect adapter can fail
+	// with it, so it stays in this union; archive callers classify it through
+	// `_extract-pg-error.ts` only, and no shape is relied on here.
+	// @effect-diagnostics-next-line unstableApiUsage:off
 	| SqlError
 	| SchemaError,
 	DB

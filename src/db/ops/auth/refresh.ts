@@ -24,7 +24,10 @@ import {authTokenFailure} from './token-error.ts'
 const genericFailureOutputMessage = 'Your session has expired. Sign in and try again.'
 
 /** Unexpected internal session state that prevents safe refresh resolution. Wrapped as INTERNAL_ERROR by createOpsFn */
-class RefreshStateError extends Schema.TaggedError<RefreshStateError>()('RefreshStateError', {
+class RefreshStateError extends Schema.TaggedError<
+	RefreshStateError,
+	{readonly brand: unique symbol}
+>()('RefreshStateError', {
 	message: Schema.String,
 }) {}
 
@@ -465,7 +468,10 @@ const _refresh = Effect.fn('refresh')(function* ({
 		city,
 		region,
 		timezone,
-	}).pipe(Effect.provide(HashingStub.layer(session.userId)))
+	}).pipe(
+		// oxlint-disable-next-line effecttsgo/strict-effect-provide
+		Effect.provide(HashingStub.layer(session.userId)),
+	)
 })
 
 /**

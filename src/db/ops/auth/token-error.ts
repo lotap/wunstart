@@ -8,10 +8,10 @@ import {createOpsFailure, OpsErrorSchema} from '../ops-error.ts'
  * The class tag is the only classification signal, so there is no failureCause literal
  * union to tabulate when new invalid-token paths are added.
  */
-export class AuthTokenError extends Schema.TaggedError<AuthTokenError>()(
-	'AuthTokenError',
-	OpsErrorSchema,
-) {}
+export class AuthTokenError extends Schema.TaggedError<
+	AuthTokenError,
+	{readonly brand: unique symbol}
+>()('AuthTokenError', OpsErrorSchema) {}
 
 /** Sugar for constructing AuthTokenErrors in ops functions */
 export const authTokenFailure = createOpsFailure(AuthTokenError)

@@ -144,5 +144,8 @@ export const verify = Effect.fn('emailVerify')(function* (
 		}
 
 		return {id, passcodeHash}
-	}).pipe(Effect.provide(HashingStub.layer(userId ?? anonId)))
+	}).pipe(
+		// oxlint-disable-next-line effecttsgo/strict-effect-provide
+		Effect.provide(HashingStub.layer(userId ?? anonId)),
+	)
 })

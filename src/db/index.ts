@@ -3,10 +3,13 @@ import * as PgDrizzle from 'drizzle-orm/effect-postgres'
 import {Config, Context, Effect, Layer, Option, Redacted, Schema} from 'effect'
 
 /** Layer-build failure: no `DATABASE_URL` and the Workers runtime/binding is unavailable */
-class DbConfigError extends Schema.TaggedError<DbConfigError>()('DbConfigError', {
-	message: Schema.String,
-	cause: Schema.Unknown,
-}) {}
+class DbConfigError extends Schema.TaggedError<DbConfigError, {readonly brand: unique symbol}>()(
+	'DbConfigError',
+	{
+		message: Schema.String,
+		cause: Schema.Unknown,
+	},
+) {}
 
 /**
  * Resolve the Postgres connection string at layer-build time:
@@ -44,6 +47,11 @@ const connectionString = Effect.gen(function* () {
 const pgClientLayer = Layer.unwrap(
 	connectionString.pipe(
 		Effect.map((url) =>
+			// `unstableApiUsage` warns that PgClient.layer may change in any release.
+			// It is the only Postgres driver layer the pinned package exposes, and this
+			// module is its sole consumer, so an upstream change breaks the typecheck
+			// here instead of across the app.
+			// @effect-diagnostics-next-line unstableApiUsage:off
 			PgClient.layer({
 				url,
 				connectTimeout: 5_000,
@@ -53,7 +61,7 @@ const pgClientLayer = Layer.unwrap(
 )
 
 // Create the DB effect with default services
-const drizzleEffect = PgDrizzle.makeWithDefaults().pipe(Effect.provide(PgDrizzle.DefaultServices))
+const drizzleEffect = PgDrizzle.makeWithDefaults()
 
 // Define a DB service tag for dependency injection
 export class DB extends Context.Service<DB, Effect.Success<typeof drizzleEffect>>()('DB') {}

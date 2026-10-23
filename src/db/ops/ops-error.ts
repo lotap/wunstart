@@ -38,10 +38,10 @@ const OpsErrorActivityPayload = InsertFailureVariant.mapFields(
  * Conformers opt in by implementing the shape, with no generic-file edits:
  *
  * ```ts
- * export class FlagNotFoundError extends Schema.TaggedError<FlagNotFoundError>()(
- * 	'FlagNotFoundError',
- * 	OpsErrorSchema,
- * ) {}
+ * export class FlagNotFoundError extends Schema.TaggedError<
+ * 	FlagNotFoundError,
+ * 	{readonly brand: unique symbol}
+ * >()('FlagNotFoundError', OpsErrorSchema) {}
  * ```
  */
 export const OpsErrorSchema = Schema.Struct({
@@ -62,7 +62,10 @@ export const isOpsError = (cause: unknown): cause is OpsErrorContract =>
  * failures (`failureCause` is free-form audit vocabulary); the framework also
  * wraps unknown errors into it as `INTERNAL_ERROR` (see `createOpsFn`).
  */
-export class OpsError extends Schema.TaggedError<OpsError>()('OpsError', OpsErrorSchema) {}
+export class OpsError extends Schema.TaggedError<OpsError, {readonly brand: unique symbol}>()(
+	'OpsError',
+	OpsErrorSchema,
+) {}
 
 /** Flattened Ops Error schema for failures sugar */
 export type OpsFailureFields = Omit<(typeof OpsErrorActivityPayload)['Type'], 'weight'> & {
@@ -115,7 +118,7 @@ function isCause(cause: unknown): cause is Cause.Cause<unknown> {
 /** A primitive displayable failure value. Stringified for diagnostics, never an object. */
 const DisplayableFailure = Schema.Union([
 	Schema.String,
-	Schema.Number,
+	Schema.Finite,
 	Schema.Boolean,
 	Schema.BigInt,
 ])

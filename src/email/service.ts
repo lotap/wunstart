@@ -25,7 +25,10 @@ export const EmailFailureKind = Schema.Literals(['config', 'transient', 'ambiguo
 
 export type EmailFailureKind = Schema.Schema.Type<typeof EmailFailureKind>
 
-export class EmailSendError extends Schema.TaggedError<EmailSendError>()('EmailSendError', {
+export class EmailSendError extends Schema.TaggedError<
+	EmailSendError,
+	{readonly brand: unique symbol}
+>()('EmailSendError', {
 	transport: Schema.String,
 	code: Schema.String,
 	kind: EmailFailureKind,
@@ -33,7 +36,10 @@ export class EmailSendError extends Schema.TaggedError<EmailSendError>()('EmailS
 }) {}
 
 /** A notification template failed to render. No send was ever attempted */
-export class EmailRenderError extends Schema.TaggedError<EmailRenderError>()('EmailRenderError', {
+export class EmailRenderError extends Schema.TaggedError<
+	EmailRenderError,
+	{readonly brand: unique symbol}
+>()('EmailRenderError', {
 	message: Schema.String,
 }) {}
 
