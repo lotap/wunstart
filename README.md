@@ -206,6 +206,7 @@ Three things update three ways:
     - Keep `ua-parser-js` on v1. Version 2 relicensed from MIT to AGPL.
     - Keep TanStack Form on the v2 prerelease line, since the interactive updater lists the older v1 stable as an update. Don't take it.
     - Keep Drizzle ORM and Drizzle Kit on the v1 release-candidate line (currently rc.5). The updater lists the older 0.x stable as an update. Don't take it. After a kit bump, run `db:up` then `db:generate` and expect no schema changes.
+    - Keep the `solid-js` override at 1.9.17. The TanStack devtools are Solid-based, and without the override Bun installs nested copies that warn in the browser console about duplicate Solid instances and undisposed computations. The app itself is React. Remove the override only when a clean install resolves one copy.
 - **Skills** (`.agents/skills/`): `npx skills check` shows what's drifted; `npx skills update` refreshes them.
 - **Lint rules:**
   - _Anti-slop_ (`tools/linters/anti-slop/`): paste this to an agent:
