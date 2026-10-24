@@ -20,7 +20,7 @@ If the answer to any applicable question is no, revise until all the answers are
 
 ## Run mechanics
 
-- Dev server: see `AGENTS.md` (`bun run dev`, kill by PID only).
+- Dev server: start or reuse the agent server with `bun run agent-dev start` (see `AGENTS.md`); use the URL it prints, not a guessed port. It may reuse a human or shared server. Never stop a human or shared server; `--fresh` is runtime isolation only. Stop only a fresh server you started with `bun run agent-dev stop --port <port>`; use `bun run agent-dev status` and `.tmp/agent-dev/<port>.log` when start fails.
 - Critique from screenshots — required for page- and section-scale work (save under `<worktree>/.tmp/`, see `AGENTS.md`).
 - Both token modes: chrome-devtools `emulate` `colorScheme` `dark`, then `light`. Mobile: emulate a phone viewport. Reduced motion: emulate `prefersReducedMotion`.
 - Interactive states: hover, pressed, disabled read correctly in both token modes; keyboard pass keeps focus visible (tab through every interactive element).

@@ -7,6 +7,7 @@
 import {basename, join} from 'node:path'
 import process from 'node:process'
 
+import {AGENT_DEV_PORT_MAX, AGENT_DEV_PORT_MIN, parsePort} from '../../helpers/dev-ports.ts'
 import {fail, ok, step, warn} from '../../helpers/output.ts'
 import type {Pm} from '../../helpers/package-manager.ts'
 import {phaseCommand} from '../../helpers/package-manager.ts'
@@ -20,7 +21,7 @@ import {parseCliArgs} from './cli.ts'
 import {persistLocal} from './local-env.ts'
 import type {Plan} from './plan.ts'
 import {buildPlan, printPlanAndConfirm, printResult} from './plan.ts'
-import {claimIdentity, inspectWorktrees, scanClaimedPorts} from './ports.ts'
+import {claimIdentity, inspectWorktrees, scanAgentPort, scanClaimedPorts} from './ports.ts'
 import {portOf, sameDbUrl} from './postgres.ts'
 import {
 	checkDependencies,
@@ -108,7 +109,7 @@ async function main(): Promise<void> {
 			)
 		}
 
-		const {dbWant, devPortWant, pgPortWant} = claimIdentity(branch)
+		const {agentDevPortWant, dbWant, pgPortWant} = claimIdentity(branch)
 
 		if (gitBranch !== null && gitBranch !== '' && sibling !== null) {
 			warn(
@@ -130,9 +131,19 @@ async function main(): Promise<void> {
 		step('claiming ports…')
 		const {ownSmtpPort, ownHttpPort} = reuseMailpitPorts()
 
-		const {devPort, smtpFree, httpFree, pgFree} = await scanClaimedPorts({
-			devPortWant,
+		const {
+			agentDevPort: claimedAgentDevPort,
+			agentKept,
+			devPort,
+			smtpFree,
+			httpFree,
+			pgFree,
+		} = await scanClaimedPorts({
+			agentDevPortWant,
+			dbUrlWant: initialVars.get('DATABASE_URL') ?? '',
+			dbWant,
 			pgPortWant,
+			ownAgentDevPort: parsePort(initialVars.get('AGENT_DEV_PORT')),
 			ownSmtpPort,
 			ownHttpPort,
 			devPin: cfg.devPort,
@@ -140,6 +151,7 @@ async function main(): Promise<void> {
 			httpPin: cfg.mailpitPort,
 		})
 
+		let agentDevPort: number = claimedAgentDevPort
 		let mailpitUrlOverride = ''
 
 		if (httpFree !== MAILPIT_HTTP_WANT) {
@@ -158,6 +170,7 @@ async function main(): Promise<void> {
 			pm,
 			branch,
 			dbWant,
+			agentDevPort,
 			devPort,
 			planDbPort,
 			mailpitUrlOverride,
@@ -220,6 +233,7 @@ async function main(): Promise<void> {
 		}
 
 		managedOverrides.set('DEV_PORT', String(devPort))
+		managedOverrides.set('AGENT_DEV_PORT', String(agentDevPort))
 
 		if (mailpitUrlOverride !== '') {
 			managedOverrides.set('MAILPIT_URL', mailpitUrlOverride)
@@ -237,6 +251,32 @@ async function main(): Promise<void> {
 			managedOverrides,
 			pm,
 		})
+
+		if (agentKept && !sameDbUrl(effectiveUrl, preflightUrl)) {
+			const revalidated = await scanAgentPort({
+				agentDevPortWant,
+				dbUrlWant: effectiveUrl,
+				dbWant,
+				ownAgentDevPort: parsePort(initialVars.get('AGENT_DEV_PORT')),
+			})
+
+			if (revalidated.port === null) {
+				fail(
+					'no free agent dev port found after the postgres connection changed',
+					`free a port in :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX} (sh tools/pkg-scripts/agent-dev.sh status shows owners; stop-all is human cleanup) or stop another worktree's agent servers, then re-run`,
+				)
+			}
+
+			if (revalidated.port !== agentDevPort) {
+				warn(
+					`postgres connection changed — the agent server on :${agentDevPort} belongs to the old database; switching to :${revalidated.port} (ask a human to run: sh tools/pkg-scripts/agent-dev.sh stop-all)`,
+				)
+				agentDevPort = revalidated.port
+				plan.agentDevPort = agentDevPort
+				managedOverrides.set('AGENT_DEV_PORT', String(agentDevPort))
+				persistLocal(managedOverrides)
+			}
+		}
 
 		step('applying migrations…')
 

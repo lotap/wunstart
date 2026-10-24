@@ -18,7 +18,12 @@ import {refreshChildEnv} from './process.ts'
  * committed URL; MAILPIT_URL is only pinned when shifted). If branch-env
  * manages a new key, add it here.
  */
-const MANAGED_ENV_KEYS: Set<string> = new Set(['DATABASE_URL', 'DEV_PORT', 'MAILPIT_URL'])
+const MANAGED_ENV_KEYS: Set<string> = new Set([
+	'AGENT_DEV_PORT',
+	'DATABASE_URL',
+	'DEV_PORT',
+	'MAILPIT_URL',
+])
 
 /**
  * Quote an env value. Backslashes, double quotes, tabs, line breaks, and

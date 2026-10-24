@@ -8,6 +8,12 @@ import {fileURLToPath} from 'node:url'
 import {isValidSlug} from '../helpers/app-name.ts'
 import {parseCli, rejectPositionals} from '../helpers/cli.ts'
 import {dependencyFreshness} from '../helpers/dependencies.ts'
+import {
+	AGENT_DEV_PORT_MAX,
+	AGENT_DEV_PORT_MIN,
+	inAgentDevRange,
+	parsePort,
+} from '../helpers/dev-ports.ts'
 import type {Pm} from '../helpers/package-manager.ts'
 import {
 	detectPm,
@@ -408,10 +414,12 @@ function checkNames(pm: Pm | null): CheckResult {
 }
 
 /**
- * Dev-port check: vite.config.ts throws without DEV_PORT (same
- * present + integer + 1–65535 rule), so a worktree whose .env.local
- * predates the feature fails dev with no other signal. Setup writes
- * this value, so a failure points back at branch-env.
+ * Dev-port checks: vite.config.ts throws without DEV_PORT (human) or
+ * AGENT_DEV_PORT (agent), using the same present + integer + 1–65535 rule,
+ * so a worktree whose .env.local predates the feature fails dev with no
+ * other signal. Setup writes both values, so failures point back at
+ * branch-env. The human port may never enter the agent range: that boundary
+ * is what keeps agent cleanup away from human servers.
  */
 function checkDevPort(env: Map<string, string>, pm: Pm | null): CheckResult {
 	const raw: string | undefined = env.get('DEV_PORT')
@@ -420,14 +428,14 @@ function checkDevPort(env: Map<string, string>, pm: Pm | null): CheckResult {
 		return {
 			name: 'dev-port',
 			status: 'fail',
-			detail: 'DEV_PORT is missing (the dev server refuses to start without it)',
+			detail: 'DEV_PORT is missing (the human dev server refuses to start without it)',
 			hint: `claim it: ${rerunHint(pm)} (writes .env.local) — then re-run validate-setup`,
 		}
 	}
 
-	const port: number = Number(raw)
+	const port: number | null = parsePort(raw)
 
-	if (!Number.isInteger(port) || port <= 0 || port > 65535) {
+	if (port === null) {
 		return {
 			name: 'dev-port',
 			status: 'fail',
@@ -436,7 +444,70 @@ function checkDevPort(env: Map<string, string>, pm: Pm | null): CheckResult {
 		}
 	}
 
-	return {name: 'dev-port', status: 'ok', detail: `dev port is :${port}`, hint: ''}
+	if (inAgentDevRange(port)) {
+		return {
+			name: 'dev-port',
+			status: 'fail',
+			detail: `DEV_PORT=:${port} is inside the agent-only range :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX}`,
+			hint: `pin the human server outside :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX} — or ${rerunHint(pm)} (defaults to :3000)`,
+		}
+	}
+
+	return {name: 'dev-port', status: 'ok', detail: `human dev port is :${port}`, hint: ''}
+}
+
+/** Agent shared-port claim: present, a real port, and distinct from the human port. */
+function checkAgentDevPort(
+	env: Map<string, string>,
+	pm: Pm | null,
+	devPort: number | null,
+): CheckResult {
+	const raw: string | undefined = env.get('AGENT_DEV_PORT')
+
+	if (raw === undefined || raw === '') {
+		return {
+			name: 'agent-dev-port',
+			status: 'fail',
+			detail: 'AGENT_DEV_PORT is missing (agent dev servers share it)',
+			hint: `claim it: ${rerunHint(pm)} (writes .env.local) — then re-run validate-setup`,
+		}
+	}
+
+	const port: number | null = parsePort(raw)
+
+	if (port === null) {
+		return {
+			name: 'agent-dev-port',
+			status: 'fail',
+			detail: `AGENT_DEV_PORT=${JSON.stringify(raw)} is not a valid port`,
+			hint: `fix it in .env.local (override) — or ${rerunHint(pm)}`,
+		}
+	}
+
+	if (devPort !== null && port === devPort) {
+		return {
+			name: 'agent-dev-port',
+			status: 'fail',
+			detail: `AGENT_DEV_PORT overlaps DEV_PORT (both :${port})`,
+			hint: `re-run: ${rerunHint(pm)} (writes distinct human and agent ports)`,
+		}
+	}
+
+	if (!inAgentDevRange(port)) {
+		return {
+			name: 'agent-dev-port',
+			status: 'fail',
+			detail: `AGENT_DEV_PORT=:${port} is outside the agent range :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX}`,
+			hint: `re-run: ${rerunHint(pm)} (claims a port in :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX})`,
+		}
+	}
+
+	return {
+		name: 'agent-dev-port',
+		status: 'ok',
+		detail: `shared agent dev port is :${port}`,
+		hint: '',
+	}
 }
 
 /**
@@ -572,8 +643,8 @@ function usage(): void {
 	console.log(`usage: validate-setup [--help]
 
   Verifies env, wasm kernel, generated routes, dependencies, docker,
-  dev-port claim, identity, and postgres/mailpit reachability, with a fix
-  hint per failure. Run from anywhere inside the worktree (paths anchor at
+  dev-port and agent-dev-port claims, identity, and postgres/mailpit
+  reachability, with a fix hint per failure. Run from anywhere inside the worktree (paths anchor at
   the repo root). Exit code 1 when any check fails.`)
 }
 
@@ -635,6 +706,7 @@ async function main(): Promise<void> {
 		checkDocker(pm),
 		checkNames(pm),
 		checkDevPort(env, pm),
+		checkAgentDevPort(env, pm, parsePort(env.get('DEV_PORT'))),
 	]
 
 	// One root cause, one fail: when the URL postgres would probe is itself

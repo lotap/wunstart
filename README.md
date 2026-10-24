@@ -3,7 +3,7 @@
 A full-stack TypeScript starter kit for building web apps.
 
 - Auth (sessions and JWT, anon identity, email verification)
-- Weight-based bans and rate limiting,
+- Weight-based bans and rate limiting
 - Effect-wrapped Drizzle on Postgres
 - No deployment platform lock-in[*](#deployment)
 
@@ -25,8 +25,8 @@ Clone it, rename it, and start building.
 - Check the prerequisites below first: a JavaScript runtime, a package manager, and Docker running. If something is missing, stop and tell the user what it is. Do not push through failures.
 - Ask for the target directory, app name, and one-line description if the user hasn’t provided them. If they don’t specify a directory or accept the default, use `./<slug>` (a new subdirectory). The target directory must not exist yet, or it must be empty. If it exists and is not empty, stop and ask. Never delete its contents. Use `.` only when the current directory is empty. Turn the name into a lowercase slug of at most 63 characters that starts and ends with a letter or digit. Replace spaces and underscores with hyphens, and drop any other character that is not a letter, digit, or hyphen. Re-ask if the result is empty or still invalid.
 - Use the user’s preferred manager. If they have no preference, use Bun when it is installed; otherwise use another installed manager. npm is the only manager that needs `--` to forward script args (`npm run branch-env -- --yes`); Bun, Nub, pnpm, yarn, and aube take them directly (for example, `nub run branch-env --yes`). To switch managers, pass `--pm` to `install-deps`. The target manager must already be installed (for example, `bun run install-deps --pm pnpm --yes`). If Bun is missing, run `npm run install-deps -- --pm pnpm --yes` instead. Then use that manager for the remaining commands.
-- Ask whether they plan to work on more than one thing at a time. Mention the worktree option explicitly. Default to the Clone and Setup steps for a single project, and use the worktree layout only for parallel work.
-- Create the project non-interactively. Pass `--yes` to each setup command; non-interactive runs fail instead of prompting without it:
+- Ask whether they plan to work on more than one thing at a time. Mention the worktree option. Default to the Clone and Setup steps for a single project, and use the worktree layout only for parallel work.
+- Create the project with flags so it never prompts. Pass `--yes` to each setup command. Non-interactive runs fail instead of prompting without it:
 
   ```sh
   git clone https://github.com/lotap/wunstart <project-dir>  # use `.` when the target is `./`
@@ -37,19 +37,26 @@ Clone it, rename it, and start building.
   bun run branch-env --yes
   ```
 
-  To verify, start dev in the background and capture its output. Run `mkdir -p .tmp`, then `nohup <pm> run dev >.tmp/dev.log 2>&1 & echo $! >.tmp/dev.pid`. Use `bun run` by default and `<pm> run` for another manager. Dev blocks the terminal, so never run it in the foreground. Read `DEV_PORT` from `.env.local` (the `branch-env` output also prints it), then wait for the server to start and check it. Dev takes a few seconds, so retry until it answers:
+  To verify, run `bun run agent-dev start`, use `<pm> run` for another manager. It reuses a dev server already running in this worktree when its `DATABASE_URL` matches the current one. Otherwise it reuses or starts the branch’s shared agent server. It waits until the server answers over HTTP and prints the URL. Do not start `dev` in the background and do not stop servers afterward. Agent servers exit on their own after 15 minutes idle.
 
   ```sh
-  stop_dev() {
-    kill "$(cat .tmp/dev.pid 2>/dev/null)" 2>/dev/null || true
-    lsof -ti :<port> -sTCP:LISTEN | head -1 | xargs kill 2>/dev/null || true
-  }
-  for i in $(seq 1 30); do curl --max-time 2 -fsS -o /dev/null http://localhost:<port>/ && break || sleep 1; done
-  curl --max-time 2 -fsS -o /dev/null http://localhost:<port>/ || { tail -n 50 .tmp/dev.log; <pm> run validate-setup; stop_dev; exit 1; }
-  stop_dev
+  bun run agent-dev start
+  # open the printed http://localhost:<port>
   ```
 
-  If the check passes, run `<pm> run build`, then make the setup commit (`Initial project setup`) as described in Setup step 3. That commit is part of creating the project. If the check or the build fails, do not commit. For a failed check, report the captured dev log and the `validate-setup` output. For a failed build, report the build output.
+  Under npm, use `npm run agent-dev -- start`. The fresh variant is `npm run agent-dev -- start --fresh`.
+
+  `start` reuses the dev server in this worktree when its `DATABASE_URL` matches. Otherwise it reuses the branch’s shared agent server for the branch database, or starts one. When it starts a server, it provisions dependencies, waits until the server answers over HTTP, and prints the URL first. Use that printed URL.
+
+  `status` is read-only and does not reset idle timers. It shows port, pid, worktree ownership, role, and log. Agent logs live at `.tmp/agent-dev/<port>.log`. If the server fails to start, run `status` and read the listed log.
+
+  Never stop the dev server or a shared server. `stop-all` is manual cleanup. Stop only a fresh server you started, with `stop --port <port>`.
+
+  `start --fresh` starts an additional instance with its own port, Cloudflare state, log, and idle timer. It still shares files, HMR, git, and the database. Both exit after 15 minutes idle. Set `AGENT_DEV_IDLE_MS` to change the window. `AGENT_DEV_MAX_SERVERS` caps shared and fresh servers per worktree at 4 by default.
+
+  `branch-env` runs per branch. Run it again after a branch switch, when `validate-setup` reports `DEV_PORT`/`AGENT_DEV_PORT` missing, or when the branch database was dropped or Postgres is unreachable. `branch-env` keeps a stored agent port only when the listener is this worktree’s shared agent Vite for the branch database and connection URL. Otherwise it shifts to the next free port.
+
+  If the command exits nonzero, run `bun run agent-dev status`, report the log path it lists and the `<pm> run validate-setup` output instead of committing. If it passes, run `<pm> run build`, then make the setup commit named `Initial project setup` as described in Setup step 3. That commit is part of creating the project. For a failed build, report the build output.
 
   For parallel work, finish this setup and commit first, then follow [Git worktrees](#git-worktrees-for-parallel-work). Do not commit later changes or push until asked.
 
@@ -60,8 +67,8 @@ Clone it, rename it, and start building.
 
 ### Prerequisites
 
-- A JavaScript runtime and package manager: [Bun](https://bun.sh) 1.x (the default, runtime and package manager), [Nub](https://nubjs.com/docs) (runtime and package manager), or [Node](https://nodejs.org/en) 22.18+ with one of [npm](https://www.npmjs.com/), [yarn](https://yarnpkg.com/), [pnpm](https://pnpm.io/), or [aube](https://aube.sh).
-- [Docker](https://www.docker.com/products/docker-desktop/) installed and running (it starts Postgres and Mailpit through `docker compose`).
+- A JavaScript runtime and package manager: [Bun](https://bun.sh) 1.x, the default runtime and package manager, [Nub](https://nubjs.com/docs), a runtime and package manager, or [Node](https://nodejs.org/en) 22.18+ with one of [npm](https://www.npmjs.com/), [yarn](https://yarnpkg.com/), [pnpm](https://pnpm.io/), or [aube](https://aube.sh).
+- [Docker](https://www.docker.com/products/docker-desktop/) installed and running. It starts Postgres and Mailpit through `docker compose`.
 - Rust and the `wasm32-unknown-unknown` target are optional. You need them only if you edit `crates/` for the auth hasher. The compiled wasm kernel is committed, so no other build needs Rust.
 
 ### Clone
@@ -72,7 +79,7 @@ git clone https://github.com/lotap/wunstart <project-dir> && cd <project-dir> &&
 
 Cloning and removing `.git` leaves a fresh repo with no link back to the starter. The repo has no commits or tracked files until you make the first commit.
 
---OR--
+Or
 
 If you have a package manager already, use `degit`:
 
@@ -80,7 +87,7 @@ If you have a package manager already, use `degit`:
 bunx degit github:lotap/wunstart <project-dir> && cd <project-dir> && git init -b trunk
 ```
 
---OR--
+Or
 
 Click “Use this template” on [the project’s GitHub repository](https://github.com/lotap/wunstart). A template copy creates a fresh repo with a single `Initial commit`, no fork relationship, and no shared history with the starter.
 
@@ -114,7 +121,7 @@ Click “Use this template” on [the project’s GitHub repository](https://git
 
 2. **Set up the dev environment.**
 
-   `.env.development` holds secrets for local development (JWT keys, database password). Use them only in development and replace them before you deploy.
+   `.env.development` holds secrets for local development, like JWT keys and the database password. Use them only in development and replace them before you deploy.
 
    ```sh
    bun run install-deps     # one-time per checkout: dependencies, git hooks
@@ -128,22 +135,24 @@ Click “Use this template” on [the project’s GitHub repository](https://git
    > ```
 
    ```sh
-   bun run branch-env       # per branch: database, assigned port, migrations
+    bun run branch-env       # per branch database and agent port, plus migrations
    ```
 
    Then serve it. The dev server blocks, so keep it running in its own terminal:
 
    ```sh
-   bun run dev              # serves the assigned port from .env.local, no flags needed
+   bun run dev              # dev server on :3000 in every worktree
    ```
 
-   `branch-env` runs per branch. Run it again whenever the branch changes; it sets up that branch’s database, port, and migrations.
+   > Agents use `bun run agent-dev start` instead. See “For agents” above.
 
-   Trunk uses `:3000`. Feature branches use ports `3100` to `3199`. Both use the next free port if the preferred one is busy. Feature branches get their own database (for example, `wunstart_feat_login_a1b2c3`), which `branch-env` generates from the sanitized branch name. Trunk uses the `postgres` database from `.env.development`.
+   `branch-env` runs per branch. Run it again after a branch switch. It sets up that branch’s database and ports.
+
+   Feature branches get their own database, for example `wunstart_feat_login_a1b2c3`. Trunk uses the `postgres` database from `.env.development`.
 
 3. **Verify and commit.**
 
-   To verify, open the app at the port that `branch-env` prints and saves as `DEV_PORT` in `.env.local`, then confirm the landing page renders.
+   To verify, open `http://localhost:3000` and confirm the landing page renders.
 
    ```sh
    git add -A && git commit -m "Initial project setup"
@@ -156,7 +165,9 @@ Click “Use this template” on [the project’s GitHub repository](https://git
    bun run branch-env
    ```
 
-   `branch-env` sets up the new branch’s database and port. Restart `dev`, or start it if it is not running, so it picks up the new `DEV_PORT`.
+   `branch-env` sets up the new branch’s database and agent port. `DEV_PORT` stays `3000` unless you pinned it. Restart `dev` whenever `DATABASE_URL` changes, like a branch switch or Postgres move, regardless of the port.
+
+   > Agents run `bun run agent-dev start` after `branch-env`. It starts a new server for the new database instead of reusing a server on the old one.
 
 ---
 
@@ -166,17 +177,17 @@ If setup fails, run `bun run validate-setup`. It reports what is wrong and how t
 
 The repo has some automated processes designed to make development easier. But they can result in some brittleness and unexpected behavior.
 
-**On install.** Setting up dependencies runs the [`prepare` script](https://docs.npmjs.com/cli/v11/using-npm/scripts). It tells git to use the repo's own commit hook (described below), and it modifies the installed TypeScript and Oxlint copies (inside `node_modules` only) to add Effect checks. `install-deps` triggers it through a normal install, and so does any later `bun install`, `add`, or `remove`.
+**On install.** Setting up dependencies runs the [`prepare` script](https://docs.npmjs.com/cli/v11/using-npm/scripts). It tells git to use the repo's own commit hook, described below, and it modifies the installed TypeScript and Oxlint copies, inside `node_modules` only, to add Effect checks. `install-deps` triggers it through a normal install, and so does any later `bun install`, `add`, or `remove`.
 
-**The commit hook.** The hook blocks Rust changes that reach a commit without the rebuilt Wasm file alongside them; the kernel binary is committed so daily work never needs the Rust toolchain.
+**The commit hook.** The hook blocks Rust changes that reach a commit without the rebuilt Wasm file alongside them. The kernel binary is committed so daily work never needs the Rust toolchain.
 
 **The patched compiler.** The modified compiler is why `bunx tsc --version` shows an `+effect-tsgo` suffix and why the `@effect/language-service` block in `tsconfig.json` does anything at all. If Effect checks ever stop appearing, reinstall and look for the suffix.
 
-**On dev start.** Starting the dev server reinstalls dependencies first, so switching branches or pulling never leaves the checkout broken.
+**On a server start.** Starting the dev server or starting a new agent server reinstalls dependencies first, so switching branches or pulling never leaves the checkout broken. Reusing a running server skips that check.
 
-**Config files beat exports.** The dev server and the database scripts load `.env.development` then `.env.local`, and the files win over anything exported in the shell, with `.env.local` winning between the two. `branch-env` owns the per-worktree values there (`DATABASE_URL`, ports, mail URLs); anything else you add survives beside them. So a `DATABASE_URL` exported from another checkout never leaks across, and overrides belong in `.env.local`, never in exports. The one exception is the `archive-old-activities` cron job, which reads an exported `DATABASE_URL` first because production has no files.
+**Config files beat exports.** The dev server and the database scripts load `.env.development` then `.env.local`, and the files win over anything exported in the shell, with `.env.local` winning between the two. `branch-env` owns the per-worktree values there, like `DATABASE_URL`, ports, and mail URLs. Anything else you add survives beside them. So a `DATABASE_URL` exported from another checkout never leaks across, and overrides belong in `.env.local`, never in exports. The one exception is the `archive-old-activities` cron job, which reads an exported `DATABASE_URL` first because production has no files.
 
-**Double Effect reports are on purpose.** The typecheck (`bunx tsc --noEmit`) and the linter (`bun run lint:check`) share most of their Effect checks, so some findings appear in both. That overlap is on purpose: the typecheck runs 43 checks the linter cannot. Only errors fail the typecheck; warnings and suggestions are shown but do not fail it.
+**Double Effect reports are on purpose.** The typecheck `bunx tsc --noEmit` and the linter `bun run lint:check` share most of their Effect checks, so some findings appear in both. That overlap is on purpose. The typecheck runs 43 checks the linter cannot. Only errors fail the typecheck. Warnings and suggestions do not fail it.
 
 ### Customize
 
@@ -201,24 +212,24 @@ Linter rule tests run with `bun run test:lint`. Run them when you edit linter ru
 
 Three things update three ways:
 
-- **npm packages** (`package.json`, `bun.lock`): `bun update -i`, then `bun run install-deps`.
+- **npm packages.** Update `package.json` and `bun.lock` with `bun update -i`, then `bun run install-deps`.
   - Caveats:
     - Keep `ua-parser-js` on v1. Version 2 relicensed from MIT to AGPL.
     - Keep TanStack Form on the v2 prerelease line, since the interactive updater lists the older v1 stable as an update. Don't take it.
     - Keep Drizzle ORM and Drizzle Kit on the v1 release-candidate line (currently rc.5). The updater lists the older 0.x stable as an update. Don't take it. After a kit bump, run `db:up` then `db:generate` and expect no schema changes.
     - Keep the `solid-js` override at 1.9.17. The TanStack devtools are Solid-based, and without the override Bun installs nested copies that warn in the browser console about duplicate Solid instances and undisposed computations. The app itself is React. Remove the override only when a clean install resolves one copy.
-- **Skills** (`.agents/skills/`): `npx skills check` shows what's drifted; `npx skills update` refreshes them.
+- **Skills.** `.agents/skills` holds managed skills. `npx skills check` shows what has drifted. `npx skills update` refreshes them.
 - **Lint rules:**
-  - _Anti-slop_ (`tools/linters/anti-slop/`): paste this to an agent:
+  - _Anti-slop_ in `tools/linters/anti-slop/`. Paste this to an agent:
     ```
     Update anti-slop to latest while preserving local customizations.
     ```
     The agent identifies the revision and records it in `UPSTREAM.md`. Name a specific commit only to port selected fixes instead of everything.
-  - _React Doctor_: `bun update oxlint-plugin-react-doctor` is the whole update. The merge loop at the top of `oxlint.config.ts` applies the new rules on the next lint, with nothing else to run. You only step in for two edge cases. Both are visible in `bun run lint:check` output: a brand-new upstream set worth merging, or a renamed rule ID referenced in `doctor.config.json`. (The `improve-react` scanner runs at `@latest`, so it needs no update.)
+  - _React Doctor_. `bun update oxlint-plugin-react-doctor` is the whole update. The merge loop at the top of `oxlint.config.ts` applies the new rules on the next lint, with nothing else to run. You only step in for two edge cases. Both are visible in `bun run lint:check` output: a brand-new upstream set worth merging, or a renamed rule ID referenced in `doctor.config.json`. The `improve-react` scanner runs at `@latest`, so it needs no update.
 
 ### Deployment
 
-*By default, the auth module deploys a hashing method ([Argon2](https://en.wikipedia.org/wiki/Argon2)) using [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/). To use a different architecture, a different hashing algorithm needs to be used.
+_By default, the auth module deploys a hashing method ([Argon2](https://en.wikipedia.org/wiki/Argon2)) using [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/). To use a different architecture, use a different hashing algorithm._
 
 Deployment support is still in development. The focus is on simplicity and platform agnosticism.
 
@@ -231,7 +242,7 @@ Use this layout only when you need to work on more than one thing at a time, suc
 
 Every worktree, including trunk’s, gets its own folder. `.bare/` is the repo. Branch folders are where you work. Use `git worktree remove`, never `rm -rf`, to remove one.
 
-Convert once, on `trunk`, after you make the setup commit. A worktree needs a commit to check out. If you branched in Setup step 4, switch back to `trunk` first (`git checkout trunk`). Before converting, `git status --short` must be empty, so commit or stash any changes. Stop the dev server (Teardown step 1). This converts `<project-dir>/` in place. The project keeps its path and gains `.bare/` and `trunk/`. A later step deletes the original checkout. This needs no hosting and works fully offline.
+Convert once, on `trunk`, after you make the setup commit. A worktree needs a commit to check out. If you branched in Setup step 4, switch back to `trunk` first with `git checkout trunk`. Before converting, `git status --short` must be empty, so commit or stash any changes. Stop the dev server, see Teardown step 1. This converts `<project-dir>/` in place. The project keeps its path and gains `.bare/` and `trunk/`. A later step deletes the original checkout. This needs no hosting and works fully offline.
 
 `git clone --bare . .bare` sets `.bare`’s origin to the local path `.`, which breaks once you delete the original checkout. Remove that origin, then restore your real origin if you had one:
 
@@ -244,7 +255,7 @@ git --git-dir=.bare worktree add ./trunk trunk
 cd trunk
 ```
 
-Inside `./trunk`, run `bun run install-deps` and `bun run branch-env`, then verify with `bun run validate-setup`. Only committed files appear in `trunk/`. `branch-env` recreates `.env.local` and sets up the database and port it assigns.
+Inside `./trunk`, run `bun run install-deps` and `bun run branch-env`, then verify with `bun run validate-setup`. Only committed files appear in `trunk/`. `branch-env` recreates `.env.local` and sets up the database plus its dev and agent ports.
 
 Once `trunk` passes `validate-setup`, delete the original top-level checkout. Its committed files are now in `./trunk/`, and deleting the checkout also removes the stale top-level `.git`. Run this from `<project-dir>/`. The previous step left you inside `trunk/`, so run `cd ..` first. The path guard stops you if you are in the wrong place:
 
@@ -264,7 +275,7 @@ git worktree add ../<branch> <branch>      # existing branch
 git worktree add -b <branch> ../<branch>   # new branch
 ```
 
-Then run `bun run install-deps` and `bun run branch-env` inside each new checkout. A branch name always maps to the same database and preferred port. If that port is busy, `branch-env` picks the next free one. Run `bun run validate-setup` inside each new worktree to verify it.
+Then run `bun run install-deps` and `bun run branch-env` inside each new checkout. A branch name always maps to the same database and preferred agent port. `branch-env` keeps that port only for this worktree’s live shared agent server on the same branch database. If it is busy or belongs to a stale or foreign server, it picks the next free one. Run `bun run validate-setup` inside each new worktree to verify it.
 
 You can also keep shared caches and scratch files in the parent folder. The layout works without them:
 
@@ -277,25 +288,21 @@ A branch’s environment comes from its git branch, not its folder. Renaming the
 
 Each worktree has its own setup. Run `install-deps` and `branch-env` inside it. Run `app-identity` once on `trunk` before converting so all worktrees use the same identity. Never re-run it per worktree.
 
-Feature branches get their own database (`wunstart_<branch>_<6hex>`, which `branch-env` generates from the sanitized branch name). Trunk uses the `postgres` database from `.env.development`. Two agents in two worktrees usually get separate databases and ports.
+Feature branches get their own database, for example `wunstart_<branch>_<6hex>`, which `branch-env` generates from the sanitized branch name. Trunk uses the `postgres` database from `.env.development`. Two agents in two worktrees usually get separate databases and agent ports. Dev servers all default to `:3000`, so run one at a time. `--dev-port` is the rare override.
 
-If a worktree already has its own Postgres container, `branch-env` reuses or restarts it. Otherwise it uses a reachable Postgres at the `DATABASE_URL` from `.env.development` (normally `localhost:5432`, with no new container), or starts its own stack on a free port. `branch-env --dry-run` prints the plan and ports without changing anything, but it does not check the credentials of the shared Postgres, so it cannot tell you in advance whether it will use the shared database or start its own.
+If a worktree already has its own Postgres container, `branch-env` reuses or restarts it. Otherwise it uses a reachable Postgres at the `DATABASE_URL` from `.env.development`, normally `localhost:5432`, with no new container, or starts its own stack on a free port. `branch-env --dry-run` prints the plan and ports without changing anything, but it does not check the credentials of the shared Postgres, so it cannot tell you in advance whether it will use the shared database or start its own.
 
 `branch-env` writes per-worktree overrides to the gitignored `.env.local`. The dev server, `db:*` scripts, and `validate-setup` read that file.
 
-`branch-env` manages `DATABASE_URL`, `DEV_PORT`, and `MAILPIT_URL`. Other keys you add survive re-runs. Delete `.env.local` and re-run `branch-env` to regenerate the managed keys. The dev server needs `DEV_PORT`.
+`branch-env` manages `DATABASE_URL`, `DEV_PORT`, `AGENT_DEV_PORT`, and `MAILPIT_URL`. Other keys you add survive re-runs. Delete `.env.local` and re-run `branch-env` to regenerate the managed keys. The dev server uses `DEV_PORT`, `3000` by default. Agents use `AGENT_DEV_PORT`. A worktree created before agent-dev existed needs one `bun run branch-env` run to add `AGENT_DEV_PORT` and reset `DEV_PORT` to `3000`. `validate-setup` reports the missing key.
 
-When you finish the branch, follow Teardown steps 2 and 3 below: drop the database, then run `docker compose down`. Never pass `-v` when storage is shared. Then from `trunk`, remove the worktree with `git worktree remove <path>`. Find the path with `git worktree list`.
+When you finish the branch, follow Teardown below: stop this worktree’s agent servers, drop the database, then run `docker compose down`. Never pass `-v` when storage is shared. Then from `trunk`, remove the worktree with `git worktree remove <path>`. Find the path with `git worktree list`.
 
 </details>
 
 ## Teardown
 
-1. **Kill the dev server.** Replace `<port>` with `DEV_PORT` from `.env.local`. Trunk uses `3000` by default and the next free port if it is busy:
-
-   ```sh
-   lsof -ti :<port> -sTCP:LISTEN | head -1 | xargs kill || true
-   ```
+1. **Stop the dev servers.** Press Ctrl-C in the terminal where `dev` runs. Then run `bun run agent-dev stop-all`. It stops this worktree’s agent servers and reaps orphaned workerd processes. Agents skip this step. Servers exit on their own after 15 minutes idle, so agents leave them running.
 
 2. **Drop the branch database.** The name is `wunstart_<branch>_<6hex>`, where `<branch>` is the sanitized branch name. The exact name is in `branch-env`’s plan output or in the `DATABASE_URL` value in `.env.local`. Skip this on trunk. Trunk uses the `postgres` database from `.env.development`, and you must not drop it.
 

@@ -11,6 +11,7 @@
 		"solid-js": "1.9.17"
 	},
 	"scripts": {
+		"agent-dev": "sh tools/pkg-scripts/agent-dev.sh",
 		"app-identity": "sh tools/pkg-scripts/run-ts.sh tools/setup/app-identity/main.ts",
 		"archive-old-activities": "dotenv -e .env.local -e .env -- sh tools/pkg-scripts/run-ts.sh src/scripts/archive-old-activities.ts",
 		"branch-env": "sh tools/pkg-scripts/run-ts.sh tools/setup/branch-env/main.ts",

@@ -50,7 +50,7 @@ State the concept in one or two sentences in chat before building. Test it: a co
 
 If exploration stalls or the concept fails its own test, discard the draft and restart rather than over-repairing it.
 
-Start a dev server and critique and fix the work as you build, highest impact first. Take screenshots and assess as you go — mechanics in `verify.md`.
+Start or reuse an agent dev server (`bun run agent-dev start`) and use the URL it prints; critique and fix the work as you build, highest impact first. Take screenshots and assess as you go — mechanics in `verify.md`.
 
 Explore prototypes to compare options against the concept: solo, iterate in place; genuinely open page-scale directions, run the `SKILL.md` compare flow (one agent per run) instead of stacking variants here.
 

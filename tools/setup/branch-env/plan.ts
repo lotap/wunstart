@@ -16,6 +16,7 @@ export type Plan = {
 	mailpitUrl: string
 	pm: Pm
 	database: string
+	agentDevPort: number
 	devPort: number
 	smtpPort: number
 }
@@ -24,6 +25,7 @@ type PlanInputs = {
 	pm: Pm
 	branch: string
 	dbWant: string
+	agentDevPort: number
 	devPort: number
 	planDbPort: string
 	mailpitUrlOverride: string
@@ -58,6 +60,7 @@ export function buildPlan(inputs: PlanInputs): Plan {
 		pm,
 		branch,
 		dbWant,
+		agentDevPort,
 		devPort,
 		planDbPort,
 		mailpitUrlOverride,
@@ -86,7 +89,8 @@ export function buildPlan(inputs: PlanInputs): Plan {
 	const lines: Array<string> = [
 		`  package manager: ${pm}`,
 		`  branch:          ${branch} -> database '${dbWant}'`,
-		`  dev server:      http://localhost:${devPort}${devPin !== undefined ? ' (pinned by --dev-port)' : ''}`,
+		`  human server:    http://localhost:${devPort}${devPin !== undefined ? ' (pinned by --dev-port)' : ''}`,
+		`  shared agent:    http://localhost:${agentDevPort} (idle-expires)`,
 		`  postgres:        ${postgresLine}`,
 		`  mailpit UI:      ${mailpitUrl}${httpPin !== undefined ? ' (pinned by --mailpit-port)' : ''}`,
 		`  mailpit SMTP:    :${smtpFree}`,
@@ -94,7 +98,7 @@ export function buildPlan(inputs: PlanInputs): Plan {
 		'then:            containers up, db:migrate, validate-setup gate',
 	]
 
-	return {lines, mailpitUrl, pm, database: dbWant, devPort, smtpPort: smtpFree}
+	return {lines, mailpitUrl, pm, database: dbWant, agentDevPort, devPort, smtpPort: smtpFree}
 }
 
 type ConfirmInputs = {
@@ -175,7 +179,9 @@ export function printResult(plan: Plan, extras: PrintExtras): void {
 	}
 
 	const devCmd: string = phaseCommand(plan.pm, 'dev')
+	const agentDevCmd: string = phaseCommand(plan.pm, 'agent-dev')
 	const devUrl: string = `http://localhost:${plan.devPort}`
+	const agentDevUrl: string = `http://localhost:${plan.agentDevPort}`
 	const devNote: string = plan.pm === 'bun' ? ' — never prefix dev with --bun' : ''
 
 	const dbNote: string = sameDbUrl(extras.effectiveUrl, extras.committedUrl)
@@ -187,6 +193,6 @@ export function printResult(plan: Plan, extras: PrintExtras): void {
 		: ''
 
 	console.log(
-		`\nbranch-env complete — next:\n  ${devCmd}      (${devUrl}${devNote})\n  mailpit UI       ${plan.mailpitUrl} (passcodes land here)\n  postgres         ${plan.database} on :${summaryPort(extras)}${dbNote}${smtpLine}`,
+		`\nbranch-env complete — next:\n  ${devCmd}      (${devUrl}${devNote})\n  ${agentDevCmd} start   (reuses a human server in this worktree, else shared ${agentDevUrl})\n  mailpit UI       ${plan.mailpitUrl} (passcodes land here)\n  postgres         ${plan.database} on :${summaryPort(extras)}${dbNote}${smtpLine}`,
 	)
 }

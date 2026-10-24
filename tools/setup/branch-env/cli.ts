@@ -1,6 +1,12 @@
 // Command line for branch-env: flag table, parsing, and validation.
 
 import {parseCli, rejectPositionals} from '../../helpers/cli.ts'
+import {
+	AGENT_DEV_PORT_MAX,
+	AGENT_DEV_PORT_MIN,
+	inAgentDevRange,
+	parsePort,
+} from '../../helpers/dev-ports.ts'
 import {fail} from '../../helpers/output.ts'
 import {detectPm, phaseCommand, phaseExample} from '../../helpers/package-manager.ts'
 
@@ -38,15 +44,19 @@ function usage(): void {
   the validate-setup gate. Route generation belongs to the dev/build
   server (its TanStack Start plugin regenerates routeTree.gen.ts).
 
+  Every worktree writes DEV_PORT=3000 (the human server) and claims
+  AGENT_DEV_PORT from :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX} for agents.
+
   examples:
-    ${phaseExample(pm, 'branch-env')}                   provision this checkout, then serve its port
+    ${phaseExample(pm, 'branch-env')}                   provision this checkout, then serve :3000
     ${phaseExample(pm, 'branch-env', ['--dry-run'])}         show the plan without changing anything
     ${phaseExample(pm, 'branch-env', ['--yes'])}             never prompt (CI and agents)
-    ${phaseExample(pm, 'branch-env', ['--dev-port', '3199'])}   pin the dev server to :3199 (fails when taken)
+    ${phaseExample(pm, 'branch-env', ['--dev-port', '3200'])}   pin the human server to :3200 (rare; fails when taken)
 
-  --dev-port <port>       pin the dev server to this port (fails when taken)
+  --dev-port <port>       pin the human server to this port outside :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX}
+                          (fails when taken; rare override for two human worktrees)
   --postgres-port <port>  pin our own postgres to this port (fails when taken)
-  --mailpit-port <port>   pin the mailpit UI to this port (fails when taken)
+  --mailpit-port <port>   pin the mailpit UI to this port (fails when taken; SMTP is auto-selected)
   --dry-run, -n           print the plan and exit before changing anything
   --yes, -y               accept all defaults without prompting (required when non-interactive)
   --quiet, -q             silence progress, plans, summaries, and child output on success (warnings, failures, and dry-run/confirmation plans still print)
@@ -70,9 +80,9 @@ function parsePortFlag(raw: string | undefined, flag: string): number | undefine
 		return undefined
 	}
 
-	const port: number = Number(raw)
+	const port: number | null = parsePort(raw)
 
-	if (!Number.isInteger(port) || port < 1 || port > 65535) {
+	if (port === null) {
 		fail(`invalid ${flag} ${JSON.stringify(raw)}`, `pass ${flag} <1-65535>`, 2)
 	}
 
@@ -84,8 +94,20 @@ export function parseCliArgs(argv: Array<string>): CliConfig {
 	const {values, positionals} = parseCli(argv, CLI_OPTIONS, usage)
 	rejectPositionals(positionals, 'this program takes flags only (see --help)')
 
+	const devPort: number | undefined = parsePortFlag(values['dev-port'], '--dev-port')
+
+	// The agent range is the safety boundary: no human port inside it, so
+	// agent cleanup can never touch a human server.
+	if (devPort !== undefined && inAgentDevRange(devPort)) {
+		fail(
+			`--dev-port :${devPort} is inside the agent-only range :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX}`,
+			`pin the human server outside :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX} (every worktree defaults to :3000)`,
+			2,
+		)
+	}
+
 	return {
-		devPort: parsePortFlag(values['dev-port'], '--dev-port'),
+		devPort,
 		postgresPort: parsePortFlag(values['postgres-port'], '--postgres-port'),
 		mailpitPort: parsePortFlag(values['mailpit-port'], '--mailpit-port'),
 		yes: values.yes ?? false,
