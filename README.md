@@ -68,6 +68,7 @@ Clone it, rename it, and start building.
 ### Prerequisites
 
 - A JavaScript runtime and package manager: [Bun](https://bun.sh) 1.x, the default runtime and package manager, [Nub](https://nubjs.com/docs), a runtime and package manager, or [Node](https://nodejs.org/en) 22.18+ with one of [npm](https://www.npmjs.com/), [yarn](https://yarnpkg.com/), [pnpm](https://pnpm.io/), or [aube](https://aube.sh).
+  > If you have a Bun-only setup, you will need to manually update the `opencode.json` file to use `bunx` instead of `npx` for MCP servers.
 - [Docker](https://www.docker.com/products/docker-desktop/) installed and running. It starts Postgres and Mailpit through `docker compose`.
 - Rust and the `wasm32-unknown-unknown` target are optional. You need them only if you edit `crates/` for the auth hasher. The compiled wasm kernel is committed, so no other build needs Rust.
 
