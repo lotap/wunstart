@@ -3,7 +3,7 @@ import {useServerFn} from '@tanstack/react-start'
 
 import {userProfileQueryOptions} from '#/components/auth/_utils.ts'
 import {EmailChangeDrawer} from '#/components/auth/email-change.tsx'
-import {ErrorBoundary} from '#/components/error-boundary.tsx'
+import {ErrorBoundary} from '#/components/global/error-boundary.tsx'
 import {Field, FieldContent, FieldLabel} from '#/components/ui/field.tsx'
 import {Skeleton} from '#/components/ui/skeleton.tsx'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'

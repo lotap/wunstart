@@ -6,4 +6,4 @@
 export const appInfo = {
 	name: 'wunstart',
 	description: 'Build on primitives that you can read and your agent can extend. A starter that’s fast, opinionated, and promptable.',
-}
+} as const

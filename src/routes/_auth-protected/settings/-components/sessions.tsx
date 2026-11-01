@@ -2,7 +2,7 @@ import {queryOptions, useQuery} from '@tanstack/react-query'
 import {useServerFn} from '@tanstack/react-start'
 import type {ReactNode} from 'react'
 
-import {ErrorBoundary} from '#/components/error-boundary.tsx'
+import {ErrorBoundary} from '#/components/global/error-boundary.tsx'
 import {Button} from '#/components/ui/button.tsx'
 import {Spinner} from '#/components/ui/spinner.tsx'
 import {useSignOutAll} from '#/hooks/use-sign-out-all.ts'

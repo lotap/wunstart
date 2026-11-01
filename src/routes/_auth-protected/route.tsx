@@ -9,6 +9,7 @@ import {createFileRoute, redirect, Outlet} from '@tanstack/react-router'
 import {HasSudoProvider} from '#/contexts/has-sudo.tsx'
 
 export const Route = createFileRoute('/_auth-protected')({
+	staticData: {audience: 'internal'},
 	beforeLoad: async ({context: {auth}, location}) => {
 		if (!auth) {
 			throw redirect({

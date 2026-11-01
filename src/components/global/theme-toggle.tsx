@@ -1,15 +1,14 @@
 import {Moon, Sun} from 'lucide-react'
 
 import {Button} from '#/components/ui/button.tsx'
+import {Skeleton} from '#/components/ui/skeleton.tsx'
 import {Tooltip, TooltipContent, TooltipTrigger} from '#/components/ui/tooltip.tsx'
 import {useTheme, type ThemeContextState} from '#/contexts/theme.tsx'
-
-import {Skeleton} from './ui/skeleton.tsx'
 
 const toggleResolved = (resolved: ThemeContextState['resolved']) =>
 	resolved === 'light' ? 'dark' : 'light'
 
-export default function ThemeToggle() {
+export default function ThemeToggle({size = 'icon-lg'}: {size?: 'icon-sm' | 'icon-lg'}) {
 	const {theme, resolved, setTheme} = useTheme()
 
 	if (!theme) return <Skeleton className="size-9" />
@@ -26,7 +25,7 @@ export default function ThemeToggle() {
 					<Button
 						variant="ghost"
 						onClick={toggleMode}
-						size="icon-lg"
+						size={size}
 						aria-label={`Switch to: ${toggleResolved(resolved)} Mode`}
 					>
 						{resolved === 'dark' && <Moon />}

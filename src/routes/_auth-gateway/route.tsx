@@ -5,6 +5,7 @@
 import {createFileRoute, redirect, Outlet} from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_auth-gateway')({
+	staticData: {audience: 'external'},
 	beforeLoad: async ({context: {auth}}) => {
 		if (auth) throw redirect({to: '/'})
 	},

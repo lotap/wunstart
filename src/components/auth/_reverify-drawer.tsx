@@ -4,7 +4,7 @@ import {useServerFn} from '@tanstack/react-start'
 import {Schema} from 'effect'
 import {useEffect, useState, type Dispatch, type SetStateAction} from 'react'
 
-import {AsyncBoundary} from '#/components/async-boundary.tsx'
+import {AsyncBoundary} from '#/components/global/async-boundary.tsx'
 import {Button} from '#/components/ui/button.tsx'
 import {
 	Drawer,

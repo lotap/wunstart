@@ -5,7 +5,7 @@ import {Schema} from 'effect'
 import {Edit} from 'lucide-react'
 import {lazy, useEffect, useState} from 'react'
 
-import {AsyncBoundary} from '#/components/async-boundary.tsx'
+import {AsyncBoundary} from '#/components/global/async-boundary.tsx'
 import {Button} from '#/components/ui/button.tsx'
 import {
 	Drawer,

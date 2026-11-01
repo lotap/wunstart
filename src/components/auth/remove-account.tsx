@@ -2,7 +2,7 @@ import {useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 import {lazy, useEffect, useState} from 'react'
 
-import {AsyncBoundary} from '#/components/async-boundary.tsx'
+import {AsyncBoundary} from '#/components/global/async-boundary.tsx'
 import {Button} from '#/components/ui/button.tsx'
 import {
 	Drawer,

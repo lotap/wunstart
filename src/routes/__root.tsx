@@ -1,17 +1,26 @@
 import {TanStackDevtools} from '@tanstack/react-devtools'
 import {formDevtoolsPlugin} from '@tanstack/react-form-devtools'
 import type {QueryClient} from '@tanstack/react-query'
-import {HeadContent, Scripts, createRootRouteWithContext} from '@tanstack/react-router'
+import {
+	HeadContent,
+	Scripts,
+	createRootRouteWithContext,
+	getRouteApi,
+	isNotFound,
+	useMatches,
+} from '@tanstack/react-router'
 import {TanStackRouterDevtoolsPanel} from '@tanstack/react-router-devtools'
 import {cva} from 'class-variance-authority'
 
 import {appInfo} from '#/app-info.ts'
-import {Footer} from '#/components/footer.tsx'
-import {Header} from '#/components/header.tsx'
-import {RouteError} from '#/components/route-error.tsx'
+import {Footer} from '#/components/global/footer/footer.tsx'
+import {Header} from '#/components/global/header.tsx'
+import {NotFound} from '#/components/global/status-pages/not-found.tsx'
+import {RouteError} from '#/components/global/status-pages/route-error.tsx'
 import {Toaster} from '#/components/ui/toast.tsx'
 import {TooltipProvider} from '#/components/ui/tooltip.tsx'
 import {ThemeProvider, useTheme} from '#/contexts/theme.tsx'
+import {resolveAudience, type AudienceDeclaration} from '#/lib/resolve-audience.ts'
 import {handleVerifyAuth} from '#/server-fns/handle-verify-auth.ts'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools.tsx'
@@ -26,46 +35,73 @@ interface MyRouterContext {
 	} | null
 }
 
+type NotFoundMatch = {
+	status: string
+	_notFound?: boolean
+	error?: unknown
+}
+
+/**
+ * The router keeps `status: 'success'` for an unmatched global path and marks it
+ * with `_notFound`; route-level not-found errors use `status: 'notFound'`.
+ */
+function hasNotFound(matches: ReadonlyArray<NotFoundMatch>): boolean {
+	return matches.some(
+		(match) => match.status === 'notFound' || match._notFound === true || isNotFound(match.error),
+	)
+}
+
+function hasError(matches: ReadonlyArray<NotFoundMatch>): boolean {
+	return matches.some((match) => match.status === 'error')
+}
+
 export const Route = createRootRouteWithContext<MyRouterContext>()({
 	beforeLoad: async () => {
 		const auth = await handleVerifyAuth()
 
 		return {auth}
 	},
-	head: () => ({
-		meta: [
-			{
-				charSet: 'utf-8',
-			},
-			{
-				name: 'viewport',
-				content: 'width=device-width, initial-scale=1',
-			},
-			{
-				name: 'description',
-				content: appInfo.description,
-			},
-			{
-				title: appInfo.name,
-			},
-		],
-		links: [
-			{
-				rel: 'stylesheet',
-				href: appCss,
-			},
-		],
-		scripts: [{src: '/theme-init.js'}],
-	}),
+	head: ({matches}) => {
+		const notFound = hasNotFound(matches)
+		const error = hasError(matches)
+
+		return {
+			meta: [
+				{
+					charSet: 'utf-8',
+				},
+				{
+					name: 'viewport',
+					content: 'width=device-width, initial-scale=1',
+				},
+				{
+					name: 'description',
+					content: appInfo.description,
+				},
+				...(notFound || error ? [{name: 'robots', content: 'noindex'}] : []),
+				{
+					title: notFound
+						? `Page not found | ${appInfo.name}`
+						: error
+							? `Something went wrong | ${appInfo.name}`
+							: appInfo.name,
+				},
+			],
+			links: [
+				{
+					rel: 'stylesheet',
+					href: appCss,
+				},
+			],
+			scripts: [{src: '/theme-init.js'}],
+		}
+	},
 	errorComponent: RouteError,
-	notFoundComponent: () => (
-		<div className="container mx-auto p-4 pt-16">
-			<h1>404</h1>
-			<p>The requested page could not be found.</p>
-		</div>
-	),
+	notFoundComponent: NotFound,
 	shellComponent: App,
 })
+
+const rootApi = getRouteApi('__root__')
 
 const documentVariants = cva('h-full', {
 	variants: {
@@ -78,6 +114,20 @@ const documentVariants = cva('h-full', {
 
 function RootDocument({children}: {children: React.ReactNode}) {
 	const {resolved} = useTheme()
+	const {auth} = rootApi.useRouteContext()
+	const matches = useMatches()
+
+	const declaredAudience = matches.reduceRight<AudienceDeclaration | undefined>(
+		(found, match) => found ?? match.staticData.audience,
+		undefined,
+	)
+
+	const notFound = hasNotFound(matches)
+
+	const audience = resolveAudience(
+		declaredAudience ?? (notFound ? 'adaptive' : undefined),
+		Boolean(auth),
+	)
 
 	return (
 		<html lang="en" suppressHydrationWarning className={documentVariants({theme: resolved})}>
@@ -88,7 +138,7 @@ function RootDocument({children}: {children: React.ReactNode}) {
 				<TooltipProvider>
 					<Header />
 					<main className="shrink-0 grow basis-auto">{children}</main>
-					<Footer />
+					<Footer audience={audience} />
 					<Toaster />
 					<TanStackDevtools
 						config={{

@@ -3,7 +3,7 @@ import {cn} from 'cn'
 import {ChevronDown} from 'lucide-react'
 import {useState, type ComponentType, type CSSProperties} from 'react'
 
-import {RouterButton} from '#/components/router-button.tsx'
+import {RouterButton} from '#/components/global/router-button.tsx'
 import {Card, CardAction, CardContent, CardHeader, CardTitle} from '#/components/ui/card.tsx'
 
 import {CATEGORIES, type CategoryId} from '../-categories.ts'

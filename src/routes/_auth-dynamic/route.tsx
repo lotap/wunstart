@@ -7,6 +7,7 @@ import {createFileRoute, Outlet} from '@tanstack/react-router'
 import {HasSudoProvider} from '#/contexts/has-sudo.tsx'
 
 export const Route = createFileRoute('/_auth-dynamic')({
+	staticData: {audience: 'adaptive'},
 	beforeLoad: async ({context: {auth}}) => {
 		return {auth}
 	},
