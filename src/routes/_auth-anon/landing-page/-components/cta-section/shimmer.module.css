@@ -1,0 +1,40 @@
+/* A conic gradient rotates behind a 1px frame and shows only along the edge. */
+.shimmer::before {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	z-index: 0;
+	width: 220%;
+	aspect-ratio: 1;
+	pointer-events: none;
+	background-image: conic-gradient(
+		from 0deg at 50% 50%,
+		var(--muted-foreground) 0deg,
+		var(--border) 45deg,
+		var(--border) 135deg,
+		var(--muted-foreground) 180deg,
+		var(--border) 225deg,
+		var(--border) 315deg,
+		var(--muted-foreground) 1turn
+	);
+	transform: translate(-50%, -50%) rotate(45deg);
+	animation: shimmer-spin 10s linear infinite;
+	will-change: transform;
+}
+
+@keyframes shimmer-spin {
+	from {
+		transform: translate(-50%, -50%) rotate(45deg);
+	}
+
+	to {
+		transform: translate(-50%, -50%) rotate(405deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.shimmer::before {
+		animation: none;
+	}
+}

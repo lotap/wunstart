@@ -1,0 +1,82 @@
+.mask {
+	mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.35) 0%, rgb(0 0 0 / 0.35) 45%, black 75%);
+	-webkit-mask-image: linear-gradient(
+		to bottom,
+		rgb(0 0 0 / 0.35) 0%,
+		rgb(0 0 0 / 0.35) 45%,
+		black 75%
+	);
+}
+
+@media (min-width: 64rem) {
+	.mask {
+		mask-image: linear-gradient(
+			to right,
+			black 0%,
+			black 42%,
+			rgb(0 0 0 / 0.3) 68%,
+			rgb(0 0 0 / 0.3) 100%
+		);
+		-webkit-mask-image: linear-gradient(
+			to right,
+			black 0%,
+			black 42%,
+			rgb(0 0 0 / 0.3) 68%,
+			rgb(0 0 0 / 0.3) 100%
+		);
+	}
+}
+
+/* Hint that points from the right side of the copy button into it. The
+   resting state and its transition live on the element; the module owns the
+   bounce and the panel-state rules that drive it. */
+[data-ready='true'] .copyHint {
+	opacity: 1;
+	translate: 0;
+	animation: copy-hint-bounce 2.4s ease-in-out 300ms 2 both;
+}
+
+/* Stop the bounce while the panel exits; the panel’s opacity fades the hint. */
+[data-exiting='true'] .copyHint {
+	animation: none;
+}
+
+/* Pause the attention loop while the prompt is being read or used. */
+[data-cta-panel]:has([data-slot='code-block']:hover) .copyHint,
+[data-cta-panel]:has([data-slot='code-block']:focus-within) .copyHint {
+	animation-play-state: paused;
+}
+
+@keyframes copy-hint-bounce {
+	0%,
+	58%,
+	100% {
+		translate: 0;
+	}
+
+	66% {
+		translate: -16px;
+	}
+
+	72% {
+		translate: -4px;
+	}
+
+	78% {
+		translate: -16px;
+	}
+
+	86% {
+		translate: -1px;
+	}
+
+	94% {
+		translate: 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	[data-ready='true'] .copyHint {
+		animation: none;
+	}
+}
