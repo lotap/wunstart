@@ -1,0 +1,20 @@
+/* Keep the shader calm behind the display copy without attaching an overlay
+   or a shadow to the moving text. */
+.mask {
+	mask-image: linear-gradient(
+		to bottom,
+		rgb(0 0 0 / 0.35) 0%,
+		rgb(0 0 0 / 0.35) 22%,
+		rgb(0 0 0 / 0.55) 48%,
+		rgb(0 0 0 / 0.55) 62%,
+		black 86%
+	);
+	-webkit-mask-image: linear-gradient(
+		to bottom,
+		rgb(0 0 0 / 0.35) 0%,
+		rgb(0 0 0 / 0.35) 22%,
+		rgb(0 0 0 / 0.55) 48%,
+		rgb(0 0 0 / 0.55) 62%,
+		black 86%
+	);
+}
