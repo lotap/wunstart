@@ -1,7 +1,7 @@
 import {useLocation} from '@tanstack/react-router'
 import {lazy} from 'react'
 
-import {AsyncBoundary} from './async-boundary.tsx'
+import {AsyncBoundary} from '#/components/global/async-boundary.tsx'
 
 const WelcomeDrawerContent = lazy(() =>
 	import('./welcome-drawer.tsx').then((m) => ({default: m.WelcomeDrawer})),

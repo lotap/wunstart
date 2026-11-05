@@ -2,8 +2,8 @@ import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
 import {useRouter} from '@tanstack/react-router'
 import {useEffect, useState} from 'react'
 
-import {ChangePasswordForm} from './auth/password-change.tsx'
-import {Button} from './ui/button.tsx'
+import {ChangePasswordForm} from '#/components/auth/password-change.tsx'
+import {Button} from '#/components/ui/button.tsx'
 import {
 	Drawer,
 	DrawerClose,
@@ -12,7 +12,7 @@ import {
 	DrawerFooter,
 	DrawerHeader,
 	DrawerTitle,
-} from './ui/drawer.tsx'
+} from '#/components/ui/drawer.tsx'
 
 export function WelcomeDrawer() {
 	const router = useRouter()
