@@ -1,0 +1,190 @@
+import {ExternalDocLink} from '#/components/global/external-doc-link.tsx'
+
+import {recommendedSkills, skillGroups} from '../../-content/agents.ts'
+import {CodeBlock} from '../code-block.tsx'
+import {PanelReferences} from '../doc-links.tsx'
+import {InlineCode, PanelHeader, PanelSection} from '../doc-ui.tsx'
+
+const totalSkills = skillGroups.reduce((total, group) => total + group.skills.length, 0)
+
+const projectSkillCount = skillGroups
+	.filter((group) => group.owned)
+	.reduce((total, group) => total + group.skills.length, 0)
+
+export function AgentsOverviewPanel() {
+	return (
+		<>
+			<PanelHeader
+				title="Agents overview"
+				description="The context files and skills agents read before changing this repo."
+			/>
+
+			<dl className="mt-8 grid gap-4 sm:grid-cols-2">
+				<div className="flex flex-col gap-1 border-t pt-3">
+					<dt>
+						<code className="font-mono text-sm text-foreground">AGENTS.md</code>
+					</dt>
+					<dd className="text-sm leading-relaxed text-muted-foreground">
+						The commands, hard rules, and verification steps for working in this repo. Agents read
+						it first; it is the best place to see how changes are expected to land.
+					</dd>
+				</div>
+				<div className="flex flex-col gap-1 border-t pt-3">
+					<dt>
+						<code className="font-mono text-sm text-foreground">CONTEXT.md</code>
+					</dt>
+					<dd className="text-sm leading-relaxed text-muted-foreground">
+						The product glossary. Add domain terms here so copy, code, and agents use the same
+						language as the app grows.
+					</dd>
+				</div>
+			</dl>
+
+			<section aria-labelledby="skills-included" className="mt-8">
+				<div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+					<div className="flex flex-col gap-1">
+						<h5 id="skills-included" className="text-lg font-medium">
+							Skills included
+						</h5>
+						<p className="max-w-2xl text-sm text-muted-foreground">
+							Plain Markdown, grouped by the work they cover. The project skills are maintained
+							here; everything else is a vendored reference.
+						</p>
+					</div>
+					<p className="shrink-0 font-mono text-xs text-muted-foreground">
+						{totalSkills} skills · {projectSkillCount} project-owned
+					</p>
+				</div>
+
+				<div className="mt-5 overflow-hidden rounded-xl border bg-muted/20">
+					{skillGroups.map((group) => (
+						<section
+							key={group.title}
+							aria-label={group.title}
+							className="border-t first:border-t-0"
+						>
+							<header className="flex flex-col gap-1 bg-muted/30 px-5 py-4">
+								<div className="flex items-baseline justify-between gap-3">
+									<h6 className="text-sm font-medium">{group.title}</h6>
+									<span className="font-mono text-xs text-muted-foreground">
+										{group.skills.length} skills
+									</span>
+								</div>
+								<p className="text-sm text-muted-foreground">{group.description}</p>
+							</header>
+							<ul>
+								{group.skills.map((skill) => (
+									<li
+										key={skill.name}
+										className="grid gap-1 border-t px-5 py-3 sm:grid-cols-[13rem_1fr] sm:gap-4"
+									>
+										<div className="flex flex-wrap items-center gap-2">
+											<code className="font-mono text-sm text-foreground">{skill.name}</code>
+											{skill.badge && (
+												<span className="rounded-full border px-2 py-0.5 font-mono text-xs text-muted-foreground">
+													{skill.badge}
+												</span>
+											)}
+										</div>
+										<p className="text-sm leading-relaxed text-muted-foreground">
+											{skill.description}
+										</p>
+									</li>
+								))}
+							</ul>
+						</section>
+					))}
+				</div>
+			</section>
+
+			<PanelSection
+				id="using-skills"
+				title="Using skills.sh"
+				description={
+					<>
+						The <ExternalDocLink href="https://www.skills.sh/docs/cli">skills CLI</ExternalDocLink>{' '}
+						installs and refreshes the Markdown files under <InlineCode>.agents/skills</InlineCode>.
+						Add a collection by its repository, or pick one skill from it.
+					</>
+				}
+			>
+				<div className="grid gap-4 lg:grid-cols-2">
+					<div className="flex flex-col gap-3">
+						<p className="text-sm font-medium">Install</p>
+						<CodeBlock
+							code="npx skills add <owner>/<repo>"
+							label="Install a collection"
+							language="bash"
+						/>
+						<p className="text-sm leading-relaxed text-muted-foreground">
+							Installs every skill in the repository.
+						</p>
+					</div>
+
+					<div className="flex flex-col gap-3">
+						<p className="text-sm font-medium">Update</p>
+						<CodeBlock
+							code={`npx skills check\nnpx skills update`}
+							label="Check and update"
+							language="bash"
+						/>
+						<p className="text-sm leading-relaxed text-muted-foreground">
+							<InlineCode>check</InlineCode> lists managed skills that have drifted;{' '}
+							<InlineCode>update</InlineCode> rewrites them. Pass a skill name to update one. Review
+							the diff before committing.
+						</p>
+					</div>
+				</div>
+
+				<div className="mt-4 flex flex-col gap-3">
+					<p className="text-sm leading-relaxed text-muted-foreground">
+						Add one skill from a collection with <InlineCode>--skill</InlineCode>:
+					</p>
+					<CodeBlock
+						code={`npx skills add <owner>/<repo> \\\n  --skill <name>`}
+						label="Install one skill"
+						language="bash"
+					/>
+				</div>
+
+				<p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+					Skills are instructions an agent will follow. Review new and updated files before running
+					them.
+				</p>
+
+				<div className="mt-5 rounded-xl border bg-muted/20 p-4">
+					<p className="text-sm font-medium">Owned vs. managed</p>
+					<p className="mt-1 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+						Edit <InlineCode>wunstart</InlineCode> and <InlineCode>wunshot</InlineCode> here. Every
+						other skill is managed by skills.sh; local edits are replaced on{' '}
+						<InlineCode>update</InlineCode>, so send fixes upstream instead.
+					</p>
+				</div>
+			</PanelSection>
+
+			<PanelSection
+				id="recommended-skills"
+				title="Recommended skills"
+				description="External skill sources. None are installed by default."
+			>
+				<ul className="grid gap-3 sm:grid-cols-2">
+					{recommendedSkills.map((skill) => (
+						<li key={skill.name} className="flex flex-col gap-1 rounded-xl border bg-muted/20 p-4">
+							<ExternalDocLink href={skill.href}>
+								<code className="font-mono text-sm">{skill.name}</code>
+							</ExternalDocLink>
+							<p className="text-sm leading-relaxed text-muted-foreground">{skill.description}</p>
+						</li>
+					))}
+				</ul>
+			</PanelSection>
+
+			<PanelReferences
+				links={[
+					{label: 'skills CLI docs', href: 'https://www.skills.sh/docs/cli'},
+					{label: 'skills.sh directory', href: 'https://www.skills.sh/'},
+				]}
+			/>
+		</>
+	)
+}

@@ -164,6 +164,23 @@
 	}
 }
 
+@layer components {
+	/* https://pele.run/theming */
+	.pele {
+		--pele-bg: transparent;
+		--pele-fg: var(--foreground);
+		--pele-muted: var(--muted-foreground);
+		--pele-line: var(--muted-foreground);
+		--pele-surface: var(--muted);
+		--pele-surface-alt: transparent;
+		--pele-border: var(--muted-foreground);
+		--pele-accent: var(--foreground);
+		--pele-font: var(--font-sans);
+		--pele-font-mono: var(--font-mono);
+		--pele-radius: var(--radius-md);
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	::view-transition-group(*),
 	::view-transition-old(*),
