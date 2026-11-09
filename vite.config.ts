@@ -1,4 +1,5 @@
 import {execFileSync} from 'node:child_process'
+import path from 'node:path'
 
 import {cloudflare} from '@cloudflare/vite-plugin'
 import babel from '@rolldown/plugin-babel'
@@ -16,6 +17,16 @@ const AGENT_DEV_IDLE_DEFAULT_MS = 15 * 60 * 1000
 
 /** How long a wedged close gets before the idle plugin forces the process out. */
 const AGENT_DEV_FORCE_EXIT_MS = 5000
+
+/**
+ * Production builds generate a second route tree without dev-only routes. The
+ * committed tree stays dev-complete; the router import is redirected only for
+ * production builds.
+ */
+const PRODUCTION_ROUTE_TREE = '../.tanstack/routeTree.prod.gen.ts'
+const PRODUCTION_ROUTE_TREE_PATH = path.resolve(import.meta.dirname, '.tanstack/routeTree.prod.gen.ts')
+const DEV_ROUTE_TREE_IMPORT = './routeTree.gen.ts'
+const ROUTER_PATH = path.resolve(import.meta.dirname, 'src/router.tsx')
 
 /**
  * Idle window from `AGENT_DEV_IDLE_MS`; invalid or non-positive values fall
@@ -164,11 +175,29 @@ function serveTarget(): ServeTarget {
 }
 
 /**
+ * Redirect the router's dev route tree import to the production tree generated
+ * without dev-only routes. Vite resolves this before the normal file lookup.
+ */
+function productionRouteTreePlugin(): Plugin {
+	return {
+		name: 'wunstart-production-route-tree',
+		enforce: 'pre',
+		resolveId(source, importer) {
+			if (source === DEV_ROUTE_TREE_IMPORT && importer === ROUTER_PATH) {
+				return PRODUCTION_ROUTE_TREE_PATH
+			}
+
+			return undefined
+		},
+	}
+}
+
+/**
  * Agent servers get their own Cloudflare local state (one directory per
  * port) so fresh servers do not share Durable Object or KV state. Humans
  * keep `.wrangler/state`; the idle plugin never applies to them.
  */
-function createPlugins(agentPort?: number): Array<PluginOption> {
+function createPlugins(agentPort?: number, excludeDevRoutes = false): Array<PluginOption> {
 	const persistState = agentPort === undefined ? undefined : {path: `.wrangler/agent-state/${agentPort}`}
 
 	return [
@@ -176,7 +205,16 @@ function createPlugins(agentPort?: number): Array<PluginOption> {
 		cloudflare({viteEnvironment: {name: 'ssr'}, ...(persistState === undefined ? {} : {persistState})}),
 		tailwindcss(),
 		...(agentPort === undefined ? [] : [agentIdlePlugin()]),
-		tanstackStart(),
+		tanstackStart(
+			excludeDevRoutes
+				? {
+						router: {
+							generatedRouteTree: PRODUCTION_ROUTE_TREE,
+							routeFileIgnorePattern: '^_dev$',
+						},
+					}
+				: undefined,
+		),
 		react(),
 		babel({
 			presets: [reactCompilerPreset()],
@@ -184,22 +222,24 @@ function createPlugins(agentPort?: number): Array<PluginOption> {
 	]
 }
 
-function base(plugins: Array<PluginOption>) {
+function base(plugins: Array<PluginOption>, excludeDevRoutes = false) {
 	return {
 		resolve: {tsconfigPaths: true},
 		assetsInclude: ['**/*.wasm'],
-		plugins,
+		plugins: excludeDevRoutes ? [productionRouteTreePlugin(), ...plugins] : plugins,
 	}
 }
 
-const config = defineConfig(({command}) => {
+const config = defineConfig(({command, mode}) => {
+	const excludeDevRoutes = command === 'build' && mode !== 'development'
+
 	// The port only matters for the dev server and preview; builds ignore it.
-	if (command !== 'serve') return base(createPlugins())
+	if (command !== 'serve') return base(createPlugins(undefined, excludeDevRoutes), excludeDevRoutes)
 
 	const {agent, port} = serveTarget()
 
 	return {
-		...base(createPlugins(agent ? port : undefined)),
+		...base(createPlugins(agent ? port : undefined, excludeDevRoutes), excludeDevRoutes),
 		server: {watch: {ignored: ['**/.tmp/**']}, port, strictPort: true},
 		preview: {port, strictPort: true},
 	}
