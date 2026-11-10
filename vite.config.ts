@@ -226,6 +226,7 @@ function base(plugins: Array<PluginOption>, excludeDevRoutes = false) {
 	return {
 		resolve: {tsconfigPaths: true},
 		assetsInclude: ['**/*.wasm'],
+		envPrefix: ['VITE_', 'MAILPIT_URL'],
 		plugins: excludeDevRoutes ? [productionRouteTreePlugin(), ...plugins] : plugins,
 	}
 }

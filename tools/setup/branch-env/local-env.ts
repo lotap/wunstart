@@ -15,8 +15,9 @@ import {refreshChildEnv} from './process.ts'
 /**
  * Fixed list (not managed.keys()): a key must be dropped from kept lines
  * even on runs where it is not written (DATABASE_URL may already match the
- * committed URL; MAILPIT_URL is only pinned when shifted). If branch-env
- * manages a new key, add it here.
+ * committed URL). MAILPIT_URL is always written, including the default port,
+ * because client-side inbox links read it. If branch-env manages a new key,
+ * add it here.
  */
 const MANAGED_ENV_KEYS: Set<string> = new Set([
 	'AGENT_DEV_PORT',

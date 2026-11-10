@@ -300,7 +300,7 @@ async function checkMailpit(env: Map<string, string>, pm: Pm | null): Promise<Ch
 			name: 'mailpit',
 			status: 'fail',
 			detail: `MAILPIT_URL does not parse as a URL: ${raw}`,
-			hint: `fix it in .env.local (override) — branch-env pins it only when shifted from :${MAILPIT_HTTP_WANT}`,
+			hint: `fix it in .env.local (override) or re-run branch-env to rewrite the managed URL (compose default :${MAILPIT_HTTP_WANT})`,
 		}
 	}
 
