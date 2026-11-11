@@ -14,7 +14,7 @@ export const Route = createFileRoute('/_auth-gateway/sign-in')({
 
 function App() {
 	return (
-		<section className="flex h-full flex-col justify-center">
+		<section className="flex min-h-svh flex-col justify-center">
 			<div>
 				<SignInForm />
 			</div>

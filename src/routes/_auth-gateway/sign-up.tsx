@@ -6,7 +6,7 @@ export const Route = createFileRoute('/_auth-gateway/sign-up')({component: App})
 
 function App() {
 	return (
-		<section className="flex h-full flex-col justify-center">
+		<section className="flex min-h-svh flex-col justify-center">
 			<SignUpForm />
 		</section>
 	)
