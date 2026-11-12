@@ -23,7 +23,7 @@ Client never sends or receives db ids; server fns unwrap cookie identity (conven
 - Argon2 DO + wasm kernel: `references/hashing.md`
 - Email verification, transports, deliverable vs notification: `references/email.md`
 - Middleware chain, identity table, dynamic-import landmine, server-fn shape: `references/middleware.md`
-- Routes, `_auth-*` guards, forms, shadcn, compiler, runtime layers: `references/app.md`
+- Routes, `_auth-*` guards, component placement, forms, shadcn, compiler, styling (including page-specific CSS modules), runtime layers: `references/app.md`
 - Visual contract — every visual decision bends to it; load for any visual work: `references/design/contract.md`
 - Page-craft process — scope ladder (page / section / cosmetic), repo discovery, missing-facts protocol: `references/design/process.md`
 - Design depth by concern — copy: `references/design/copy.md`; layout, type, color, depth: `references/design/visual.md`; motion and interaction: `references/design/motion.md`; final gate (page/section): `references/design/verify.md`
