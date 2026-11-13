@@ -8,6 +8,10 @@ The vocabulary below is the built app’s glossary: the words to use in copy and
 A visitor with no account. Carries a durable anonymous identity, and becomes a User at sign-up.
 _Avoid_: Guest
 
+**Audience**:
+Which surface a page serves: `external` for marketing, landing, and auth pages; `internal` for the signed-in app and developer docs. Route metadata declares it, and the root shell chooses the matching header and footer. The home route is adaptive: external for Anons, internal for Users. An unmatched URL resolves as adaptive for its 404; a not-found or error thrown inside a matched route keeps that route’s audience.
+_Avoid_: Surface, chrome
+
 **User**:
 A person with an account: the identity behind sign-in and the subject of bans. Code and models say User; product copy may say “account”.
 

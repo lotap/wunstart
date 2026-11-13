@@ -69,7 +69,7 @@ Clone it, rename it, and start building.
 
 - A JavaScript runtime and package manager: [Bun](https://bun.sh) 1.x, the default runtime and package manager, [Nub](https://nubjs.com/docs), a runtime and package manager, or [Node](https://nodejs.org/en) 22.18+ with one of [npm](https://www.npmjs.com/), [yarn](https://yarnpkg.com/), [pnpm](https://pnpm.io/), or [aube](https://aube.sh).
   > If you have a Bun-only setup, you will need to manually update the `opencode.json` file to use `bunx` instead of `npx` for MCP servers.
-- [Docker](https://www.docker.com/products/docker-desktop/) installed and running. It starts Postgres and Mailpit through `docker compose`.
+- [Docker Engine](https://docs.docker.com/engine/install/) with [Compose](https://docs.docker.com/compose/install/) installed and running. Docker Desktop, OrbStack, or another Docker-compatible runtime works. It starts Postgres and Mailpit through `docker compose`.
 - Rust and the `wasm32-unknown-unknown` target are optional. You need them only if you edit `crates/` for the auth hasher. The compiled wasm kernel is committed, so no other build needs Rust.
 
 ### Clone
@@ -194,6 +194,8 @@ The repo has some automated processes designed to make development easier. But t
 
 After setup, wunstart works like any other [TanStack Start](https://tanstack.com/start/latest) project.
 
+**Read the in-repo docs.** With the dev server running, open `/docs`. It covers the stack, the local services (Mailpit, Drizzle Studio), and the auth features. The page is dev-only — production builds omit the route and tree-shake the page implementation — so extend it freely: add a feature entry in `src/routes/_dev/docs/-content/features.ts` and its panel in `src/routes/_dev/docs/-components/`. Keep getting-the-checkout-running steps in this README and agent rules in `.agents/skills`; `/docs` describes the app you are building.
+
 Example prompts for agents:
 
 - Add my logo to the navbar
@@ -205,7 +207,7 @@ Example prompts for agents:
 
 There is no product test suite yet.
 
-Run `bun run fmt`, `bun run lint:check`, and `bunx tsc --noEmit` to format and check new code.
+Run `bun run check` for the full compliance gate: `fmt:check`, `lint:check`, `lint:tailwind`, `bunx tsc --noEmit`, and `db:check`, in that order and fail-fast. Run `bun run fmt` first to apply formatting.
 
 Linter rule tests run with `bun run test:lint`. Run them when you edit linter rules.
 
@@ -337,8 +339,10 @@ crates/
 └── argon2-do-hasher/          # Rust/Wasm Argon2id kernel for AuthHasher DO
 src/
 ├── components/
+│   ├── architecture/          # Framework/route diagrams shared by docs + landing preview
 │   ├── auth/                  # Sign-in, sign-up, password-change forms
 │   ├── form-fields/           # Shared form field components
+│   ├── global/                # App shell + domain-agnostic components
 │   └── ui/                    # shadcn components
 ├── contexts/                  # React context providers (theme, etc.)
 ├── db/
@@ -361,11 +365,11 @@ src/
 ├── isomorphic/                # Shared validation schemas (server + client)
 ├── lib/                       # Shared utilities
 ├── middleware/                # Request/function middleware (auth, rate-limit, CSRF)
-├── routes/                    # File-based routing (TanStack Router)
+├── routes/                    # File-based routing; <segment>/route.tsx, (<page>)/index.tsx, private -components/ -hooks/ -utils/ -content/
 ├── scripts/                   # One-off scripts (archive-old-activities)
 ├── server-fns/                # TanStack Start server functions
 ├── app-info.ts                # Committed app identity (name/description; managed by app-identity)
-├── routeTree.gen.ts           # Generated routes (don’t hand-edit)
+├── routeTree.gen.ts           # Generated dev route tree (don’t hand-edit); production tree in .tanstack/
 ├── router.tsx                 # Router factory (wired to TanStack Query)
 ├── server.ts                  # Cloudflare Workers entry point
 ├── start.ts                   # createStart app factory + middleware
@@ -376,6 +380,7 @@ tools/
 ├── helpers/                   # Neutral TS libraries shared by phases and checks
 ├── linters/
 │   ├── anti-slop/             # Type-assertion + slop-pattern rules
+│   ├── tailwind/              # Tailwind IntelliSense diagnostics
 │   ├── wunshot/               # DB conformity rules
 │   └── wunstart/              # App-wiring conformity rules
 ├── pkg-scripts/               # Executable entries, run via package scripts
