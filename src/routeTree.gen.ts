@@ -13,11 +13,17 @@ import { Route as AuthAnonRouteRouteImport } from './routes/_auth-anon/route'
 import { Route as AuthDynamicRouteRouteImport } from './routes/_auth-dynamic/route'
 import { Route as AuthGatewayRouteRouteImport } from './routes/_auth-gateway/route'
 import { Route as AuthProtectedRouteRouteImport } from './routes/_auth-protected/route'
-import { Route as AuthAnonLandingPageRouteImport } from './routes/_auth-anon/landing-page'
-import { Route as AuthDynamicIndexRouteImport } from './routes/_auth-dynamic/index'
+import { Route as DevRouteRouteImport } from './routes/_dev/route'
+import { Route as AuthAnonLandingPageRouteRouteImport } from './routes/_auth-anon/landing-page/route'
 import { Route as AuthGatewaySignInRouteImport } from './routes/_auth-gateway/sign-in'
 import { Route as AuthGatewaySignUpRouteImport } from './routes/_auth-gateway/sign-up'
 import { Route as AuthProtectedSettingsRouteRouteImport } from './routes/_auth-protected/settings/route'
+import { Route as DevDocsRouteRouteImport } from './routes/_dev/docs/route'
+import { Route as DevStatusPagesRouteRouteImport } from './routes/_dev/status-pages/route'
+import { Route as AuthDynamichomeIndexRouteImport } from './routes/_auth-dynamic/(home)/index'
+import { Route as DevStatusPagesIndexRouteImport } from './routes/_dev/status-pages/index'
+import { Route as DevStatusPagesErrorRouteImport } from './routes/_dev/status-pages/error'
+import { Route as DevStatusPagesThrowRouteImport } from './routes/_dev/status-pages/throw'
 
 const AuthAnonRouteRoute = AuthAnonRouteRouteImport.update({
   id: '/_auth-anon',
@@ -35,16 +41,16 @@ const AuthProtectedRouteRoute = AuthProtectedRouteRouteImport.update({
   id: '/_auth-protected',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthAnonLandingPageRoute = AuthAnonLandingPageRouteImport.update({
-  id: '/landing-page',
-  path: '/landing-page',
-  getParentRoute: () => AuthAnonRouteRoute,
+const DevRouteRoute = DevRouteRouteImport.update({
+  id: '/_dev',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthDynamicIndexRoute = AuthDynamicIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthDynamicRouteRoute,
-} as any)
+const AuthAnonLandingPageRouteRoute =
+  AuthAnonLandingPageRouteRouteImport.update({
+    id: '/landing-page',
+    path: '/landing-page',
+    getParentRoute: () => AuthAnonRouteRoute,
+  } as any)
 const AuthGatewaySignInRoute = AuthGatewaySignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
@@ -61,20 +67,59 @@ const AuthProtectedSettingsRouteRoute =
     path: '/settings',
     getParentRoute: () => AuthProtectedRouteRoute,
   } as any)
+const DevDocsRouteRoute = DevDocsRouteRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => DevRouteRoute,
+} as any)
+const DevStatusPagesRouteRoute = DevStatusPagesRouteRouteImport.update({
+  id: '/status-pages',
+  path: '/status-pages',
+  getParentRoute: () => DevRouteRoute,
+} as any)
+const AuthDynamichomeIndexRoute = AuthDynamichomeIndexRouteImport.update({
+  id: '/(home)/',
+  path: '/',
+  getParentRoute: () => AuthDynamicRouteRoute,
+} as any)
+const DevStatusPagesIndexRoute = DevStatusPagesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DevStatusPagesRouteRoute,
+} as any)
+const DevStatusPagesErrorRoute = DevStatusPagesErrorRouteImport.update({
+  id: '/error',
+  path: '/error',
+  getParentRoute: () => DevStatusPagesRouteRoute,
+} as any)
+const DevStatusPagesThrowRoute = DevStatusPagesThrowRouteImport.update({
+  id: '/throw',
+  path: '/throw',
+  getParentRoute: () => DevStatusPagesRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthDynamicIndexRoute
+  '/': typeof AuthDynamichomeIndexRoute
+  '/landing-page': typeof AuthAnonLandingPageRouteRoute
   '/settings': typeof AuthProtectedSettingsRouteRoute
-  '/landing-page': typeof AuthAnonLandingPageRoute
+  '/docs': typeof DevDocsRouteRoute
+  '/status-pages': typeof DevStatusPagesRouteRouteWithChildren
   '/sign-in': typeof AuthGatewaySignInRoute
   '/sign-up': typeof AuthGatewaySignUpRoute
+  '/status-pages/error': typeof DevStatusPagesErrorRoute
+  '/status-pages/throw': typeof DevStatusPagesThrowRoute
+  '/status-pages/': typeof DevStatusPagesIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof AuthDynamicIndexRoute
+  '/': typeof AuthDynamichomeIndexRoute
+  '/landing-page': typeof AuthAnonLandingPageRouteRoute
   '/settings': typeof AuthProtectedSettingsRouteRoute
-  '/landing-page': typeof AuthAnonLandingPageRoute
+  '/docs': typeof DevDocsRouteRoute
   '/sign-in': typeof AuthGatewaySignInRoute
   '/sign-up': typeof AuthGatewaySignUpRoute
+  '/status-pages/error': typeof DevStatusPagesErrorRoute
+  '/status-pages/throw': typeof DevStatusPagesThrowRoute
+  '/status-pages': typeof DevStatusPagesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -82,28 +127,59 @@ export interface FileRoutesById {
   '/_auth-dynamic': typeof AuthDynamicRouteRouteWithChildren
   '/_auth-gateway': typeof AuthGatewayRouteRouteWithChildren
   '/_auth-protected': typeof AuthProtectedRouteRouteWithChildren
+  '/_dev': typeof DevRouteRouteWithChildren
+  '/_auth-anon/landing-page': typeof AuthAnonLandingPageRouteRoute
   '/_auth-protected/settings': typeof AuthProtectedSettingsRouteRoute
-  '/_auth-anon/landing-page': typeof AuthAnonLandingPageRoute
+  '/_dev/docs': typeof DevDocsRouteRoute
+  '/_dev/status-pages': typeof DevStatusPagesRouteRouteWithChildren
   '/_auth-gateway/sign-in': typeof AuthGatewaySignInRoute
   '/_auth-gateway/sign-up': typeof AuthGatewaySignUpRoute
-  '/_auth-dynamic/': typeof AuthDynamicIndexRoute
+  '/_dev/status-pages/error': typeof DevStatusPagesErrorRoute
+  '/_dev/status-pages/throw': typeof DevStatusPagesThrowRoute
+  '/_auth-dynamic/(home)/': typeof AuthDynamichomeIndexRoute
+  '/_dev/status-pages/': typeof DevStatusPagesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/settings' | '/landing-page' | '/sign-in' | '/sign-up'
+  fullPaths:
+    | '/'
+    | '/landing-page'
+    | '/settings'
+    | '/docs'
+    | '/status-pages'
+    | '/sign-in'
+    | '/sign-up'
+    | '/status-pages/error'
+    | '/status-pages/throw'
+    | '/status-pages/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/settings' | '/landing-page' | '/sign-in' | '/sign-up'
+  to:
+    | '/'
+    | '/landing-page'
+    | '/settings'
+    | '/docs'
+    | '/sign-in'
+    | '/sign-up'
+    | '/status-pages/error'
+    | '/status-pages/throw'
+    | '/status-pages'
   id:
     | '__root__'
     | '/_auth-anon'
     | '/_auth-dynamic'
     | '/_auth-gateway'
     | '/_auth-protected'
-    | '/_auth-protected/settings'
+    | '/_dev'
     | '/_auth-anon/landing-page'
+    | '/_auth-protected/settings'
+    | '/_dev/docs'
+    | '/_dev/status-pages'
     | '/_auth-gateway/sign-in'
     | '/_auth-gateway/sign-up'
-    | '/_auth-dynamic/'
+    | '/_dev/status-pages/error'
+    | '/_dev/status-pages/throw'
+    | '/_auth-dynamic/(home)/'
+    | '/_dev/status-pages/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -111,6 +187,7 @@ export interface RootRouteChildren {
   AuthDynamicRouteRoute: typeof AuthDynamicRouteRouteWithChildren
   AuthGatewayRouteRoute: typeof AuthGatewayRouteRouteWithChildren
   AuthProtectedRouteRoute: typeof AuthProtectedRouteRouteWithChildren
+  DevRouteRoute: typeof DevRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -143,19 +220,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthProtectedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_dev': {
+      id: '/_dev'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof DevRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth-anon/landing-page': {
       id: '/_auth-anon/landing-page'
       path: '/landing-page'
       fullPath: '/landing-page'
-      preLoaderRoute: typeof AuthAnonLandingPageRouteImport
+      preLoaderRoute: typeof AuthAnonLandingPageRouteRouteImport
       parentRoute: typeof AuthAnonRouteRoute
-    }
-    '/_auth-dynamic/': {
-      id: '/_auth-dynamic/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof AuthDynamicIndexRouteImport
-      parentRoute: typeof AuthDynamicRouteRoute
     }
     '/_auth-gateway/sign-in': {
       id: '/_auth-gateway/sign-in'
@@ -178,15 +255,57 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthProtectedSettingsRouteRouteImport
       parentRoute: typeof AuthProtectedRouteRoute
     }
+    '/_dev/docs': {
+      id: '/_dev/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DevDocsRouteRouteImport
+      parentRoute: typeof DevRouteRoute
+    }
+    '/_dev/status-pages': {
+      id: '/_dev/status-pages'
+      path: '/status-pages'
+      fullPath: '/status-pages'
+      preLoaderRoute: typeof DevStatusPagesRouteRouteImport
+      parentRoute: typeof DevRouteRoute
+    }
+    '/_auth-dynamic/(home)/': {
+      id: '/_auth-dynamic/(home)/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthDynamichomeIndexRouteImport
+      parentRoute: typeof AuthDynamicRouteRoute
+    }
+    '/_dev/status-pages/': {
+      id: '/_dev/status-pages/'
+      path: '/'
+      fullPath: '/status-pages/'
+      preLoaderRoute: typeof DevStatusPagesIndexRouteImport
+      parentRoute: typeof DevStatusPagesRouteRoute
+    }
+    '/_dev/status-pages/error': {
+      id: '/_dev/status-pages/error'
+      path: '/error'
+      fullPath: '/status-pages/error'
+      preLoaderRoute: typeof DevStatusPagesErrorRouteImport
+      parentRoute: typeof DevStatusPagesRouteRoute
+    }
+    '/_dev/status-pages/throw': {
+      id: '/_dev/status-pages/throw'
+      path: '/throw'
+      fullPath: '/status-pages/throw'
+      preLoaderRoute: typeof DevStatusPagesThrowRouteImport
+      parentRoute: typeof DevStatusPagesRouteRoute
+    }
   }
 }
 
 interface AuthAnonRouteRouteChildren {
-  AuthAnonLandingPageRoute: typeof AuthAnonLandingPageRoute
+  AuthAnonLandingPageRouteRoute: typeof AuthAnonLandingPageRouteRoute
 }
 
 const AuthAnonRouteRouteChildren: AuthAnonRouteRouteChildren = {
-  AuthAnonLandingPageRoute: AuthAnonLandingPageRoute,
+  AuthAnonLandingPageRouteRoute: AuthAnonLandingPageRouteRoute,
 }
 
 const AuthAnonRouteRouteWithChildren = AuthAnonRouteRoute._addFileChildren(
@@ -194,11 +313,11 @@ const AuthAnonRouteRouteWithChildren = AuthAnonRouteRoute._addFileChildren(
 )
 
 interface AuthDynamicRouteRouteChildren {
-  AuthDynamicIndexRoute: typeof AuthDynamicIndexRoute
+  AuthDynamichomeIndexRoute: typeof AuthDynamichomeIndexRoute
 }
 
 const AuthDynamicRouteRouteChildren: AuthDynamicRouteRouteChildren = {
-  AuthDynamicIndexRoute: AuthDynamicIndexRoute,
+  AuthDynamichomeIndexRoute: AuthDynamichomeIndexRoute,
 }
 
 const AuthDynamicRouteRouteWithChildren =
@@ -228,11 +347,41 @@ const AuthProtectedRouteRouteChildren: AuthProtectedRouteRouteChildren = {
 const AuthProtectedRouteRouteWithChildren =
   AuthProtectedRouteRoute._addFileChildren(AuthProtectedRouteRouteChildren)
 
+interface DevStatusPagesRouteRouteChildren {
+  DevStatusPagesErrorRoute: typeof DevStatusPagesErrorRoute
+  DevStatusPagesThrowRoute: typeof DevStatusPagesThrowRoute
+  DevStatusPagesIndexRoute: typeof DevStatusPagesIndexRoute
+}
+
+const DevStatusPagesRouteRouteChildren: DevStatusPagesRouteRouteChildren = {
+  DevStatusPagesErrorRoute: DevStatusPagesErrorRoute,
+  DevStatusPagesThrowRoute: DevStatusPagesThrowRoute,
+  DevStatusPagesIndexRoute: DevStatusPagesIndexRoute,
+}
+
+const DevStatusPagesRouteRouteWithChildren =
+  DevStatusPagesRouteRoute._addFileChildren(DevStatusPagesRouteRouteChildren)
+
+interface DevRouteRouteChildren {
+  DevDocsRouteRoute: typeof DevDocsRouteRoute
+  DevStatusPagesRouteRoute: typeof DevStatusPagesRouteRouteWithChildren
+}
+
+const DevRouteRouteChildren: DevRouteRouteChildren = {
+  DevDocsRouteRoute: DevDocsRouteRoute,
+  DevStatusPagesRouteRoute: DevStatusPagesRouteRouteWithChildren,
+}
+
+const DevRouteRouteWithChildren = DevRouteRoute._addFileChildren(
+  DevRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   AuthAnonRouteRoute: AuthAnonRouteRouteWithChildren,
   AuthDynamicRouteRoute: AuthDynamicRouteRouteWithChildren,
   AuthGatewayRouteRoute: AuthGatewayRouteRouteWithChildren,
   AuthProtectedRouteRoute: AuthProtectedRouteRouteWithChildren,
+  DevRouteRoute: DevRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
