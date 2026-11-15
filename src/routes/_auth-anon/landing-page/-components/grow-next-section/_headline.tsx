@@ -46,14 +46,14 @@ export function Headline({
 		<h2
 			ref={headlineRef}
 			id="grow-next-heading"
-			className="pointer-events-auto flex max-w-full flex-col items-center justify-center gap-x-[0.24em] gap-y-2 text-center text-[clamp(2.4rem,6.3vw,6rem)] leading-[0.95] font-light tracking-[-0.035em] min-[640px]:flex-row min-[640px]:flex-wrap min-[640px]:items-baseline dark:font-extralight"
+			className="pointer-events-auto flex max-w-full flex-col items-center justify-center gap-x-[0.24em] gap-y-2 text-center text-[clamp(2.4rem,6.3vw,6rem)] leading-[0.95] font-light tracking-[-0.035em] sm:flex-row sm:flex-wrap sm:items-baseline dark:font-extralight"
 		>
 			<span ref={headlineLeadRef} className="whitespace-nowrap">
 				Bring your next
 			</span>{' '}
 			<span
 				ref={slotRef}
-				className="mx-[-0.08em] my-[-0.12em] inline-grid grid-cols-1 justify-items-center overflow-hidden px-[0.08em] py-[0.12em] align-baseline font-serif font-extrabold italic transition-[width] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none min-[640px]:justify-items-start dark:font-bold"
+				className="mx-[-0.08em] my-[-0.12em] inline-grid grid-cols-1 justify-items-center overflow-hidden px-[0.08em] py-[0.12em] align-baseline font-serif font-extrabold italic transition-[width] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none sm:justify-items-start dark:font-bold"
 			>
 				{HERO_WORDS.map((word, index) => {
 					const state = wordState(index, activeIndex)

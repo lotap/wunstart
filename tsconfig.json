@@ -51,6 +51,7 @@
 								"globalDateInEffect": "warning",
 								"globalFetch": "warning",
 								"globalFetchInEffect": "warning",
+								"globalJsonInEffect": "warning",
 								"globalRandom": "warning",
 								"globalRandomInEffect": "warning",
 								"globalTimers": "warning",
@@ -58,7 +59,6 @@
 								"instanceOfSchema": "warning",
 								"newPromise": "warning",
 								"nodeBuiltinImport": "warning",
-								"preferSchemaOverJson": "warning",
 								"processEnv": "warning",
 								"processEnvInEffect": "warning",
 								"unsafeEffectTypeAssertion": "warning"

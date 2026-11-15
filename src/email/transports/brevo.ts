@@ -85,9 +85,10 @@ export const brevoLayer = Layer.effect(
 				const response = yield* sendRequest(Redacted.value(apiKey.value), from, message)
 
 				if (!response.ok) {
-					const body = yield* Effect.tryPromise(() => response.text()).pipe(
-						Effect.orElseSucceed(() => ''),
-					)
+					const body = yield* Effect.tryPromise({
+						try: () => response.text(),
+						catch: (cause) => toEmailSendError('brevo', cause),
+					}).pipe(Effect.orElseSucceed(() => ''))
 
 					return yield* new EmailSendError({
 						transport: 'brevo',
