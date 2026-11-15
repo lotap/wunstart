@@ -20,10 +20,11 @@ type TransportName = Schema.Schema.Type<typeof TransportSchema>
 const FallbackChainSchema = Schema.String.pipe(
 	Schema.decodeTo(Schema.Array(TransportSchema), {
 		decode: SchemaGetter.transform<TransportName[], string>((raw): TransportName[] =>
-			raw
-				.split(',')
-				.map((name) => name.trim())
-				.filter((name): name is TransportName => name !== '' && Schema.is(TransportSchema)(name)),
+			raw.split(',').flatMap((name) => {
+				const trimmed = name.trim()
+
+				return trimmed !== '' && Schema.is(TransportSchema)(trimmed) ? [trimmed] : []
+			}),
 		),
 		encode: SchemaGetter.transform<string, readonly TransportName[]>((names) => names.join(',')),
 	}),

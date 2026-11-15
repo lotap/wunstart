@@ -123,10 +123,11 @@ export async function probePostgres(base: string, want: string): Promise<ProbeRe
 
 	// Verdict is the last non-empty line, not the whole blob: a stray
 	// warning line from the child must not mask the verdict it printed.
-	const lines: Array<string> = out
-		.split('\n')
-		.map((line) => line.trim())
-		.filter((line) => line !== '')
+	const lines: Array<string> = out.split('\n').flatMap((line) => {
+		const trimmed = line.trim()
+
+		return trimmed === '' ? [] : [trimmed]
+	})
 
 	const verdict: string = lines.length > 0 ? (lines[lines.length - 1] ?? '') : ''
 

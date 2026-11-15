@@ -211,10 +211,10 @@ export const selectActivityIdsByTarget = createQueryFn({
 		 */
 		const conditions = Object.entries(targets)
 			.filter((entry): entry is [keyof typeof targetColumns, string | bigint] => entry[1] != null)
-			.map(([name, value]) => {
+			.flatMap(([name, value]) => {
 				const column = targetColumns[name]
 
-				return and(isNotNull(column), eq(column, value))
+				return [and(isNotNull(column), eq(column, value))]
 			})
 
 		return qx

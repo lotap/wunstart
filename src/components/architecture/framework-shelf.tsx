@@ -236,11 +236,13 @@ function useShelfConnectors({wrapperRef, tablistRef, panelRef, infoRef}: ShelfCo
 
 			const rightLaneStart = firstGapTab ? firstGapTab.x + laneSpacing : rightGapStart
 
-			const rightLaneByIndex = new Map(
-				sortedByX
-					.filter((tab) => tab.x >= bundleCenter && !gapIndexes.has(tab.index))
-					.map((tab, lane) => [tab.index, lane]),
-			)
+			const rightLaneByIndex = new Map<number, number>()
+
+			for (const tab of sortedByX) {
+				if (tab.x >= bundleCenter && !gapIndexes.has(tab.index)) {
+					rightLaneByIndex.set(tab.index, rightLaneByIndex.size)
+				}
+			}
 
 			const turnTop = topY + 6
 
