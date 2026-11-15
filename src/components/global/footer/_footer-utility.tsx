@@ -7,8 +7,19 @@ import {useReducedMotion} from '#/hooks/use-reduced-motion.ts'
 
 const year = new Date().getFullYear()
 
-const utilityLinkClassName =
-	'underline decoration-transparent underline-offset-4 transition-colors hover:decoration-current focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-current/50 focus-visible:outline-none'
+function UtilityLink({className, children, ...props}: React.ComponentProps<'a'>) {
+	return (
+		<a
+			className={cn(
+				'underline decoration-transparent underline-offset-4 transition-colors hover:decoration-current focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-current/50 focus-visible:outline-none',
+				className,
+			)}
+			{...props}
+		>
+			{children}
+		</a>
+	)
+}
 
 export function FooterUtility({className}: {className?: string}) {
 	const reduceMotion = useReducedMotion()
@@ -24,22 +35,15 @@ export function FooterUtility({className}: {className?: string}) {
 				<small suppressHydrationWarning>
 					© {year} {appInfo.name}
 				</small>
-				{/* oxlint-disable-next-line jsx-a11y/anchor-is-valid react-doctor/anchor-is-valid */}
-				<a href="#" className={utilityLinkClassName}>
-					Privacy policy
-				</a>
-				{/* oxlint-disable-next-line jsx-a11y/anchor-is-valid react-doctor/anchor-is-valid */}
-				<a href="#" className={utilityLinkClassName}>
-					Terms of service
-				</a>
-				<a
+				<UtilityLink href="#">Privacy policy</UtilityLink>
+				<UtilityLink href="#">Terms of service</UtilityLink>
+				<UtilityLink
 					href="https://github.com/lotap/wunstart/blob/trunk/LICENSE"
 					target="_blank"
 					rel="noreferrer"
-					className={utilityLinkClassName}
 				>
 					MIT License
-				</a>
+				</UtilityLink>
 			</div>
 			<div className="flex items-center gap-2">
 				<ThemeToggle size="icon-sm" />

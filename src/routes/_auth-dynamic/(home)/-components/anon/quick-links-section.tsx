@@ -11,8 +11,17 @@ const drizzleStudioCommand = 'bun run db:studio'
 const reactEmailUrl = 'http://localhost:3001'
 const reactEmailCommand = 'bun run dev:email'
 
-const cardOverlayClassName =
-	'absolute inset-0 z-20 rounded-xl focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset focus-visible:outline-none'
+function CardOverlayAnchor({href, label}: {href: string; label: string}) {
+	return (
+		<a
+			href={href}
+			target="_blank"
+			rel="noreferrer"
+			aria-label={label}
+			className="absolute inset-0 z-20 rounded-xl focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset"
+		/>
+	)
+}
 
 function QuickLinkCard({
 	label,
@@ -81,7 +90,11 @@ export function QuickLinksSection() {
 					</p>
 					<ul className="grid gap-3 sm:grid-cols-2">
 						<li className="group relative h-full sm:col-span-2">
-							<Link to="/docs" aria-label="Open /docs" className={cardOverlayClassName} />
+							<Link
+								to="/docs"
+								aria-label="Open /docs"
+								className="absolute inset-0 z-20 rounded-xl focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset"
+							/>
 							<QuickLinkCard
 								label="/docs"
 								description="Developer reference for the stack, routes, features, and local services."
@@ -89,15 +102,7 @@ export function QuickLinksSection() {
 							/>
 						</li>
 						<li className="group relative h-full">
-							{mailpitUrl && (
-								<a
-									href={mailpitUrl}
-									target="_blank"
-									rel="noreferrer"
-									aria-label="Open Mailpit"
-									className={cardOverlayClassName}
-								/>
-							)}
+							{mailpitUrl && <CardOverlayAnchor href={mailpitUrl} label="Open Mailpit" />}
 							<QuickLinkCard
 								label="Mailpit"
 								description="Catches local sign-up and account emails."
@@ -105,13 +110,7 @@ export function QuickLinksSection() {
 							/>
 						</li>
 						<li className="group relative h-full">
-							<a
-								href={drizzleStudioUrl}
-								target="_blank"
-								rel="noreferrer"
-								aria-label="Open Drizzle Studio"
-								className={cardOverlayClassName}
-							/>
+							<CardOverlayAnchor href={drizzleStudioUrl} label="Open Drizzle Studio" />
 							<QuickLinkCard
 								label="Drizzle Studio"
 								description="Run this command, then open the database browser."
@@ -120,13 +119,7 @@ export function QuickLinksSection() {
 							/>
 						</li>
 						<li className="group relative h-full">
-							<a
-								href={reactEmailUrl}
-								target="_blank"
-								rel="noreferrer"
-								aria-label="Open React Email"
-								className={cardOverlayClassName}
-							/>
+							<CardOverlayAnchor href={reactEmailUrl} label="Open React Email" />
 							<QuickLinkCard
 								label="React Email"
 								description="Run this command, then open the template preview."
@@ -139,7 +132,7 @@ export function QuickLinksSection() {
 								type="button"
 								onClick={openTanStackDevtools}
 								aria-label="Open TanStack DevTools"
-								className={cardOverlayClassName}
+								className="absolute inset-0 z-20 rounded-xl focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset"
 							/>
 							<QuickLinkCard
 								label="TanStack DevTools"
