@@ -7,4 +7,4 @@ set -eu
 command -v git >/dev/null 2>&1 || exit 0
 git rev-parse --git-dir >/dev/null 2>&1 || exit 0
 # Warn-only: a corrupt repo config must not fail installs.
-git config core.hooksPath tools/git-hooks || echo "warn: git hooks not configured — re-run: bun run setup:hooks" >&2
+git config core.hooksPath tools/git-hooks || echo "warn: git hooks not configured — re-run your package manager’s setup:hooks script" >&2

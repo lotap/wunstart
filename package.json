@@ -28,7 +28,7 @@
 		"build": "vite build",
 		"build:preview": "vite build --mode development",
 		"build:wasm": "sh tools/pkg-scripts/build-wasm.sh",
-		"check": "bun run fmt:check && bun run lint:check && bun run lint:tailwind && bunx tsc --noEmit && bun run db:check",
+		"check": "sh tools/pkg-scripts/check.sh",
 		"cf-typegen": "wrangler types",
 		"clean:tmp": "rm -rf .tmp && mkdir -p .tmp",
 		"db:check": "sh tools/pkg-scripts/drizzle-kit.sh check",
