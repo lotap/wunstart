@@ -91,6 +91,28 @@ type PmInputs = {
 	ask: Asker['ask']
 }
 
+/**
+ * pnpm added `--allow-build` in 12.7.0. apply.ts passes it so the install can
+ * record the esbuild/workerd build approvals; older pnpm rejects the flag, so
+ * a switch could never succeed.
+ */
+const PNPM_MINIMUM_MAJOR = 12
+const PNPM_MINIMUM_MINOR = 7
+
+/** Below 12.7? Unreadable output returns false: presence is hasCommand’s job. */
+function pnpmTooOld(version: string): boolean {
+	const match: RegExpExecArray | null = /(\d+)\.(\d+)/.exec(version)
+
+	if (match === null) {
+		return false
+	}
+
+	const major: number = Number(match[1])
+	const minor: number = Number(match[2])
+
+	return major < PNPM_MINIMUM_MAJOR || (major === PNPM_MINIMUM_MAJOR && minor < PNPM_MINIMUM_MINOR)
+}
+
 export async function resolvePm(inputs: PmInputs): Promise<PmResolution> {
 	const {cliPm, evidence, canPrompt, dryRun, ask} = inputs
 	const fieldPm: Pm | null = pmFromPackageManagerField(evidence.packageManagerField)
@@ -168,6 +190,25 @@ export async function resolvePm(inputs: PmInputs): Promise<PmResolution> {
 				)
 			} else {
 				fail(`packageManager '${pin}' names ${fieldPm}, but --pm chose ${cliPm}`, remediation)
+			}
+		}
+	}
+
+	// Version gate before any cleanup/apply: below 12.7 pnpm rejects
+	// --allow-build, so the switch would roll back after moving files aside.
+	// Only a readable version can fail here; a missing pnpm still belongs to
+	// the hasCommand check below, and odd output must not block.
+	if (pm === 'pnpm') {
+		const version: string | null = tryCapture('pnpm', ['--version'])
+
+		const upgrade: string =
+			'upgrade pnpm to 12.7+ (needed to record esbuild/workerd build approvals), or choose another manager'
+
+		if (version !== null && pnpmTooOld(version)) {
+			if (dryRun) {
+				warn(`pnpm ${version} is older than 12.7 — ${upgrade}`)
+			} else {
+				fail(`pnpm ${version} is older than 12.7`, `${upgrade} — then re-run this script`)
 			}
 		}
 	}
