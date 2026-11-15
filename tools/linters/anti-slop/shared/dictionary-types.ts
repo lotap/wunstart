@@ -19,8 +19,9 @@ const BUILT_INS = new Set([
 ])
 const TRANSPARENT_WRAPPERS = new Set(['Readonly', 'Partial', 'Required', 'NonNullable'])
 
-type TypeAliasEnvironment = ReadonlyMap<string, ESTree.TSType>
+type TypeAliasEnvironment = ReadonlyMap<string, ResolvedType>
 
+/** A type together with the type-parameter bindings visible where it was written. */
 type ResolvedType = {
 	readonly type: ESTree.TSType
 	readonly substitutions: TypeAliasEnvironment
@@ -82,17 +83,6 @@ function isBuiltIn(name: string, use: ESTree.Node, environment: TypeEnvironment)
 	return BUILT_INS.has(name) && !hasVisibleTypeBinding(name, use, environment.typeAliases)
 }
 
-function isUnappliedReferenceTo(type: ESTree.TSType, name: string): boolean {
-	const unwrapped = unwrapTransparentType(type)
-	return (
-		unwrapped.type === 'TSTypeReference' &&
-		typeReferenceName(unwrapped) === name &&
-		(unwrapped.typeArguments === null ||
-			unwrapped.typeArguments === undefined ||
-			unwrapped.typeArguments.params.length === 0)
-	)
-}
-
 function unwrapTransparentType(type: ESTree.TSType): ESTree.TSType {
 	let current = type
 	while (
@@ -134,20 +124,11 @@ function isEffectivelyEmptyInterface(
 	)
 }
 
-function resolvedSubstitutionArgument(
-	type: ESTree.TSType,
-	base: TypeAliasEnvironment,
-	resolving: ReadonlySet<string> = new Set(),
-): ESTree.TSType {
+/** Bind an alias argument in the environment where it was written; a bare parameter reuses its binding. */
+function boundArgument(type: ESTree.TSType, written: TypeAliasEnvironment): ResolvedType {
 	const unwrapped = unwrapTransparentType(type)
-	if (unwrapped.type !== 'TSTypeReference') return type
-	const name = typeReferenceName(unwrapped)
-	if (name === null || resolving.has(name)) return type
-	const substitution = base.get(name)
-	if (substitution === undefined) return type
-	const nextResolving = new Set(resolving)
-	nextResolving.add(name)
-	return resolvedSubstitutionArgument(substitution, base, nextResolving)
+	const name = unwrapped.type === 'TSTypeReference' ? typeReferenceName(unwrapped) : null
+	return (name === null ? undefined : written.get(name)) ?? {type, substitutions: written}
 }
 
 function aliasSubstitution(
@@ -157,11 +138,15 @@ function aliasSubstitution(
 ): TypeAliasEnvironment | null {
 	const parameters = alias.typeParameters?.params ?? []
 	const arguments_ = type.typeArguments?.params ?? []
-	const next = new Map(base)
+	const next = new Map<string, ResolvedType>()
 	for (const [index, parameter] of parameters.entries()) {
-		const argument = arguments_[index] ?? parameter.default
+		const explicitArgument = arguments_[index]
+		const argument = explicitArgument ?? parameter.default
 		if (argument === null || argument === undefined) return null
-		next.set(parameter.name.name, resolvedSubstitutionArgument(argument, next))
+		next.set(
+			parameter.name.name,
+			boundArgument(argument, explicitArgument === undefined ? next : base),
+		)
 	}
 	return next
 }
@@ -205,9 +190,12 @@ function unsafeDirectValue(
 	}
 	const substitution = substitutions.get(name)
 	if (substitution !== undefined) {
-		return isUnappliedReferenceTo(substitution, name)
-			? null
-			: unsafeDirectValue(substitution, environment, substitutions, resolvingAliases)
+		return unsafeDirectValue(
+			substitution.type,
+			environment,
+			substitution.substitutions,
+			resolvingAliases,
+		)
 	}
 	const interfaceDeclarations = environment.interfaces.get(name)
 	if (interfaceDeclarations !== undefined) {
@@ -250,9 +238,12 @@ function dictionaryValueTypes(
 
 	const substitution = substitutions.get(name)
 	if (substitution !== undefined) {
-		return isUnappliedReferenceTo(substitution, name)
-			? []
-			: dictionaryValueTypes(substitution, environment, substitutions, resolvingAliases)
+		return dictionaryValueTypes(
+			substitution.type,
+			environment,
+			substitution.substitutions,
+			resolvingAliases,
+		)
 	}
 
 	if (TRANSPARENT_WRAPPERS.has(name) && isBuiltIn(name, unwrapped, environment)) {
@@ -377,7 +368,8 @@ function isBroadMappedKey(
 	if (
 		unwrapped.type === 'TSStringKeyword' ||
 		unwrapped.type === 'TSNumberKeyword' ||
-		unwrapped.type === 'TSSymbolKeyword'
+		unwrapped.type === 'TSSymbolKeyword' ||
+		unwrapped.type === 'TSAnyKeyword'
 	) {
 		return true
 	}
@@ -390,21 +382,24 @@ function isBroadMappedKey(
 	const name = typeReferenceName(unwrapped)
 	if (name === null) return false
 	const substitution = substitutions.get(name)
-	if (substitution !== undefined && !isUnappliedReferenceTo(substitution, name)) {
-		return isBroadMappedKey(substitution, environment, substitutions, visitedAliases)
+	if (substitution !== undefined) {
+		return isBroadMappedKey(
+			substitution.type,
+			environment,
+			substitution.substitutions,
+			visitedAliases,
+		)
 	}
 	if (name === 'PropertyKey' && isBuiltIn(name, unwrapped, environment)) return true
 	const alias = visibleTypeAlias(name, unwrapped, environment.typeAliases)
-	if (
-		alias === null ||
-		(alias.typeParameters?.params.length ?? 0) > 0 ||
-		visitedAliases.has(name)
-	) {
+	if (alias === null || visitedAliases.has(name)) {
 		return false
 	}
+	const nextSubstitutions = aliasSubstitution(alias, unwrapped, substitutions)
+	if (nextSubstitutions === null) return false
 	const nextVisited = new Set(visitedAliases)
 	nextVisited.add(name)
-	return isBroadMappedKey(alias.typeAnnotation, environment, substitutions, nextVisited)
+	return isBroadMappedKey(alias.typeAnnotation, environment, nextSubstitutions, nextVisited)
 }
 
 function classifyAliasBroadTarget(
@@ -431,9 +426,12 @@ function classifyAliasBroadTarget(
 	if (name === null) return null
 	const substitution = substitutions.get(name)
 	if (substitution !== undefined) {
-		return isUnappliedReferenceTo(substitution, name)
-			? null
-			: classifyAliasBroadTarget(substitution, environment, substitutions, resolvingAliases)
+		return classifyAliasBroadTarget(
+			substitution.type,
+			environment,
+			substitution.substitutions,
+			resolvingAliases,
+		)
 	}
 	if (TRANSPARENT_WRAPPERS.has(name) && isBuiltIn(name, unwrapped, environment)) {
 		const wrapped = unwrapped.typeArguments?.params[0]

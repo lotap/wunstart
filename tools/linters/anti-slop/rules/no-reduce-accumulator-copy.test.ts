@@ -7,6 +7,10 @@ const error = {messageId: 'accumulatorCopy'}
 
 tester.run('anti-slop/no-reduce-accumulator-copy', noReduceAccumulatorCopyRule, {
 	valid: [
+		'const data = { initial: customCollection }; items.reduce((acc, item) => acc.concat(item), data.initial);',
+		'const data = { initial: [] }; data.initial = customCollection; items.reduce((acc, item) => acc.concat(item), data.initial);',
+		'function collect(data: { initial: IteratorObject<Item> }) { return items.reduce((acc, item) => acc.concat(item), data.initial); }',
+		'type Array<T> = CustomCollection<T>; function collect(data: { initial: Array<Item> }) { return items.reduce((acc, item) => acc.concat(item), data.initial); }',
 		'items.reduce((acc, item) => { acc.push(item); return acc; }, []);',
 		'items.reduce((acc, item) => Object.assign(acc, item), {});',
 		'items.reduce((acc, item) => Object.assign(acc, acc, item), {});',
@@ -26,8 +30,32 @@ tester.run('anti-slop/no-reduce-accumulator-copy', noReduceAccumulatorCopyRule, 
 		'items.reduce((acc, item) => { let alias = acc; alias = item; return Object.assign({}, alias); }, {});',
 		'items.reduce((acc, item) => [...acc, item], []);', // Owned by the native rule.
 		'items.reduce((acc, item) => ({ ...acc, [item.id]: item }), {});',
+		{
+			code: 'const once = { reduce(fn, initial) { return fn(initial, { id: 1 }); } }; once.reduce((acc, item) => Object.assign({}, acc, item), {});',
+			options: [{requireArrayReceiver: true}],
+		},
+		{
+			code: 'items.reduce((acc, item) => Object.assign({}, acc, item), {});',
+			options: [{requireArrayReceiver: true}],
+		},
+		{
+			code: 'const custom = { reduceRight(fn, initial) { return fn(initial); } }; custom.reduceRight(acc => Array.from(acc), []);',
+			options: [{requireArrayReceiver: true}],
+		},
+		{
+			code: 'const items = [1, 2]; items.reduce((acc, item) => { acc.push(item); return acc; }, []);',
+			options: [{requireArrayReceiver: true}],
+		},
 	],
 	invalid: [
+		{
+			code: 'const data = { initial: [] }; items.reduce((acc, item) => acc.concat(item), data.initial);',
+			errors: [error],
+		},
+		{
+			code: 'function collect(data: { initial: readonly Item[] }) { return items.reduce((acc, item) => acc.slice(), data.initial); }',
+			errors: [error],
+		},
 		{
 			code: 'items.reduce((acc, item) => Object.assign({}, acc, { [item.id]: item }), {});',
 			errors: [error],
@@ -84,5 +112,20 @@ tester.run('anti-slop/no-reduce-accumulator-copy', noReduceAccumulatorCopyRule, 
 		{code: 'items.reduce((acc, item) => acc.toSorted(), []);', errors: [error]},
 		{code: 'items.reduce((acc, item) => acc.toReversed(), []);', errors: [error]},
 		{code: 'items.reduce((acc, item) => acc.with(0, item), []);', errors: [error]},
+		{
+			code: '[1, 2].reduce((acc, item) => Object.assign({}, acc, { [item]: item }), {});',
+			options: [{requireArrayReceiver: true}],
+			errors: [error],
+		},
+		{
+			code: 'const source = [1, 2]; const alias = source; alias.reduceRight((acc, item) => Array.from(acc), []);',
+			options: [{requireArrayReceiver: true}],
+			errors: [error],
+		},
+		{
+			code: 'function run(items: readonly string[]) { return items.filter(Boolean).reduce((acc, item) => acc.concat(item), []); }',
+			options: [{requireArrayReceiver: true}],
+			errors: [error],
+		},
 	],
 })

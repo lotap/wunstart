@@ -20,6 +20,20 @@ tester.run('anti-slop/no-unknown-returns', noUnknownReturnsRule, {
 		'function load(): Promise<User> { return promise; }',
 		'type Identity<T> = T; function load(): Identity<User> { return user; }',
 		'type Value = unknown; function outer() { type Value = User; function load(): Value { return user; } }',
+		'type T = User; type Body = T; type Outer<T> = Body; function load(): Outer<unknown> { return user; }',
+		'export function wrap<THook extends (...args: never[]) => unknown>(hook: THook): THook { return hook; }',
+		'export type Wrapped<THook extends () => unknown = () => unknown> = { hook: THook };',
+		'type FnConstraint<T extends () => unknown> = T;',
+		'type FnDefault<T = () => unknown> = T;',
+		'interface Wrapper<T extends (...args: any[]) => unknown> { handler: T; }',
+		`export function read(key: "count"): number;
+export function read(key: "label"): string;
+export function read(key: string): unknown { return registry.get(key); }`,
+		`class Registry {
+  read(key: "count"): number;
+  read(key: "label"): string;
+  read(key: string): unknown { return registry.get(key); }
+}`,
 	],
 	invalid: [
 		{code: 'function load(): unknown { return input; }', errors: [error]},
@@ -47,6 +61,26 @@ tester.run('anti-slop/no-unknown-returns', noUnknownReturnsRule, {
 		},
 		{
 			code: 'type Identity<T> = T; type Wrapped<T> = Promise<Identity<T>>; function load(): Wrapped<unknown> { return promise; }',
+			errors: [error],
+		},
+		{
+			code: 'export function wrap<THook extends (...args: never[]) => unknown>(hook: THook): unknown { return hook; }',
+			errors: [error],
+		},
+		{
+			code: 'type MyFn = <T extends () => unknown>() => unknown;',
+			errors: [error],
+		},
+		{
+			code: `export function read(key: "count"): unknown;
+export function read(key: string): unknown { return registry.get(key); }`,
+			errors: [error],
+		},
+		{
+			code: `class Registry {
+  read(key: "count"): unknown;
+  read(key: string): unknown { return registry.get(key); }
+}`,
 			errors: [error],
 		},
 	],

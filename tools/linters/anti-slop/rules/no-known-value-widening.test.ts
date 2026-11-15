@@ -10,6 +10,8 @@ const prelude = 'type Command = () => void; const startCommand = () => {};'
 
 tester.run('anti-slop/no-known-value-widening', noKnownValueWideningRule, {
 	valid: [
+		`${prelude} type Key<T> = T; const commands: Record<Key<'start'>, Command> = { start: startCommand };`,
+		`${prelude} type Key<T = 'start'> = T; const commands: Record<Key, Command> = { start: startCommand };`,
 		`${prelude} const commands: Record<string, Command> = {};`,
 		`${prelude} type Index<T> = Record<string, T>; const commands: Index<Command> = {};`,
 		`${prelude} class Registry { commands: Record<string, Command> = {}; }`,
@@ -38,8 +40,32 @@ tester.run('anti-slop/no-known-value-widening', noKnownValueWideningRule, {
 		'function isString(value: unknown): value is string { return true; } declare const input: unknown; isString(input);',
 		'function isString(value: string | unknown): value is string { return true; } declare const input: string | unknown; isString(input);',
 		'function isString(value: unknown): value is string { return true; } declare function readInput(): unknown; isString(readInput());',
+		"function isString(value: unknown): value is string { return typeof value === 'string'; } export function describe(value: string | number): string { return isString(value) ? value : String(value + 1); }",
+		'function isString(value: unknown): value is string { return true; } type StringOrNumber = string | number; function check(value: StringOrNumber): boolean { return isString(value); }',
+		'function isString(value: unknown): value is string { return true; } function check(value: unknown): boolean { return isString(value as string | number); }',
+		'function isString(value: unknown): value is string { return true; } declare function getValue(): string | number; function check(): boolean { return isString(getValue()); }',
 	],
 	invalid: [
+		{
+			code: `${prelude} const holder = class Record {}; const commands: Record<string, Command> = { start: startCommand };`,
+			errors: [error],
+		},
+		{
+			code: `${prelude} type Key<T> = T; const commands: Record<Key<string>, Command> = { start: startCommand };`,
+			errors: [error],
+		},
+		{
+			code: `${prelude} const commands: Record<any, Command> = { start: startCommand };`,
+			errors: [error],
+		},
+		{
+			code: `${prelude} type Key<T = string> = T; const commands: Record<Key, Command> = { start: startCommand };`,
+			errors: [error],
+		},
+		{
+			code: `${prelude} type Key<T> = T; type Outer<T> = Key<T>; const commands: Record<Outer<string>, Command> = { start: startCommand };`,
+			errors: [error],
+		},
 		{code: 'const value: unknown = {};', errors: [error]},
 		{code: 'const value: object = {};', errors: [error]},
 		{code: 'let value: unknown; value = {};', errors: [error]},

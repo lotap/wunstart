@@ -4,6 +4,7 @@ import {
 	isInsideBroadEffectHandler,
 	isTagMember,
 	tagMemberFromComparison,
+	unwrapChain,
 } from '../shared/tagged-values.ts'
 
 export const noManualTagComparisonRule = defineRule({
@@ -28,7 +29,7 @@ export const noManualTagComparisonRule = defineRule({
 				context.report({node, messageId: 'manualComparison'})
 			},
 			SwitchStatement(node) {
-				if (!isTagMember(node.discriminant) || isInsideBroadEffectHandler(node)) {
+				if (!isTagMember(unwrapChain(node.discriminant)) || isInsideBroadEffectHandler(node)) {
 					return
 				}
 				context.report({node, messageId: 'manualSwitch'})
