@@ -1,5 +1,5 @@
-import {defineConfig} from 'oxlint'
 import {recommended as effectRecommended} from '@effect/tsgo/oxlint-presets'
+import {defineConfig} from 'oxlint'
 import {
 	REACT_COMPILER_RULES,
 	RECOMMENDED_RULES,
@@ -168,6 +168,12 @@ const config = defineConfig({
 				'src/middleware/**/*.ts',
 				'src/server-fns/**/*.ts',
 			],
+			env: {node: true},
+		},
+
+		/// ROOT CONFIG ///
+		{
+			files: ['*.config.ts'],
 			env: {node: true},
 		},
 

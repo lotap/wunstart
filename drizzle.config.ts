@@ -6,7 +6,6 @@ export default defineConfig({
 	schema: './src/db/models/**/*(schema|view)s.ts',
 	dbCredentials: {
 		url:
-			// oxlint-disable-next-line no-undef
 			process.env['DATABASE_URL'] ??
 			(() => {
 				throw new Error('DATABASE_URL is missing')

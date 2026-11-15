@@ -24,7 +24,12 @@ const AGENT_DEV_FORCE_EXIT_MS = 5000
  * production builds.
  */
 const PRODUCTION_ROUTE_TREE = '../.tanstack/routeTree.prod.gen.ts'
-const PRODUCTION_ROUTE_TREE_PATH = path.resolve(import.meta.dirname, '.tanstack/routeTree.prod.gen.ts')
+
+const PRODUCTION_ROUTE_TREE_PATH = path.resolve(
+	import.meta.dirname,
+	'.tanstack/routeTree.prod.gen.ts',
+)
+
 const DEV_ROUTE_TREE_IMPORT = './routeTree.gen.ts'
 const ROUTER_PATH = path.resolve(import.meta.dirname, 'src/router.tsx')
 
@@ -59,14 +64,20 @@ function killChildProcesses(): void {
 			return []
 		}
 
-		const pids: Array<number> = out
-			.split('\n')
-			.map((line) => Number(line.trim()))
-			.filter((pid) => Number.isInteger(pid) && pid > 0)
+		const descendants: Array<number> = []
 
-		return pids.flatMap((pid) => [pid, ...collect(pid)])
+		for (const line of out.split('\n')) {
+			const pid = Number(line.trim())
+
+			if (!Number.isInteger(pid) || pid <= 0) continue
+
+			descendants.push(pid, ...collect(pid))
+		}
+
+		return descendants
 	}
 
+	// oxlint-disable-next-line unicorn/no-array-reverse -- ES2023 toReversed is outside this project's lib target
 	for (const pid of collect(process.pid).reverse()) {
 		try {
 			process.kill(pid, 'SIGKILL')
@@ -74,6 +85,12 @@ function killChildProcesses(): void {
 			// Already gone.
 		}
 	}
+}
+
+/** Exit after killing this server's descendants; close() may never resolve. */
+function exitAfterChildCleanup(): never {
+	killChildProcesses()
+	process.exit(0)
 }
 
 /**
@@ -111,14 +128,10 @@ function agentIdlePlugin(): Plugin {
 			killChildProcesses()
 			process.exit(0)
 		}, AGENT_DEV_FORCE_EXIT_MS)
+
 		backstop.unref()
 
-		const exit = (): never => {
-			killChildProcesses()
-			process.exit(0)
-		}
-
-		void running.close().then(exit, exit)
+		void running.close().then(exitAfterChildCleanup, exitAfterChildCleanup)
 	}
 
 	const reset = (): void => {
@@ -198,11 +211,12 @@ function productionRouteTreePlugin(): Plugin {
  * keep `.wrangler/state`; the idle plugin never applies to them.
  */
 function createPlugins(agentPort?: number, excludeDevRoutes = false): Array<PluginOption> {
-	const persistState = agentPort === undefined ? undefined : {path: `.wrangler/agent-state/${agentPort}`}
+	const persistState =
+		agentPort === undefined ? undefined : {path: `.wrangler/agent-state/${agentPort}`}
 
 	return [
 		devtools(),
-		cloudflare({viteEnvironment: {name: 'ssr'}, ...(persistState === undefined ? {} : {persistState})}),
+		cloudflare({viteEnvironment: {name: 'ssr'}, persistState}),
 		tailwindcss(),
 		...(agentPort === undefined ? [] : [agentIdlePlugin()]),
 		tanstackStart(
