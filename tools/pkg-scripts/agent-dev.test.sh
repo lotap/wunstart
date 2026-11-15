@@ -74,6 +74,7 @@ run_agent() {
 	(
 		cd "$TEST_ROOT" || exit 1
 		DEV_PORT=$HUMAN AGENT_DEV_PORT=$SHARED AGENT_DEV_MAX_SERVERS=4 \
+			AGENT_DEV_HEALTH_TRIES=$HEALTH_TRIES FAKE_HEALTH_DELAY=$HEALTH_DELAY \
 			sh tools/pkg-scripts/agent-dev.sh __wunstart_agent_dev_env_loaded "$@" 2>&1
 	)
 }
@@ -104,6 +105,11 @@ SHARED=$1
 WEDGE=$2
 SHIM=$3
 
+# Keep the smoke run quick: the real budget is 60 seconds. Test 6b relies on
+# the shortened start budget; test 6c raises it while a fake server boots.
+HEALTH_TRIES=2
+HEALTH_DELAY=0
+
 mkdir -p "$TEST_ROOT/tools/pkg-scripts" "$TEST_ROOT/node_modules/vite/bin" \
 	"$TEST_ROOT/node_modules/miniflare" "$TEST_ROOT/node_modules/.bin" "$TEST_ROOT/.tmp"
 
@@ -121,9 +127,23 @@ const path = require('node:path')
 
 const role = process.env.DEV_ROLE
 const port = Number(process.env[role === 'agent' ? 'AGENT_DEV_PORT' : 'DEV_PORT'])
+const healthDelayMs = Number(process.env.FAKE_HEALTH_DELAY || 0)
+const listenDelayMs = Number(process.env.FAKE_LISTEN_DELAY || 0)
+const startedAt = Date.now()
 
 if (process.env.FAKE_NO_LISTEN !== '1') {
-	http.createServer((_, res) => res.end('ok')).listen(port, '127.0.0.1')
+	const server = http.createServer((_, res) => {
+		if (Date.now() - startedAt < healthDelayMs) {
+			res.statusCode = 503
+			res.end('starting')
+			return
+		}
+
+		res.end('ok')
+	})
+	const listen = () => server.listen(port, '127.0.0.1')
+	if (listenDelayMs > 0) setTimeout(listen, listenDelayMs)
+	else listen()
 }
 
 if (process.env.FAKE_NO_WORKERD !== '1') {
@@ -219,6 +239,37 @@ else
 fi
 kill "$WRAP_WORKERD" "$WRAP_PID" 2>/dev/null || true
 
+# 6b. A child that only becomes healthy after the first health budget is a
+# start success, not a bind-race loser: start must not stop it and report
+# another agent's server.
+HEALTH_DELAY=3
+slow_out=$(run_agent start)
+HEALTH_DELAY=0
+assert_contains "$slow_out" 'shared agent dev server started' 'slow child takes the success path'
+case "$slow_out" in
+	*'another agent won the bind'*) fail 'slow child is not adopted as a bind race' ;;
+	*) pass 'slow child is not adopted as a bind race' ;;
+esac
+SLOW_PID=$(lsof -ti ":$SHARED" -sTCP:LISTEN | head -n 1)
+if [ -n "$SLOW_PID" ] && kill -0 "$SLOW_PID" 2>/dev/null; then
+	pass 'slow child is still serving after start'
+else
+	fail 'slow child is still serving after start'
+fi
+run_agent stop-all >/dev/null
+assert_gone "$SLOW_PID" 'stop-all stops the slow shared child'
+
+# 6c. A concurrent start that owns the shared port but has not bound yet is
+# awaited, then reused through the normal validation path.
+HEALTH_TRIES=5
+STARTING_PID=$(start_manual_vite "$SHARED" 'FAKE_LISTEN_DELAY=3')
+sleep 1
+starting_out=$(run_agent start)
+HEALTH_TRIES=2
+assert_contains "$starting_out" 'reused the shared agent dev server' 'start waits for a booting shared server'
+run_agent stop-all >/dev/null
+assert_gone "$STARTING_PID" 'stop-all reaps the awaited shared server'
+
 # 7. A wedged shared Vite blocks a duplicate shared start.
 SHARED_WEDGE_PID=$(start_manual_vite "$SHARED" 'FAKE_NO_LISTEN=1 FAKE_NO_WORKERD=1')
 sleep 1
@@ -250,6 +301,9 @@ assert_gone "$WEDGE_PID" 'wedged fresh port cleaned up'
 )
 HUMAN_PID=$(cat "$TEST_ROOT/human.pid")
 sleep 1
+human_status_out=$(run_agent status)
+assert_contains "$human_status_out" 'human' 'status labels the human server'
+assert_contains "$human_status_out" 'terminal' 'status points the human log at the terminal'
 run_agent stop-all >/dev/null
 if kill -0 "$HUMAN_PID" 2>/dev/null; then
 	pass 'stop-all leaves the human server alone'

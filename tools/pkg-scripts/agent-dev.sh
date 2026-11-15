@@ -54,7 +54,8 @@ HTTP request or file change (AGENT_DEV_IDLE_MS overrides the window).
 --fresh is runtime isolation only: files, HMR, the git index, and the
 database stay shared. Use a temporary worktree for real isolation.
 
-Env: AGENT_DEV_MAX_SERVERS (default 4), AGENT_DEV_IDLE_MS (default 900000).
+Env: AGENT_DEV_MAX_SERVERS (default 4), AGENT_DEV_IDLE_MS (default 900000),
+AGENT_DEV_HEALTH_TRIES (default 60; HTTP health wait per start or reuse).
 EOF
 }
 
@@ -80,6 +81,19 @@ valid_port() {
 in_agent_range() {
 	is_number "${1:-}" && [ "$1" -ge "$AGENT_MIN" ] && [ "$1" -le "$AGENT_MAX" ]
 }
+
+# One health budget for every start and reuse path: a cold compile can take
+# most of a minute, so a shorter timeout would report a booting server as
+# wedged. AGENT_DEV_HEALTH_TRIES is a test hook for the fake-Vite harness.
+HEALTH_TRIES=60
+
+if is_number "${AGENT_DEV_HEALTH_TRIES:-}" && [ "$AGENT_DEV_HEALTH_TRIES" -gt 0 ]; then
+	HEALTH_TRIES=$AGENT_DEV_HEALTH_TRIES
+fi
+
+# A short second look after the main budget: cold compiles finish in the last
+# second often enough that the boundary must not be read as a bind race.
+HEALTH_RECHECK_TRIES=5
 
 require_port_vars() {
 	if ! valid_port "${DEV_PORT:-}"; then
@@ -378,6 +392,13 @@ show_log_tail() {
 }
 
 install_deps() {
+	# The env-loading pre-pass may have just provisioned for this same
+	# invocation; do not make install-deps take its lock a second time.
+	if [ "${deps_ready:-0}" -eq 1 ]; then
+		deps_ready=0
+		return 0
+	fi
+
 	echo "...  checking dependencies…" >&2
 
 	if ! sh "$DEPS_SCRIPT"; then
@@ -388,20 +409,25 @@ install_deps() {
 start_vite() {
 	start_port=$1
 	start_log=$2
+	STARTED_PID=
 
 	# A previous hard-killed Vite leaves workerd reparented to PID 1; clear
 	# that leak before adding another server.
 	stop_orphan_workerd
 
-	# A live Vite without a listener can still own the port and Cloudflare
-	# state. Do not start a second server on top of it; its owner (or human
-	# cleanup for a shared server) has to stop it first.
+	# A live Vite without a listener can be a concurrent start that has not
+	# bound yet, not a wedge. Wait on the same health budget a start gets; if
+	# it answers, leave STARTED_PID empty so the caller validates and reuses
+	# it through the normal path. A server that stays silent is wedged and
+	# must be inspected, not stacked on top of.
 	if ! port_listening "$start_port" && agent_vite_port_in_use "$start_port"; then
-		if [ "$start_port" -eq "$agent_port" ]; then
-			fail "the shared agent Vite is already running on :$start_port without a listener" "inspect: $SELF status — the shared server is human cleanup; ask a human to run: $SELF stop-all"
+		if wait_health "$start_port" "" "$HEALTH_TRIES"; then
+			return 0
 		fi
 
-		fail "an agent Vite is already running on :$start_port without a listener" "inspect: $SELF status — stop it: $SELF stop --port $start_port"
+		if agent_vite_port_in_use "$start_port"; then
+			fail_wedged_agent_vite "$start_port"
+		fi
 	fi
 
 	mkdir -p "$(dirname "$start_log")" || fail "could not create $start_log" "check .tmp/ permissions, then re-run"
@@ -479,6 +505,18 @@ is_bind_race() {
 	grep -Eq 'EADDRINUSE|[Pp]ort [0-9]+ is already in use' "$1" 2>/dev/null
 }
 
+# A live agent Vite that owns a port without a listener and never answered
+# HTTP. Shared means human cleanup; any other port belongs to a fresh server.
+fail_wedged_agent_vite() {
+	wedge_port=$1
+
+	if [ "$wedge_port" -eq "$agent_port" ]; then
+		fail "the shared agent Vite is already running on :$wedge_port without a listener" "inspect: $SELF status — the shared server is human cleanup; ask a human to run: $SELF stop-all"
+	fi
+
+	fail "an agent Vite is already running on :$wedge_port without a listener" "inspect: $SELF status — stop it: $SELF stop --port $wedge_port"
+}
+
 reuse_human() {
 	if ! port_listening "$dev_port"; then
 		return 1
@@ -506,6 +544,19 @@ reuse_human() {
 }
 
 reuse_shared() {
+	# A concurrent start may own the port before it binds. Give it the same
+	# budget a start gets instead of declaring a cold compile wedged; once it
+	# answers, the normal listener validation below decides reuse.
+	if ! port_listening "$agent_port" && agent_vite_port_in_use "$agent_port"; then
+		if ! wait_health "$agent_port" "" "$HEALTH_TRIES"; then
+			if agent_vite_port_in_use "$agent_port"; then
+				fail_wedged_agent_vite "$agent_port"
+			fi
+
+			return 1
+		fi
+	fi
+
 	if ! port_listening "$agent_port"; then
 		return 1
 	fi
@@ -526,7 +577,7 @@ reuse_shared() {
 				fail "shared agent server on :$agent_port is using a different database" "do not kill it — ask a human to run: $SELF stop-all, then re-run"
 			fi
 
-			if wait_health "$agent_port" "" 10; then
+			if wait_health "$agent_port" "" "$HEALTH_TRIES"; then
 				printf 'http://localhost:%s\n' "$agent_port"
 				echo "reused the shared agent dev server in this worktree (pid $shared_pid)"
 				return 0
@@ -584,6 +635,18 @@ count_active_agent_servers() {
 	}
 }
 
+report_shared_server() {
+	report_note=$1
+	report_log=$2
+
+	printf 'http://localhost:%s\n' "$agent_port"
+	printf '%s\n' "$report_note"
+	echo "port: $agent_port"
+	echo "log: $report_log"
+	echo "idle: exits after the configured idle window (default 15 minutes; AGENT_DEV_IDLE_MS overrides)"
+	echo "shared server: do not stop it; it idle-expires"
+}
+
 start_shared() {
 	enforce_agent_cap
 	install_deps
@@ -592,31 +655,45 @@ start_shared() {
 	start_vite "$agent_port" "$shared_log"
 	shared_child=$STARTED_PID
 
-	if wait_health "$agent_port" "$shared_child" 60; then
-		sleep 1
+	# start_vite leaves the pid empty when a concurrent start won the port
+	# and answered health while this one was checking. Validate that listener
+	# through the normal reuse path; starting on top of it would bind-race.
+	if [ -z "$shared_child" ]; then
+		reuse_shared || fail "a concurrent start released :$agent_port before it could be reused" "re-run: $SELF start"
+		return 0
+	fi
 
-		if kill -0 "$shared_child" 2>/dev/null && pid_listens "$shared_child" "$agent_port"; then
-			printf 'http://localhost:%s\n' "$agent_port"
-			echo "shared agent dev server started (pid $shared_child)"
-			echo "port: $agent_port"
-			echo "log: $shared_log"
-			echo "idle: exits after the configured idle window (default 15 minutes; AGENT_DEV_IDLE_MS overrides)"
-			echo "shared server: do not stop it; it idle-expires"
-			return 0
-		fi
+	if ! wait_health "$agent_port" "$shared_child" "$HEALTH_TRIES"; then
+		wait_health "$agent_port" "$shared_child" "$HEALTH_RECHECK_TRIES"
+	fi
+
+	sleep 1
+
+	# Our own child can be the healthy listener: that is a start, not a bind
+	# race. Check it before scanning for another winner and never stop it in
+	# the race loop below — doing that printed a URL over a killed server.
+	if kill -0 "$shared_child" 2>/dev/null && pid_listens "$shared_child" "$agent_port" && http_healthy "$agent_port"; then
+		report_shared_server "shared agent dev server started (pid $shared_child)" "$shared_log"
+		return 0
 	fi
 
 	# Another agent may have won the bind while this one was starting.
-	if port_listening "$agent_port"; then
-		for race_pid in $(listener_pids "$agent_port"); do
-			if belongs_to_root "$(pid_cwd "$race_pid")" && is_vite_command "$(pid_command "$race_pid")" && pid_is_shared_agent_for_port "$race_pid" "$agent_port" && wait_health "$agent_port" "" 20; then
-				stop_started_child "$shared_child"
-				printf 'http://localhost:%s\n' "$agent_port"
-				echo "another agent won the bind on :$agent_port; reused its server (pid $race_pid)"
+	for race_pid in $(listener_pids "$agent_port"); do
+		if [ "$race_pid" = "$shared_child" ]; then
+			continue
+		fi
+
+		if belongs_to_root "$(pid_cwd "$race_pid")" && is_vite_command "$(pid_command "$race_pid")" && pid_is_shared_agent_for_port "$race_pid" "$agent_port" && wait_health "$agent_port" "" "$HEALTH_TRIES" && pid_listens "$race_pid" "$agent_port"; then
+			stop_started_child "$shared_child"
+
+			# Re-check the adopted listener before reporting success: the URL
+			# must not outlive the process that answered.
+			if http_healthy "$agent_port" && pid_listens "$race_pid" "$agent_port"; then
+				report_shared_server "another agent won the bind on :$agent_port; reused its server (pid $race_pid)" "$shared_log"
 				return 0
 			fi
-		done
-	fi
+		fi
+	done
 
 	show_log_tail "$shared_log"
 	stop_started_child "$shared_child"
@@ -649,7 +726,15 @@ start_fresh() {
 		start_vite "$fresh_port" "$fresh_log"
 		fresh_child=$STARTED_PID
 
-		if wait_health "$fresh_port" "$fresh_child" 60; then
+		# A concurrent start won this port and became healthy while we
+		# checked. --fresh must not share runtime state, so take the next
+		# free port instead of adopting it.
+		if [ -z "$fresh_child" ]; then
+			fresh_port=$(next_free_agent_port $((fresh_port + 1))) || break
+			continue
+		fi
+
+		if wait_health "$fresh_port" "$fresh_child" "$HEALTH_TRIES"; then
 			sleep 1
 
 			if kill -0 "$fresh_child" 2>/dev/null && pid_listens "$fresh_child" "$fresh_port"; then
@@ -708,11 +793,13 @@ status_output() {
 		for status_pid in $(listener_pids "$dev_port"); do
 			if is_vite_command "$(pid_command "$status_pid")"; then
 				status_role=human
+				status_log=terminal
 			else
 				status_role=other
+				status_log=-
 			fi
 
-			status_line "$dev_port" "$status_pid" "$status_role" ".tmp/dev.log"
+			status_line "$dev_port" "$status_pid" "$status_role" "$status_log"
 		done
 
 		range_listeners | while read -r status_port status_pid; do
@@ -921,19 +1008,32 @@ fi
 # An argument, not an env var: .env.local can set arbitrary keys, so a marker
 # variable would be user-overridable.
 env_loaded=0
+deps_ready=0
 
-if [ "${1:-}" = "__wunstart_agent_dev_env_loaded" ]; then
-	env_loaded=1
-	shift
-fi
+while :; do
+	case "${1:-}" in
+		__wunstart_agent_dev_env_loaded)
+			env_loaded=1
+			shift
+			;;
+		__wunstart_agent_dev_deps_ready)
+			deps_ready=1
+			shift
+			;;
+		*) break ;;
+	esac
+done
 
 # Load the same two files the dev/db scripts load (development then local,
 # local winning) before any port or path decision.
 if [ "$env_loaded" -ne 1 ]; then
+	deps_provisioned=0
+
 	if [ ! -x "$DOTENV" ]; then
 		if [ "${1:-}" = "start" ]; then
 			echo "...  dependencies are missing — provisioning so .env files can load…" >&2
 			sh "$DEPS_SCRIPT" || fail "dependency provisioning failed" "fix the install error above, then re-run this command"
+			deps_provisioned=1
 		else
 			fail "dependencies are missing (node_modules/.bin/dotenv not found)" "run: $PM_RUN install-deps — then re-run this command"
 		fi
@@ -943,11 +1043,19 @@ if [ "$env_loaded" -ne 1 ]; then
 		fail "dependencies are still missing (node_modules/.bin/dotenv not found)" "run: $PM_RUN install-deps — then re-run this command"
 	fi
 
-	if [ -f .env.local ]; then
-		exec "$DOTENV" -e .env.development -e .env.local --override -- sh "$SCRIPT_PATH" __wunstart_agent_dev_env_loaded "$@"
+	# The pre-pass above is a full provisioning pass. Tell the re-exec'd
+	# process so start does not call install-deps a second time.
+	if [ "$deps_provisioned" -eq 1 ]; then
+		set -- __wunstart_agent_dev_env_loaded __wunstart_agent_dev_deps_ready "$@"
+	else
+		set -- __wunstart_agent_dev_env_loaded "$@"
 	fi
 
-	exec "$DOTENV" -e .env.development --override -- sh "$SCRIPT_PATH" __wunstart_agent_dev_env_loaded "$@"
+	if [ -f .env.local ]; then
+		exec "$DOTENV" -e .env.development -e .env.local --override -- sh "$SCRIPT_PATH" "$@"
+	fi
+
+	exec "$DOTENV" -e .env.development --override -- sh "$SCRIPT_PATH" "$@"
 fi
 
 command_name=${1:-}
