@@ -53,13 +53,15 @@ async function isPortOpen(port: number): Promise<boolean> {
 }
 
 /**
- * First TCP port >= start with nothing listening (50-wide window).
- * Lowest free port wins: usually one lookup round, up to ~7 sequential
- * batches when the range is full (8-wide batches, dual-stack per port).
+ * First TCP port >= start with nothing listening and no reservation
+ * (50-wide window). Lowest free port wins: usually one lookup round, up to
+ * ~7 sequential batches when the range is full (8-wide batches, dual-stack
+ * per port). Reserved ports are skipped even when unbound, so an auto claim
+ * never steals an explicit pin that has not bound yet.
  */
-async function freePort(start: number): Promise<number | null> {
+async function freePort(start: number, reserved: ReadonlySet<number>): Promise<number | null> {
 	// Fast path: the claim is usually free — one lookup round, not fifty.
-	if (!(await isPortOpen(start))) {
+	if (!reserved.has(start) && !(await isPortOpen(start))) {
 		return start
 	}
 
@@ -77,8 +79,11 @@ async function freePort(start: number): Promise<number | null> {
 			ports.push(port)
 		}
 
-		const open: Array<boolean> = await Promise.all(ports.map((port) => isPortOpen(port)))
-		const free: number | undefined = ports.find((_, i) => open[i] === false)
+		const taken: Array<boolean> = await Promise.all(
+			ports.map(async (port) => reserved.has(port) || (await isPortOpen(port))),
+		)
+
+		const free: number | undefined = ports.find((_, i) => taken[i] === false)
 
 		if (free !== undefined) {
 			return free
@@ -530,15 +535,21 @@ export function inspectWorktrees(branch: string, root: string): WorktreeInspecti
 	return {canonical: [...canonical], sibling}
 }
 
-/** Named params. Pins mean that port or failure: no shifting, unlike claims. */
+/**
+ * Named params. Pins mean that port or failure: no shifting, unlike claims.
+ * Own-service mappings are non-negotiable too: a pin that matches one is
+ * already satisfied, and auto claims scan past them.
+ */
 type ScanInputs = {
 	agentDevPortWant: number
 	dbUrlWant: string
 	dbWant: string
 	pgPortWant: number
 	ownAgentDevPort: number | null
-	ownSmtpPort: string
+	ownDevPort: number | null
 	ownHttpPort: string
+	ownPgPort: number | null
+	ownSmtpPort: string
 	devPin?: number
 	pgPin?: number
 	httpPin?: number
@@ -572,37 +583,63 @@ export async function scanClaimedPorts(inputs: ScanInputs): Promise<ScannedPorts
 		dbWant,
 		pgPortWant,
 		ownAgentDevPort,
-		ownSmtpPort,
+		ownDevPort,
 		ownHttpPort,
+		ownPgPort,
+		ownSmtpPort,
 		devPin,
 		pgPin,
 		httpPin,
 	} = inputs
 
+	const ownSmtp: number | null = parsePort(ownSmtpPort)
+	const ownHttp: number | null = parsePort(ownHttpPort)
+	const humanPort: number = devPin ?? ownDevPort ?? HUMAN_DEV_PORT_WANT
+
+	// Every non-negotiable port in one reservation set: explicit pins, the
+	// human port (pinned, stored, or default), and own-service mappings that
+	// survive a stopped container. Auto claims skip these even while unbound.
+	const reserved = new Set<number>()
+
+	const reserve = (port: number | null | undefined): void => {
+		if (port !== null && port !== undefined) {
+			reserved.add(port)
+		}
+	}
+
+	reserve(humanPort)
+	reserve(pgPin)
+	reserve(httpPin)
+	reserve(ownSmtp)
+	reserve(ownHttp)
+	reserve(ownPgPort)
+
 	// If two branch-env runs ever race, the loser fails loudly on bind and converges on re-run.
 	// A pin overrides our own mailpit's mapping for that side: the explicit
 	// request wins, and compose recreates the mapping downstream.
 	const smtpProbe: Promise<number | null> =
-		ownSmtpPort !== '' ? Promise.resolve(Number(ownSmtpPort)) : freePort(MAILPIT_SMTP_WANT)
+		ownSmtp !== null ? Promise.resolve(ownSmtp) : freePort(MAILPIT_SMTP_WANT, reserved)
 
 	let httpProbe: Promise<number | null>
 
 	if (httpPin !== undefined) {
-		httpProbe = requireFreePort(httpPin, '--mailpit-port')
-	} else if (ownHttpPort !== '') {
-		httpProbe = Promise.resolve(Number(ownHttpPort))
+		// A pin matching our own mapping is already the desired state; probing
+		// it would read our own mailpit as a conflict.
+		httpProbe =
+			ownHttp === httpPin ? Promise.resolve(httpPin) : requireFreePort(httpPin, '--mailpit-port')
+	} else if (ownHttp !== null) {
+		httpProbe = Promise.resolve(ownHttp)
 	} else {
-		httpProbe = freePort(MAILPIT_HTTP_WANT)
+		httpProbe = freePort(MAILPIT_HTTP_WANT, reserved)
 	}
 
-	// The human port is a human decision: no scanning, no shifting. A pin
-	// must be free right now; the default is written and used whenever the
-	// human starts their server. Both stay outside the agent range (CLI and
-	// validate-setup enforce the boundary).
+	// The human port is a human decision: no scanning, no shifting. An
+	// explicit pin must be free right now; a stored port is reused as-is
+	// because this worktree's human server may already be running on it.
+	// Both stay outside the agent range (CLI and validate-setup enforce the
+	// boundary).
 	const devProbe: Promise<number> =
-		devPin !== undefined
-			? requireFreePort(devPin, '--dev-port')
-			: Promise.resolve(HUMAN_DEV_PORT_WANT)
+		devPin !== undefined ? requireFreePort(devPin, '--dev-port') : Promise.resolve(humanPort)
 
 	const agentProbe: Promise<AgentProbe> = scanAgentPort({
 		agentDevPortWant,
@@ -611,8 +648,24 @@ export async function scanClaimedPorts(inputs: ScanInputs): Promise<ScannedPorts
 		ownAgentDevPort,
 	})
 
-	const pgProbe: Promise<number | null> =
-		pgPin !== undefined ? requireFreePort(pgPin, '--postgres-port') : freePort(pgPortWant)
+	let pgProbe: Promise<number | null>
+
+	if (pgPin === undefined) {
+		pgProbe = freePort(pgPortWant, reserved)
+	} else if (ownPgPort === pgPin) {
+		// Our own container already publishes the pin: desired state achieved.
+		pgProbe = Promise.resolve(pgPin)
+	} else if (ownPgPort !== null) {
+		// Reusing our container would silently ignore the pin; recreating it
+		// behind the caller's back is the other unsafe answer. Fail with the
+		// exact move instead.
+		fail(
+			`--postgres-port :${pgPin} does not match our postgres already published on :${ownPgPort}`,
+			`reuse :${ownPgPort} (omit --postgres-port), or move our own container to :${pgPin} without touching its data: POSTGRES_PORT=${pgPin} docker compose up -d --force-recreate postgres — then re-run`,
+		)
+	} else {
+		pgProbe = requireFreePort(pgPin, '--postgres-port')
+	}
 
 	const [devPort, agentProbeResult, smtpFree, httpFree, pgFree] = await Promise.all([
 		devProbe,
@@ -658,13 +711,43 @@ export async function scanClaimedPorts(inputs: ScanInputs): Promise<ScannedPorts
 		)
 	}
 
-	// After the null fails: a half-reused scan must not print a :null side.
-	const httpReused: boolean = httpPin === undefined && ownHttpPort !== ''
+	// One port, one claim. Auto scans skip reserved pins; this catches the
+	// rest (mostly an own-service mapping held without a listener), before
+	// the plan promises a stack that cannot bind.
+	const claims: Array<{label: string; port: number | null}> = [
+		{label: 'human server', port: devPort},
+		{label: 'shared agent server', port: agentDevPort},
+		{label: 'mailpit SMTP', port: smtpFree},
+		{label: 'mailpit UI', port: httpFree},
+		{label: 'postgres', port: ownPgPort ?? pgFree},
+	]
 
-	if (ownSmtpPort !== '' || httpReused) {
+	const claimedBy = new Map<number, string>()
+
+	for (const claim of claims) {
+		if (claim.port === null) {
+			continue
+		}
+
+		const holder: string | undefined = claimedBy.get(claim.port)
+
+		if (holder !== undefined) {
+			fail(
+				`port :${claim.port} is claimed twice (${holder} and ${claim.label})`,
+				`pin distinct ports, free :${claim.port} (${PORT_OWNER_TRIAGE}), then re-run`,
+			)
+		}
+
+		claimedBy.set(claim.port, claim.label)
+	}
+
+	// After the null fails: a half-reused scan must not print a :null side.
+	const httpReused: boolean = ownHttp !== null && (httpPin === undefined || httpPin === ownHttp)
+
+	if (ownSmtp !== null || httpReused) {
 		const sides: Array<string> = []
 
-		if (ownSmtpPort !== '') {
+		if (ownSmtp !== null) {
 			sides.push(`:${smtpFree} (smtp)`)
 		}
 

@@ -7,7 +7,13 @@
 import {basename, join} from 'node:path'
 import process from 'node:process'
 
-import {AGENT_DEV_PORT_MAX, AGENT_DEV_PORT_MIN, parsePort} from '../../helpers/dev-ports.ts'
+import {
+	AGENT_DEV_PORT_MAX,
+	AGENT_DEV_PORT_MIN,
+	HUMAN_DEV_PORT_WANT,
+	inAgentDevRange,
+	parsePort,
+} from '../../helpers/dev-ports.ts'
 import {fail, ok, step, warn} from '../../helpers/output.ts'
 import type {Pm} from '../../helpers/package-manager.ts'
 import {phaseCommand} from '../../helpers/package-manager.ts'
@@ -40,6 +46,33 @@ import {
 	tryCapture,
 } from './process.ts'
 import {probeSharedPostgres, readOwnPostgres, reuseOwnPostgres, startStack} from './stack.ts'
+
+/**
+ * Preserve a valid stored human port across runs (two human worktrees pin
+ * once and keep their port). Garbage or an agent-range value is repaired to
+ * the default instead of being written back.
+ */
+function storedHumanPort(raw: string | undefined): number | null {
+	const port: number | null = parsePort(raw)
+
+	if (port !== null && !inAgentDevRange(port)) {
+		return port
+	}
+
+	if (raw !== undefined && raw !== '') {
+		if (port === null) {
+			warn(
+				`stored DEV_PORT=${JSON.stringify(raw)} is not a valid port — using :${HUMAN_DEV_PORT_WANT}`,
+			)
+		} else {
+			warn(
+				`stored DEV_PORT=:${port} is inside the agent-only range :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX} — using :${HUMAN_DEV_PORT_WANT}`,
+			)
+		}
+	}
+
+	return null
+}
 
 async function main(): Promise<void> {
 	const cfg: CliConfig = parseCliArgs(process.argv.slice(2))
@@ -76,6 +109,11 @@ async function main(): Promise<void> {
 
 		const initialVars: Map<string, string> = initialEnv.vars
 		const committedVars: Map<string, string> = initialEnv.devVars
+
+		// An explicit pin replaces the stored value, so a stale/garbage
+		// DEV_PORT must not warn about a default that will not be used.
+		const ownDevPort: number | null =
+			cfg.devPort === undefined ? storedHumanPort(initialVars.get('DEV_PORT')) : null
 
 		// Validated on dry runs too: this reads files and writes nothing,
 		// so a dry-run plan never describes a provisioning that validation
@@ -130,6 +168,8 @@ async function main(): Promise<void> {
 		// port taken in between fails loudly on bind.
 		step('claiming ports…')
 		const {ownSmtpPort, ownHttpPort} = reuseMailpitPorts()
+		const ownPostgres = readOwnPostgres()
+		const ownPgPort: number | null = parsePort(ownPostgres?.port)
 
 		const {
 			agentDevPort: claimedAgentDevPort,
@@ -144,8 +184,10 @@ async function main(): Promise<void> {
 			dbWant,
 			pgPortWant,
 			ownAgentDevPort: parsePort(initialVars.get('AGENT_DEV_PORT')),
+			ownDevPort,
 			ownSmtpPort,
 			ownHttpPort,
+			ownPgPort,
 			devPin: cfg.devPort,
 			pgPin: cfg.postgresPort,
 			httpPin: cfg.mailpitPort,
@@ -164,7 +206,6 @@ async function main(): Promise<void> {
 
 		const mailpitSmtpPort: string = String(smtpFree)
 		const mailpitHttpPort: string = String(httpFree)
-		const ownPostgres = readOwnPostgres()
 
 		const plan: Plan = buildPlan({
 			pm,
@@ -179,6 +220,8 @@ async function main(): Promise<void> {
 			pgFree,
 			ownPostgres,
 			devPin: cfg.devPort,
+			devFromEnv:
+				cfg.devPort === undefined && ownDevPort !== null && ownDevPort !== HUMAN_DEV_PORT_WANT,
 			pgPin: cfg.postgresPort,
 			httpPin: cfg.mailpitPort,
 		})

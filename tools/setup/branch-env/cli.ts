@@ -44,19 +44,29 @@ function usage(): void {
   the validate-setup gate. Route generation belongs to the dev/build
   server (its TanStack Start plugin regenerates routeTree.gen.ts).
 
-  Every worktree writes DEV_PORT=3000 (the human server) and claims
-  AGENT_DEV_PORT from :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX} for agents.
+  Every worktree uses DEV_PORT=3000 (the human server) unless .env.local
+  already stores a valid human port; a stored port is kept on later runs
+  and --dev-port overrides it. Agents claim AGENT_DEV_PORT in
+  :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX}.
+
+  Pins are pairwise distinct and never use :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX} (agent
+  servers own that range). A pin matching the port our own service
+  already publishes is already satisfied.
 
   examples:
     ${phaseExample(pm, 'branch-env')}                   provision this checkout, then serve :3000
     ${phaseExample(pm, 'branch-env', ['--dry-run'])}         show the plan without changing anything
     ${phaseExample(pm, 'branch-env', ['--yes'])}             never prompt (CI and agents)
-    ${phaseExample(pm, 'branch-env', ['--dev-port', '3200'])}   pin the human server to :3200 (rare; fails when taken)
+    ${phaseExample(pm, 'branch-env', ['--dev-port', '3200'])}   pin the human server to :3200 (rare; stored, fails when taken)
 
   --dev-port <port>       pin the human server to this port outside :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX}
-                          (fails when taken; rare override for two human worktrees)
-  --postgres-port <port>  pin our own postgres to this port (fails when taken)
-  --mailpit-port <port>   pin the mailpit UI to this port (fails when taken; SMTP is auto-selected)
+                          (stored in .env.local and kept on later runs; fails when taken —
+                          rare override for two human worktrees)
+  --postgres-port <port>  pin our own postgres to this port (fails when taken, or when our
+                          own container already publishes a different port)
+  --mailpit-port <port>   pin the mailpit UI to this port (fails when taken by anything else;
+                          the port our own mailpit already publishes counts as satisfied;
+                          SMTP is auto-selected)
   --dry-run, -n           print the plan and exit before changing anything
   --yes, -y               accept all defaults without prompting (required when non-interactive)
   --quiet, -q             silence progress, plans, summaries, and child output on success (warnings, failures, and dry-run/confirmation plans still print)
@@ -95,21 +105,53 @@ export function parseCliArgs(argv: Array<string>): CliConfig {
 	rejectPositionals(positionals, 'this program takes flags only (see --help)')
 
 	const devPort: number | undefined = parsePortFlag(values['dev-port'], '--dev-port')
+	const postgresPort: number | undefined = parsePortFlag(values['postgres-port'], '--postgres-port')
+	const mailpitPort: number | undefined = parsePortFlag(values['mailpit-port'], '--mailpit-port')
 
-	// The agent range is the safety boundary: no human port inside it, so
-	// agent cleanup can never touch a human server.
-	if (devPort !== undefined && inAgentDevRange(devPort)) {
-		fail(
-			`--dev-port :${devPort} is inside the agent-only range :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX}`,
-			`pin the human server outside :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX} (every worktree defaults to :3000)`,
-			2,
-		)
+	const pins: Array<{flag: string; port: number}> = []
+
+	if (devPort !== undefined) {
+		pins.push({flag: '--dev-port', port: devPort})
+	}
+
+	if (postgresPort !== undefined) {
+		pins.push({flag: '--postgres-port', port: postgresPort})
+	}
+
+	if (mailpitPort !== undefined) {
+		pins.push({flag: '--mailpit-port', port: mailpitPort})
+	}
+
+	const pinnedBy = new Map<number, string>()
+
+	for (const pin of pins) {
+		// The agent range is the safety boundary: agent cleanup owns it, so
+		// no explicit pin may land there.
+		if (inAgentDevRange(pin.port)) {
+			fail(
+				`${pin.flag} :${pin.port} is inside the agent-only range :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX}`,
+				`pin outside :${AGENT_DEV_PORT_MIN}-:${AGENT_DEV_PORT_MAX} — that range belongs to agent servers (the human server defaults to :3000)`,
+				2,
+			)
+		}
+
+		const other: string | undefined = pinnedBy.get(pin.port)
+
+		if (other !== undefined) {
+			fail(
+				`${other} and ${pin.flag} both pin :${pin.port}`,
+				'pin a distinct port for each service (dev, postgres, mailpit) — then re-run',
+				2,
+			)
+		}
+
+		pinnedBy.set(pin.port, pin.flag)
 	}
 
 	return {
 		devPort,
-		postgresPort: parsePortFlag(values['postgres-port'], '--postgres-port'),
-		mailpitPort: parsePortFlag(values['mailpit-port'], '--mailpit-port'),
+		postgresPort,
+		mailpitPort,
 		yes: values.yes ?? false,
 		noInput: values['no-input'] ?? false,
 		quiet: values.quiet ?? false,

@@ -34,6 +34,7 @@ type PlanInputs = {
 	pgFree: number | null
 	ownPostgres: OwnPostgres | null
 	devPin?: number
+	devFromEnv: boolean
 	pgPin?: number
 	httpPin?: number
 }
@@ -55,6 +56,19 @@ function ownPostgresLine(own: OwnPostgres): string {
 	return `our own container (state: ${own.state}; start it on this branch's free port; data intact)`
 }
 
+/** Human port provenance: explicit pin, stored value, or the shared default. */
+function devPortNote(devPin: number | undefined, devFromEnv: boolean): string {
+	if (devPin !== undefined) {
+		return ' (pinned by --dev-port)'
+	}
+
+	if (devFromEnv) {
+		return ' (stored in .env.local)'
+	}
+
+	return ''
+}
+
 export function buildPlan(inputs: PlanInputs): Plan {
 	const {
 		pm,
@@ -69,6 +83,7 @@ export function buildPlan(inputs: PlanInputs): Plan {
 		pgFree,
 		ownPostgres,
 		devPin,
+		devFromEnv,
 		pgPin,
 		httpPin,
 	} = inputs
@@ -89,7 +104,7 @@ export function buildPlan(inputs: PlanInputs): Plan {
 	const lines: Array<string> = [
 		`  package manager: ${pm}`,
 		`  branch:          ${branch} -> database '${dbWant}'`,
-		`  human server:    http://localhost:${devPort}${devPin !== undefined ? ' (pinned by --dev-port)' : ''}`,
+		`  human server:    http://localhost:${devPort}${devPortNote(devPin, devFromEnv)}`,
 		`  shared agent:    http://localhost:${agentDevPort} (idle-expires)`,
 		`  postgres:        ${postgresLine}`,
 		`  mailpit UI:      ${mailpitUrl}${httpPin !== undefined ? ' (pinned by --mailpit-port)' : ''}`,
