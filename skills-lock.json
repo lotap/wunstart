@@ -1,83 +1,83 @@
 {
-  "version": 1,
+  "version": 2,
   "skills": {
     "cloudflare": {
       "source": "cloudflare/skills",
       "sourceType": "github",
       "skillPath": "skills/cloudflare/SKILL.md",
-      "computedHash": "f08c8c1be96dfad7f9d5418b1345477dd2e55af58c8da01326c9a2616c7ed721"
+      "computedHash": "a40c5c77e4b96b0f6603a54e67bf2ff401a872366af48ff8f6ae0e872d4ad324"
     },
     "effect": {
       "source": "kitlangton/skills",
       "sourceType": "github",
       "skillPath": "skills/effect/SKILL.md",
-      "computedHash": "d88417dca5f22fcc80b03ebd4096dfa6113a50cc6bb574bf53f75248cd321e35"
+      "computedHash": "08df6d7dd3d3f3d5a6658c17b90f6b776912fd566d15c85ac6140030fafc1a9c"
     },
     "effect-ts": {
       "source": "effect-ts/skills",
       "sourceType": "github",
       "skillPath": "skills/effect-ts/SKILL.md",
-      "computedHash": "cb225ba5dda169883dfee680fba6c570c89245ba19242a9bc5c3f2ac8218a55f"
+      "computedHash": "0e5d926566561f7fe206f5f60c1c53e21d1519fd6de8408a7e3c9934d55ad04f"
     },
     "improve-react": {
       "source": "millionco/react-doctor",
       "sourceType": "github",
       "skillPath": "skills/improve-react/SKILL.md",
-      "computedHash": "ee6095448a511e2507528caae7ba91c5dc462464b603196c5b1931d4924a371a"
+      "computedHash": "7a5c6bed331b17132d021e199a0871abafc57ecc32ef005178279b1440279ab5"
     },
     "install-anti-slop": {
       "source": "dmmulroy/anti-slop",
       "sourceType": "github",
       "skillPath": "skills/install-anti-slop/SKILL.md",
-      "computedHash": "1b9b5d3c0d9e0ef8dd7631f4d637e66b62a73e34dceaf4ae07c0d3de376fd7d7"
+      "computedHash": "72309811a88f92e56b6041960b7bd6f187deea251486982fd457378460b38d8a"
     },
     "react-email": {
       "source": "resend/react-email",
       "sourceType": "github",
       "skillPath": "skills/react-email/SKILL.md",
-      "computedHash": "da0feefc6ddf4aaeff930ab203d269774da464429e35b178d2403d69d2dc2fb3"
+      "computedHash": "a8c0238afbc32c6c279b5594cea69e11e53f591dec16bb60d8c77e26fb4bc672"
     },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",
       "skillPath": "skills/shadcn/SKILL.md",
-      "computedHash": "b864a958765563321f485a96f4d59c0bb6539f4286ab6d8b8b66895b7ebd302d"
+      "computedHash": "388962d16c7a4f13aaeee0d8f128e50a87df8553d42ef7988c39c0e1c74a40e8"
     },
     "tanstack-form": {
       "source": "tanstack-skills/tanstack-skills",
       "sourceType": "github",
       "skillPath": "plugins/tanstack-form/skills/tanstack-form/SKILL.md",
-      "computedHash": "1eb9f9fc43ab2777f586f916b2234c5340ed98f296a98b22c75cbbafcbd29b86"
+      "computedHash": "430501f64ccd9122d446b9e4e411c143427bc5f0ce0f9d78a6eb8d2a056c3a6d"
     },
     "tanstack-query": {
       "source": "tanstack-skills/tanstack-skills",
       "sourceType": "github",
       "skillPath": "plugins/tanstack-query/skills/tanstack-query/SKILL.md",
-      "computedHash": "b8a0477cd4d7bf8fa54d27f8e64d82388402f0d502591db50a357df5b9995c75"
+      "computedHash": "b27696896a18acff7cb9099d753effb74bdf4b4339881f941fea4cca56abb1fa"
     },
     "tanstack-start": {
       "source": "tanstack-skills/tanstack-skills",
       "sourceType": "github",
       "skillPath": "plugins/tanstack-start/skills/tanstack-start/SKILL.md",
-      "computedHash": "e9d8355fe3e47b118e739081f1123c52aa0ecde57da840722177e1ad5caf9908"
+      "computedHash": "639fa82b4266c720b0b8927cac9d3d22248c354ad36fffdbdcf5675b9d94f32a"
     },
     "web-perf": {
       "source": "cloudflare/skills",
       "sourceType": "github",
       "skillPath": "skills/web-perf/SKILL.md",
-      "computedHash": "72d0dd9706147e19bf3c1a36fdc02570f77685541d89d901a3a2f570824ba3cb"
+      "computedHash": "2716bf9bfafe4d8407b55c5213a143aea248686c4af92f8b43fc35327eaae41d"
     },
     "workers-best-practices": {
       "source": "cloudflare/skills",
       "sourceType": "github",
       "skillPath": "skills/workers-best-practices/SKILL.md",
-      "computedHash": "e12970301753ed7eaa5ca375d4b98e0e36c9554e8f2809cb4b543c2ea7d9b4b8"
+      "computedHash": "7f941bbc549454872a4c7c261bf75a1ef7aaa69666bc85cec91e97cf40c11cc6"
     },
     "wrangler": {
       "source": "cloudflare/skills",
       "sourceType": "github",
       "skillPath": "skills/wrangler/SKILL.md",
-      "computedHash": "9b410cfe14c41d3d4ace5d42e2e19f4eb96104c659b5ed45abf341db28d81029"
+      "computedHash": "182e370d8c26e6bcb896a57a63e6cab006b253b9278cc3515f7b9db2c4d07661"
     }
   }
 }
