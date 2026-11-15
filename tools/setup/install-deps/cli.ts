@@ -37,11 +37,14 @@ function usage(): void {
 
   examples:
     ${phaseExample(pm, 'install-deps')}            resolve from lockfiles, install if needed
-    ${phaseExample(pm, 'install-deps', ['--pm', 'pnpm'])}  use pnpm (removes other managers' artifacts)
+    ${phaseExample(pm, 'install-deps', ['--pm', 'pnpm'])}  use pnpm (moves other managers’ artifacts aside; restored if the install fails)
     ${phaseExample(pm, 'install-deps', ['--dry-run'])}  show the plan, change nothing
     ${phaseExample(pm, 'install-deps', ['--yes'])}      never prompt (CI and agents)
 
-  --pm            switch this checkout to the given package manager (${pmChoices}); removes other managers' lockfiles and incompatible node_modules
+  --pm            switch this checkout to the given package manager (${pmChoices});
+                  moves other managers’ lockfiles and incompatible node_modules
+                  aside (restored if the install fails). pnpm must be 12.7+
+                  (needed to record esbuild/workerd build approvals)
   --force, -f     permit destructive cleanup without prompting (removes superseded lockfiles and node_modules; removes a leftover pnpm-workspace.yaml when pnpm, aube, and Nub are not the target)
   --dry-run, -n   print the plan and exit before changing anything
   --yes, -y       accept all defaults without prompting (non-TTY implies this)

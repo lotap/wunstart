@@ -67,7 +67,7 @@ Clone it, rename it, and start building.
 
 ### Prerequisites
 
-- A JavaScript runtime and package manager: [Bun](https://bun.sh) 1.x, the default runtime and package manager, [Nub](https://nubjs.com/docs), a runtime and package manager, or [Node](https://nodejs.org/en) 22.18+ with one of [npm](https://www.npmjs.com/), [yarn](https://yarnpkg.com/), [pnpm](https://pnpm.io/), or [aube](https://aube.sh).
+- A JavaScript runtime and package manager: [Bun](https://bun.sh) 1.x, the default runtime and package manager, [Nub](https://nubjs.com/docs), a runtime and package manager, or [Node](https://nodejs.org/en) 22.18+ with one of [npm](https://www.npmjs.com/), [yarn](https://yarnpkg.com/), [pnpm](https://pnpm.io/) 12.7+ (needed for build approvals), or [aube](https://aube.sh).
   > If you have a Bun-only setup, you will need to manually update the `opencode.json` file to use `bunx` instead of `npx` for MCP servers.
 - [Docker Engine](https://docs.docker.com/engine/install/) with [Compose](https://docs.docker.com/compose/install/) installed and running. Docker Desktop, OrbStack, or another Docker-compatible runtime works. It starts Postgres and Mailpit through `docker compose`.
 - Rust and the `wasm32-unknown-unknown` target are optional. You need them only if you edit `crates/` for the auth hasher. The compiled wasm kernel is committed, so no other build needs Rust.
@@ -135,7 +135,7 @@ Click “Use this template” on [the project’s GitHub repository](https://git
    > npm run install-deps -- --pm pnpm    # from npm
    > ```
    >
-   > Switching to pnpm may create `pnpm-workspace.yaml` to record build approvals. The switch generates it; it is not part of the Bun checkout.
+   > Switching to pnpm (12.7+) may create `pnpm-workspace.yaml` to record build approvals. The switch generates it; it is not part of the Bun checkout. Older pnpm rejects the build-approval flags, so `install-deps` stops before changing anything.
 
    ```sh
     bun run branch-env       # per branch database and agent port, plus migrations
