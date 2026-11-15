@@ -27,6 +27,10 @@ function valueFlags(options: CliOptions): ReadonlySet<string> {
 	for (const [flag, option] of Object.entries(options)) {
 		if (option.type === 'string') {
 			flags.add(`--${flag}`)
+
+			if (option.short !== undefined) {
+				flags.add(`-${option.short}`)
+			}
 		}
 	}
 
