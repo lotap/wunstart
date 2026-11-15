@@ -29,11 +29,11 @@ function usage(): void {
 	console.log(`usage: install-deps [--pm ${pmChoices}] [--force] [--dry-run] [--yes] [--no-input] [--quiet] [--help]
 
   Checkout-scoped dependency preparation. Resolves the package manager from
-  explicit flags and repository evidence, removes artifacts that belong to a
-  different manager, installs dependencies, and sets up git hooks. Safe to
-  rerun. Route generation belongs to the dev/build server (its TanStack
-  Start plugin regenerates routeTree.gen.ts, type registration included),
-  never to this program.
+  explicit flags and repository evidence, moves artifacts that belong to a
+  different manager aside (restoring them if install fails), installs
+  dependencies, and sets up git hooks. Safe to rerun. Route generation
+  belongs to the dev/build server (its TanStack Start plugin regenerates
+  routeTree.gen.ts, type registration included), never to this program.
 
   examples:
     ${phaseExample(pm, 'install-deps')}            resolve from lockfiles, install if needed
@@ -42,7 +42,7 @@ function usage(): void {
     ${phaseExample(pm, 'install-deps', ['--yes'])}      never prompt (CI and agents)
 
   --pm            switch this checkout to the given package manager (${pmChoices}); removes other managers' lockfiles and incompatible node_modules
-  --force, -f     permit destructive cleanup without prompting (removes superseded lockfiles, node_modules, pnpm-workspace.yaml when leaving pnpm)
+  --force, -f     permit destructive cleanup without prompting (removes superseded lockfiles and node_modules; removes a leftover pnpm-workspace.yaml when pnpm, aube, and Nub are not the target)
   --dry-run, -n   print the plan and exit before changing anything
   --yes, -y       accept all defaults without prompting (non-TTY implies this)
   --quiet, -q     silence progress, plans, summaries, and child output on success (warnings, failures, and dry-run/confirmation plans still print)
@@ -50,12 +50,12 @@ function usage(): void {
   -h, --help      this text
 
   Resolution order: --pm, exactly one lockfile, package.json "packageManager"
-  (when no lockfile exists), pnpm-workspace.yaml evidence, then the
-  fresh-tree default (bun when installed, otherwise the only installed
-  manager). Multiple lockfiles, or node_modules without lockfile or
-  packageManager evidence, are ambiguous. Interactive runs prompt,
-  non-interactive runs fail with the exact command to run. No persistent
-  answers are stored.
+  (when no lockfile exists), then the fresh-tree default (bun when
+  installed, otherwise the only installed manager). Multiple lockfiles, or
+  node_modules without lockfile or packageManager evidence, are ambiguous.
+  pnpm-workspace.yaml is package-manager config, not manager evidence. Interactive
+  runs prompt, non-interactive runs fail with the exact command to run. No
+  persistent answers are stored.
 
   This program never claims ports, writes .env.local, starts services,
   creates branch databases, or runs migrations. Run branch-env next.

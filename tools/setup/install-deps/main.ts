@@ -14,7 +14,7 @@ import {parseCliArgs} from './cli.ts'
 import type {Evidence} from './evidence.ts'
 import {readEvidence} from './evidence.ts'
 import type {InstallPlan} from './plan.ts'
-import {buildPlan, derivePlanInputs, printPlan, printResult} from './plan.ts'
+import {buildPlan, cleanupList, derivePlanInputs, printPlan, printResult} from './plan.ts'
 import type {PmResolution, WorkspaceAction} from './resolve.ts'
 import {resolvePm, resolveWorkspace} from './resolve.ts'
 
@@ -70,11 +70,7 @@ async function main(): Promise<void> {
 		// answered prompt (the confirm gate below), or --force. Stale
 		// lockfile regeneration is rename repair, not a switch, and stays
 		// automatic; --force never resolves ambiguity, only consents.
-		const switchCleanup: Array<string> = [
-			...plan.foreignLockfiles,
-			...(plan.removeNodeModules ? ['node_modules'] : []),
-			...(plan.workspace === 'drop' ? ['pnpm-workspace.yaml'] : []),
-		]
+		const switchCleanup: Array<string> = cleanupList(plan)
 
 		const consented: boolean =
 			cfg.force ||
@@ -83,8 +79,13 @@ async function main(): Promise<void> {
 			canPrompt
 
 		if (switchCleanup.length > 0 && !consented) {
+			const foreign: string =
+				plan.foreignNodeModules === null
+					? ''
+					: ` (node_modules is a ${plan.foreignNodeModules.pm} tree: ${plan.foreignNodeModules.marker})`
+
 			fail(
-				`refusing to remove ${switchCleanup.join(', ')} without consent`,
+				`refusing to remove ${switchCleanup.join(', ')}${foreign} without consent`,
 				`re-run with --pm ${plan.pm} or --force to consent to this cleanup`,
 				1,
 			)

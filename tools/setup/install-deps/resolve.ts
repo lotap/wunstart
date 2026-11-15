@@ -8,20 +8,15 @@ import {
 	KIT_PM,
 	PM_TOOLS,
 	installHint,
+	phaseCommandWithArgs,
 	pmFromPackageManagerField,
 } from '../../helpers/package-manager.ts'
-import {hasCommand} from '../../helpers/process.ts'
+import {hasCommand, tryCapture} from '../../helpers/process.ts'
 import type {Asker} from '../../helpers/prompt.ts'
 import {confirmValidator} from '../../helpers/prompt.ts'
 import type {Evidence} from './evidence.ts'
 
-export type PmSource =
-	| 'flag'
-	| 'packageManager'
-	| 'lockfile'
-	| 'workspace'
-	| 'fresh-default'
-	| 'prompt'
+export type PmSource = 'flag' | 'packageManager' | 'lockfile' | 'fresh-default' | 'prompt'
 
 export type PmResolution = {
 	pm: Pm
@@ -44,7 +39,7 @@ function installedPms(): Array<Pm> {
 }
 
 function ambiguousHint(): string {
-	return `choose one explicitly: bun run install-deps --pm ${PM_TOOLS.join('|')}`
+	return `choose one explicitly: pass --pm ${PM_TOOLS.join('|')} to this checkout’s install-deps script`
 }
 
 async function askPm(ask: Asker['ask']): Promise<Pm> {
@@ -129,9 +124,6 @@ export async function resolvePm(inputs: PmInputs): Promise<PmResolution> {
 			ask,
 		)
 		source = 'prompt'
-	} else if (evidence.hasPnpmWorkspace) {
-		pm = 'pnpm'
-		source = 'workspace'
 	} else if (hasCommand(KIT_PM)) {
 		pm = KIT_PM
 		source = 'fresh-default'
@@ -160,7 +152,24 @@ export async function resolvePm(inputs: PmInputs): Promise<PmResolution> {
 	}
 
 	if (fieldPm !== null && fieldPm !== pm) {
-		warn(`ignoring packageManager '${evidence.packageManagerField ?? ''}' (using ${pm})`)
+		if (cliPm === undefined) {
+			warn(`ignoring packageManager '${evidence.packageManagerField ?? ''}' (using ${pm})`)
+		} else {
+			// A switch cleans up before installing; a conflicting pin makes
+			// pnpm/Nub refuse after that cleanup, leaving a bare checkout.
+			const version: string | null = tryCapture(cliPm, ['--version'])
+			const replacement: string = version === null ? `${cliPm}@<version>` : `${cliPm}@${version}`
+			const pin: string = evidence.packageManagerField ?? fieldPm
+			const remediation: string = `set package.json "packageManager" to '${replacement}' (or remove the field), then re-run: ${phaseCommandWithArgs(cliPm, 'install-deps', ['--pm', cliPm])}`
+
+			if (dryRun) {
+				warn(
+					`packageManager '${pin}' names ${fieldPm}, not ${cliPm} — a real run fails before cleanup until it is updated`,
+				)
+			} else {
+				fail(`packageManager '${pin}' names ${fieldPm}, but --pm chose ${cliPm}`, remediation)
+			}
+		}
 	}
 
 	if (!hasCommand(pm)) {
@@ -175,9 +184,10 @@ export async function resolvePm(inputs: PmInputs): Promise<PmResolution> {
 }
 
 /**
- * Workspace-file decision: pnpm-workspace.yaml is pnpm-only config, kept
- * unless the user is leaving pnpm and consents to its removal (answered
- * prompt or --force). --force never deletes the active manager's config.
+ * Workspace-file decision: pnpm-workspace.yaml holds pnpm config, which aube
+ * and Nub also read. Keep it unless the user is leaving all three and
+ * consents to its removal (answered prompt or --force). --force never
+ * deletes a config the active manager reads.
  */
 export async function resolveWorkspace(inputs: WorkspaceInputs): Promise<WorkspaceAction> {
 	const {evidence, pm, source, force, canPrompt, ask} = inputs
@@ -186,11 +196,15 @@ export async function resolveWorkspace(inputs: WorkspaceInputs): Promise<Workspa
 		return 'none'
 	}
 
-	if (pm === 'pnpm') {
+	if (pm === 'pnpm' || pm === 'aube' || pm === 'nub') {
 		return 'keep'
 	}
 
+	// --force is itself consent: the plan names the file before any cleanup,
+	// so a non-pnpm target can remove a leftover workspace file without first
+	// re-resolving through --pm or a prompt.
 	const leavingPnpm: boolean =
+		force ||
 		evidence.lockfiles.some((lock) => lock.pm === 'pnpm') ||
 		source === 'flag' ||
 		source === 'packageManager'
@@ -199,9 +213,13 @@ export async function resolveWorkspace(inputs: WorkspaceInputs): Promise<Workspa
 		return 'keep'
 	}
 
+	if (force) {
+		return 'drop'
+	}
+
 	if (canPrompt) {
 		const answer: string = await ask(
-			'pnpm-workspace.yaml is pnpm-only config (kept if you return to pnpm); delete it? (y/N)',
+			'pnpm-workspace.yaml is pnpm config (aube and Nub read it too); delete it? (y/N)',
 			{
 				defaultValue: 'n',
 				validate: confirmValidator('n'),
@@ -211,13 +229,7 @@ export async function resolveWorkspace(inputs: WorkspaceInputs): Promise<Workspa
 		return answer.toLowerCase().startsWith('y') ? 'drop' : 'keep'
 	}
 
-	if (force) {
-		return 'drop'
-	}
-
-	warn(
-		'keeping pnpm-workspace.yaml (leaving pnpm; re-run interactively to decide, or pass --force to remove it)',
-	)
+	warn('keeping pnpm-workspace.yaml (pass --force to remove it)')
 
 	return 'keep'
 }

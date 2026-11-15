@@ -9,7 +9,7 @@ import {existsSync, readFileSync, statSync} from 'node:fs'
 import {join} from 'node:path'
 
 import type {Pm} from './package-manager.ts'
-import {lockfileFor, PM_TOOLS} from './package-manager.ts'
+import {lockfileFor} from './package-manager.ts'
 import {ROOT} from './paths.ts'
 import {readPackageJson} from './project-files.ts'
 
@@ -26,19 +26,46 @@ export type ForeignNodeModules = {pm: Pm; marker: string}
  * foreign-manager checkout stays invisible — the guarded direction is
  * foreign markers inside this checkout, which is how a silent manager
  * swap (e.g. a vendored test spawning `pnpm exec`) announces itself.
+ *
+ * `.modules.yaml` is shared: pnpm writes it, and aube and Nub also write it
+ * as Vite compatibility metadata. The selected manager’s own marker wins
+ * before any foreign marker is considered, so a normal aube/Nub install is
+ * not reported foreign merely because an older `.pnpm` virtual store
+ * remains. Best effort: a Nub global-store tree without `.store` (or a
+ * pnpm tree with a custom virtual-store name) only leaves `.modules.yaml`,
+ * and then pnpm is the fallback label for a non-pnpm target.
  */
 const NODE_MODULES_MARKERS = {
 	bun: [],
 	npm: ['.package-lock.json'],
 	yarn: ['.yarn-integrity', '.yarn-state.yml'],
-	pnpm: ['.pnpm', '.modules.yaml'],
-	aube: [],
-	nub: [],
+	pnpm: ['.pnpm'],
+	aube: ['.aube-state', '.aube'],
+	nub: ['.store'],
 } satisfies Record<Pm, Array<string>>
+
+/**
+ * Foreign-marker order for the remaining managers: aube/Nub state outranks
+ * a virtual-store directory, so a stale `.pnpm` left by an earlier install
+ * does not hide the tree that replaced it. The selected manager’s own
+ * marker check above still wins over every foreign entry.
+ */
+const NODE_MODULES_MARKER_ORDER: Array<Pm> = ['aube', 'nub', 'pnpm', 'npm', 'yarn', 'bun']
+
+const PNPM_COMPAT_MARKER = '.modules.yaml'
 
 /** Another manager's leftovers inside node_modules, or null when owned. */
 export function foreignNodeModules(pm: Pm): ForeignNodeModules | null {
-	for (const other of PM_TOOLS) {
+	// The chosen manager’s own marker proves ownership first. Mixed trees are
+	// ambiguous by nature; preferring the target avoids reporting a clean
+	// aube/Nub install as foreign because a `.pnpm` directory survived.
+	for (const marker of NODE_MODULES_MARKERS[pm]) {
+		if (existsSync(join(ROOT, 'node_modules', marker))) {
+			return null
+		}
+	}
+
+	for (const other of NODE_MODULES_MARKER_ORDER) {
 		if (other === pm) {
 			continue
 		}
@@ -48,6 +75,13 @@ export function foreignNodeModules(pm: Pm): ForeignNodeModules | null {
 				return {pm: other, marker}
 			}
 		}
+	}
+
+	// Fallback for custom virtual-store layouts: pnpm's real marker is
+	// `.pnpm`, so the shared Vite file only identifies pnpm when no manager’s
+	// own state is present.
+	if (pm !== 'pnpm' && existsSync(join(ROOT, 'node_modules', PNPM_COMPAT_MARKER))) {
+		return {pm: 'pnpm', marker: PNPM_COMPAT_MARKER}
 	}
 
 	return null
