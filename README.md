@@ -48,7 +48,7 @@ Clone it, rename it, and start building.
 
   `start` reuses the dev server in this worktree when its `DATABASE_URL` matches. Otherwise it reuses the branch’s shared agent server for the branch database, or starts one. When it starts a server, it provisions dependencies, waits until the server answers over HTTP, and prints the URL first. Use that printed URL.
 
-  `status` is read-only and does not reset idle timers. It shows port, pid, worktree ownership, role, and log. Agent logs live at `.tmp/agent-dev/<port>.log`. If the server fails to start, run `status` and read the listed log.
+  `status` is read-only and does not reset idle timers. It shows port, pid, worktree ownership, role, and log. Agent logs live at `.tmp/agent-dev/<port>.log`; the human server logs to the terminal that runs it. If the server fails to start, run `status` and read the listed log.
 
   Never stop the dev server or a shared server. `stop-all` is manual cleanup. Stop only a fresh server you started, with `stop --port <port>`.
 
@@ -82,10 +82,10 @@ Cloning and removing `.git` leaves a fresh repo with no link back to the starter
 
 Or
 
-If you have a package manager already, use `degit`:
+If you have a package manager already, use `degit` through its one-off runner — `bunx` (Bun), `npx` (npm), `pnpm dlx` (pnpm), `yarn dlx` (yarn), `aubx` (aube), or `nubx` (Nub):
 
 ```sh
-bunx degit github:lotap/wunstart <project-dir> && cd <project-dir> && git init -b trunk
+<one-off runner> degit github:lotap/wunstart <project-dir> && cd <project-dir> && git init -b trunk
 ```
 
 Or
@@ -134,6 +134,8 @@ Click “Use this template” on [the project’s GitHub repository](https://git
    > bun run install-deps --pm pnpm       # from Bun
    > npm run install-deps -- --pm pnpm    # from npm
    > ```
+   >
+   > Switching to pnpm may create `pnpm-workspace.yaml` to record build approvals. The switch generates it; it is not part of the Bun checkout.
 
    ```sh
     bun run branch-env       # per branch database and agent port, plus migrations
@@ -153,7 +155,7 @@ Click “Use this template” on [the project’s GitHub repository](https://git
 
 3. **Verify and commit.**
 
-   To verify, open `http://localhost:3000` and confirm the landing page renders.
+   To verify, open `http://localhost:3000` and confirm the root home renders. The marketing page is separate, at `/landing-page`.
 
    ```sh
    git add -A && git commit -m "Initial project setup"
@@ -166,7 +168,7 @@ Click “Use this template” on [the project’s GitHub repository](https://git
    bun run branch-env
    ```
 
-   `branch-env` sets up the new branch’s database and agent port. `DEV_PORT` stays `3000` unless you pinned it. Restart `dev` whenever `DATABASE_URL` changes, like a branch switch or Postgres move, regardless of the port.
+   `branch-env` sets up the new branch’s database and agent port. `DEV_PORT` stays `3000` unless you pinned it; `branch-env --dev-port <port>` stores the pin in `.env.local`, and later runs keep it. Restart `dev` whenever `DATABASE_URL` changes, like a branch switch or Postgres move, regardless of the port.
 
    > Agents run `bun run agent-dev start` after `branch-env`. It starts a new server for the new database instead of reusing a server on the old one.
 
@@ -297,7 +299,7 @@ If a worktree already has its own Postgres container, `branch-env` reuses or res
 
 `branch-env` writes per-worktree overrides to the gitignored `.env.local`. The dev server, `db:*` scripts, and `validate-setup` read that file.
 
-`branch-env` manages `DATABASE_URL`, `DEV_PORT`, `AGENT_DEV_PORT`, and `MAILPIT_URL`. Other keys you add survive re-runs. Delete `.env.local` and re-run `branch-env` to regenerate the managed keys. The dev server uses `DEV_PORT`, `3000` by default. Agents use `AGENT_DEV_PORT`. A worktree created before agent-dev existed needs one `bun run branch-env` run to add `AGENT_DEV_PORT` and reset `DEV_PORT` to `3000`. `validate-setup` reports the missing key.
+`branch-env` manages `DATABASE_URL`, `DEV_PORT`, `AGENT_DEV_PORT`, and `MAILPIT_URL`. Other keys you add survive re-runs. Delete `.env.local` and re-run `branch-env` to regenerate the managed keys. The dev server uses `DEV_PORT`, `3000` by default. Agents use `AGENT_DEV_PORT`. A worktree created before agent-dev existed needs one `bun run branch-env` run to add `AGENT_DEV_PORT` and keep a valid `DEV_PORT` (invalid or agent-range values are repaired to `3000`). `validate-setup` reports the missing key.
 
 When you finish the branch, follow Teardown below: stop this worktree’s agent servers, drop the database, then run `docker compose down`. Never pass `-v` when storage is shared. Then from `trunk`, remove the worktree with `git worktree remove <path>`. Find the path with `git worktree list`.
 
