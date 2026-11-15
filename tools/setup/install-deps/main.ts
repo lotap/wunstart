@@ -65,7 +65,7 @@ async function main(): Promise<void> {
 			return
 		}
 
-		// Switch cleanup deletes files, so it needs explicit consent: an
+		// Switch cleanup moves files aside, so it needs explicit consent: an
 		// explicit --pm flag, a packageManager field driving the switch, an
 		// answered prompt (the confirm gate below), or --force. Stale
 		// lockfile regeneration is rename repair, not a switch, and stays
@@ -106,8 +106,9 @@ async function main(): Promise<void> {
 			}
 		}
 
-		applyPlan(plan)
-		printResult(plan)
+		const applied: InstallPlan = applyPlan(plan)
+
+		printResult(applied)
 	} finally {
 		close()
 	}
