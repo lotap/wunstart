@@ -135,11 +135,16 @@ export function GetStartedSection({
 									panelRefs.current[0] = node
 								}}
 								data-cta-panel
-								className={cn(
-									'relative isolate min-w-0 overflow-hidden rounded-xl p-px opacity-0',
-									shimmerStyles['shimmer'],
-								)}
+								className="relative isolate min-w-0 rounded-xl p-px opacity-0"
 							>
+								{/* Clip the shimmer without clipping the copy hint that straddles the panel edge. */}
+								<div
+									aria-hidden="true"
+									className={cn(
+										'pointer-events-none absolute inset-0 overflow-hidden rounded-xl',
+										shimmerStyles['shimmer'],
+									)}
+								/>
 								<div className="relative z-10 rounded-[calc(var(--radius-xl)-1px)] bg-card p-5 sm:p-6">
 									<InstallTabs installTab={installTab} onInstallTabChange={onInstallTabChange} />
 								</div>
