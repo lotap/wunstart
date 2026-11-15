@@ -29,11 +29,14 @@ export type ForeignNodeModules = {pm: Pm; marker: string}
  *
  * `.modules.yaml` is shared: pnpm writes it, and aube and Nub also write it
  * as Vite compatibility metadata. The selected manager’s own marker wins
- * before any foreign marker is considered, so a normal aube/Nub install is
- * not reported foreign merely because an older `.pnpm` virtual store
- * remains. Best effort: a Nub global-store tree without `.store` (or a
- * pnpm tree with a custom virtual-store name) only leaves `.modules.yaml`,
- * and then pnpm is the fallback label for a non-pnpm target.
+ * before any foreign marker is considered, so a normal aube install (or a
+ * Nub install with a project-local store) is not reported foreign merely
+ * because an older `.pnpm` virtual store remains. `.store` only reliably
+ * marks Nub trees built with a project-side virtual store (`nub ci`, CI, or
+ * `enableGlobalVirtualStore=false`): the default local install links from a
+ * machine-global virtual store, so `.modules.yaml` is the only project-side
+ * marker of a healthy Nub tree. It therefore never labels a Nub target as
+ * foreign; strong foreign markers such as `.pnpm` still do.
  */
 const NODE_MODULES_MARKERS = {
 	bun: [],
@@ -77,10 +80,14 @@ export function foreignNodeModules(pm: Pm): ForeignNodeModules | null {
 		}
 	}
 
-	// Fallback for custom virtual-store layouts: pnpm's real marker is
+	// Fallback for custom virtual-store layouts: pnpm’s real marker is
 	// `.pnpm`, so the shared Vite file only identifies pnpm when no manager’s
-	// own state is present.
-	if (pm !== 'pnpm' && existsSync(join(ROOT, 'node_modules', PNPM_COMPAT_MARKER))) {
+	// own state is present and the target is neither pnpm nor Nub. Both write
+	// the file themselves; for Nub it is the sole local marker (its virtual
+	// store is machine-global), so it is ownership evidence, not a pnpm
+	// leftover. What remains is a pnpm tree with a custom virtual-store name
+	// inside a bun/npm/yarn/aube checkout.
+	if (pm !== 'pnpm' && pm !== 'nub' && existsSync(join(ROOT, 'node_modules', PNPM_COMPAT_MARKER))) {
 		return {pm: 'pnpm', marker: PNPM_COMPAT_MARKER}
 	}
 
