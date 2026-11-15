@@ -177,9 +177,9 @@ type SyncInputs = {
 
 /**
  * End of the lead paragraph: the index of the first `## ` heading, or the
- * end of the file. The managed description is the single `> ` line under
- * the title; blockquotes later in the file are user content, never the
- * managed slot.
+ * end of the file. Detection reads the managed description only from this
+ * range — the single `> ` line under the title. Synchronization is not
+ * lead-scoped; see {@link syncLlmsLines}.
  */
 function leadParagraphEnd(lines: Array<string>): number {
 	const at: number = lines.findIndex((line) => line.startsWith('## '))
@@ -196,7 +196,14 @@ function findLeadDescription(lines: Array<string>): string | undefined {
 
 /**
  * Pure paragraph sync: returns the new lines, or null when untouched.
- * Title and paragraph track the last-written values (a re-rename swaps
+ * Unlike the lead-scoped detection above, synchronization scans the whole
+ * file by exact line match: every line equal to the previous title is
+ * swapped for the next one; every `> TODO(setup)` line or line equal to
+ * the previous description becomes the new description wherever it
+ * appears, or is removed when the resolved description is empty. When
+ * nothing is written and no line already matches the resolved description,
+ * a missing description is inserted under the first `# ` heading. Title
+ * and paragraph track the last-written values (a re-rename swaps
  * `# <previous>` for `# <next>`); anything else means the user hand-edited
  * those lines, so they stay put.
  */
