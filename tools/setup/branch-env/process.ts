@@ -9,7 +9,7 @@ import process from 'node:process'
 
 import {isQuietMode} from '../../helpers/output.ts'
 import {ROOT} from '../../helpers/paths.ts'
-import type {CaptureOptions} from '../../helpers/process.ts'
+import type {CaptureOptions, CommandEnv} from '../../helpers/process.ts'
 import {
 	run as helperRun,
 	runQuiet as helperRunQuiet,
@@ -42,6 +42,14 @@ const RESERVED_ENV_KEYS: ReadonlySet<string> = new Set([
 	'NODE_PATH',
 ])
 
+/**
+ * Compose derives the project name from the checkout directory, so each
+ * worktree owns its containers. An exported COMPOSE_PROJECT_NAME would merge
+ * every worktree into one project, letting `docker compose ps` adopt another
+ * checkout’s stack; drop it instead of passing it through.
+ */
+const COMPOSE_ENV_KEYS: ReadonlySet<string> = new Set(['COMPOSE_PROJECT_NAME'])
+
 let childEnvExtra: Record<string, string> = {}
 
 /**
@@ -68,8 +76,14 @@ export function refreshChildEnv(): EffectiveEnv {
 }
 
 /** Full child environment: process env + mid-run .env.local overlay + extras. */
-export function spawnEnv(extra?: Record<string, string>) {
-	return {...process.env, ...childEnvExtra, ...extra}
+export function spawnEnv(extra?: Record<string, string>): CommandEnv {
+	const env: CommandEnv = {...process.env, ...childEnvExtra, ...extra}
+
+	for (const key of COMPOSE_ENV_KEYS) {
+		delete env[key]
+	}
+
+	return env
 }
 
 export function run(
