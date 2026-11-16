@@ -273,16 +273,20 @@ find . -maxdepth 1 -not -name '.' -not -name '.bare' -not -name 'trunk' -exec rm
 cd trunk
 ```
 
-After cleanup, add branches from `trunk`:
+After cleanup, add branches from `trunk`. Creating a worktree includes provisioning it — it is not usable until these commands finish, so run them in the same step:
 
 ```sh
-git worktree add ../<branch> <branch>      # existing branch
-git worktree add -b <branch> ../<branch>   # new branch
+git worktree add -b <branch> ../<branch> trunk   # new branch
+git worktree add ../<branch> <branch>            # existing branch
+cd ../<branch>
+bun run install-deps --yes
+bun run branch-env --yes
+bun run validate-setup
 ```
 
-Then run `bun run install-deps` and `bun run branch-env` inside each new checkout. A branch name always maps to the same database and preferred agent port. `branch-env` keeps that port only for this worktree’s live shared agent server on the same branch database. If it is busy or belongs to a stale or foreign server, it picks the next free one. Run `bun run validate-setup` inside each new worktree to verify it.
+A branch name always maps to the same database and preferred agent port. `branch-env` keeps that port only for this worktree’s live shared agent server on the same branch database. If it is busy or belongs to a stale or foreign server, it picks the next free one. Warnings from `validate-setup` are not failures; a failing check means the checkout is not ready.
 
-OpenCode can create a worktree for you. `opencode.json` sets `worktree.directory` to `..`, so a worktree created from OpenCode appears beside `trunk` like the manual ones. OpenCode then runs the project’s startup script; set it once in the project’s settings to `bun run install-deps --yes && bun run branch-env --yes`, or run both commands in the new checkout yourself and finish with `bun run validate-setup`. The startup script is stored in OpenCode, not in `opencode.json`, so it does not travel with the repository. Start OpenCode in a branch folder such as `trunk`, never in `.bare`: `.bare` is not a working checkout and has none of the repository instructions.
+OpenCode can create a worktree for you. `opencode.json` sets `worktree.directory` to `..`, so a worktree created from OpenCode appears beside `trunk` like the manual ones. OpenCode then runs the project’s startup script; set it once in the project’s settings to `bun run install-deps --yes && bun run branch-env --yes` (finish with `bun run validate-setup`), so a worktree created from OpenCode is provisioned automatically. The startup script is stored in OpenCode, not in `opencode.json`, so it does not travel with the repository. Start OpenCode in a branch folder such as `trunk`, never in `.bare`: `.bare` is not a working checkout and has none of the repository instructions.
 
 You can also keep shared caches and scratch files in the parent folder. The layout works without them:
 
