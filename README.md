@@ -188,6 +188,8 @@ The repo has some automated processes designed to make development easier. But t
 
 **On a server start.** Starting the dev server or starting a new agent server reinstalls dependencies first, so switching branches or pulling never leaves the checkout broken. Reusing a running server skips that check.
 
+**On a build.** `vite build` runs `vite-imagetools` and `sharp` over every `?responsive` image import and emits AVIF variants as static assets. Native `sharp` must be able to run where the build runs; it never ships to the Worker.
+
 **Config files beat exports.** The dev server and the database scripts load `.env.development` then `.env.local`, and the files win over anything exported in the shell, with `.env.local` winning between the two. `branch-env` owns the per-worktree values there, like `DATABASE_URL`, ports, and mail URLs. Anything else you add survives beside them. So a `DATABASE_URL` exported from another checkout never leaks across, and overrides belong in `.env.local`, never in exports. The one exception is the `archive-old-activities` cron job, which reads an exported `DATABASE_URL` first because production has no files.
 
 **Double Effect reports are on purpose.** The typecheck `bunx tsc --noEmit` and the linter `bun run lint:check` share most of their Effect checks, so some findings appear in both. That overlap is on purpose. The typecheck runs 43 checks the linter cannot. Only errors fail the typecheck. Warnings and suggestions do not fail it.
@@ -204,6 +206,37 @@ Example prompts for agents:
 - Add an admin dashboard
 - Add a mailing-list signup to the footer
 - Setup this project to use worktrees
+- Optimize the images on my landing page
+
+### Static images
+
+Committed images are optimized during `vite build` by `vite-imagetools` and `sharp`. AVIF is the only output format; quality defaults to 55 and can be set per image. JPEG, PNG, and WebP work as sources; animated GIFs are flattened to a still frame.
+
+Put shared images in `src/assets/images/` and page- or component-private images in a `-images/` folder beside the owner. Import with the `?responsive` marker:
+
+```tsx
+import {StaticImage} from '#/components/global/static-image.tsx'
+import hero from './-images/hero.jpg?responsive'
+import logo from '#/assets/images/brand/logo.png?responsive'
+
+<StaticImage image={hero} alt="…" sizes="(width < 64rem) 100vw, 50vw" />
+```
+
+`StaticImage` sets the intrinsic width and height and renders the `srcset`. Pass a `sizes` value that matches the layout; it is required. `loading` defaults to lazy; use `loading="eager"` and `fetchPriority="high"` for the LCP image.
+
+The default ladder is 400, 640, 960, 1280, 1536, 1920, and 2560. Widths above the source are never generated, and native widths between 1080 and the cap are kept. `?maxWidth=` caps the ladder; `?w=` replaces it:
+
+```tsx
+import banner from './-images/banner.jpg?maxWidth=3840&responsive'
+import avatar from './-images/avatar.jpg?w=48;96&responsive'
+import screenshot from './-images/screenshot.png?avifQuality=70&responsive'
+```
+
+`?maxWidth=3840` opts a full-bleed 4K image into a 3840 variant. `?avifQuality=` sets AVIF quality from 1 to 100; 55 is the default. Raise it for screenshots, diagrams, or fine text. The marker must be the last query parameter. `?quality` and `?format` are rejected, along with other imagetools directives.
+
+`sharp` is native and runs during the build and on demand in dev. Build and deploy where it can execute — locally or on CI with a compatible platform binary. `vite-imagetools` is a dev dependency, so the Worker serves prebuilt files and never runs image processing.
+
+Images without `?responsive` remain normal Vite URL imports. Files in `public/` are not optimized: they are served as-is at the root path, and `?responsive` has no effect. Keep `public/` for stable-URL or unprocessed files.
 
 ### Testing
 
@@ -346,11 +379,13 @@ When you finish the branch, follow Teardown below: stop this worktree’s agent 
 crates/
 └── argon2-do-hasher/          # Rust/Wasm Argon2id kernel for AuthHasher DO
 src/
+├── assets/
+│   └── images/                # Shared committed images, optimized to AVIF at build time
 ├── components/
 │   ├── architecture/          # Framework/route diagrams shared by docs + landing preview
 │   ├── auth/                  # Sign-in, sign-up, password-change forms
 │   ├── form-fields/           # Shared form field components
-│   ├── global/                # App shell + domain-agnostic components
+│   ├── global/                # App shell + domain-agnostic components (incl. static-image.tsx)
 │   └── ui/                    # shadcn components
 ├── contexts/                  # React context providers (theme, etc.)
 ├── db/
@@ -372,8 +407,9 @@ src/
 │   └── tanstack-query/        # Query client setup + devtools
 ├── isomorphic/                # Shared validation schemas (server + client)
 ├── lib/                       # Shared utilities
+│   └── static-images.ts       # ?responsive ladder, overrides, import type
 ├── middleware/                # Request/function middleware (auth, rate-limit, CSRF)
-├── routes/                    # File-based routing; <segment>/route.tsx, (<page>)/index.tsx, private -components/ -hooks/ -utils/ -content/
+├── routes/                    # File-based routing; <segment>/route.tsx, (<page>)/index.tsx, private -components/ -hooks/ -utils/ -content/ -images/
 ├── scripts/                   # One-off scripts (archive-old-activities)
 ├── server-fns/                # TanStack Start server functions
 ├── app-info.ts                # Committed app identity (name/description; managed by app-identity)

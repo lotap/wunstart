@@ -1,12 +1,14 @@
 import {HalftoneCmyk} from '@paper-design/shaders-react'
 
+import footerTexture from './-images/footer-bg.jpg?w=1600&responsive'
+
 export function FooterImage({className}: {className?: string}) {
 	return (
 		<HalftoneCmyk
 			className={className}
 			width="100%"
 			height="100%"
-			image="/footer-bg.jpg"
+			image={footerTexture.src}
 			colorBack="#d4d4d4"
 			colorC="#737373"
 			colorM="#737373"

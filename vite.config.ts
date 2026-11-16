@@ -9,7 +9,9 @@ import {tanstackStart} from '@tanstack/react-start/plugin/vite'
 import react, {reactCompilerPreset} from '@vitejs/plugin-react'
 import type {Plugin, PluginOption, ViteDevServer} from 'vite'
 import {defineConfig} from 'vite'
+import {imagetools} from 'vite-imagetools'
 
+import {staticImageDirectives} from './src/lib/static-images.ts'
 import {parsePort} from './tools/helpers/dev-ports.ts'
 
 /** Agent servers exit after this long without an HTTP request or file change. */
@@ -218,6 +220,13 @@ function createPlugins(agentPort?: number, excludeDevRoutes = false): Array<Plug
 		devtools(),
 		cloudflare({viteEnvironment: {name: 'ssr'}, persistState}),
 		tailwindcss(),
+		imagetools({
+			// Only marked imports reach sharp. The resolver validates the URL and maps
+			// ?avifQuality to imagetools' quality; a broad include would also capture
+			// Vite's ?url/?raw imports.
+			include: /[?&]responsive$/,
+			defaultDirectives: staticImageDirectives,
+		}),
 		...(agentPort === undefined ? [] : [agentIdlePlugin()]),
 		tanstackStart(
 			excludeDevRoutes

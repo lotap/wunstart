@@ -5,6 +5,17 @@ declare module '*.wasm' {
 	export default module
 }
 
+// The marker must be the last query parameter; TS supports one wildcard only.
+declare module '*?responsive' {
+	const image: import('#/lib/static-images.ts').StaticImageData
+	export default image
+}
+
+declare module '*&responsive' {
+	const image: import('#/lib/static-images.ts').StaticImageData
+	export default image
+}
+
 interface ViteTypeOptions {
 	// By adding this line, you can make the type of ImportMetaEnv strict
 	// to disallow unknown keys.

@@ -38,3 +38,11 @@ The app’s no-hard-delete guarantee: removed data leaves the live tables for an
 
 **Email verification**:
 Verify-before-create: a 6-digit passcode authorizes User creation, so every User is verified by construction.
+
+**Static image**:
+A committed raster image imported with `?responsive` and emitted as AVIF variants at build time. Shared images live in `src/assets/images`; private ones live in `-images` beside their owner.
+_Avoid_: Image asset
+
+**Public asset**:
+A file under `public/` served unchanged at a stable URL. `?responsive` has no effect on it. Keep content images out of it.
+_Avoid_: Static asset

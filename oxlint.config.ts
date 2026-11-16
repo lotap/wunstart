@@ -194,6 +194,14 @@ const config = defineConfig({
 				TextEncoder: 'readonly',
 			},
 		},
+
+		/// STATIC IMAGES ///
+		{
+			files: ['src/lib/static-images.ts'],
+			globals: {
+				URLSearchParams: 'readonly',
+			},
+		},
 	],
 })
 
