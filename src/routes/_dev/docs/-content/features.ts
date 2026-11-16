@@ -1,3 +1,10 @@
+import {ImageOptimizationFeature} from '../-components/feature-explorer/features/image-optimization-feature.tsx'
+/**
+ * Transitional feature registry. Auth, Abuse Protection, and planned entries
+ * are still data-driven. New features are components: add a `Panel` entry here
+ * and put the content in `feature-explorer/features/`. Target: this file
+ * becomes the ordered feature list or disappears.
+ */
 import {
 	guardrailsChart,
 	passwordChangeChart,
@@ -225,9 +232,8 @@ export const features: Feature[] = [
 	{
 		key: 'images',
 		name: 'Image Optimization',
-		status: 'planned',
-		summary: 'Resize and compress images automatically.',
-		placeholder: 'No image pipeline or delivery setup.',
+		status: 'working',
+		Panel: ImageOptimizationFeature,
 	},
 	{
 		key: 'payments',
