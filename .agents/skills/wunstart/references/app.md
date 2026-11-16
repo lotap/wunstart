@@ -10,6 +10,25 @@
 - Settings nav: register in `routes/_auth-protected/settings/-categories.ts` (`CATEGORIES`, section-component-free); components attach in `-components/page.tsx`.
 - Drawers: self-contained components with trigger props (`PasswordChangeDrawer triggerClassName/triggerVariant`, composed in `access-and-security.tsx`); lazy-load when heavy (`routes/_auth-dynamic/(home)/-components/dashboard/dashboard.tsx` → `welcome-drawer.tsx`). One-shot post-action UX via a `useLocation().state` flag cleared with `navigate({to, state})` on dismiss.
 
+## In-repo docs
+
+`/docs` has three surfaces: guides (task walkthroughs), reference panels (topic docs), and feature panels (product catalog). The target is one panel pattern: every panel is a component, content lives in the panel component, and the explorer lists panels.
+
+- Guides are task walkthroughs. Reference panels are topic docs. Feature panels are the product catalog.
+- `feature-explorer/` mirrors the sidebar: `features/`, `reference/`, and `guides/`, with `feature-explorer.tsx` at the root. Put a new panel in the matching folder.
+- New feature tabs are components in `docs/-components/feature-explorer/features/`. A feature component composes `FeatureShell` (header only) and owns its children.
+- Shared blocks are opt-in: `FeatureActions` and `FeatureFlows` render structured data. Everything else is composed from docs primitives: `PanelSection` (title + children), `Prose` (paragraph style), `DocDiagram` (static Peel source), `PromptBlock`, `PanelLink`, `PanelReferences`.
+- `PanelSection` is a skin, not a content model. Pass content as children; do not add per-section description or wrapper props.
+- Do not add per-feature fields to the shell. If a block appears in every feature, make it a shared block; otherwise write it in the feature file.
+- Do not create feature-specific content wrappers. Compose the section from shared primitives; if a visual pattern repeats, extract only the skin, not the content sequence.
+- The same rule applies outside feature panels: `Shortcut` (local dev) and `PromptBlock` are skins; callers compose the surrounding sequence.
+- The transitional feature registry still holds Auth, Abuse Protection, and planned entries. New features are components; do not add prose or code to the registry.
+- The data-to-blocks adapter for grandfathered entries is the only place that maps feature data to blocks. It disappears when they migrate.
+- A feature with a reference panel links to it (`PanelLink`); it repeats only the detail the basic task needs and leaves the full topic docs in the reference.
+- Reference panels are components under `docs/-components/feature-explorer/reference/`; they own their topic docs and may use JSX directly.
+- Migrating an existing entry: move its content into a feature component (structured flow data may stay in `-content/<feature>.ts`), replace the data fields with `Panel`, and keep the list order.
+- Target: the explorer owns the three panel lists; the separate feature registry disappears.
+
 ## Adding a page
 
 Pick `_auth-*` placement → `handle-*.ts` (shape: see `references/middleware.md`) → `queryOptions` beside the feature (shared ones in `components/<domain>/_utils.ts`; keys `['<thing>', ...params]`, e.g. `['passcodeRequest', email, intent]`) → reads via `useQuery` + inline pending/error inside `ErrorBoundary` (search via `Route.useSearch`) → navigate via `router.navigate({to, state})`; button-styled links via `RouterButton`, text links via `Link`; never `<a href>` for internal routes or `Button`+onClick nav → restart dev (regenerates routes) → verify (`bun run check`). Auth changes end with `router.invalidate()`. Exemplars: list query `settings/-components/sessions.tsx`, page with search `settings/`, sudo-gated mutation `components/auth/remove-account.tsx`, email flow `components/auth/email-change.tsx`.

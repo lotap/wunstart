@@ -1,6 +1,6 @@
-import {checks, setupCommands, toolchainNotes} from '../../-content/configuration.tsx'
-import {PanelReferences} from '../doc-links.tsx'
-import {InlineCode, PanelHeader, PanelList, PanelRow, PanelSection} from '../doc-ui.tsx'
+import {checks, setupCommands, toolchainNotes} from '../../../-content/configuration.tsx'
+import {PanelReferences} from '../../doc-links.tsx'
+import {InlineCode, PanelHeader, PanelList, PanelRow, PanelSection, Prose} from '../../doc-ui.tsx'
 import {EnvironmentTable} from './_environment-table.tsx'
 
 export function ConfigurationPanel() {
@@ -11,17 +11,12 @@ export function ConfigurationPanel() {
 				description="Env files, setup commands, and the project’s environment variables."
 			/>
 
-			<PanelSection
-				id="environment-files"
-				title="Environment files"
-				description={
-					<>
-						For the dev server and db scripts, file values win over exported shell variables. The
-						exception is <InlineCode>archive-old-activities</InlineCode>, which reads an exported{' '}
-						<InlineCode>DATABASE_URL</InlineCode> first because production has no files.
-					</>
-				}
-			>
+			<PanelSection id="environment-files" title="Environment files">
+				<Prose>
+					For the dev server and db scripts, file values win over exported shell variables. The
+					exception is <InlineCode>archive-old-activities</InlineCode>, which reads an exported{' '}
+					<InlineCode>DATABASE_URL</InlineCode> first because production has no files.
+				</Prose>
 				<dl className="grid gap-4 md:grid-cols-2">
 					<div className="flex flex-col gap-2 rounded-xl border bg-muted/20 p-5">
 						<dt>
@@ -47,17 +42,12 @@ export function ConfigurationPanel() {
 				</dl>
 			</PanelSection>
 
-			<PanelSection
-				id="environment-variables"
-				title="Environment variables"
-				description={
-					<>
-						The variables the app and local tooling read. Workers bindings such as{' '}
-						<InlineCode>HYPERDRIVE</InlineCode>, <InlineCode>EMAIL</InlineCode>, and{' '}
-						<InlineCode>AUTH_HASHER</InlineCode> live in <InlineCode>wrangler.jsonc</InlineCode>.
-					</>
-				}
-			>
+			<PanelSection id="environment-variables" title="Environment variables">
+				<Prose>
+					The variables the app and local tooling read. Workers bindings such as{' '}
+					<InlineCode>HYPERDRIVE</InlineCode>, <InlineCode>EMAIL</InlineCode>, and{' '}
+					<InlineCode>AUTH_HASHER</InlineCode> live in <InlineCode>wrangler.jsonc</InlineCode>.
+				</Prose>
 				<EnvironmentTable />
 			</PanelSection>
 
@@ -70,19 +60,19 @@ export function ConfigurationPanel() {
 					))}
 				</PanelList>
 
-				<p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+				<Prose>
 					Commands use Bun. Under npm, put <InlineCode>--</InlineCode> before script flags (
 					<InlineCode>npm run branch-env -- --yes</InlineCode>); Bun, Nub, pnpm, yarn, and aube
 					forward arguments directly. Switch managers with{' '}
 					<InlineCode>bun run install-deps --pm &lt;manager&gt;</InlineCode>.
-				</p>
+				</Prose>
 			</PanelSection>
 
-			<PanelSection
-				id="checks"
-				title="Checks"
-				description="There is no product test suite yet. These gates are the check. Run them before you call a change done."
-			>
+			<PanelSection id="checks" title="Checks">
+				<Prose>
+					There is no product test suite yet. These gates are the check. Run them before you call a
+					change done.
+				</Prose>
 				<PanelList>
 					{checks.map((check) => (
 						<PanelRow key={check.name} label={check.name}>
@@ -91,17 +81,14 @@ export function ConfigurationPanel() {
 					))}
 				</PanelList>
 
-				<p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+				<Prose>
 					<InlineCode>bun run validate-setup</InlineCode> is the health check for env, ports, and
 					the database. Warnings are not failures.
-				</p>
+				</Prose>
 			</PanelSection>
 
-			<PanelSection
-				id="toolchain"
-				title="Toolchain"
-				description="Some setup is automatic. These are the moving parts that can surprise you."
-			>
+			<PanelSection id="toolchain" title="Toolchain">
+				<Prose>Some setup is automatic. These are the moving parts that can surprise you.</Prose>
 				<PanelList>
 					{toolchainNotes.map((note) => (
 						<PanelRow key={note.name} label={note.name}>

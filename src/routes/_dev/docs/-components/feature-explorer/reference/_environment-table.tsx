@@ -1,5 +1,5 @@
-import {environmentGroups} from '../../-content/configuration.tsx'
-import {PanelTableHeader} from '../doc-ui.tsx'
+import {environmentGroups} from '../../../-content/configuration.tsx'
+import {PanelTableHeader} from '../../doc-ui.tsx'
 
 /** Add break opportunities after underscores so long names wrap in the table. */
 function EnvironmentVariableName({name}: {name: string}) {

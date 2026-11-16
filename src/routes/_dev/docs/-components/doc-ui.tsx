@@ -86,6 +86,7 @@ export function DocBulletList({
 	)
 }
 
+/** mono font inline code box */
 export function InlineCode({children}: {children: React.ReactNode}) {
 	return (
 		<code className="rounded-sm bg-muted px-1 py-0.5 font-mono text-xs text-foreground">
@@ -104,31 +105,29 @@ export function PanelHeader({title, description}: {title: string; description: s
 	)
 }
 
-/** Titled block inside a side panel, with an optional one-line intro. */
+/** Paragraph style for docs sections. */
+export function Prose({children}: {children: React.ReactNode}) {
+	return <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">{children}</p>
+}
+
+/** Titled block inside a side panel. Callers compose the content as children. */
 export function PanelSection({
 	id,
 	title,
-	description,
+	className,
 	children,
-	childrenClassName,
 }: {
 	id: string
 	title: string
-	description?: React.ReactNode
+	className?: string
 	children?: React.ReactNode
-	childrenClassName?: string
 }) {
 	return (
-		<section aria-labelledby={id} className="mt-8">
+		<section aria-labelledby={id} className={cn('mt-8', className)}>
 			<h5 id={id} className="text-lg font-medium">
 				{title}
 			</h5>
-			{description && (
-				<p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-					{description}
-				</p>
-			)}
-			{children && <div className={childrenClassName ?? 'mt-5'}>{children}</div>}
+			{children && <div className="mt-4 flex flex-col gap-3">{children}</div>}
 		</section>
 	)
 }

@@ -1,3 +1,5 @@
+import type {ComponentType} from 'react'
+
 export type FeatureStatus = 'working' | 'preview' | 'planned'
 
 type FeatureBase = {
@@ -23,6 +25,11 @@ export type FeatureReference = {
 	href: string
 }
 
+export type FeatureIntro = {
+	title: string
+	body: string
+}
+
 export type FeatureFlow = {
 	key: string
 	name: string
@@ -39,9 +46,19 @@ export type AvailableFeature = FeatureBase & {
 	status: 'working' | 'preview'
 	actions: FeatureAction[]
 	flows: FeatureFlow[]
+	intro?: FeatureIntro
+	panelLink?: {label: string; panel: 'static-images'}
 	prompt: string
 	notes?: string[]
 	references?: FeatureReference[]
+}
+
+/** Component-backed feature entry. The target shape for every feature. */
+export type ComponentFeature = {
+	key: string
+	name: string
+	status: 'working' | 'preview'
+	Panel: ComponentType
 }
 
 export type PlannedFeature = FeatureBase & {
@@ -49,4 +66,4 @@ export type PlannedFeature = FeatureBase & {
 	placeholder: string
 }
 
-export type Feature = AvailableFeature | PlannedFeature
+export type Feature = AvailableFeature | ComponentFeature | PlannedFeature

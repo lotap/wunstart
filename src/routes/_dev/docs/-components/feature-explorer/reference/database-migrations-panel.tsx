@@ -1,5 +1,5 @@
-import {PanelReferences} from '../doc-links.tsx'
-import {InlineCode, PanelHeader} from '../doc-ui.tsx'
+import {PanelReferences} from '../../doc-links.tsx'
+import {InlineCode, PanelHeader} from '../../doc-ui.tsx'
 
 const steps = [
 	{

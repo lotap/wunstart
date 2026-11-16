@@ -3,9 +3,9 @@ import {
 	pageFiles,
 	queryExample,
 	serverFunctionExample,
-} from '../../-content/page-recipe.ts'
-import {CodeBlock} from '../code-block.tsx'
-import {PanelReferences} from '../doc-links.tsx'
+} from '../../../-content/page-recipe.ts'
+import {CodeBlock} from '../../code-block.tsx'
+import {PanelReferences} from '../../doc-links.tsx'
 import {
 	DocBulletList,
 	InlineCode,
@@ -13,7 +13,8 @@ import {
 	PanelList,
 	PanelRow,
 	PanelSection,
-} from '../doc-ui.tsx'
+	Prose,
+} from '../../doc-ui.tsx'
 
 export function PageRecipePanel() {
 	return (
@@ -23,18 +24,13 @@ export function PageRecipePanel() {
 				description="The route → server function → query → UI path, with the conventions the app already uses."
 			/>
 
-			<PanelSection
-				id="page-files"
-				title="Where files go"
-				description={
-					<>
-						A page is a route file, a server function, and the components between them. Named pages
-						use <InlineCode>&lt;segment&gt;/route.tsx</InlineCode>; index pages use{' '}
-						<InlineCode>(&lt;page&gt;)/index.tsx</InlineCode>. Keep route-private code inside the
-						route folder.
-					</>
-				}
-			>
+			<PanelSection id="page-files" title="Where files go">
+				<Prose>
+					A page is a route file, a server function, and the components between them. Named pages
+					use <InlineCode>&lt;segment&gt;/route.tsx</InlineCode>; index pages use{' '}
+					<InlineCode>(&lt;page&gt;)/index.tsx</InlineCode>. Keep route-private code inside the
+					route folder.
+				</Prose>
 				<PanelList>
 					{pageFiles.map((file) => (
 						<PanelRow key={file.name} label={file.name} width="wide" labelSize="xs">
@@ -44,45 +40,35 @@ export function PageRecipePanel() {
 				</PanelList>
 			</PanelSection>
 
-			<PanelSection
-				id="pick-route-group"
-				title="1. Pick the route group"
-				description={
-					<>
-						Choose by who can reach the page: <InlineCode>_auth-protected</InlineCode> requires
-						sign-in, <InlineCode>_auth-gateway</InlineCode> is sign-in and sign-up only,{' '}
-						<InlineCode>_auth-dynamic</InlineCode> adapts to the current identity,{' '}
-						<InlineCode>_auth-anon</InlineCode> is public, and <InlineCode>_dev</InlineCode> is
-						available only during development. The folder is the guard; moving a route across groups
-						is a security change.
-					</>
-				}
-			>
-				<p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
+			<PanelSection id="pick-route-group" title="1. Pick the route group">
+				<Prose>
+					Choose by who can reach the page: <InlineCode>_auth-protected</InlineCode> requires
+					sign-in, <InlineCode>_auth-gateway</InlineCode> is sign-in and sign-up only,{' '}
+					<InlineCode>_auth-dynamic</InlineCode> adapts to the current identity,{' '}
+					<InlineCode>_auth-anon</InlineCode> is public, and <InlineCode>_dev</InlineCode> is
+					available only during development. The folder is the guard; moving a route across groups
+					is a security change.
+				</Prose>
+				<Prose>
 					Use <InlineCode>-components/</InlineCode> for route-private files and{' '}
 					<InlineCode>_</InlineCode>-prefixed folders for pathless layouts. Never edit{' '}
 					<InlineCode>routeTree.gen.ts</InlineCode>; restart the dev server and the Start plugin
 					regenerates it.
-				</p>
+				</Prose>
 			</PanelSection>
 
-			<PanelSection
-				id="add-server-function"
-				title="2. Add the server function"
-				description={
-					<>
-						Server functions are the only client-to-server boundary. They validate input, unwrap
-						identity from the context, and call one op through <InlineCode>runOp</InlineCode>.
-					</>
-				}
-			>
+			<PanelSection id="add-server-function" title="2. Add the server function">
+				<Prose>
+					Server functions are the only client-to-server boundary. They validate input, unwrap
+					identity from the context, and call one op through <InlineCode>runOp</InlineCode>.
+				</Prose>
 				<CodeBlock
 					code={serverFunctionExample}
 					label="Read server function"
 					language="typescript"
 				/>
 
-				<DocBulletList className="mt-4">
+				<DocBulletList>
 					<li>
 						Mutations use <InlineCode>{"createServerFn({method: 'POST'})"}</InlineCode>; reads use{' '}
 						<InlineCode>{"createServerFn({method: 'GET'})"}</InlineCode>. Reads that need parameters
@@ -109,20 +95,15 @@ export function PageRecipePanel() {
 				</DocBulletList>
 			</PanelSection>
 
-			<PanelSection
-				id="add-query"
-				title="3. Add the query"
-				description={
-					<>
-						Reads go through TanStack Query, not ad-hoc fetching in the component. Put shared query
-						options beside the feature, or in{' '}
-						<InlineCode>src/components/&lt;domain&gt;/_utils.ts</InlineCode>.
-					</>
-				}
-			>
+			<PanelSection id="add-query" title="3. Add the query">
+				<Prose>
+					Reads go through TanStack Query, not ad-hoc fetching in the component. Put shared query
+					options beside the feature, or in{' '}
+					<InlineCode>src/components/&lt;domain&gt;/_utils.ts</InlineCode>.
+				</Prose>
 				<CodeBlock code={queryExample} label="Query options" language="typescript" />
 
-				<DocBulletList className="mt-4">
+				<DocBulletList>
 					<li>
 						Query keys are <InlineCode>{"['<thing>', ...params]"}</InlineCode>. Use{' '}
 						<InlineCode>useQuery</InlineCode> for reads and <InlineCode>useMutation</InlineCode> or
@@ -140,11 +121,11 @@ export function PageRecipePanel() {
 				</DocBulletList>
 			</PanelSection>
 
-			<PanelSection
-				id="build-screen"
-				title="4. Build the screen"
-				description="The app has its own frontend conventions. Follow them instead of adding a parallel pattern."
-			>
+			<PanelSection id="build-screen" title="4. Build the screen">
+				<Prose>
+					The app has its own frontend conventions. Follow them instead of adding a parallel
+					pattern.
+				</Prose>
 				<DocBulletList>
 					<li>
 						React Compiler is on. Do not hand-memoize with <InlineCode>useMemo</InlineCode>,{' '}
@@ -177,11 +158,11 @@ export function PageRecipePanel() {
 				</DocBulletList>
 			</PanelSection>
 
-			<PanelSection
-				id="navigate-page"
-				title="5. Navigate"
-				description="Internal navigation goes through the router so loaders, search params, and view transitions keep working."
-			>
+			<PanelSection id="navigate-page" title="5. Navigate">
+				<Prose>
+					Internal navigation goes through the router so loaders, search params, and view
+					transitions keep working.
+				</Prose>
 				<DocBulletList>
 					<li>
 						Internal links use <InlineCode>Link</InlineCode> or{' '}
@@ -200,11 +181,11 @@ export function PageRecipePanel() {
 				</DocBulletList>
 			</PanelSection>
 
-			<PanelSection
-				id="verify-page"
-				title="6. Verify"
-				description="Restart the dev server after adding a route so the route tree regenerates. Then run the checks and look at the page."
-			>
+			<PanelSection id="verify-page" title="6. Verify">
+				<Prose>
+					Restart the dev server after adding a route so the route tree regenerates. Then run the
+					checks and look at the page.
+				</Prose>
 				<PanelList>
 					<PanelRow label="bun run fmt">
 						Formats <InlineCode>src/</InlineCode> and <InlineCode>tools/</InlineCode>.
@@ -217,17 +198,14 @@ export function PageRecipePanel() {
 					</PanelRow>
 				</PanelList>
 
-				<p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+				<Prose>
 					Check the page in the browser in both token modes and at mobile width. There is no product
 					test suite yet.
-				</p>
+				</Prose>
 			</PanelSection>
 
-			<PanelSection
-				id="page-exemplars"
-				title="Exemplars"
-				description="Read one of these before writing a new pattern from scratch."
-			>
+			<PanelSection id="page-exemplars" title="Exemplars">
+				<Prose>Read one of these before writing a new pattern from scratch.</Prose>
 				<PanelList>
 					{exemplars.map((exemplar) => (
 						<PanelRow key={exemplar.name} label={exemplar.name} width="wide" labelSize="xs">

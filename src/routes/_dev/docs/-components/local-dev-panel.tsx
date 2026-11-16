@@ -9,29 +9,21 @@ import {localServices, mailpitUrl} from '../-content/local-development.ts'
 import {CommandBlock} from './code-block.tsx'
 import {DocLink, MicroLabel} from './doc-ui.tsx'
 
-function Shortcut({
-	title,
-	description,
-	details,
-	action,
-}: {
-	title: string
-	description: React.ReactNode
-	details?: React.ReactNode
-	action: React.ReactNode
-}) {
+function ShortcutCard({children}: {children: React.ReactNode}) {
+	return <li className="flex flex-col gap-4 bg-background p-5 md:p-6">{children}</li>
+}
+
+function ShortcutHeader({title, children}: {title: string; children: React.ReactNode}) {
 	return (
-		<li className="flex flex-col gap-4 bg-background p-5 md:p-6">
-			<div className="flex flex-col gap-1">
-				<h4 className="text-lg font-medium">{title}</h4>
-				<div className="flex flex-col gap-2 text-sm text-muted-foreground">{description}</div>
-			</div>
-
-			{details}
-
-			<div className="mt-auto">{action}</div>
-		</li>
+		<div className="flex flex-col gap-1">
+			<h4 className="text-lg font-medium">{title}</h4>
+			<div className="flex flex-col gap-2 text-sm text-muted-foreground">{children}</div>
+		</div>
 	)
+}
+
+function ShortcutAction({children}: {children: React.ReactNode}) {
+	return <div className="mt-auto">{children}</div>
 }
 
 function TerminalHelpTrigger({
@@ -66,9 +58,8 @@ export function LocalDevPanel() {
 	return (
 		<section id="local-development" aria-label="Local development" className="w-full max-w-5xl">
 			<ul className="grid gap-px overflow-hidden rounded-xl border bg-border md:grid-cols-2 lg:grid-cols-4">
-				<Shortcut
-					title="Email inbox"
-					description={
+				<ShortcutCard>
+					<ShortcutHeader title="Email inbox">
 						<p>
 							<DocLink
 								href="https://mailpit.axllent.org/docs/"
@@ -81,9 +72,9 @@ export function LocalDevPanel() {
 							catches dev emails so you can receive passcodes, confirmations, etc. without a real
 							inbox.
 						</p>
-					}
-					action={
-						mailpitUrl ? (
+					</ShortcutHeader>
+					<ShortcutAction>
+						{mailpitUrl ? (
 							<a
 								href={mailpitUrl}
 								target="_blank"
@@ -94,13 +85,12 @@ export function LocalDevPanel() {
 							</a>
 						) : (
 							<p className="text-xs text-muted-foreground">Set MAILPIT_URL in .env.local</p>
-						)
-					}
-				/>
+						)}
+					</ShortcutAction>
+				</ShortcutCard>
 
-				<Shortcut
-					title="Database browser"
-					description={
+				<ShortcutCard>
+					<ShortcutHeader title="Database browser">
 						<p>
 							<DocLink
 								href="https://orm.drizzle.team/drizzle-studio/overview"
@@ -112,16 +102,14 @@ export function LocalDevPanel() {
 							</DocLink>{' '}
 							shows the app’s tables and rows.
 						</p>
-					}
-					details={
-						<div className="flex flex-col gap-1.5">
-							<MicroLabel>
-								Run this in a <TerminalHelpTrigger open={terminalOpen} onToggle={toggleTerminal} />
-							</MicroLabel>
-							<CommandBlock command={localServices.studioCommand} label="Drizzle Studio command" />
-						</div>
-					}
-					action={
+					</ShortcutHeader>
+					<div className="flex flex-col gap-1.5">
+						<MicroLabel>
+							Run this in a <TerminalHelpTrigger open={terminalOpen} onToggle={toggleTerminal} />
+						</MicroLabel>
+						<CommandBlock command={localServices.studioCommand} label="Drizzle Studio command" />
+					</div>
+					<ShortcutAction>
 						<a
 							href={localServices.studioUrl}
 							target="_blank"
@@ -130,12 +118,11 @@ export function LocalDevPanel() {
 						>
 							Open Drizzle Studio
 						</a>
-					}
-				/>
+					</ShortcutAction>
+				</ShortcutCard>
 
-				<Shortcut
-					title="Email preview"
-					description={
+				<ShortcutCard>
+					<ShortcutHeader title="Email preview">
 						<p>
 							<DocLink
 								href="https://react.email/docs"
@@ -147,16 +134,14 @@ export function LocalDevPanel() {
 							</DocLink>{' '}
 							previews the app’s templates in a browser and hot-reloads edits.
 						</p>
-					}
-					details={
-						<div className="flex flex-col gap-1.5">
-							<MicroLabel>
-								Run this in a <TerminalHelpTrigger open={terminalOpen} onToggle={toggleTerminal} />
-							</MicroLabel>
-							<CommandBlock command={localServices.reactEmailCommand} label="React Email command" />
-						</div>
-					}
-					action={
+					</ShortcutHeader>
+					<div className="flex flex-col gap-1.5">
+						<MicroLabel>
+							Run this in a <TerminalHelpTrigger open={terminalOpen} onToggle={toggleTerminal} />
+						</MicroLabel>
+						<CommandBlock command={localServices.reactEmailCommand} label="React Email command" />
+					</div>
+					<ShortcutAction>
 						<a
 							href={localServices.reactEmailUrl}
 							target="_blank"
@@ -165,12 +150,11 @@ export function LocalDevPanel() {
 						>
 							Open React Email
 						</a>
-					}
-				/>
+					</ShortcutAction>
+				</ShortcutCard>
 
-				<Shortcut
-					title="DevTools"
-					description={
+				<ShortcutCard>
+					<ShortcutHeader title="DevTools">
 						<p>
 							<DocLink
 								href="https://tanstack.com/devtools/latest/docs/overview"
@@ -182,13 +166,13 @@ export function LocalDevPanel() {
 							</DocLink>{' '}
 							shows routes, queries, and forms while you click around.
 						</p>
-					}
-					action={
+					</ShortcutHeader>
+					<ShortcutAction>
 						<Button size="lg" className="h-10 w-full" onClick={openTanStackDevtools}>
 							Open devtools
 						</Button>
-					}
-				/>
+					</ShortcutAction>
+				</ShortcutCard>
 			</ul>
 
 			{terminalOpen && (

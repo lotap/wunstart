@@ -6,18 +6,19 @@ import {useRef, useState} from 'react'
 import {features} from '../../-content/features.ts'
 import {PanelNavigationProvider} from '../doc-links.tsx'
 import {MicroLabel} from '../doc-ui.tsx'
-import {AgentsOverviewPanel} from './_agents-overview-panel.tsx'
-import {ConfigurationPanel} from './_configuration-panel.tsx'
-import {DatabaseMigrationsPanel} from './_database-migrations-panel.tsx'
-import {FeaturePanel} from './_feature-panel.tsx'
-import {MiddlewarePanel} from './_middleware-panel.tsx'
-import {PageRecipePanel} from './_page-recipe-panel.tsx'
-import {ReactEmailPanel} from './_react-email-panel.tsx'
-import {RequestFlowPanel} from './_request-flow-panel.tsx'
-import {RouteGuardsPanel} from './_route-guards-panel.tsx'
-import {RuntimePanel} from './_runtime-panel.tsx'
-import {StatusPagesPanel} from './_status-pages-panel.tsx'
-import {WorktreesPanel} from './_worktrees-panel.tsx'
+import {FeaturePanel} from './features/feature-panel.tsx'
+import {PageRecipePanel} from './guides/page-recipe-panel.tsx'
+import {AgentsOverviewPanel} from './reference/agents-overview-panel.tsx'
+import {ConfigurationPanel} from './reference/configuration-panel.tsx'
+import {DatabaseMigrationsPanel} from './reference/database-migrations-panel.tsx'
+import {MiddlewarePanel} from './reference/middleware-panel.tsx'
+import {ReactEmailPanel} from './reference/react-email-panel.tsx'
+import {RequestFlowPanel} from './reference/request-flow-panel.tsx'
+import {RouteGuardsPanel} from './reference/route-guards-panel.tsx'
+import {RuntimePanel} from './reference/runtime-panel.tsx'
+import {StaticImagesPanel} from './reference/static-images-panel.tsx'
+import {StatusPagesPanel} from './reference/status-pages-panel.tsx'
+import {WorktreesPanel} from './reference/worktrees-panel.tsx'
 
 const referencePanels = [
 	{key: 'configuration', label: 'Configuration', Panel: ConfigurationPanel},
@@ -28,6 +29,7 @@ const referencePanels = [
 	{key: 'middleware', label: 'Middleware & identity', Panel: MiddlewarePanel},
 	{key: 'react-email', label: 'React Email', Panel: ReactEmailPanel},
 	{key: 'runtime', label: 'Runtime & hashing', Panel: RuntimePanel},
+	{key: 'static-images', label: 'Static images', Panel: StaticImagesPanel},
 	{key: 'agents-overview', label: 'Agents overview', Panel: AgentsOverviewPanel},
 	{key: 'worktrees', label: 'Worktrees', Panel: WorktreesPanel},
 ] as const

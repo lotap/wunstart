@@ -1,5 +1,5 @@
-import {PanelLink, PanelReferences} from '../doc-links.tsx'
-import {PanelHeader} from '../doc-ui.tsx'
+import {PanelLink, PanelReferences} from '../../doc-links.tsx'
+import {PanelHeader} from '../../doc-ui.tsx'
 
 type FlowLayer = {
 	name: string

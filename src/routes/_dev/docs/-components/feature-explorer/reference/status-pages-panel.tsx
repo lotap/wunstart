@@ -1,8 +1,16 @@
 import {Link} from '@tanstack/react-router'
 
-import {statusPageFiles} from '../../-content/status-pages.ts'
-import {PanelReferences} from '../doc-links.tsx'
-import {DocLink, InlineCode, PanelHeader, PanelList, PanelRow, PanelSection} from '../doc-ui.tsx'
+import {statusPageFiles} from '../../../-content/status-pages.ts'
+import {PanelReferences} from '../../doc-links.tsx'
+import {
+	DocLink,
+	InlineCode,
+	PanelHeader,
+	PanelList,
+	PanelRow,
+	PanelSection,
+	Prose,
+} from '../../doc-ui.tsx'
 
 export function StatusPagesPanel() {
 	return (
@@ -47,16 +55,11 @@ export function StatusPagesPanel() {
 				</PanelList>
 			</PanelSection>
 
-			<PanelSection
-				id="status-page-preview"
-				title="Preview"
-				description={
-					<>
-						The preview routes live under <InlineCode>_dev</InlineCode> and are excluded from
-						production builds.
-					</>
-				}
-			>
+			<PanelSection id="status-page-preview" title="Preview">
+				<Prose>
+					The preview routes live under <InlineCode>_dev</InlineCode> and are excluded from
+					production builds.
+				</Prose>
 				<PanelList>
 					<PanelRow
 						label={

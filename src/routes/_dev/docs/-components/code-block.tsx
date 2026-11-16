@@ -88,21 +88,16 @@ export function PromptBlock({
 	copyable = true,
 	prompt,
 	title,
-	children,
 }: {
 	copyable?: boolean
 	prompt: string
 	title: string
-	children?: React.ReactNode
 }) {
 	return (
-		<div className="flex flex-col gap-2">
-			{children}
-			<CodeBlockShell label={title} value={prompt} copyLabel="Copy prompt" copyable={copyable}>
-				<CodeBlockContent wrap className="text-sm leading-relaxed text-muted-foreground">
-					{prompt}
-				</CodeBlockContent>
-			</CodeBlockShell>
-		</div>
+		<CodeBlockShell label={title} value={prompt} copyLabel="Copy prompt" copyable={copyable}>
+			<CodeBlockContent wrap className="text-sm leading-relaxed text-muted-foreground">
+				{prompt}
+			</CodeBlockContent>
+		</CodeBlockShell>
 	)
 }

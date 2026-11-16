@@ -1,6 +1,6 @@
-import {routeGuards} from '../../-content/route-guards.ts'
-import {PanelReferences} from '../doc-links.tsx'
-import {InlineCode, PanelHeader, PanelList, PanelRow} from '../doc-ui.tsx'
+import {routeGuards} from '../../../-content/route-guards.ts'
+import {PanelReferences} from '../../doc-links.tsx'
+import {InlineCode, PanelHeader, PanelList, PanelRow} from '../../doc-ui.tsx'
 
 export function RouteGuardsPanel() {
 	return (

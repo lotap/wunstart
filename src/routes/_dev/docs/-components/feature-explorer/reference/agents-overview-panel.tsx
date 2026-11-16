@@ -1,9 +1,9 @@
 import {ExternalDocLink} from '#/components/global/external-doc-link.tsx'
 
-import {recommendedSkills, skillGroups} from '../../-content/agents.ts'
-import {CodeBlock} from '../code-block.tsx'
-import {PanelReferences} from '../doc-links.tsx'
-import {InlineCode, PanelHeader, PanelSection} from '../doc-ui.tsx'
+import {recommendedSkills, skillGroups} from '../../../-content/agents.ts'
+import {CodeBlock} from '../../code-block.tsx'
+import {PanelReferences} from '../../doc-links.tsx'
+import {InlineCode, PanelHeader, PanelSection, Prose} from '../../doc-ui.tsx'
 
 const totalSkills = skillGroups.reduce((total, group) => total + group.skills.length, 0)
 
@@ -97,17 +97,12 @@ export function AgentsOverviewPanel() {
 				</div>
 			</section>
 
-			<PanelSection
-				id="using-skills"
-				title="Using skills.sh"
-				description={
-					<>
-						The <ExternalDocLink href="https://www.skills.sh/docs/cli">skills CLI</ExternalDocLink>{' '}
-						installs and refreshes the Markdown files under <InlineCode>.agents/skills</InlineCode>.
-						Add a collection by its repository, or pick one skill from it.
-					</>
-				}
-			>
+			<PanelSection id="using-skills" title="Using skills.sh">
+				<Prose>
+					The <ExternalDocLink href="https://www.skills.sh/docs/cli">skills CLI</ExternalDocLink>{' '}
+					installs and refreshes the Markdown files under <InlineCode>.agents/skills</InlineCode>.
+					Add a collection by its repository, or pick one skill from it.
+				</Prose>
 				<div className="grid gap-4 lg:grid-cols-2">
 					<div className="flex flex-col gap-3">
 						<p className="text-sm font-medium">Install</p>
@@ -136,10 +131,10 @@ export function AgentsOverviewPanel() {
 					</div>
 				</div>
 
-				<div className="mt-4 flex flex-col gap-3">
-					<p className="text-sm leading-relaxed text-muted-foreground">
+				<div className="flex flex-col gap-3">
+					<Prose>
 						Add one skill from a collection with <InlineCode>--skill</InlineCode>:
-					</p>
+					</Prose>
 					<CodeBlock
 						code={`npx skills add <owner>/<repo> \\\n  --skill <name>`}
 						label="Install one skill"
@@ -147,12 +142,12 @@ export function AgentsOverviewPanel() {
 					/>
 				</div>
 
-				<p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+				<Prose>
 					Skills are instructions an agent will follow. Review new and updated files before running
 					them.
-				</p>
+				</Prose>
 
-				<div className="mt-5 rounded-xl border bg-muted/20 p-4">
+				<div className="rounded-xl border bg-muted/20 p-4">
 					<p className="text-sm font-medium">Owned vs. managed</p>
 					<p className="mt-1 max-w-3xl text-sm leading-relaxed text-muted-foreground">
 						Edit <InlineCode>wunstart</InlineCode> and <InlineCode>wunshot</InlineCode> here. Every
@@ -162,11 +157,8 @@ export function AgentsOverviewPanel() {
 				</div>
 			</PanelSection>
 
-			<PanelSection
-				id="recommended-skills"
-				title="Recommended skills"
-				description="External skill sources. None are installed by default."
-			>
+			<PanelSection id="recommended-skills" title="Recommended skills">
+				<Prose>External skill sources. None are installed by default.</Prose>
 				<ul className="grid gap-3 sm:grid-cols-2">
 					{recommendedSkills.map((skill) => (
 						<li key={skill.name} className="flex flex-col gap-1 rounded-xl border bg-muted/20 p-4">
