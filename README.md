@@ -275,40 +275,14 @@ Deployment support is still in development. The focus is on simplicity and platf
 
 ## Git worktrees (for parallel work)
 
-Use this layout only when you need to work on more than one thing at a time, such as two branches or two agents in parallel. For a single new project, the Clone and Setup steps are enough. You can convert later if you need to.
+Use additional worktrees only when you need to work on more than one thing at a time, such as two branches or two agents in parallel. For a single new project, the Clone and Setup steps are enough.
 
 <details>
 <summary>Worktree layout setup</summary>
 
-Every worktree, including trunk’s, gets its own folder. `.bare/` is the repo. Branch folders are where you work. Use `git worktree remove`, never `rm -rf`, to remove one.
+The main checkout owns the repository in `.git`; in this project that is `trunk/`. Each additional branch lives in its own sibling folder as a linked worktree; all of them share the same Git storage. Use `git worktree remove`, never `rm -rf`, to remove one.
 
-Convert once, on `trunk`, after you make the setup commit. A worktree needs a commit to check out. If you branched in Setup step 4, switch back to `trunk` first with `git checkout trunk`. Before converting, `git status --short` must be empty, so commit or stash any changes. Stop the dev server, see Teardown step 1. This converts `<project-dir>/` in place. The project keeps its path and gains `.bare/` and `trunk/`. A later step deletes the original checkout. This needs no hosting and works fully offline.
-
-`git clone --bare . .bare` sets `.bare`’s origin to the local path `.`, which breaks once you delete the original checkout. Remove that origin, then restore your real origin if you had one:
-
-```sh
-ORIG_URL=$(git remote get-url origin 2>/dev/null || true)
-git clone --bare . .bare
-git --git-dir=.bare remote remove origin
-if [ -n "$ORIG_URL" ]; then git --git-dir=.bare remote add origin "$ORIG_URL"; fi
-git --git-dir=.bare worktree add ./trunk trunk
-cd trunk
-```
-
-Inside `./trunk`, run `bun run install-deps` and `bun run branch-env`, then verify with `bun run validate-setup`. Only committed files appear in `trunk/`. `branch-env` recreates `.env.local` and sets up the database plus its dev and agent ports.
-
-Once `trunk` passes `validate-setup`, delete the original top-level checkout. Its committed files are now in `./trunk/`, and deleting the checkout also removes the stale top-level `.git`. Run this from `<project-dir>/`. The previous step left you inside `trunk/`, so run `cd ..` first. The path guard stops you if you are in the wrong place:
-
-```sh
-cd ..
-test -d .bare -a -d trunk || { echo "expected ./.bare and ./trunk, cd to <project-dir>/ first"; exit 1; }
-git --git-dir=.bare worktree list  # trunk must be listed
-ls -A  # preview: everything below except .bare and trunk will be deleted
-find . -maxdepth 1 -not -name '.' -not -name '.bare' -not -name 'trunk' -exec rm -rf {} +
-cd trunk
-```
-
-After cleanup, add branches from `trunk`. Creating a worktree includes provisioning it — it is not usable until these commands finish, so run them in the same step:
+Creating a worktree includes provisioning it — it is not usable until these commands finish, so run them in the same step:
 
 ```sh
 git worktree add -b <branch> ../<branch> trunk   # new branch
@@ -321,18 +295,17 @@ bun run validate-setup
 
 A branch name always maps to the same database and preferred agent port. `branch-env` keeps that port only for this worktree’s live shared agent server on the same branch database. If it is busy or belongs to a stale or foreign server, it picks the next free one. Warnings from `validate-setup` are not failures; a failing check means the checkout is not ready.
 
-OpenCode can create a worktree for you. `opencode.json` sets `worktree.directory` to `..`, so a worktree created from OpenCode appears beside `trunk` like the manual ones. OpenCode then runs the project’s startup script; set it once in the project’s settings to `bun run install-deps --yes && bun run branch-env --yes` (finish with `bun run validate-setup`), so a worktree created from OpenCode is provisioned automatically. The startup script is stored in OpenCode, not in `opencode.json`, so it does not travel with the repository. Start OpenCode in a branch folder such as `trunk`, never in `.bare`: `.bare` is not a working checkout and has none of the repository instructions.
+OpenCode can create a worktree for you. `opencode.json` sets `worktree.directory` to `..`, so a worktree created from OpenCode appears beside `trunk` like the manual ones. OpenCode then runs the project’s startup script; set it once in the project’s settings to `bun run install-deps --yes && bun run branch-env --yes` (finish with `bun run validate-setup`), so a worktree created from OpenCode is provisioned automatically. The startup script is stored in OpenCode, not in `opencode.json`, so it does not travel with the repository. Start OpenCode from `trunk`; it is the main checkout.
 
 You can also keep shared caches and scratch files in the parent folder. The layout works without them:
 
-- `.bare/` is the repo itself. Never edit it. Only work in the branch folders.
 - `.shared-wasm-cache/` is an optional place to keep a rebuilt wasm kernel when you edit `crates/`. Run `bun run build:wasm` once, copy `src/durable-objects/argon2-do-hasher.wasm` into this directory, then copy it into each worktree that needs it and commit it. Builds still use the committed kernel.
 - `.shared-cargo-target/` is a directory for `CARGO_TARGET_DIR`. Point the variable there from your shell to share Rust dependencies across worktrees. Everything works without it.
 - `.tmp/` is for cross-worktree scratch files, such as screenshots to compare across branches. Branch-local scratch stays in each checkout’s own `.tmp/`.
 
 A branch’s environment comes from its git branch, not its folder. Renaming the folder changes nothing. If you repurpose a worktree for another branch, re-run `branch-env`.
 
-Each worktree has its own setup. Run `install-deps` and `branch-env` inside it. Run `app-identity` once on `trunk` before converting so all worktrees use the same identity. Never re-run it per worktree.
+Each worktree has its own setup. Run `install-deps` and `branch-env` inside it. Run `app-identity` once on `trunk` before creating worktrees so all worktrees use the same identity. Never re-run it per worktree.
 
 Feature branches get their own database, for example `wunstart_<branch>_<6hex>`, which `branch-env` generates from the sanitized branch name. Trunk uses the `postgres` database from `.env.development`. Two agents in two worktrees usually get separate databases and agent ports. Dev servers all default to `:3000`, so run one at a time. `--dev-port` is the rare override.
 
