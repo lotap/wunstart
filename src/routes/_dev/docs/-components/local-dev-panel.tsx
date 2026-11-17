@@ -5,7 +5,7 @@ import {useRef, useState} from 'react'
 import {Button, buttonVariants} from '#/components/ui/button.tsx'
 import {openTanStackDevtools} from '#/integrations/tanstack-devtools.ts'
 
-import {localServices, mailpitUrl} from '../-content/local-development.ts'
+import {localServices, mailpitUrl} from '../-utils/local-services.ts'
 import {CommandBlock} from './code-block.tsx'
 import {DocLink, MicroLabel} from './doc-ui.tsx'
 

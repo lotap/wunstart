@@ -1,6 +1,5 @@
 import {Link} from '@tanstack/react-router'
 
-import {statusPageFiles} from '../../../-content/status-pages.ts'
 import {PanelReferences} from '../../doc-links.tsx'
 import {
 	DocLink,
@@ -11,6 +10,32 @@ import {
 	PanelSection,
 	Prose,
 } from '../../doc-ui.tsx'
+
+/** Files involved in route-level 404 and error pages. */
+const statusPageFiles = [
+	{
+		name: 'src/components/global/status-pages/_status-page-frame.tsx',
+		description:
+			'Shared full-viewport frame: content position, mono status numeral, and footer spacing.',
+	},
+	{
+		name: 'src/components/global/status-pages/not-found.tsx',
+		description: '404 page. Path-specific headline, sanitized path, and Take me home.',
+	},
+	{
+		name: 'src/components/global/status-pages/route-error.tsx',
+		description: 'Route error page. Try again, Take me home, and the dev-only error detail.',
+	},
+	{
+		name: 'src/routes/__root.tsx',
+		description:
+			'Mounts both components, sets their title and noindex metadata, and resolves the 404 audience.',
+	},
+	{
+		name: 'src/routes/_dev/status-pages/',
+		description: 'Dev-only previews, plus a route that throws a real error.',
+	},
+]
 
 export function StatusPagesPanel() {
 	return (

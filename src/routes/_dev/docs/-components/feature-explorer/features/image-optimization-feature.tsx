@@ -1,7 +1,7 @@
 import {CodeBlock, PromptBlock} from '../../code-block.tsx'
 import {PanelLink} from '../../doc-links.tsx'
 import {InlineCode, PanelList, PanelRow, PanelSection, Prose} from '../../doc-ui.tsx'
-import {FeatureShell} from './feature-panel.tsx'
+import {FeatureShell} from '../feature-blocks.tsx'
 
 const usage = `import {StaticImage} from '#/components/global/static-image.tsx'
 import hero from './-images/hero.jpg?responsive'
@@ -107,8 +107,7 @@ export function ImageOptimizationFeature() {
 				</p>
 			</div>
 
-			<PanelSection id="image-extend" title="Extend image optimization" className="border-t pt-6">
-				<Prose>Each prompt is a complete task. Pick the one closest to what you need.</Prose>
+			<PanelSection id="image-extend" title="Extension prompts" className="border-t pt-6">
 				<PromptBlock title="Raise the default AVIF quality" prompt={qualityPrompt} />
 				<PromptBlock title="Add a WebP fallback" prompt={webpPrompt} />
 				<PromptBlock title="Add a blur placeholder" prompt={blurPrompt} />

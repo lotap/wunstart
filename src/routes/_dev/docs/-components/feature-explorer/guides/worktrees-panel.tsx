@@ -3,10 +3,13 @@ import {useState} from 'react'
 import {ExternalDocLink} from '#/components/global/external-doc-link.tsx'
 import {Input} from '#/components/ui/input.tsx'
 
-import {setupWorktreesPrompt} from '../../../-content/worktrees.ts'
 import {CodeBlock, PromptBlock} from '../../code-block.tsx'
 import {PanelReferences} from '../../doc-links.tsx'
 import {InlineCode, PanelHeader, PanelSection, Prose} from '../../doc-ui.tsx'
+
+/** Prompt that converts a checkout to the worktree layout. */
+const setupWorktreesPrompt =
+	'Set up this repo to use worktrees. Follow the “Git worktrees (for parallel work)” section in README.md. If the working tree isn’t clean, stop and ask me first.'
 
 /** Turn a feature name into a branch-safe slug. */
 function toBranchSlug(value: string) {

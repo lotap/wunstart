@@ -198,7 +198,7 @@ The repo has some automated processes designed to make development easier. But t
 
 After setup, wunstart works like any other [TanStack Start](https://tanstack.com/start/latest) project.
 
-**Read the in-repo docs.** With the dev server running, open `/docs`. It covers the stack, the local services (Mailpit, Drizzle Studio), and the auth features. The page is dev-only — production builds omit the route and tree-shake the page implementation — so extend it freely: add a feature entry in `src/routes/_dev/docs/-content/features.ts` and its panel in `src/routes/_dev/docs/-components/`. Keep getting-the-checkout-running steps in this README and agent rules in `.agents/skills`; `/docs` describes the app you are building.
+**Read the in-repo docs.** With the dev server running, open `/docs`. It covers the stack, the local services (Mailpit, Drizzle Studio), and the app’s features. The page is dev-only — production builds omit the route and tree-shake the page implementation — so extend it freely: add a feature or reference panel under `src/routes/_dev/docs/-components/feature-explorer/` and list it in `feature-explorer.tsx`. Keep getting-the-checkout-running steps in this README and agent rules in `.agents/skills`; `/docs` describes the app you are building.
 
 Example prompts for agents:
 

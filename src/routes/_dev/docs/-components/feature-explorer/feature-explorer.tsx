@@ -3,12 +3,24 @@ import {ArrowDown} from 'lucide-react'
 import type {ComponentType} from 'react'
 import {useRef, useState} from 'react'
 
-import {features} from '../../-content/features.ts'
 import {PanelNavigationProvider} from '../doc-links.tsx'
 import {MicroLabel} from '../doc-ui.tsx'
-import {FeaturePanel} from './features/feature-panel.tsx'
+import {AbuseProtectionFeature} from './features/abuse-protection-feature.tsx'
+import {AuthFeature} from './features/auth-feature.tsx'
+import {ImageOptimizationFeature} from './features/image-optimization-feature.tsx'
+import {
+	AgenticIntegrationsFeature,
+	AnalyticsFeature,
+	FeatureFlagsFeature,
+	FileUploadFeature,
+	PaymentProcessingFeature,
+	RbacFeature,
+} from './features/planned-features.tsx'
 import {PageRecipePanel} from './guides/page-recipe-panel.tsx'
+import {WorktreesPanel} from './guides/worktrees-panel.tsx'
+import {AbusePanel} from './reference/abuse-panel.tsx'
 import {AgentsOverviewPanel} from './reference/agents-overview-panel.tsx'
+import {AuthPanel} from './reference/auth-panel.tsx'
 import {ConfigurationPanel} from './reference/configuration-panel.tsx'
 import {DatabaseMigrationsPanel} from './reference/database-migrations-panel.tsx'
 import {MiddlewarePanel} from './reference/middleware-panel.tsx'
@@ -18,24 +30,37 @@ import {RouteGuardsPanel} from './reference/route-guards-panel.tsx'
 import {RuntimePanel} from './reference/runtime-panel.tsx'
 import {StaticImagesPanel} from './reference/static-images-panel.tsx'
 import {StatusPagesPanel} from './reference/status-pages-panel.tsx'
-import {WorktreesPanel} from './reference/worktrees-panel.tsx'
 
 const referencePanels = [
 	{key: 'configuration', label: 'Configuration', Panel: ConfigurationPanel},
 	{key: 'request-flow', label: 'Request flow', Panel: RequestFlowPanel},
 	{key: 'route-guards', label: 'Route guards', Panel: RouteGuardsPanel},
+	{key: 'auth', label: 'Auth', Panel: AuthPanel},
+	{key: 'middleware', label: 'Middleware & identity', Panel: MiddlewarePanel},
+	{key: 'abuse', label: 'Abuse protection', Panel: AbusePanel},
 	{key: 'status-pages', label: 'Status pages', Panel: StatusPagesPanel},
 	{key: 'database-migrations', label: 'Database migrations', Panel: DatabaseMigrationsPanel},
-	{key: 'middleware', label: 'Middleware & identity', Panel: MiddlewarePanel},
 	{key: 'react-email', label: 'React Email', Panel: ReactEmailPanel},
 	{key: 'runtime', label: 'Runtime & hashing', Panel: RuntimePanel},
 	{key: 'static-images', label: 'Static images', Panel: StaticImagesPanel},
 	{key: 'agents-overview', label: 'Agents overview', Panel: AgentsOverviewPanel},
-	{key: 'worktrees', label: 'Worktrees', Panel: WorktreesPanel},
 ] as const
 
 const guidePanels = [
 	{key: 'start-a-new-page', label: 'Start a new page', Panel: PageRecipePanel},
+	{key: 'worktrees', label: 'Worktrees', Panel: WorktreesPanel},
+] as const
+
+const featurePanels = [
+	{key: 'auth', label: 'Auth', Panel: AuthFeature},
+	{key: 'abuse', label: 'Abuse Protection', Panel: AbuseProtectionFeature},
+	{key: 'rbac', label: 'RBAC', Panel: RbacFeature, planned: true},
+	{key: 'analytics', label: 'Analytics', Panel: AnalyticsFeature, planned: true},
+	{key: 'flags', label: 'Feature Flags', Panel: FeatureFlagsFeature, planned: true},
+	{key: 'files', label: 'File Upload', Panel: FileUploadFeature, planned: true},
+	{key: 'images', label: 'Image Optimization', Panel: ImageOptimizationFeature},
+	{key: 'payments', label: 'Payment Processing', Panel: PaymentProcessingFeature, planned: true},
+	{key: 'agents', label: 'Agentic Integrations', Panel: AgenticIntegrationsFeature, planned: true},
 ] as const
 
 type ReferencePanelKey = (typeof referencePanels)[number]['key']
@@ -45,14 +70,6 @@ type GuidePanelKey = (typeof guidePanels)[number]['key']
 export type SidePanelKey = ReferencePanelKey | GuidePanelKey
 
 const defaultSidePanel: SidePanelKey = guidePanels[0].key
-
-function tabId(key: string) {
-	return `feature-tab-${key}`
-}
-
-function panelId(key: string) {
-	return `feature-panel-${key}`
-}
 
 function scrollToSection(id: string) {
 	document.getElementById(id)?.scrollIntoView({behavior: 'smooth', block: 'start'})
@@ -229,8 +246,6 @@ export function FeatureExplorer() {
 	const [sidePanel, setSidePanel] = useState<SidePanelKey | null>(defaultSidePanel)
 	const sectionRef = useRef<HTMLElement>(null)
 
-	if (features.length === 0) return null
-
 	function selectFeature(index: number) {
 		setSidePanel(null)
 		setActive(index)
@@ -300,17 +315,17 @@ export function FeatureExplorer() {
 								onKeyDown={(event) => handleTabKeyDown(event, selectFeature)}
 								className="mt-1.5 flex flex-wrap gap-1 border-b pb-2 md:flex-col md:flex-nowrap md:border-b-0 md:pb-0"
 							>
-								{features.map((feature, index) => (
+								{featurePanels.map((feature, index) => (
 									<SidebarTab
 										key={feature.key}
 										active={sidePanel === null && index === active}
 										tabbable={index === active}
-										label={feature.name}
+										label={feature.label}
 										ariaLabel={
-											feature.status === 'planned' ? `${feature.name}, coming soon` : feature.name
+											'planned' in feature ? `${feature.label}, coming soon` : feature.label
 										}
-										id={tabId(feature.key)}
-										controls={panelId(feature.key)}
+										id={`feature-tab-${feature.key}`}
+										controls={`feature-panel-${feature.key}`}
 										onClick={() => selectFeature(index)}
 									/>
 								))}
@@ -344,17 +359,13 @@ export function FeatureExplorer() {
 							/>
 						))}
 
-						{features.map((feature, index) => (
-							<div
+						{featurePanels.map((feature, index) => (
+							<PanelTabPanel
 								key={feature.key}
-								role="tabpanel"
-								id={panelId(feature.key)}
-								aria-labelledby={tabId(feature.key)}
-								hidden={sidePanel !== null || index !== active}
-								className="mt-6 min-h-[calc(100svh-2rem)] rounded-xl border bg-muted/20 p-4 md:mt-0 md:p-6"
-							>
-								{sidePanel === null && index === active && <FeaturePanel feature={feature} />}
-							</div>
+								group="feature"
+								panel={feature}
+								active={sidePanel === null && index === active}
+							/>
 						))}
 					</div>
 				</div>

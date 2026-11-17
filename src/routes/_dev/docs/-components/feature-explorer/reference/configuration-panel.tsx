@@ -1,7 +1,79 @@
-import {checks, setupCommands, toolchainNotes} from '../../../-content/configuration.tsx'
 import {PanelReferences} from '../../doc-links.tsx'
 import {InlineCode, PanelHeader, PanelList, PanelRow, PanelSection, Prose} from '../../doc-ui.tsx'
 import {EnvironmentTable} from './_environment-table.tsx'
+
+/** One-time and per-checkout setup commands. */
+const setupCommands = [
+	{
+		name: 'bun run app-identity',
+		description:
+			'Sets the app name and description across committed files. Run it once per project.',
+	},
+	{
+		name: 'bun run install-deps',
+		description: 'One-time per checkout: dependencies and git hooks.',
+	},
+	{
+		name: 'bun run branch-env',
+		description:
+			'Provisions the branch database, ports, and .env.local. Re-run after a branch switch or a dropped database.',
+	},
+	{
+		name: 'bun run validate-setup',
+		description: 'Checks env, ports, and database. It reports what is wrong and how to fix it.',
+	},
+]
+
+/** Gates that must pass before a change is done. */
+const checks = [
+	{
+		name: 'bun run fmt',
+		description: 'Formats src/ and tools/ with oxfmt. Import and Tailwind order are automatic.',
+	},
+	{
+		name: 'bun run lint:check',
+		description:
+			'Runs oxlint with --deny-warnings: wunstart, wunshot, anti-slop, and React Doctor rules.',
+	},
+	{
+		name: 'bunx tsc --noEmit',
+		description:
+			'Type gate. noUnusedLocals and noUnusedParameters make dead bindings fail the check.',
+	},
+	{
+		name: 'bun run test:lint',
+		description:
+			'Runs the custom linter rule tests with Node. bun --bun breaks the RuleTester. Run it when you edit a rule.',
+	},
+	{
+		name: 'bun run build',
+		description: 'Production build, including the committed wasm kernel.',
+	},
+]
+
+/** Automated setup that is easy to miss. */
+const toolchainNotes = [
+	{
+		name: 'prepare',
+		description:
+			'Installs the repo’s git hooks and patches the installed TypeScript and oxlint copies for Effect. The +effect-tsgo suffix in bunx tsc --version confirms the patch.',
+	},
+	{
+		name: 'pre-commit',
+		description:
+			'Blocks a crates/ change that reaches a commit without the rebuilt wasm kernel alongside it.',
+	},
+	{
+		name: 'predev',
+		description:
+			'Reinstalls dependencies before a dev server starts, so a branch switch or a pull repairs itself.',
+	},
+	{
+		name: 'Effect diagnostics',
+		description:
+			'tsc and lint:check share most Effect checks. Some findings appear in both on purpose; tsc covers 43 checks the linter cannot. Only errors fail tsc.',
+	},
+]
 
 export function ConfigurationPanel() {
 	return (

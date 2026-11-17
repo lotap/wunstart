@@ -1,4 +1,4 @@
-import {localServices} from '../../../-content/local-development.ts'
+import {localServices} from '../../../-utils/local-services.ts'
 import {CommandBlock} from '../../code-block.tsx'
 import {PanelReferences} from '../../doc-links.tsx'
 import {

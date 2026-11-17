@@ -1,17 +1,26 @@
 import {ArrowUpRight, ChevronDown} from 'lucide-react'
 
-import {mailpitUrl} from '../../../-content/local-development.ts'
-import type {
-	AvailableFeature,
-	Feature,
-	FeatureAction,
-	FeatureFlow,
-	PlannedFeature,
-} from '../../../-content/types.ts'
-import {PromptBlock} from '../../code-block.tsx'
-import {DocDiagram} from '../../doc-diagram.tsx'
-import {PanelLink, PanelReferences} from '../../doc-links.tsx'
-import {PanelHeader, PanelSection, Prose} from '../../doc-ui.tsx'
+import {mailpitUrl} from '../../-utils/local-services.ts'
+import {DocDiagram} from '../doc-diagram.tsx'
+import {PanelHeader} from '../doc-ui.tsx'
+
+export type FeatureAction = {
+	label: string
+	description: string
+	href: string
+}
+
+export type FeatureFlow = {
+	key: string
+	name: string
+	routes: string[]
+	serverFunctions: string[]
+	ops: string[]
+	models: string[]
+	charts: Array<{label?: string; source: string}>
+	notes?: string[]
+	mailpit?: boolean
+}
 
 function CodeChip({children}: {children: React.ReactNode}) {
 	return (
@@ -57,7 +66,7 @@ function FlowNotes({flow}: {flow: FeatureFlow}) {
 	)
 }
 
-function Flow({flow}: {flow: FeatureFlow}) {
+function Flow({flow, idPrefix}: {flow: FeatureFlow; idPrefix: string}) {
 	const meta = [
 		{label: 'Routes', values: flow.routes},
 		{label: 'Server functions', values: flow.serverFunctions},
@@ -99,7 +108,7 @@ function Flow({flow}: {flow: FeatureFlow}) {
 									<DocDiagram
 										source={chart.source}
 										label={label}
-										idPrefix={`auth-${flow.key}-${index}`}
+										idPrefix={`${idPrefix}-${flow.key}-${index}`}
 									/>
 								</div>
 							)
@@ -111,41 +120,41 @@ function Flow({flow}: {flow: FeatureFlow}) {
 	)
 }
 
-function FeatureFlows({flows}: {flows: FeatureFlow[]}) {
+/** Opt-in structured flow list for feature and reference panels. */
+export function FeatureFlows({flows, idPrefix}: {flows: FeatureFlow[]; idPrefix: string}) {
 	return (
-		<section className="mt-8 rounded-xl border p-4 sm:p-5">
+		<div className="rounded-xl border p-4 sm:p-5">
 			<ol className="flex flex-col">
 				{flows.map((flow) => (
-					<Flow key={flow.key} flow={flow} />
+					<Flow key={flow.key} flow={flow} idPrefix={idPrefix} />
 				))}
 			</ol>
-		</section>
+		</div>
 	)
 }
 
-function FeatureActions({actions}: {actions: FeatureAction[]}) {
+/** Opt-in list of working product paths. */
+export function FeatureActions({actions}: {actions: FeatureAction[]}) {
 	return (
-		<section aria-label="Available now" className="mt-6">
-			<ul className="flex flex-col divide-y">
-				{actions.map((action) => (
-					<li key={action.href}>
-						{/* Actions open in a new tab so the docs page keeps its selected panel. */}
-						<a
-							href={action.href}
-							target="_blank"
-							rel="noreferrer"
-							className="group flex items-start justify-between gap-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-						>
-							<span className="flex min-w-0 flex-col">
-								<span className="text-base font-medium group-hover:underline">{action.label}</span>
-								<span className="text-sm text-muted-foreground">{action.description}</span>
-							</span>
-							<ArrowUpRight className="mt-0.5 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
-						</a>
-					</li>
-				))}
-			</ul>
-		</section>
+		<ul className="flex flex-col divide-y">
+			{actions.map((action) => (
+				<li key={action.href}>
+					{/* Actions open in a new tab so the docs page keeps its selected panel. */}
+					<a
+						href={action.href}
+						target="_blank"
+						rel="noreferrer"
+						className="group flex items-start justify-between gap-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+					>
+						<span className="flex min-w-0 flex-col">
+							<span className="text-base font-medium group-hover:underline">{action.label}</span>
+							<span className="text-sm text-muted-foreground">{action.description}</span>
+						</span>
+						<ArrowUpRight className="mt-0.5 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+					</a>
+				</li>
+			))}
+		</ul>
 	)
 }
 
@@ -167,60 +176,20 @@ export function FeatureShell({
 	)
 }
 
-/** Transitional adapter for data-driven feature entries. */
-function DataFeaturePanel({feature}: {feature: AvailableFeature}) {
-	return (
-		<FeatureShell title={feature.name} summary={feature.summary}>
-			{feature.intro && (
-				<PanelSection id={`${feature.key}-intro`} title={feature.intro.title}>
-					<Prose>{feature.intro.body}</Prose>
-				</PanelSection>
-			)}
-			{feature.actions.length > 0 && <FeatureActions actions={feature.actions} />}
-			{feature.flows.length > 0 && <FeatureFlows flows={feature.flows} />}
-			{feature.panelLink && (
-				<p className="mt-4 text-sm">
-					<PanelLink panel={feature.panelLink.panel}>{feature.panelLink.label}</PanelLink>
-				</p>
-			)}
-			<PanelSection
-				id={`${feature.key}-extend`}
-				title={`Extend ${feature.name.toLowerCase()}`}
-				className="border-t pt-6"
-			>
-				<PromptBlock title={`${feature.name} prompt`} prompt={feature.prompt} />
-				{feature.notes?.map((note) => (
-					<Prose key={note}>{note}</Prose>
-				))}
-			</PanelSection>
-			{feature.references && feature.references.length > 0 && (
-				<PanelReferences links={feature.references} />
-			)}
-		</FeatureShell>
-	)
-}
-
-function PlannedFeaturePanel({feature}: {feature: PlannedFeature}) {
+/** Shared frame for catalog entries that are not built yet. */
+export function PlannedFeatureShell({
+	title,
+	summary,
+	placeholder,
+}: {
+	title: string
+	summary: string
+	placeholder: string
+}) {
 	return (
 		<>
-			<PanelHeader title={feature.name} description={feature.summary} />
-			<p className="mt-6 max-w-2xl text-sm text-muted-foreground">
-				Coming soon. {feature.placeholder}
-			</p>
+			<PanelHeader title={title} description={summary} />
+			<p className="mt-6 max-w-2xl text-sm text-muted-foreground">Coming soon. {placeholder}</p>
 		</>
 	)
-}
-
-export function FeaturePanel({feature}: {feature: Feature}) {
-	if (feature.status === 'planned') {
-		return <PlannedFeaturePanel feature={feature} />
-	}
-
-	if ('Panel' in feature) {
-		const Panel = feature.Panel
-
-		return <Panel />
-	}
-
-	return <DataFeaturePanel feature={feature} />
 }
