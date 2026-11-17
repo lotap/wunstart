@@ -60,7 +60,7 @@ When using multiple font sizes in one line, align them along the baseline, not v
 
 Use the fonts set by the theme.
 
-To change typefaces, swap the fontsource imports per `contract.md` — do not add a new font-loading mechanism.
+To change typefaces, swap the font imports or vendored faces per `contract.md` — do not add a new font-loading mechanism.
 
 You don't need a different font for display, headline, and body. A single typeface can suffice. When you choose to use more than one, make each unique and distinct.
 
@@ -108,4 +108,4 @@ If an element on top is translucent, scale the blur's size with the size of the 
 
 Never stack translucent elements on top of each other.
 
-Grounding (when this file is loaded alone): tokens live in `src/styles.css` (`:root`/`.dark`); state→class maps live in colocated CVA maps; fonts follow the fontsource mechanism — see `contract.md` (override patterns in `references/app.md`).
+Grounding (when this file is loaded alone): tokens live in `src/styles.css` (`:root`/`.dark`); state→class maps live in colocated CVA maps; fonts follow the fontsource-first `@font-face` mechanism — see `contract.md` (override patterns in `references/app.md`).
