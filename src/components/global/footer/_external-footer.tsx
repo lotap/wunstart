@@ -26,7 +26,7 @@ export function ExternalFooter() {
 				<div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
 					<div className="max-w-xl">
 						<p className="max-w-lg text-3xl font-medium tracking-tight md:text-4xl">
-							Back-end primitives for modern applications.
+							Webdev is finally solved.
 						</p>
 						<Link
 							to="/sign-up"
