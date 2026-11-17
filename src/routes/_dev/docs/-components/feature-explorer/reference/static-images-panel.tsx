@@ -1,15 +1,20 @@
+import {ExternalDocLink} from '#/components/global/external-doc-link.tsx'
+import {StaticImage} from '#/components/global/static-image.tsx'
+
 import {CodeBlock} from '../../code-block.tsx'
 import {DocDiagram} from '../../doc-diagram.tsx'
 import {PanelReferences} from '../../doc-links.tsx'
 import {InlineCode, PanelHeader, PanelList, PanelRow, PanelSection, Prose} from '../../doc-ui.tsx'
+import rapids from './-images/rapids.jpg?responsive'
 
 const usage = `import {StaticImage} from '#/components/global/static-image.tsx'
-import hero from './-images/hero.jpg?responsive'
+import rapids from './-images/rapids.jpg?responsive'
 
 <StaticImage
-  image={hero}
-  alt="A short description"
-  sizes="(width < 64rem) 100vw, 50vw"
+  image={rapids}
+  alt="Raging river rapids with white foam and dark water"
+  sizes="18rem"
+  className="w-full max-w-72 rounded-lg border"
 />`
 
 const overrides = `// Let a 4K hero reach 3840
@@ -66,6 +71,20 @@ export function StaticImagesPanel() {
 					optimized when imported with <InlineCode>?responsive</InlineCode>.
 				</Prose>
 				<CodeBlock code={usage} label="Responsive image usage" language="tsx" />
+				<figure className="mt-4">
+					<StaticImage
+						image={rapids}
+						alt="Raging river rapids with white foam and dark water"
+						sizes="18rem"
+						className="w-full max-w-72 rounded-lg border"
+					/>
+					<figcaption className="mt-2 max-w-sm text-sm text-muted-foreground">
+						The snippet above, rendered from a 2400 px source. Photo by{' '}
+						<ExternalDocLink href="https://unsplash.com/photos/raging-river-rapids-with-white-foam-and-dark-water-0kWMQnmLSms">
+							Sebastian Schuster on Unsplash
+						</ExternalDocLink>
+					</figcaption>
+				</figure>
 				<Prose>
 					<InlineCode>StaticImage</InlineCode> needs the imported image,{' '}
 					<InlineCode>alt</InlineCode> text, and <InlineCode>sizes</InlineCode>. The marker and the{' '}
