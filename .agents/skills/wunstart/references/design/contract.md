@@ -23,4 +23,4 @@ The stock shadcn theme is a transparent scaffold, not a house style — replace 
 
 - Keep both token blocks (`:root` + `.dark`) in `src/styles.css` coherent; the provider resolves `system` via `prefers-color-scheme` and persists the choice in localStorage. Dropping dark mode is allowed but must be deliberate (remove the variant + toggle, don't leave a dead switch).
 - Email templates carry a hex duplicate of the tokens (the inliner can't do oklch) — update both or mail drifts from app (see `references/email.md`).
-- Fonts arrive via fontsource imports at the top of `src/styles.css` (Inter variable, Fraunces, Space Mono today); swap by changing the imports, not by adding a font-loading mechanism.
+- Fonts arrive via fontsource imports at the top of `src/styles.css` (Inter variable, Fraunces, Mulish, Space Mono today); swap by changing the imports, not by adding a font-loading mechanism.

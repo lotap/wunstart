@@ -4,6 +4,7 @@
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/fraunces';
 @import '@fontsource-variable/fraunces/wght-italic.css';
+@import '@fontsource-variable/mulish';
 @import '@fontsource/space-mono/400.css';
 @import '@fontsource/space-mono/400-italic.css';
 @import '@fontsource/space-mono/700.css';
@@ -83,6 +84,7 @@
 @theme inline {
 	--font-sans: 'Inter Variable', sans-serif;
 	--font-serif: 'Fraunces Variable', Georgia, serif;
+	--font-display: 'Mulish Variable', sans-serif;
 	--font-mono: 'Space Mono', ui-monospace, monospace;
 	--font-heading: var(--font-sans);
 	--color-sidebar-ring: var(--sidebar-ring);
