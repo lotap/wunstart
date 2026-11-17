@@ -46,7 +46,7 @@ export function Headline({
 		<h2
 			ref={headlineRef}
 			id="grow-next-heading"
-			className="pointer-events-auto flex max-w-full flex-col items-center justify-center gap-x-[0.24em] gap-y-2 text-center text-[clamp(2.4rem,6.3vw,6rem)] leading-[0.95] font-light tracking-[-0.035em] sm:flex-row sm:flex-wrap sm:items-baseline dark:font-extralight"
+			className="pointer-events-auto flex max-w-full flex-col items-center justify-center gap-x-[0.24em] gap-y-2 text-center font-heading text-[clamp(2.4rem,6.3vw,6rem)] leading-[0.95] font-light tracking-[-0.035em] sm:flex-row sm:flex-wrap sm:items-baseline dark:font-extralight"
 		>
 			<span ref={headlineLeadRef} className="whitespace-nowrap">
 				Bring your next

@@ -16,7 +16,7 @@ function ShortcutCard({children}: {children: React.ReactNode}) {
 function ShortcutHeader({title, children}: {title: string; children: React.ReactNode}) {
 	return (
 		<div className="flex flex-col gap-1">
-			<h4 className="text-lg font-medium">{title}</h4>
+			<h4 className="font-heading text-lg font-medium">{title}</h4>
 			<div className="flex flex-col gap-2 text-sm text-muted-foreground">{children}</div>
 		</div>
 	)
@@ -180,7 +180,7 @@ export function LocalDevPanel() {
 					<div className="flex items-start justify-between gap-4">
 						<div className="flex flex-col gap-3">
 							<div className="flex flex-col gap-2">
-								<h4 className="text-lg font-medium">What’s a terminal?</h4>
+								<h4 className="font-heading text-lg font-medium">What’s a terminal?</h4>
 								<p className="max-w-2xl text-sm text-muted-foreground">
 									A terminal is a text-only window where you type a command and press Return or
 									Enter to run it. It’s how you imagine hackers breaking into the mainframe.

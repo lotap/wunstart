@@ -99,7 +99,7 @@ export function InlineCode({children}: {children: React.ReactNode}) {
 export function PanelHeader({title, description}: {title: string; description: string}) {
 	return (
 		<header className="flex flex-col gap-2">
-			<h4 className="text-3xl">{title}</h4>
+			<h4 className="font-heading text-3xl">{title}</h4>
 			<p className="max-w-2xl text-muted-foreground">{description}</p>
 		</header>
 	)
@@ -124,7 +124,7 @@ export function PanelSection({
 }) {
 	return (
 		<section aria-labelledby={id} className={cn('mt-8', className)}>
-			<h5 id={id} className="text-lg font-medium">
+			<h5 id={id} className="font-heading text-lg font-medium">
 				{title}
 			</h5>
 			{children && <div className="mt-4 flex flex-col gap-3">{children}</div>}

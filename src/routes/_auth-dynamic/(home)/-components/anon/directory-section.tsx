@@ -54,7 +54,7 @@ export function DirectorySection() {
 	return (
 		<section aria-labelledby="directory-title" className="w-full max-w-5xl">
 			<SlashGrid />
-			<h3 id="directory-title" className="px-6 py-3 text-3xl">
+			<h3 id="directory-title" className="px-6 py-3 font-heading text-3xl">
 				Directory
 			</h3>
 			<SlashGrid />

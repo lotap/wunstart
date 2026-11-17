@@ -26,7 +26,7 @@ export function FeaturesText({
 				<div className="flex justify-center px-4">
 					<p
 						ref={sublineRef}
-						className="pointer-events-auto text-center text-[clamp(2.4rem,6.3vw,6rem)] leading-[0.95] font-light tracking-[-0.035em] text-balance sm:whitespace-nowrap dark:font-extralight"
+						className="pointer-events-auto text-center font-heading text-[clamp(2.4rem,6.3vw,6rem)] leading-[0.95] font-light tracking-[-0.035em] text-balance sm:whitespace-nowrap dark:font-extralight"
 					>
 						{HERO_SUBLINE_WORDS.map((word, index) => (
 							<Fragment key={word}>

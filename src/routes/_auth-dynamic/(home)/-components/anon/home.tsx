@@ -42,7 +42,7 @@ export function AnonHome() {
 				</div>
 
 				{/* HEADER */}
-				<h3 className="px-6 py-3 text-3xl">Welcome to the happy path</h3>
+				<h3 className="px-6 py-3 font-heading text-3xl">Welcome to the happy path</h3>
 
 				{/* // DIVIDER */}
 				<SlashGrid />
@@ -104,7 +104,7 @@ export function AnonHome() {
 				className="w-full max-w-5xl scroll-mt-6"
 			>
 				<SlashGrid />
-				<h3 id="get-started-title" className="px-6 py-3 text-right text-3xl">
+				<h3 id="get-started-title" className="px-6 py-3 text-right font-heading text-3xl">
 					Get started
 				</h3>
 				<SlashGrid />
@@ -124,7 +124,7 @@ export function AnonHome() {
 
 					<div className="flex w-5/6 flex-col gap-10 px-6 pt-3 pb-6 sm:w-3/4 md:w-2/3 lg:w-7/12">
 						<section aria-labelledby="customizing-this-page" className="flex flex-col gap-4">
-							<h4 id="customizing-this-page" className="text-xl">
+							<h4 id="customizing-this-page" className="font-heading text-xl">
 								Customizing this page
 							</h4>
 							<p className="text-lg">
@@ -142,7 +142,7 @@ export function AnonHome() {
 						</section>
 
 						<section aria-labelledby="exploring-the-user-flow" className="flex flex-col gap-4">
-							<h4 id="exploring-the-user-flow" className="text-xl">
+							<h4 id="exploring-the-user-flow" className="font-heading text-xl">
 								Exploring the user flow
 							</h4>
 							<p className="text-sm leading-relaxed text-muted-foreground">

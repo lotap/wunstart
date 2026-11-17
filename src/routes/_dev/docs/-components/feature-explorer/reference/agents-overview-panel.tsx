@@ -170,7 +170,7 @@ export function AgentsOverviewPanel() {
 			<section aria-labelledby="skills-included" className="mt-8">
 				<div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
 					<div className="flex flex-col gap-1">
-						<h5 id="skills-included" className="text-lg font-medium">
+						<h5 id="skills-included" className="font-heading text-lg font-medium">
 							Skills included
 						</h5>
 						<p className="max-w-2xl text-sm text-muted-foreground">
