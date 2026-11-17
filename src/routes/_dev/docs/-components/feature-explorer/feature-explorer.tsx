@@ -1,7 +1,8 @@
+import {useRouter} from '@tanstack/react-router'
 import {cn} from 'cn'
 import {ArrowDown} from 'lucide-react'
 import type {ComponentType} from 'react'
-import {useRef, useState} from 'react'
+import {useEffect, useRef} from 'react'
 
 import {PanelNavigationProvider} from '../doc-links.tsx'
 import {MicroLabel} from '../doc-ui.tsx'
@@ -70,9 +71,49 @@ type ReferencePanelKey = (typeof referencePanels)[number]['key']
 
 type GuidePanelKey = (typeof guidePanels)[number]['key']
 
+type FeaturePanelKey = (typeof featurePanels)[number]['key']
+
 export type SidePanelKey = ReferencePanelKey | GuidePanelKey
 
-const defaultSidePanel: SidePanelKey = guidePanels[0].key
+type PanelSelection =
+	| {group: 'guide'; key: GuidePanelKey}
+	| {group: 'reference'; key: ReferencePanelKey}
+	| {group: 'feature'; key: FeaturePanelKey}
+
+const defaultSelection: PanelSelection = {group: 'guide', key: guidePanels[0].key}
+
+/**
+ * Resolves `?panel=<group>.<key>`. The group travels in the value because keys
+ * repeat across surfaces (`auth` is both a feature and a reference); unknown
+ * values fall back to the first guide.
+ */
+function resolveSelection(value: string | undefined): PanelSelection {
+	if (value === undefined) return defaultSelection
+
+	const [group, key, ...rest] = value.split('.')
+
+	if (key === undefined || rest.length > 0) return defaultSelection
+
+	if (group === 'guide') {
+		const panel = guidePanels.find((candidate) => candidate.key === key)
+
+		if (panel) return {group, key: panel.key}
+	}
+
+	if (group === 'reference') {
+		const panel = referencePanels.find((candidate) => candidate.key === key)
+
+		if (panel) return {group, key: panel.key}
+	}
+
+	if (group === 'feature') {
+		const panel = featurePanels.find((candidate) => candidate.key === key)
+
+		if (panel) return {group, key: panel.key}
+	}
+
+	return defaultSelection
+}
 
 function scrollToSection(id: string) {
 	document.getElementById(id)?.scrollIntoView({behavior: 'smooth', block: 'start'})
@@ -244,47 +285,87 @@ function PanelTabPanel({
 	)
 }
 
-export function FeatureExplorer() {
-	const [active, setActive] = useState(0)
-	const [sidePanel, setSidePanel] = useState<SidePanelKey | null>(defaultSidePanel)
+export function FeatureExplorer({panel}: {panel?: string}) {
+	const router = useRouter()
+	const selection = resolveSelection(panel)
+	const sidePanel: SidePanelKey | null = selection.group === 'feature' ? null : selection.key
+
+	const active: number =
+		selection.group === 'feature'
+			? featurePanels.findIndex((feature) => feature.key === selection.key)
+			: 0
+
 	const sectionRef = useRef<HTMLElement>(null)
+	const selectionKey = `${selection.group}.${selection.key}`
+	const previousSelection = useRef(selectionKey)
+
+	// A URL that names a panel is a deep link: land the reader on the explorer,
+	// instantly, before any tab-switch animation applies. Read the URL rather than
+	// the prop so a late search update cannot skip it.
+	useEffect(() => {
+		if (!new URLSearchParams(window.location.search).has('panel')) return
+
+		sectionRef.current?.scrollIntoView({behavior: 'instant', block: 'start'})
+	}, [])
+
+	// Scroll after the panel commit, not in the click handler: swapping panel
+	// content cancels an in-flight smooth scroll.
+	useEffect(() => {
+		if (previousSelection.current === selectionKey) return
+
+		previousSelection.current = selectionKey
+		sectionRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'})
+	}, [selectionKey])
+
+	function selectPanel(group: PanelSelection['group'], key: string) {
+		void router.navigate({
+			to: '/docs',
+			search: (prev) => ({...prev, panel: `${group}.${key}`}),
+			replace: true,
+			// A tab switch should not cross-fade the whole page; the transition also
+			// delays the commit that the scroll effect waits for.
+			viewTransition: false,
+			// Selection is an in-page switch; the effect above owns the scroll.
+			resetScroll: false,
+		})
+	}
 
 	function selectFeature(index: number) {
-		setSidePanel(null)
-		setActive(index)
-		sectionRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'})
+		const feature = featurePanels[index]
+
+		if (!feature) return
+
+		selectPanel('feature', feature.key)
 	}
 
 	function selectReferencePanel(index: number) {
-		const panel = referencePanels[index]
+		const selected = referencePanels[index]
 
-		if (!panel) return
+		if (!selected) return
 
-		setSidePanel(panel.key)
-		sectionRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'})
+		selectPanel('reference', selected.key)
 	}
 
 	function selectGuidePanel(index: number) {
-		const panel = guidePanels[index]
+		const selected = guidePanels[index]
 
-		if (!panel) return
+		if (!selected) return
 
-		setSidePanel(panel.key)
-		sectionRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'})
+		selectPanel('guide', selected.key)
 	}
 
 	function selectPanelByKey(key: SidePanelKey) {
-		const referenceIndex = referencePanels.findIndex((panel) => panel.key === key)
+		const reference = referencePanels.find((candidate) => candidate.key === key)
 
-		if (referenceIndex !== -1) {
-			selectReferencePanel(referenceIndex)
+		if (reference) {
+			selectPanel('reference', reference.key)
 
 			return
 		}
 
-		const guideIndex = guidePanels.findIndex((panel) => panel.key === key)
+		const guide = guidePanels.find((candidate) => candidate.key === key)
 
-		if (guideIndex !== -1) selectGuidePanel(guideIndex)
+		if (guide) selectPanel('guide', guide.key)
 	}
 
 	return (
@@ -344,21 +425,21 @@ export function FeatureExplorer() {
 					</div>
 
 					<div className="min-w-0 flex-1">
-						{referencePanels.map((panel) => (
+						{referencePanels.map((entry) => (
 							<PanelTabPanel
-								key={panel.key}
+								key={entry.key}
 								group="reference"
-								panel={panel}
-								active={sidePanel === panel.key}
+								panel={entry}
+								active={sidePanel === entry.key}
 							/>
 						))}
 
-						{guidePanels.map((panel) => (
+						{guidePanels.map((entry) => (
 							<PanelTabPanel
-								key={panel.key}
+								key={entry.key}
 								group="guide"
-								panel={panel}
-								active={sidePanel === panel.key}
+								panel={entry}
+								active={sidePanel === entry.key}
 							/>
 						))}
 

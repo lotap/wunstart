@@ -1,4 +1,5 @@
 import {createFileRoute} from '@tanstack/react-router'
+import {Schema} from 'effect'
 import {lazy} from 'react'
 
 /**
@@ -15,5 +16,19 @@ const DocsPage = import.meta.env.DEV
 	: undefined
 
 export const Route = createFileRoute('/_dev/docs')({
-	component: DocsPage,
+	validateSearch: Schema.toStandardSchemaV1(
+		Schema.Struct({
+			/** `<group>.<key>`, e.g. `reference.auth`; resolved by the explorer. */
+			panel: Schema.optional(Schema.String),
+		}),
+	),
+	component: DocsRoute,
 })
+
+function DocsRoute() {
+	const {panel} = Route.useSearch()
+
+	if (!DocsPage) return null
+
+	return <DocsPage panel={panel} />
+}
