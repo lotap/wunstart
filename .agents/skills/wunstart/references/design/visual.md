@@ -108,4 +108,4 @@ If an element on top is translucent, scale the blur's size with the size of the 
 
 Never stack translucent elements on top of each other.
 
-Grounding (when this file is loaded alone): tokens live in `src/styles.css` (`:root`/`.dark`); state→class maps live in colocated CVA maps; fonts follow the fontsource-first `@font-face` mechanism — see `contract.md` (override patterns in `references/app.md`).
+Grounding (when this file is loaded alone): tokens live in `src/styles.css` (`:root`/`.dark`, with font families in `@layer font-tokens`); state→class maps live in colocated CVA maps; fonts follow the fontsource-first `@font-face` mechanism — see `contract.md` (override patterns in `references/app.md`).

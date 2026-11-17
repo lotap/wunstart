@@ -15,6 +15,22 @@
 	src: url('/fonts/commit-mono-variable.woff2') format('woff2');
 }
 
+/* Later than Tailwind's layers, so an injected `@layer theme` can't outrank
+   these. Only values that would otherwise live in `@theme` belong here. */
+@layer font-tokens {
+	:root {
+		--family-sans: 'Inter Variable', sans-serif;
+		--family-serif: 'Fraunces Variable', Georgia, serif;
+		--family-mono: 'Commit Mono', ui-monospace, monospace;
+		--family-heading: 'Mulish Variable', sans-serif;
+
+		--font-sans: var(--family-sans);
+		--font-serif: var(--family-serif);
+		--font-mono: var(--family-mono);
+		--font-heading: var(--family-heading);
+	}
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -87,10 +103,10 @@
 }
 
 @theme inline {
-	--font-sans: 'Inter Variable', sans-serif;
-	--font-serif: 'Fraunces Variable', Georgia, serif;
-	--font-mono: 'Commit Mono', ui-monospace, monospace;
-	--font-heading: 'Mulish Variable', sans-serif;
+	--font-sans: var(--family-sans);
+	--font-serif: var(--family-serif);
+	--font-mono: var(--family-mono);
+	--font-heading: var(--family-heading);
 	--color-sidebar-ring: var(--sidebar-ring);
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
