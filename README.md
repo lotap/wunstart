@@ -226,7 +226,7 @@ import logo from '#/assets/images/brand/logo.png?responsive'
 
 Each import also carries a build-time placeholder: a flat color or a two-stop gradient sampled from the image’s top and bottom rows. `StaticImage` paints it in the reserved box, so the space is never blank. It is tens of bytes per import, makes no request, and is skipped for images with alpha or under 200 px. Override it with `style`, or remove it with `style={{background: 'none'}}`.
 
-The default ladder is 400, 640, 960, 1280, 1536, 1920, and 2560. Widths above the source are never generated, and native widths between 1080 and the cap are kept. `?maxWidth=` caps the ladder; `?w=` replaces it:
+The default ladder is 400, 640, 960, 1280, 1536, 1920, and 2560. Widths above the source are never generated. From 1080 px up a native width is kept even when it sits within 5% of a rung, so a full-width 1600 px source gets its own variant next to 1536; below 1080 a native width only earns a variant when it adds more than 5% over the previous rung. `?maxWidth=` caps the ladder; `?w=` replaces it; use one or the other:
 
 ```tsx
 import banner from './-images/banner.jpg?maxWidth=3840&responsive'
@@ -234,9 +234,9 @@ import avatar from './-images/avatar.jpg?w=48;96&responsive'
 import screenshot from './-images/screenshot.png?avifQuality=70&responsive'
 ```
 
-`?maxWidth=3840` opts a full-bleed 4K image into a 3840 variant. `?avifQuality=` sets AVIF quality from 1 to 100; 55 is the default. Raise it for screenshots, diagrams, or fine text. The marker must be the last query parameter. `?quality` and `?format` are rejected, along with other imagetools directives.
+`?maxWidth=3840` opts a full-bleed 4K image into a 3840 variant. A named `?w=` width above the source collapses to the source, so nothing upscales. `?avifQuality=` sets AVIF quality from 1 to 100; 55 is the default. Raise it for screenshots, diagrams, or fine text. The marker must be the last query parameter. `?quality` and `?format` are rejected, along with other imagetools directives.
 
-`sharp` is native and runs during the build and on demand in dev. Build and deploy where it can execute — locally or on CI with a compatible platform binary. `vite-imagetools` is a dev dependency, so the Worker serves prebuilt files and never runs image processing.
+`sharp` is native and runs during the build. In dev, the full variant set is generated the first time an image module loads, not one variant per request. Build and deploy where it can execute — locally or on CI with a compatible platform binary. `vite-imagetools` is a dev dependency, so the Worker serves prebuilt files and never runs image processing.
 
 Images without `?responsive` remain normal Vite URL imports. Files in `public/` are not optimized: they are served as-is at the root path, and `?responsive` has no effect. Keep `public/` for stable-URL or unprocessed files.
 

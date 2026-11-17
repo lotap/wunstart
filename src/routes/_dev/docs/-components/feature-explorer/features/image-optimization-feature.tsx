@@ -66,17 +66,20 @@ export function ImageOptimizationFeature() {
 				<PanelList>
 					<PanelRow label="default">
 						Seven widths: 400, 640, 960, 1280, 1536, 1920, and 2560 px. Rungs above the source width
-						are dropped, so the default ladder does not upscale. Start with a source at least as
-						wide as the largest variant you need.
+						are dropped, so the default ladder does not upscale. A native width from 1080 px up is
+						kept even when close to a rung; smaller sources only add one when it gains more than 5%.
+						Start with a source at least as wide as the largest variant you need.
 					</PanelRow>
 					<PanelRow label="?maxWidth">
 						Caps the ladder at that width and adds it as a variant when the source is wider. Use{' '}
 						<InlineCode>?maxWidth=3840&responsive</InlineCode> for a 4K hero or{' '}
 						<InlineCode>?maxWidth=960&responsive</InlineCode> for a card that never renders wider.
+						Cannot be combined with <InlineCode>?w</InlineCode>.
 					</PanelRow>
 					<PanelRow label="?w">
-						Replaces the ladder with the exact widths you name. Use{' '}
-						<InlineCode>?w=48;96&responsive</InlineCode> for a fixed-size thumbnail.
+						Replaces the ladder with the widths you name. Widths above the source collapse to the
+						source, so nothing upscales. Use <InlineCode>?w=48;96&responsive</InlineCode> for a
+						fixed-size thumbnail. Cannot be combined with <InlineCode>?maxWidth</InlineCode>.
 					</PanelRow>
 					<PanelRow label="?avifQuality">
 						AVIF quality from 1 to 100; default 55. Raise it for screenshots or fine text with{' '}

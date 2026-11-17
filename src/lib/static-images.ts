@@ -1,3 +1,9 @@
+/**
+ * Static image policy for `?responsive` imports, shared by `vite.config.ts` and
+ * the app's type surface. Keep this module dependency-free: the Vite config
+ * loads it outside the app module graph.
+ */
+
 /** Default AVIF ladder for `?responsive` image imports. */
 export const STATIC_IMAGE_WIDTHS: ReadonlyArray<number> = [400, 640, 960, 1280, 1536, 1920, 2560]
 
@@ -25,7 +31,11 @@ const SUPPORTED_DIRECTIVES: ReadonlySet<string> = new Set([
 	'avifQuality',
 ])
 
-/** Intrinsic widths below this need a 5% gain before becoming their own variant. */
+/**
+ * Intrinsic widths below this need a 5% gain before becoming their own variant.
+ * Larger sources keep their native width even when it sits within 5% of a rung:
+ * exact rendering matters more at full width, and the extra variant is one file.
+ */
 const STATIC_IMAGE_NATIVE_MIN_WIDTH = 1080
 
 /**
@@ -72,8 +82,8 @@ function rgbToHex(rgb: Array<number>): string {
 /**
  * Builds the width list for one image. Rungs above the source width are
  * dropped, so small images never upscale. Intrinsic widths from 1080 through
- * the cap are kept; below 1080 they only earn a variant when they add at least
- * 5% over the previous rung.
+ * the cap are kept even when close to a rung; below 1080 they only earn a
+ * variant when they add more than 5% over the previous rung.
  */
 export function staticImageWidths(width: number, maxWidth: number): Array<number> {
 	const widths: Array<number> = STATIC_IMAGE_WIDTHS.filter(
@@ -184,6 +194,12 @@ export async function staticImageDirectives(
 	const explicitWidths: string | null = url.searchParams.get('w')
 
 	if (explicitWidths !== null) {
+		if (url.searchParams.has('maxWidth')) {
+			throw new Error(
+				'?w replaces the whole ladder, so it cannot be combined with ?maxWidth on a ?responsive image import — use one or the other.',
+			)
+		}
+
 		parseWidths(explicitWidths)
 
 		return directives

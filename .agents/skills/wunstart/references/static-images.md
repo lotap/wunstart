@@ -54,8 +54,8 @@ Each import carries a `placeholder` CSS background value sampled at build time f
 ```
 
 - Never upscale.
-- Intrinsic widths from 1080 through the cap are added automatically.
-- Below 1080, a native width only earns a variant when it adds at least 5% over the previous rung; a 1000px source stays on the 960 rung, while 1080 becomes its own variant.
+- Intrinsic widths from 1080 through the cap are added even when they sit within 5% of a rung: exact rendering matters more at full width, and the extra variant is one file.
+- Below 1080, a native width only earns a variant when it adds more than 5% over the previous rung; a 1000px source stays on the 960 rung, while 1080 becomes its own variant.
 - 3840 is opt-in through `?maxWidth=3840`, not a default.
 - A new width list is a build-policy change: update `src/lib/static-images.ts` and the docs together.
 
@@ -72,8 +72,8 @@ import card from './-images/card.jpg?maxWidth=960&responsive'
 import avatar from './-images/avatar.jpg?w=48;96&responsive'
 ```
 
-- `?maxWidth=` caps the ladder. The cap becomes a top variant only when the source is wider than it; a narrower source is never upscaled. Native widths between 1080 and the cap are kept; below 1080 the 5% rule applies.
-- `?w=` replaces the whole ladder. Use it for fixed-size assets such as the footer texture (`?w=1600`); raise that to `?w=1920;2560` if the halftone looks soft on high-DPI screens.
+- `?maxWidth=` caps the ladder. The cap becomes a top variant only when the source is wider than it; a narrower source is never upscaled. Native widths between 1080 and the cap are kept even when close to a rung; below 1080 the 5% rule applies.
+- `?w=` replaces the whole ladder. A named width above the source collapses to the source width; nothing upscales. Use it for fixed-size assets such as the footer texture (`?w=1600`); raise that to `?w=1920;2560` if the halftone looks soft on high-DPI screens. A shader texture takes one URL, not a `srcset`, so the footer is deliberately single-variant. `?w=` cannot be combined with `?maxWidth=`.
 - The marker stays last: `?w=1600&responsive`, never `?responsive&w=1600`.
 
 ## Quality
@@ -102,7 +102,8 @@ Keep `sizes` independent from the ladder. The ladder decides which files exist; 
 
 ## Build
 
-- `vite-imagetools` is a dev dependency; `sharp` is native and runs during `vite build` (and on demand in dev).
+- `vite-imagetools` is a dev dependency; `sharp` is native and runs during `vite build`. In dev, the full variant set for an image is generated when its module first loads, not one variant per request.
+- `bunx tsc --noEmit` does not validate a `?responsive` path: the wildcard declarations in `vite-env.d.ts` match any specifier. Open the page or run `bun run build` after moving an image.
 - Build and deploy where native `sharp` can execute. Never move image processing into the Worker runtime.
 - Generated files are content-hash cached in `node_modules/.cache/imagetools`.
 - AVIF only, enforced by the directive allowlist. There is no WebP or JPEG fallback.
@@ -116,5 +117,7 @@ Keep `sizes` independent from the ladder. The ladder decides which files exist; 
 - Using the default ladder for a 48px avatar; use `?w=48;96`.
 - Sharing a route-private image by importing another route’s `-images/` folder; promote it instead.
 - Putting the marker before another query parameter.
+- Combining `?w=` with `?maxWidth=`; they are alternatives.
+- Assuming the type gate validates a `?responsive` path; it does not.
 - Writing `?quality=` or `?format=`; the pipeline rejects both. Use `?avifQuality=` for AVIF.
 - Editing generated AVIF files or committing build output.

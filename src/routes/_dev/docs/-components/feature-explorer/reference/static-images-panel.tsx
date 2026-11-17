@@ -131,17 +131,21 @@ export function StaticImagesPanel() {
 				<Prose>
 					By default an image gets seven widths: 400, 640, 960, 1280, 1536, 1920, and 2560 px.
 					Nothing is upscaled, so start with a source at least as wide as the largest variant you
-					need.
+					need. From 1080 px up a native width is kept even when it sits within 5% of a rung, so a
+					1600 px source gets its own variant next to 1536; smaller sources only add a native width
+					when it gains more than 5% over the previous rung.
 				</Prose>
 				<PanelList>
 					<PanelRow label="?maxWidth">
 						Caps the ladder at that width and adds it as a variant when the source is wider. Use{' '}
 						<InlineCode>?maxWidth=3840</InlineCode> for a 4K hero or{' '}
-						<InlineCode>?maxWidth=960</InlineCode> for a card that never renders wider.
+						<InlineCode>?maxWidth=960</InlineCode> for a card that never renders wider. Cannot be
+						combined with <InlineCode>?w</InlineCode>.
 					</PanelRow>
 					<PanelRow label="?w">
-						Replaces the ladder with the exact, semicolon-separated widths you name. Use it for
-						fixed-size assets such as a 48/96 thumbnail.
+						Replaces the ladder with the widths you name. Widths above the source collapse to the
+						source, so nothing upscales. Use <InlineCode>?w=48;96</InlineCode> for a fixed-size
+						thumbnail. Cannot be combined with <InlineCode>?maxWidth</InlineCode>.
 					</PanelRow>
 					<PanelRow label="?avifQuality">
 						AVIF quality as an integer from 1 to 100. Defaults to 55. Raise it for screenshots,
@@ -158,7 +162,9 @@ export function StaticImagesPanel() {
 					Only <InlineCode>?maxWidth</InlineCode>, <InlineCode>?w</InlineCode>, and{' '}
 					<InlineCode>?avifQuality</InlineCode> are accepted before the final{' '}
 					<InlineCode>?responsive</InlineCode> marker. Other imagetools directives, including{' '}
-					<InlineCode>?quality</InlineCode> and <InlineCode>?format</InlineCode>, fail the build.
+					<InlineCode>?quality</InlineCode> and <InlineCode>?format</InlineCode>, fail the build.{' '}
+					<InlineCode>?w</InlineCode> and <InlineCode>?maxWidth</InlineCode> are mutually exclusive;
+					use one or the other.
 				</Prose>
 				<CodeBlock code={overrides} label="Width and quality overrides" language="tsx" />
 			</PanelSection>
@@ -222,9 +228,11 @@ export function StaticImagesPanel() {
 
 			<PanelSection id="static-image-delivery" title="Dev and production">
 				<Prose>
-					Dev generates each variant when it is first requested and serves it from the dev server. A
-					production build writes every variant to <InlineCode>dist/client/assets</InlineCode> as a
-					hashed file, and the Worker serves it directly.
+					Dev generates the full variant set when an image module first loads, then serves the
+					variants from the dev server. The first page that imports several large images waits for
+					all their encodes at once; a production build writes every variant to{' '}
+					<InlineCode>dist/client/assets</InlineCode> as a hashed file, and the Worker serves it
+					directly.
 				</Prose>
 				<figure>
 					<figcaption className="text-sm font-medium text-muted-foreground">Delivery</figcaption>

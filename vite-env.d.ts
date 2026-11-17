@@ -6,6 +6,8 @@ declare module '*.wasm' {
 }
 
 // The marker must be the last query parameter; TS supports one wildcard only.
+// These declarations match any path, so they do not verify that the file
+// exists: a moved or mistyped image fails in Vite, not in tsc.
 declare module '*?responsive' {
 	const image: import('#/lib/static-images.ts').StaticImageData
 	export default image
