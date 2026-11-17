@@ -21,11 +21,11 @@ const durableLimiterPrompt =
 const banAdminPrompt =
 	'Add a ban management page under /settings. List active bans with scope, target, weight, and expiry; allow revoking one ban and show recent Activities for the target. Require sudo for revocation.'
 
-/** Catalog entry for abuse protection. Details live in the Abuse protection reference panel. */
+/** Catalog entry for abuse protection. Details live in the Rate limits & bans reference panel. */
 export function AbuseProtectionFeature() {
 	return (
 		<FeatureShell
-			title="Abuse Protection"
+			title="Abuse protection"
 			summary="Rate-limit abusive requests and ban repeat offenders."
 		>
 			<PanelSection id="abuse-protected" title="What is protected">
@@ -90,8 +90,8 @@ export function AbuseProtectionFeature() {
 			<div className="mt-8 border-t pt-5">
 				<p className="text-sm font-medium">Full reference</p>
 				<p className="mt-1 text-sm text-muted-foreground">
-					See the <PanelLink panel="abuse">Abuse protection reference</PanelLink> for limiter math,
-					every ban scope, and the response contract.
+					See the <PanelLink panel="abuse">Rate limits & bans reference</PanelLink> for limiter
+					math, every ban scope, and the response contract.
 				</p>
 			</div>
 

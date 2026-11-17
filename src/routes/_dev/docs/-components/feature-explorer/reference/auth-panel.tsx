@@ -263,7 +263,7 @@ export function AuthPanel() {
 					See <PanelLink panel="middleware">Middleware & identity</PanelLink> for token resolution
 					and degraded states, and <PanelLink panel="route-guards">Route guards</PanelLink> for
 					which route group a page belongs in. Credential requests also pass through the limits and
-					bans in <PanelLink panel="abuse">Abuse protection</PanelLink>.
+					bans in <PanelLink panel="abuse">Rate limits & bans</PanelLink>.
 				</Prose>
 			</PanelSection>
 

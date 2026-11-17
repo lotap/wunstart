@@ -16,13 +16,13 @@ import {
 	PaymentProcessingFeature,
 	RbacFeature,
 } from './features/planned-features.tsx'
+import {DatabaseMigrationsPanel} from './guides/database-migrations-panel.tsx'
 import {PageRecipePanel} from './guides/page-recipe-panel.tsx'
 import {WorktreesPanel} from './guides/worktrees-panel.tsx'
 import {AbusePanel} from './reference/abuse-panel.tsx'
 import {AgentsOverviewPanel} from './reference/agents-overview-panel.tsx'
 import {AuthPanel} from './reference/auth-panel.tsx'
 import {ConfigurationPanel} from './reference/configuration-panel.tsx'
-import {DatabaseMigrationsPanel} from './reference/database-migrations-panel.tsx'
 import {MiddlewarePanel} from './reference/middleware-panel.tsx'
 import {ReactEmailPanel} from './reference/react-email-panel.tsx'
 import {RequestFlowPanel} from './reference/request-flow-panel.tsx'
@@ -31,36 +31,39 @@ import {RuntimePanel} from './reference/runtime-panel.tsx'
 import {StaticImagesPanel} from './reference/static-images-panel.tsx'
 import {StatusPagesPanel} from './reference/status-pages-panel.tsx'
 
+// Alphabetical by label; keep sorted.
 const referencePanels = [
+	{key: 'agents-overview', label: 'Agents overview', Panel: AgentsOverviewPanel},
+	{key: 'auth', label: 'Auth', Panel: AuthPanel},
 	{key: 'configuration', label: 'Configuration', Panel: ConfigurationPanel},
+	{key: 'middleware', label: 'Middleware & identity', Panel: MiddlewarePanel},
+	{key: 'abuse', label: 'Rate limits & bans', Panel: AbusePanel},
+	{key: 'react-email', label: 'React Email', Panel: ReactEmailPanel},
 	{key: 'request-flow', label: 'Request flow', Panel: RequestFlowPanel},
 	{key: 'route-guards', label: 'Route guards', Panel: RouteGuardsPanel},
-	{key: 'auth', label: 'Auth', Panel: AuthPanel},
-	{key: 'middleware', label: 'Middleware & identity', Panel: MiddlewarePanel},
-	{key: 'abuse', label: 'Abuse protection', Panel: AbusePanel},
-	{key: 'status-pages', label: 'Status pages', Panel: StatusPagesPanel},
-	{key: 'database-migrations', label: 'Database migrations', Panel: DatabaseMigrationsPanel},
-	{key: 'react-email', label: 'React Email', Panel: ReactEmailPanel},
 	{key: 'runtime', label: 'Runtime & hashing', Panel: RuntimePanel},
 	{key: 'static-images', label: 'Static images', Panel: StaticImagesPanel},
-	{key: 'agents-overview', label: 'Agents overview', Panel: AgentsOverviewPanel},
+	{key: 'status-pages', label: 'Status pages', Panel: StatusPagesPanel},
 ] as const
 
+// Alphabetical by label; keep sorted.
 const guidePanels = [
+	{key: 'database-migrations', label: 'Database migrations', Panel: DatabaseMigrationsPanel},
 	{key: 'start-a-new-page', label: 'Start a new page', Panel: PageRecipePanel},
 	{key: 'worktrees', label: 'Worktrees', Panel: WorktreesPanel},
 ] as const
 
+// Alphabetical by label; keep sorted.
 const featurePanels = [
-	{key: 'auth', label: 'Auth', Panel: AuthFeature},
-	{key: 'abuse', label: 'Abuse Protection', Panel: AbuseProtectionFeature},
-	{key: 'rbac', label: 'RBAC', Panel: RbacFeature, planned: true},
+	{key: 'abuse', label: 'Abuse protection', Panel: AbuseProtectionFeature},
+	{key: 'agents', label: 'Agentic integrations', Panel: AgenticIntegrationsFeature, planned: true},
 	{key: 'analytics', label: 'Analytics', Panel: AnalyticsFeature, planned: true},
-	{key: 'flags', label: 'Feature Flags', Panel: FeatureFlagsFeature, planned: true},
-	{key: 'files', label: 'File Upload', Panel: FileUploadFeature, planned: true},
-	{key: 'images', label: 'Image Optimization', Panel: ImageOptimizationFeature},
-	{key: 'payments', label: 'Payment Processing', Panel: PaymentProcessingFeature, planned: true},
-	{key: 'agents', label: 'Agentic Integrations', Panel: AgenticIntegrationsFeature, planned: true},
+	{key: 'auth', label: 'Auth', Panel: AuthFeature},
+	{key: 'flags', label: 'Feature flags', Panel: FeatureFlagsFeature, planned: true},
+	{key: 'files', label: 'File upload', Panel: FileUploadFeature, planned: true},
+	{key: 'images', label: 'Image optimization', Panel: ImageOptimizationFeature},
+	{key: 'payments', label: 'Payment processing', Panel: PaymentProcessingFeature, planned: true},
+	{key: 'rbac', label: 'RBAC', Panel: RbacFeature, planned: true},
 ] as const
 
 type ReferencePanelKey = (typeof referencePanels)[number]['key']
@@ -297,15 +300,6 @@ export function FeatureExplorer() {
 							onSelect={selectGuidePanel}
 						/>
 
-						<SidePanelGroup
-							group="reference"
-							label="Reference"
-							panels={referencePanels}
-							activeKey={sidePanel}
-							onSelect={selectReferencePanel}
-							className="mt-5"
-						/>
-
 						<div className="mt-5">
 							<SectionGroupLabel>Features</SectionGroupLabel>
 							<div
@@ -332,10 +326,19 @@ export function FeatureExplorer() {
 							</div>
 						</div>
 
+						<SidePanelGroup
+							group="reference"
+							label="Reference"
+							panels={referencePanels}
+							activeKey={sidePanel}
+							onSelect={selectReferencePanel}
+							className="mt-5"
+						/>
+
 						<nav aria-label="Stack" className="mt-5 flex flex-col gap-1">
 							<SectionGroupLabel>Stack</SectionGroupLabel>
 							<div className="flex flex-row flex-wrap gap-1 md:flex-col">
-								<SectionJump label="Architectural Overview" target="architectural-overview" />
+								<SectionJump label="Architectural overview" target="architectural-overview" />
 							</div>
 						</nav>
 					</div>

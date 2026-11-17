@@ -9,7 +9,7 @@ export function ArchitectureSection() {
 		>
 			<header className="flex flex-col gap-2">
 				<h3 id="architectural-overview-title" className="max-w-2xl text-3xl">
-					Architectural Overview
+					Architectural overview
 				</h3>
 			</header>
 			<div className="mt-8 flex flex-col gap-5">

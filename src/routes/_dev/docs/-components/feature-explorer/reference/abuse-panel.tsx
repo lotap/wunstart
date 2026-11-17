@@ -34,7 +34,7 @@ export function AbusePanel() {
 	return (
 		<>
 			<PanelHeader
-				title="Abuse protection"
+				title="Rate limits & bans"
 				description="Request limits, weighted activity, and temporary bans."
 			/>
 
@@ -51,7 +51,7 @@ export function AbusePanel() {
 					<div className="mt-2 rounded-xl border bg-muted/20 p-4">
 						<DocDiagram
 							source={guardrailsChart}
-							label="Abuse protection request path"
+							label="Rate limits and bans request path"
 							idPrefix="abuse-guardrails"
 						/>
 					</div>

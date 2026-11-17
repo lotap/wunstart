@@ -23,7 +23,7 @@ export function AnalyticsFeature() {
 export function FeatureFlagsFeature() {
 	return (
 		<PlannedFeatureShell
-			title="Feature Flags"
+			title="Feature flags"
 			summary="Control a feature without a deploy."
 			placeholder="No flag controls or table."
 		/>
@@ -33,7 +33,7 @@ export function FeatureFlagsFeature() {
 export function FileUploadFeature() {
 	return (
 		<PlannedFeatureShell
-			title="File Upload"
+			title="File upload"
 			summary="Let people upload files to the app."
 			placeholder="No upload handling or storage."
 		/>
@@ -43,7 +43,7 @@ export function FileUploadFeature() {
 export function PaymentProcessingFeature() {
 	return (
 		<PlannedFeatureShell
-			title="Payment Processing"
+			title="Payment processing"
 			summary="Charge customers and manage plans."
 			placeholder="No checkout or billing flow."
 		/>
@@ -53,7 +53,7 @@ export function PaymentProcessingFeature() {
 export function AgenticIntegrationsFeature() {
 	return (
 		<PlannedFeatureShell
-			title="Agentic Integrations"
+			title="Agentic integrations"
 			summary="Give agents safe actions to take in your app."
 			placeholder="No agent interface or tool registry."
 		/>

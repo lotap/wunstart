@@ -35,7 +35,7 @@ const sizePrompt =
 /** Catalog entry for the static image pipeline. Details live in the reference panel. */
 export function ImageOptimizationFeature() {
 	return (
-		<FeatureShell title="Image Optimization" summary="Keep images small and sharp on every screen.">
+		<FeatureShell title="Image optimization" summary="Keep images small and sharp on every screen.">
 			<PanelSection id="image-adding" title="Add an image">
 				<Prose>
 					Put private images in an <InlineCode>-images</InlineCode> folder near the page or
