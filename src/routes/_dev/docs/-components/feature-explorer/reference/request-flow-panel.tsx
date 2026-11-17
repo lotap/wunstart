@@ -58,7 +58,10 @@ const flowGroups = [
 				job: (
 					<>
 						Validates input, unwraps identity from the context, and calls one op through runOp. See{' '}
-						<PanelLink panel="start-a-new-page">Start a new page</PanelLink> for the full shape.
+						<PanelLink group="guide" panel="start-a-new-page">
+							Start a new page
+						</PanelLink>{' '}
+						for the full shape.
 					</>
 				),
 			},
@@ -83,8 +86,11 @@ const flowGroups = [
 				job: (
 					<>
 						The data layer for one domain. Tables, validations, and queries live in separate files.
-						See <PanelLink panel="database-migrations">Database migrations</PanelLink> for schema
-						changes.
+						See{' '}
+						<PanelLink group="guide" panel="database-migrations">
+							Database migrations
+						</PanelLink>{' '}
+						for schema changes.
 					</>
 				),
 				children: [

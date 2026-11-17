@@ -12,8 +12,8 @@ export function getRouter() {
 	const router = createTanStackRouter({
 		routeTree,
 		context,
-		// The docs page owns its scroll: panel selection is an in-page switch, and
-		// restoring a cached position would override it.
+		// The docs page owns its scroll (top, hash, and panel selection); restoring
+		// a cached position would override it.
 		scrollRestoration: ({location}) => location.pathname !== '/docs',
 		defaultPreload: 'intent',
 		defaultPreloadStaleTime: 0,

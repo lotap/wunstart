@@ -67,18 +67,20 @@ const featurePanels = [
 	{key: 'rbac', label: 'RBAC', Panel: RbacFeature, planned: true},
 ] as const
 
-type ReferencePanelKey = (typeof referencePanels)[number]['key']
+export type ReferencePanelKey = (typeof referencePanels)[number]['key']
 
-type GuidePanelKey = (typeof guidePanels)[number]['key']
+export type GuidePanelKey = (typeof guidePanels)[number]['key']
 
 type FeaturePanelKey = (typeof featurePanels)[number]['key']
 
 export type SidePanelKey = ReferencePanelKey | GuidePanelKey
 
-type PanelSelection =
+/** A guide or reference panel; the group disambiguates keys that repeat. */
+export type PanelTarget =
 	| {group: 'guide'; key: GuidePanelKey}
 	| {group: 'reference'; key: ReferencePanelKey}
-	| {group: 'feature'; key: FeaturePanelKey}
+
+type PanelSelection = PanelTarget | {group: 'feature'; key: FeaturePanelKey}
 
 const defaultSelection: PanelSelection = {group: 'guide', key: guidePanels[0].key}
 
@@ -117,6 +119,30 @@ function resolveSelection(value: string | undefined): PanelSelection {
 
 function scrollToSection(id: string) {
 	document.getElementById(id)?.scrollIntoView({behavior: 'smooth', block: 'start'})
+}
+
+/**
+ * The docs page owns its scroll because `/docs` opts out of router scroll
+ * restoration. On arrival, a hash or panel is a deep link; otherwise reset the
+ * offset a client navigation kept from the previous page.
+ */
+function scrollToDocsTarget(section: HTMLElement | null, behavior: ScrollBehavior) {
+	const hash = window.location.hash.slice(1)
+	const hashTarget = hash ? document.getElementById(hash) : null
+
+	if (hashTarget) {
+		hashTarget.scrollIntoView({behavior, block: 'start'})
+
+		return
+	}
+
+	if (section && new URLSearchParams(window.location.search).has('panel')) {
+		section.scrollIntoView({behavior, block: 'start'})
+
+		return
+	}
+
+	window.scrollTo({top: 0, behavior})
 }
 
 function SectionJump({label, target}: {label: string; target: string}) {
@@ -288,24 +314,22 @@ function PanelTabPanel({
 export function FeatureExplorer({panel}: {panel?: string}) {
 	const router = useRouter()
 	const selection = resolveSelection(panel)
-	const sidePanel: SidePanelKey | null = selection.group === 'feature' ? null : selection.key
+	const activeGuide = selection.group === 'guide' ? selection.key : null
+	const activeReference = selection.group === 'reference' ? selection.key : null
 
-	const active: number =
+	const activeFeature =
 		selection.group === 'feature'
 			? featurePanels.findIndex((feature) => feature.key === selection.key)
-			: 0
+			: -1
+
+	const tabbableFeature = activeFeature === -1 ? 0 : activeFeature
 
 	const sectionRef = useRef<HTMLElement>(null)
 	const selectionKey = `${selection.group}.${selection.key}`
 	const previousSelection = useRef(selectionKey)
 
-	// A URL that names a panel is a deep link: land the reader on the explorer,
-	// instantly, before any tab-switch animation applies. Read the URL rather than
-	// the prop so a late search update cannot skip it.
 	useEffect(() => {
-		if (!new URLSearchParams(window.location.search).has('panel')) return
-
-		sectionRef.current?.scrollIntoView({behavior: 'instant', block: 'start'})
+		scrollToDocsTarget(sectionRef.current, 'instant')
 	}, [])
 
 	// Scroll after the panel commit, not in the click handler: swapping panel
@@ -314,7 +338,12 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 		if (previousSelection.current === selectionKey) return
 
 		previousSelection.current = selectionKey
-		sectionRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'})
+
+		const behavior: ScrollBehavior = new URLSearchParams(window.location.search).has('panel')
+			? 'smooth'
+			: 'instant'
+
+		scrollToDocsTarget(sectionRef.current, behavior)
 	}, [selectionKey])
 
 	function selectPanel(group: PanelSelection['group'], key: string) {
@@ -354,22 +383,12 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 		selectPanel('guide', selected.key)
 	}
 
-	function selectPanelByKey(key: SidePanelKey) {
-		const reference = referencePanels.find((candidate) => candidate.key === key)
-
-		if (reference) {
-			selectPanel('reference', reference.key)
-
-			return
-		}
-
-		const guide = guidePanels.find((candidate) => candidate.key === key)
-
-		if (guide) selectPanel('guide', guide.key)
+	function selectPanelTarget(target: PanelTarget) {
+		selectPanel(target.group, target.key)
 	}
 
 	return (
-		<PanelNavigationProvider onSelect={selectPanelByKey}>
+		<PanelNavigationProvider onSelect={selectPanelTarget}>
 			<section ref={sectionRef} className="w-full max-w-5xl">
 				<div className="flex flex-col md:flex-row md:items-start md:gap-6">
 					<div className="font-mono text-xs md:sticky md:top-4 md:w-60 md:shrink-0 md:pt-4">
@@ -377,7 +396,7 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 							group="guide"
 							label="Guides"
 							panels={guidePanels}
-							activeKey={sidePanel}
+							activeKey={activeGuide}
 							onSelect={selectGuidePanel}
 						/>
 
@@ -393,8 +412,8 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 								{featurePanels.map((feature, index) => (
 									<SidebarTab
 										key={feature.key}
-										active={sidePanel === null && index === active}
-										tabbable={index === active}
+										active={index === activeFeature}
+										tabbable={index === tabbableFeature}
 										label={feature.label}
 										ariaLabel={
 											'planned' in feature ? `${feature.label}, coming soon` : feature.label
@@ -411,7 +430,7 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 							group="reference"
 							label="Reference"
 							panels={referencePanels}
-							activeKey={sidePanel}
+							activeKey={activeReference}
 							onSelect={selectReferencePanel}
 							className="mt-5"
 						/>
@@ -430,7 +449,7 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 								key={entry.key}
 								group="reference"
 								panel={entry}
-								active={sidePanel === entry.key}
+								active={activeReference === entry.key}
 							/>
 						))}
 
@@ -439,7 +458,7 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 								key={entry.key}
 								group="guide"
 								panel={entry}
-								active={sidePanel === entry.key}
+								active={activeGuide === entry.key}
 							/>
 						))}
 
@@ -448,7 +467,7 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 								key={feature.key}
 								group="feature"
 								panel={feature}
-								active={sidePanel === null && index === active}
+								active={index === activeFeature}
 							/>
 						))}
 					</div>

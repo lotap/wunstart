@@ -3,15 +3,19 @@ import {createContext, useContext} from 'react'
 import {ExternalDocLink} from '#/components/global/external-doc-link.tsx'
 
 import {DocLinkButton} from './doc-ui.tsx'
-import type {SidePanelKey} from './feature-explorer/feature-explorer.tsx'
+import type {
+	GuidePanelKey,
+	PanelTarget,
+	ReferencePanelKey,
+} from './feature-explorer/feature-explorer.tsx'
 
-const PanelNavigationContext = createContext<((panel: SidePanelKey) => void) | null>(null)
+const PanelNavigationContext = createContext<((target: PanelTarget) => void) | null>(null)
 
 export function PanelNavigationProvider({
 	onSelect,
 	children,
 }: {
-	onSelect: (panel: SidePanelKey) => void
+	onSelect: (target: PanelTarget) => void
 	children: React.ReactNode
 }) {
 	return (
@@ -27,10 +31,20 @@ function usePanelNavigation() {
 	return onSelect
 }
 
-export function PanelLink({panel, children}: {panel: SidePanelKey; children: React.ReactNode}) {
+type PanelLinkProps =
+	| {group?: 'reference'; panel: ReferencePanelKey; children: React.ReactNode}
+	| {group: 'guide'; panel: GuidePanelKey; children: React.ReactNode}
+
+/** A link to a guide or reference panel; the group disambiguates repeated keys. */
+export function PanelLink(props: PanelLinkProps) {
 	const onSelect = usePanelNavigation()
 
-	return <DocLinkButton onClick={() => onSelect(panel)}>{children}</DocLinkButton>
+	const target: PanelTarget =
+		props.group === 'guide'
+			? {group: 'guide', key: props.panel}
+			: {group: 'reference', key: props.panel}
+
+	return <DocLinkButton onClick={() => onSelect(target)}>{props.children}</DocLinkButton>
 }
 
 export function PanelReferences({links}: {links: Array<{label: string; href: string}>}) {
