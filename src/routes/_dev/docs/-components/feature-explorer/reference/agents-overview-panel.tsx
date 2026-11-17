@@ -116,6 +116,22 @@ const recommendedSkills = [
 	},
 ] as const
 
+/** Optional MCP servers that give agents browser and documentation tools. */
+const recommendedMcpServers = [
+	{
+		name: 'Chrome DevTools MCP',
+		description:
+			'Browser automation and inspection: navigate, click, fill, read console and network logs, capture screenshots, and record performance traces. This repo’s opencode.json already enables it.',
+		href: 'https://github.com/ChromeDevTools/chrome-devtools-mcp',
+	},
+	{
+		name: 'Context7',
+		description:
+			'Version-specific library documentation on demand. Use it when a vendored skill does not cover a library or the API has moved. Setup and API key details are in the README.',
+		href: 'https://github.com/upstash/context7',
+	},
+] as const
+
 const totalSkills = skillGroups.reduce((total, group) => total + group.skills.length, 0)
 
 const projectSkillCount = skillGroups
@@ -127,7 +143,7 @@ export function AgentsOverviewPanel() {
 		<>
 			<PanelHeader
 				title="Agents overview"
-				description="The context files and skills agents read before changing this repo."
+				description="The context files, skills, and MCP tools agents use before changing this repo."
 			/>
 
 			<dl className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -277,6 +293,24 @@ export function AgentsOverviewPanel() {
 								<code className="font-mono text-sm">{skill.name}</code>
 							</ExternalDocLink>
 							<p className="text-sm leading-relaxed text-muted-foreground">{skill.description}</p>
+						</li>
+					))}
+				</ul>
+			</PanelSection>
+
+			<PanelSection id="recommended-mcp-servers" title="Recommended MCP servers">
+				<Prose>
+					Optional tools an agent can call. Chrome DevTools MCP is already enabled in{' '}
+					<InlineCode>opencode.json</InlineCode>; add others under{' '}
+					<InlineCode>mcp.servers</InlineCode>.
+				</Prose>
+				<ul className="grid gap-3 sm:grid-cols-2">
+					{recommendedMcpServers.map((server) => (
+						<li key={server.name} className="flex flex-col gap-1 rounded-xl border bg-muted/20 p-4">
+							<ExternalDocLink href={server.href}>
+								<code className="font-mono text-sm">{server.name}</code>
+							</ExternalDocLink>
+							<p className="text-sm leading-relaxed text-muted-foreground">{server.description}</p>
 						</li>
 					))}
 				</ul>
