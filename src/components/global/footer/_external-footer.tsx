@@ -4,6 +4,7 @@ import {ArrowRight, ArrowUpRight} from 'lucide-react'
 
 import {appInfo} from '#/app-info.ts'
 
+import {Wordmark} from '../wordmark.tsx'
 import {FooterImage} from './_footer-image.tsx'
 import {FooterUtility} from './_footer-utility.tsx'
 
@@ -92,9 +93,7 @@ export function ExternalFooter() {
 
 				<div className="mt-auto pt-16">
 					<Link to="/" aria-label={`${appInfo.name} home`} className="block">
-						<span className="mb-[-0.08em] block text-[clamp(3.25rem,19.5vw,14rem)] leading-[0.75] font-bold tracking-tight">
-							{appInfo.name}
-						</span>
+						<Wordmark className="block h-auto w-full" />
 					</Link>
 
 					<FooterUtility className="mt-4" />
