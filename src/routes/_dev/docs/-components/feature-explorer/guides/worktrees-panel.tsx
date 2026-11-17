@@ -30,15 +30,19 @@ function buildWorktreeTaskPrompt(featureName: string) {
 	return `Create a worktree for a new branch called ${getWorktreeBranchName(featureName)}, then ask me for specifications to build the ${featureName} feature there.`
 }
 
-/** Shell commands for setting up the worktree by hand. */
+/**
+ * Shell commands for setting up the worktree by hand. Matches README and
+ * AGENTS: a worktree is not usable until provisioning and validation finish.
+ */
 function buildManualWorktreeCommands(featureName: string) {
 	const branchName = featureName ? getWorktreeBranchName(featureName) : '<branch>'
 	const worktreePath = `../${branchName}`
 
-	return `git worktree add -b ${branchName} ${worktreePath}
+	return `git worktree add -b ${branchName} ${worktreePath} trunk
 cd ${worktreePath}
-bun run install-deps
-bun run branch-env`
+bun run install-deps --yes
+bun run branch-env --yes
+bun run validate-setup`
 }
 
 export function WorktreesPanel() {
@@ -100,6 +104,10 @@ export function WorktreesPanel() {
 				<div className="flex flex-col gap-2">
 					<p className="text-sm font-medium">Or set it up manually</p>
 					<CodeBlock code={manualSetupCommands} label="Manual setup commands" language="bash" />
+					<p className="text-sm text-muted-foreground">
+						<InlineCode>validate-setup</InlineCode> is the gate. Fix any failures before starting
+						work in the checkout.
+					</p>
 				</div>
 
 				<Prose>
