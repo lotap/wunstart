@@ -152,6 +152,22 @@
 		text-rendering: optimizeLegibility;
 	}
 
+	/* Commit Mono's stylistic sets and character variants default to off. */
+	code,
+	kbd,
+	samp,
+	pre,
+	.font-mono {
+		font-feature-settings:
+			'ss01' 1,
+			'ss02' 1,
+			'ss03' 1,
+			'ss04' 1,
+			'ss05' 1,
+			'cv06' 1,
+			'cv10' 1;
+	}
+
 	button:not(:disabled),
 	[role='button']:not(:disabled) {
 		cursor: pointer;
