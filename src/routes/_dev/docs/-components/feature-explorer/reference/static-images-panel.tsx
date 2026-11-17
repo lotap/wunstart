@@ -154,8 +154,9 @@ export function StaticImagesPanel() {
 				<PanelList>
 					<PanelRow label="image">
 						The <InlineCode>?responsive</InlineCode> import. It carries <InlineCode>src</InlineCode>
-						, <InlineCode>w</InlineCode>, <InlineCode>h</InlineCode>, and{' '}
-						<InlineCode>srcset</InlineCode> (omitted when there is one variant).
+						, <InlineCode>w</InlineCode>, <InlineCode>h</InlineCode>,{' '}
+						<InlineCode>placeholder</InlineCode>, and <InlineCode>srcset</InlineCode> (omitted when
+						there is one variant).
 					</PanelRow>
 					<PanelRow label="alt">
 						Accessible description. Use an empty string for a decorative image.
@@ -182,6 +183,22 @@ export function StaticImagesPanel() {
 					needed.
 				</Prose>
 				<CodeBlock code={sizes} label="Common sizes values" language="tsx" />
+			</PanelSection>
+
+			<PanelSection id="static-image-placeholder" title="Placeholder">
+				<Prose>
+					Every import carries a <InlineCode>placeholder</InlineCode>: a CSS background value
+					sampled at build time from the source’s top and bottom rows. Close rows become one flat
+					color; different rows become a vertical two-stop gradient. It is tens of bytes, makes no
+					request, and paints with the reserved box.
+				</Prose>
+				<Prose>
+					Images with alpha and sources whose smallest variant is under 200 px get no placeholder; a
+					swatch behind a transparent logo or a thumbnail is not worth the bytes.{' '}
+					<InlineCode>StaticImage</InlineCode> applies it as <InlineCode>background</InlineCode>, so
+					a <InlineCode>style</InlineCode> prop overrides it:{' '}
+					<InlineCode>{"style={{background: 'none'}}"}</InlineCode> removes it.
+				</Prose>
 			</PanelSection>
 
 			<PanelSection id="static-image-delivery" title="Dev and production">

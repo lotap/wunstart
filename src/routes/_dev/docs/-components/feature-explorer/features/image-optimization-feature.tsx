@@ -27,7 +27,7 @@ const webpPrompt =
 	'Add a WebP fallback to ?responsive images. Emit a WebP variant for every generated width, add ?webpQuality (1–100, default 80), and render <picture> with AVIF first, WebP second, and WebP as the <img> fallback. Keep sizes on every source.'
 
 const blurPrompt =
-	'Add a blur placeholder to ?responsive images. Generate a 24px-wide build-time placeholder under 1 KB, inline it on the import, and show it until the image loads without layout shift.'
+	'Replace the build-time gradient placeholder with a blurred LQIP. Generate a 24 px-wide AVIF under 1 KB, inline it on the import, paint it until the image loads, and drop the gradient it replaces. No extra request, no layout shift.'
 
 const sizePrompt =
 	"Add a production image size report. Print each emitted AVIF variant's source, width, and size, plus a total per source. Fail when a variant exceeds 400 KB or total image output exceeds 4 MB."
@@ -92,6 +92,12 @@ export function ImageOptimizationFeature() {
 					the screen’s pixel ratio to pick the smallest file that covers the slot.
 				</Prose>
 				<CodeBlock code={sizes} label="Common sizes values" language="tsx" />
+				<Prose>
+					The reserved box is not blank: each import carries a two-stop gradient sampled from the
+					image’s top and bottom rows, and <InlineCode>StaticImage</InlineCode> paints it behind the
+					image. It is tens of bytes, makes no request, and paints with layout; a{' '}
+					<InlineCode>style</InlineCode> prop overrides it.
+				</Prose>
 				<Prose>
 					Images load lazily by default. For a hero or LCP image, pass{' '}
 					<InlineCode>loading="eager"</InlineCode> and <InlineCode>fetchPriority="high"</InlineCode>

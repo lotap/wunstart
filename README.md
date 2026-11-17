@@ -224,6 +224,8 @@ import logo from '#/assets/images/brand/logo.png?responsive'
 
 `StaticImage` sets the intrinsic width and height and renders the `srcset`. Pass a `sizes` value that matches the layout; it is required. `loading` defaults to lazy; use `loading="eager"` and `fetchPriority="high"` for the LCP image.
 
+Each import also carries a build-time placeholder: a flat color or a two-stop gradient sampled from the image’s top and bottom rows. `StaticImage` paints it in the reserved box, so the space is never blank. It is tens of bytes per import, makes no request, and is skipped for images with alpha or under 200 px. Override it with `style`, or remove it with `style={{background: 'none'}}`.
+
 The default ladder is 400, 640, 960, 1280, 1536, 1920, and 2560. Widths above the source are never generated, and native widths between 1080 and the cap are kept. `?maxWidth=` caps the ladder; `?w=` replaces it:
 
 ```tsx
@@ -407,7 +409,7 @@ src/
 │   └── tanstack-query/        # Query client setup + devtools
 ├── isomorphic/                # Shared validation schemas (server + client)
 ├── lib/                       # Shared utilities
-│   └── static-images.ts       # ?responsive ladder, overrides, import type
+│   └── static-images.ts       # ?responsive ladder, overrides, placeholder, import type
 ├── middleware/                # Request/function middleware (auth, rate-limit, CSRF)
 ├── routes/                    # File-based routing; <segment>/route.tsx, (<page>)/index.tsx, private -components/ -hooks/ -utils/ -content/ -images/
 ├── scripts/                   # One-off scripts (archive-old-activities)

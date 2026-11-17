@@ -11,7 +11,8 @@ type StaticImageProps = Omit<
 
 /**
  * Renders a build-time AVIF variant set. The image carries its own intrinsic
- * dimensions, so the browser reserves the box before the file loads.
+ * dimensions, so the browser reserves the box before the file loads, and a
+ * build-time placeholder paints that box until the file arrives.
  */
 export function StaticImage({
 	image,
@@ -19,6 +20,7 @@ export function StaticImage({
 	sizes,
 	loading = 'lazy',
 	decoding = 'async',
+	style,
 	...props
 }: StaticImageProps) {
 	if (!image.src) {
@@ -37,6 +39,7 @@ export function StaticImage({
 			sizes={sizes}
 			loading={loading}
 			decoding={decoding}
+			style={{background: image.placeholder, ...style}}
 			{...props}
 		/>
 	)

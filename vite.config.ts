@@ -11,7 +11,12 @@ import type {Plugin, PluginOption, ViteDevServer} from 'vite'
 import {defineConfig} from 'vite'
 import {imagetools} from 'vite-imagetools'
 
-import {staticImageDirectives} from './src/lib/static-images.ts'
+import {
+	STATIC_IMAGE_PLACEHOLDER_MIN_WIDTH,
+	staticImageDirectives,
+	staticImagePlaceholder,
+	type StaticImageData,
+} from './src/lib/static-images.ts'
 import {parsePort} from './tools/helpers/dev-ports.ts'
 
 /** Agent servers exit after this long without an HTTP request or file change. */
@@ -226,6 +231,42 @@ function createPlugins(agentPort?: number, excludeDevRoutes = false): Array<Plug
 			// Vite's ?url/?raw imports.
 			include: /[?&]responsive$/,
 			defaultDirectives: staticImageDirectives,
+			// The standard img output plus a placeholder sampled from the smallest
+			// variant. The placeholder is a CSS background value, so it costs no
+			// request and paints with layout.
+			extendOutputFormats: (builtins) => ({
+				...builtins,
+				static: () => async (images) => {
+					const largest = images.reduce((a, b) => (b.info.width > a.info.width ? b : a))
+					const smallest = images.reduce((a, b) => (b.info.width < a.info.width ? b : a))
+
+					const data: StaticImageData = {
+						src: largest.src,
+						w: largest.info.width,
+						h: largest.info.height,
+					}
+
+					if (images.length >= 2) {
+						data.srcset = images.map((image) => `${image.src} ${image.info.width}w`).join(', ')
+					}
+
+					if (
+						smallest.info.width >= STATIC_IMAGE_PLACEHOLDER_MIN_WIDTH &&
+						!smallest.sharpMetadata.hasAlpha
+					) {
+						const pixels: Uint8Array = await smallest.image
+							.clone()
+							.resize(1, 2, {fit: 'fill'})
+							.toColourspace('srgb')
+							.raw()
+							.toBuffer()
+
+						data.placeholder = staticImagePlaceholder(pixels)
+					}
+
+					return data
+				},
+			}),
 		}),
 		...(agentPort === undefined ? [] : [agentIdlePlugin()]),
 		tanstackStart(

@@ -7,6 +7,12 @@ export const STATIC_IMAGE_MAX_WIDTH = 2560
 /** Default AVIF quality; override per image with `?avifQuality=`. */
 export const STATIC_IMAGE_AVIF_QUALITY = 55
 
+/** Smallest variant that earns a placeholder; below it the bytes buy nothing. */
+export const STATIC_IMAGE_PLACEHOLDER_MIN_WIDTH = 200
+
+/** Sampled rows closer than this paint as one flat color instead of a gradient. */
+const STATIC_IMAGE_PLACEHOLDER_FLAT_DELTA = 8
+
 /**
  * Directives accepted before the final `?responsive` marker. Keep this narrow:
  * unknown imagetools options must fail the build instead of silently changing
@@ -25,13 +31,42 @@ const STATIC_IMAGE_NATIVE_MIN_WIDTH = 1080
 /**
  * Output shape of a `?responsive` image import. `src` is the largest generated
  * variant, `w`/`h` are its intrinsic dimensions, and `srcset` is absent when the
- * source produced a single variant.
+ * source produced a single variant. `placeholder` is a CSS background value
+ * sampled at build time, so the reserved box paints before the file arrives.
  */
 export type StaticImageData = {
 	src: string
 	w: number
 	h: number
 	srcset?: string
+	placeholder?: string
+}
+
+/**
+ * Turns two sampled rows into the smallest CSS background that resembles the
+ * source: a vertical two-stop gradient, or one flat color when the rows are
+ * close. Short pixel buffers mean the sample failed, and no placeholder beats a
+ * wrong one.
+ */
+export function staticImagePlaceholder(pixels: Uint8Array): string | undefined {
+	if (pixels.length < 6) return undefined
+
+	const top: Array<number> = [pixels[0] ?? 0, pixels[1] ?? 0, pixels[2] ?? 0]
+	const bottom: Array<number> = [pixels[3] ?? 0, pixels[4] ?? 0, pixels[5] ?? 0]
+
+	const difference: number = Math.max(
+		...top.map((channel, index) => Math.abs(channel - (bottom[index] ?? 0))),
+	)
+
+	return difference < STATIC_IMAGE_PLACEHOLDER_FLAT_DELTA
+		? rgbToHex(top)
+		: `linear-gradient(${rgbToHex(top)},${rgbToHex(bottom)})`
+}
+
+function rgbToHex(rgb: Array<number>): string {
+	const channels = rgb.map((channel) => Math.round(channel).toString(16).padStart(2, '0'))
+
+	return `#${channels.join('')}`
 }
 
 /**
@@ -138,7 +173,9 @@ export async function staticImageDirectives(
 	url.searchParams.delete('avifQuality')
 
 	const directives = new URLSearchParams({
-		as: 'img',
+		// The custom `static` output format registered in vite.config.ts: the
+		// standard img shape plus the build-time placeholder.
+		as: 'static',
 		format: 'avif',
 		quality: String(avifQuality),
 	})

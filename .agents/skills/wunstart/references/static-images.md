@@ -37,7 +37,15 @@ import logo from '#/assets/images/brand/logo.png?responsive'
 
 `StaticImage` lives in `components/global/static-image.tsx`. Required: `image`, `alt`, `sizes`. It renders the fallback `src`, `srcSet`, and intrinsic `width`/`height`; defaults are `loading="lazy"` and `decoding="async"`. Use `loading="eager"` and `fetchPriority="high"` for the LCP image. Decorative images use `alt=""`.
 
-The import shape is `{src, w, h, srcset?}` (`srcset` is absent for a single variant). Type declarations for `*?responsive` and `*&responsive` live in `vite-env.d.ts`. JPEG, PNG, and WebP work as sources. Animated GIFs are flattened to a still first frame; SVG icons stay normal imports.
+The import shape is `{src, w, h, srcset?, placeholder?}` (`srcset` is absent for a single variant). Type declarations for `*?responsive` and `*&responsive` live in `vite-env.d.ts`. JPEG, PNG, and WebP work as sources. Animated GIFs are flattened to a still first frame; SVG icons stay normal imports.
+
+## Placeholder
+
+Each import carries a `placeholder` CSS background value sampled at build time from the source’s top and bottom rows. Close rows flatten to one color; different rows become `linear-gradient(top,bottom)` with no direction keyword (top to bottom is the default). It is tens of bytes, makes no request, and paints with the reserved box, so it never delays the image.
+
+- Skip images with alpha and sources whose smallest variant is under 200 px.
+- `StaticImage` applies it as `background`; a `style` prop overrides it, and `style={{background: 'none'}}` removes it.
+- The sample is two pixels from a 1×2 resize, not a blur; a blurred LQIP is an opt-in upgrade.
 
 ## Ladder
 
