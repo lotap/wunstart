@@ -22,6 +22,8 @@ Not every question applies to every section. Skip the ones the reader does not n
 
 A feature tab is a task, not a shortened reference. It must let the reader complete the basic task without opening the reference. Repeat the reference detail the task needs; the reference owns depth, edge cases, rejected options, and internals.
 
+When a feature has real depth, write the reference panel alongside the tab. The tab carries the first task and links to the reference; the reference owns the internal flow tours, routes, ops, models, and failure matrix. Do not turn the tab into an implementation tour.
+
 - Open with the basic task. If placement changes behavior, make placement the first decision and show each path with its own minimal example.
 - Lead each section with one sentence stating the core behavior. Put defaults, ranges, and caveats in the option’s own row, not the intro.
 - Answer the likely wrong combination directly. Say what happens (“not processed,” “no effect”) instead of describing only the correct path.
@@ -38,6 +40,7 @@ A feature tab is a task, not a shortened reference. It must let the reader compl
 - State trust boundaries: who can call it, what is allowed by default, and what is stored or audited.
 - Plain English. Short paragraphs. One idea per block.
 - Use sections, tables, code, and diagrams. Never leave a section as a wall of prose.
+- Keep each panel’s prose, examples, diagrams, and data with the panel component — in the panel file or a private child beside it. Do not create a shared docs content module. The explorer may list panels for navigation; the list must not hold their content.
 - One diagram per concept. Split a diagram that exceeds roughly six nodes or needs horizontal scrolling, and place each piece next to the explanation it supports.
 - Verify behavior before documenting a limitation. Say what actually happens (“it is flattened to a still frame”), not an absolute the code does not enforce.
 - Do not ship a control or disclosure with nothing behind it.
@@ -47,6 +50,8 @@ A feature tab is a task, not a shortened reference. It must let the reader compl
 
 ## Extend prompts
 
+- Title the section “Extension prompts”; the feature tab already names the feature.
+- Start with the first prompt. Do not open with a sentence that restates what the prompt blocks are (“each prompt is a complete task,” “pick the one closest”).
 - Each prompt is a concrete modification task: the goal and the non-obvious design choices. Name the concrete values that matter, such as a quality, budget, or breakpoint.
 - State the target or decision in the prompt. Do not make the implementing agent ask a question that could have been answered up front.
 - Skip generic non-regression instructions (“keep existing imports working”), gate commands (“run `bun run check`”), acceptance criteria that merely restate the task, and process instructions (“show every file you touch”). Those are default agent behavior.
@@ -66,8 +71,12 @@ A feature tab is a task, not a shortened reference. It must let the reader compl
 - A control or disclosure opens onto nothing.
 - One mega-diagram covers several concepts; split it by concept.
 - A feature summary repeats the quick start.
+- An extend section opens with a sentence that restates the obvious instead of starting with the first prompt.
 - One generic extend prompt stands in for several distinct extension paths.
 - An extend prompt asks a question that forces a round trip instead of stating the target.
 - An extend prompt spends words on generic non-regression instructions, gate commands, process instructions, or restating its own acceptance criteria.
 - A feature tab is only a summary that points at the reference; the reader cannot complete the basic task from it.
+- A feature tab opens with an implementation tour (routes, ops, models) instead of the reader’s first task.
+- A flow diagram or backend call chain sits in a feature tab when a reference panel owns the internals.
+- A docs content module holds prose, diagrams, or panel content instead of letting each panel own it.
 - The section explains how the code is organized instead of how the reader uses it.
