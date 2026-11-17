@@ -46,11 +46,11 @@ const referencePanels = [
 	{key: 'status-pages', label: 'Status pages', Panel: StatusPagesPanel},
 ] as const
 
-// Alphabetical by label; keep sorted.
+// Task order, not alphabetical: the order a new project meets them.
 const guidePanels = [
-	{key: 'database-migrations', label: 'Database migrations', Panel: DatabaseMigrationsPanel},
 	{key: 'start-a-new-page', label: 'Start a new page', Panel: PageRecipePanel},
 	{key: 'worktrees', label: 'Worktrees', Panel: WorktreesPanel},
+	{key: 'database-migrations', label: 'Database migrations', Panel: DatabaseMigrationsPanel},
 ] as const
 
 // Alphabetical by label; keep sorted.

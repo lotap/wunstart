@@ -16,7 +16,7 @@
 
 - Guides are task walkthroughs. Reference panels are topic docs. Feature panels are the product catalog.
 - `feature-explorer/` mirrors the sidebar: `features/`, `reference/`, and `guides/`, with `feature-explorer.tsx` at the root. Put a new panel in the matching folder.
-- `feature-explorer.tsx` owns the three lists (`guidePanels`, `referencePanels`, `featurePanels`). They are alphabetical by label, so keep them sorted; the lists hold labels and panel components, and each panel owns its content. There is no separate feature registry.
+- `feature-explorer.tsx` owns the three lists (`guidePanels`, `referencePanels`, `featurePanels`). Order is intentional: Features and Reference are alphabetical by label; Guides follow task order (Start a new page, Worktrees, Database migrations). The lists hold labels and panel components, and each panel owns its content. There is no separate feature registry.
 - Feature tabs are components in `docs/-components/feature-explorer/features/`. A feature component composes `FeatureShell` (header only) and owns its children.
 - Planned features are components too. Compose `PlannedFeatureShell` with the feature name, summary, and what is missing.
 - Shared blocks live in `feature-explorer/feature-blocks.tsx`: `FeatureActions` and `FeatureFlows` render structured data, `FeatureShell` and `PlannedFeatureShell` are headers. Everything else is composed from docs primitives: `PanelSection` (title + children), `Prose` (paragraph style), `DocDiagram` (static Peel source), `PromptBlock`, `PanelLink`, `PanelReferences`.
