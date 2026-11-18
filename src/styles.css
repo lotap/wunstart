@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
-@import '@fontsource-variable/inter';
+@import 'allo-font/friendly';
 @import '@fontsource-variable/libre-caslon-condensed';
 @import '@fontsource-variable/libre-caslon-condensed/wght-italic.css';
 @import '@fontsource-variable/mulish';
@@ -19,7 +19,7 @@
    these. Only values that would otherwise live in `@theme` belong here. */
 @layer font-tokens {
 	:root {
-		--family-sans: 'Inter Variable', sans-serif;
+		--family-sans: 'Allo', sans-serif;
 		--family-serif: 'Libre Caslon Condensed Variable', Georgia, serif;
 		--family-mono: 'Commit Mono', ui-monospace, monospace;
 		--family-heading: 'Mulish Variable', sans-serif;
