@@ -7,7 +7,7 @@ export function Hero() {
 				<h2 className="flex flex-col py-12 font-heading text-4xl">
 					<span>Build </span>
 					<span>for </span>
-					<span className="font-serif font-black italic dark:font-bold">humans </span>
+					<span className="font-serif font-bold dark:font-semibold">humans </span>
 					<span className="text-muted-foreground">with </span>
 					<span className="text-muted-foreground">agents</span>
 				</h2>

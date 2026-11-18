@@ -2,8 +2,8 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 @import '@fontsource-variable/inter';
-@import '@fontsource-variable/fraunces';
-@import '@fontsource-variable/fraunces/wght-italic.css';
+@import '@fontsource-variable/libre-caslon-condensed';
+@import '@fontsource-variable/libre-caslon-condensed/wght-italic.css';
 @import '@fontsource-variable/mulish';
 
 /* Vendored: Commit Mono has no fontsource variable package. */
@@ -20,7 +20,7 @@
 @layer font-tokens {
 	:root {
 		--family-sans: 'Inter Variable', sans-serif;
-		--family-serif: 'Fraunces Variable', Georgia, serif;
+		--family-serif: 'Libre Caslon Condensed Variable', Georgia, serif;
 		--family-mono: 'Commit Mono', ui-monospace, monospace;
 		--family-heading: 'Mulish Variable', sans-serif;
 

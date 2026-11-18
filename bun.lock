@@ -8,8 +8,8 @@
         "@base-ui/react": "^1.9.0",
         "@cloudflare/vite-plugin": "^1.69.1",
         "@effect/sql-pg": "4.1.4",
-        "@fontsource-variable/fraunces": "^5.3.0",
         "@fontsource-variable/inter": "^5.3.0",
+        "@fontsource-variable/libre-caslon-condensed": "^5.3.1",
         "@fontsource-variable/mulish": "^5.3.0",
         "@icons-pack/react-simple-icons": "^13.15.1",
         "@paper-design/shaders-react": "^0.0.82",
@@ -268,9 +268,9 @@
 
     "@floating-ui/utils": ["@floating-ui/utils@0.2.12", "", {}, "sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww=="],
 
-    "@fontsource-variable/fraunces": ["@fontsource-variable/fraunces@5.3.0", "", {}, "sha512-9BYGySn4AHEJdgp9Z28tQ3X+laJMEOITXkQarZXeloWQZDq5oOvXJ3kDA8c7MGIfpogIaZfjrQBqmda8POOCKA=="],
-
     "@fontsource-variable/inter": ["@fontsource-variable/inter@5.3.0", "", {}, "sha512-OupL48va4JNofb97w6NYeF9S7W/kHNKM0Er8Dem5nqi4jeOLrVJDoE8tZEpnMJmtkvNbB1EIPPwHcdkF6b1oUA=="],
+
+    "@fontsource-variable/libre-caslon-condensed": ["@fontsource-variable/libre-caslon-condensed@5.3.1", "", {}, "sha512-qZex5QQzWGzvzd1KsEfVghFjAzQ3D4i6GWq+48psXsrfxy5qwS0n2x9ddwWnFO4ldS6X8JM/eOppxGe8benBsw=="],
 
     "@fontsource-variable/mulish": ["@fontsource-variable/mulish@5.3.0", "", {}, "sha512-CLh1WAcz2noJmoAun0/dsE7+0ZO6Kq/MBd+x00CcZ9dmThXqYqdhSssXGOdqb3G9YVaeGOmVkMS5yrZd1BHr9Q=="],
 

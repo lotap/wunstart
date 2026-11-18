@@ -53,7 +53,7 @@ export function Headline({
 			</span>{' '}
 			<span
 				ref={slotRef}
-				className="mx-[-0.08em] my-[-0.12em] inline-grid grid-cols-1 justify-items-center overflow-hidden px-[0.08em] py-[0.12em] align-baseline font-serif font-extrabold italic transition-[width] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none sm:justify-items-start dark:font-bold"
+				className="mx-[-0.08em] my-[-0.12em] inline-grid grid-cols-1 justify-items-center overflow-hidden px-[0.08em] py-[0.12em] align-baseline font-serif font-bold transition-[width] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none sm:justify-items-start dark:font-semibold"
 			>
 				{HERO_WORDS.map((word, index) => {
 					const state = wordState(index, activeIndex)

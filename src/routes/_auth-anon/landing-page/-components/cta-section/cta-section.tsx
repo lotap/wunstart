@@ -13,7 +13,7 @@ import shimmerStyles from './shimmer.module.css'
 
 const ctaLineVariants = cva('block opacity-0', {
 	variants: {
-		emphasis: {true: 'font-serif font-extrabold italic dark:font-bold'},
+		emphasis: {true: 'font-serif font-bold dark:font-semibold'},
 		muted: {true: 'text-muted-foreground'},
 	},
 	defaultVariants: {emphasis: false, muted: false},
