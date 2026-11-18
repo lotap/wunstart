@@ -173,9 +173,12 @@ const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 
 	const now = yield* DateTime.now
 
+	const {send, appUrl} = yield* EmailService
+
 	const {html, text, subject} = yield* Effect.tryPromise({
 		try: () =>
 			renderSessionEndedNotification({
+				appUrl,
 				ipAddress,
 				occurredAt: DateTime.toDate(now),
 				country,
@@ -190,7 +193,6 @@ const notifyReuseReplay = Effect.fn('notifyReuseReplay')(function* ({
 			}),
 	})
 
-	const {send} = yield* EmailService
 	yield* send({to: user.email, subject, html, text})
 })
 

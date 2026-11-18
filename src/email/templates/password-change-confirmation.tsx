@@ -1,29 +1,37 @@
 // @refresh reset
 
+import {appInfo} from '#/app-info.ts'
+
+import {EmailText} from '../components/email-typography.tsx'
+import {emailPreview} from '../preview.ts'
 import {
-	BodyCopy,
-	renderSecurityNotification,
 	SecurityDetailRows,
 	SecurityNotificationLayout,
+	renderSecurityNotification,
 } from './security-notification.tsx'
 import type {SecurityNotificationContext} from './security-notification.tsx'
 
-type PasswordChangeConfirmationProps = {occurredAt: Date} & SecurityNotificationContext
+type PasswordChangeConfirmationProps = {
+	appUrl: string
+	occurredAt: Date
+} & SecurityNotificationContext
 
 export default function PasswordChangeConfirmation({
+	appUrl,
 	occurredAt,
 	...context
 }: PasswordChangeConfirmationProps) {
 	return (
 		<SecurityNotificationLayout
-			preview="Your password was changed"
+			appUrl={appUrl}
+			preview={`Your ${appInfo.name} password was changed`}
 			heading="You’ve changed your password"
 		>
 			<SecurityDetailRows occurredAt={occurredAt} {...context} />
 
-			<BodyCopy>If this was you, there's nothing else you need to do.</BodyCopy>
+			<EmailText className="mb-4">If this was you, there’s nothing else you need to do.</EmailText>
 
-			<BodyCopy>Otherwise, sign in with a passcode to recover your account.</BodyCopy>
+			<EmailText>Otherwise, sign in with a passcode to recover your account.</EmailText>
 		</SecurityNotificationLayout>
 	)
 }
@@ -31,6 +39,7 @@ export default function PasswordChangeConfirmation({
 // SAFETY: PreviewProps only feeds react-email's preview pane; the values are
 // representative placeholders for the required props.
 PasswordChangeConfirmation.PreviewProps = {
+	...emailPreview,
 	ipAddress: '0.0.0.0',
 	occurredAt: new Date(),
 	country: 'US',
@@ -45,6 +54,6 @@ export async function renderPasswordChangeConfirmation(
 ) {
 	return renderSecurityNotification(
 		<PasswordChangeConfirmation {...passwordChangeConfirmationProps} />,
-		'Confirmation: Your password was changed',
+		`Your ${appInfo.name} password was changed`,
 	)
 }

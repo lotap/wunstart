@@ -133,6 +133,8 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 				? true
 				: (yield* usersQueries.selectByEmail({email: derivedEmail})).length > 0
 
+		const {send, appUrl} = yield* EmailService
+
 		/**
 		 * Render the email before the verification row commits: a
 		 * render failure fails the operation
@@ -150,10 +152,11 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 				 * preserves timing uniformity and the row preserves the resend throttle.
 				 */
 				intent === 'sign-in' && !recipientExists
-					? () => renderNoAccountFound()
+					? () => renderNoAccountFound(appUrl)
 					: () =>
 							renderVerificationEmail(
 								code,
+								appUrl,
 								intent === 'sign-up' ? (recipientExists ? 'signup-existing' : 'signup') : 'signin',
 							),
 			catch: (cause) =>
@@ -187,8 +190,6 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 				rateAllowance: 6,
 				message: 'A new code isn’t ready for that address yet. Give it a moment and try again.',
 			})
-
-		const {send} = yield* EmailService
 
 		/**
 		 * The email is the deliverable. A send failure retires the verification

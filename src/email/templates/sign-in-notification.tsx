@@ -1,26 +1,37 @@
 // @refresh reset
 
+import {appInfo} from '#/app-info.ts'
+
+import {EmailText} from '../components/email-typography.tsx'
+import {emailPreview} from '../preview.ts'
 import {
-	BodyCopy,
-	renderSecurityNotification,
 	SecurityDetailRows,
 	SecurityNotificationLayout,
+	renderSecurityNotification,
 } from './security-notification.tsx'
 import type {SecurityNotificationContext} from './security-notification.tsx'
 
-type SignInNotificationProps = {occurredAt: Date} & SecurityNotificationContext
+type SignInNotificationProps = {
+	appUrl: string
+	occurredAt: Date
+} & SecurityNotificationContext
 
-export default function SignInNotification({occurredAt, ...context}: SignInNotificationProps) {
+export default function SignInNotification({
+	appUrl,
+	occurredAt,
+	...context
+}: SignInNotificationProps) {
 	return (
 		<SecurityNotificationLayout
-			preview="New sign-in to your account"
+			appUrl={appUrl}
+			preview={`New sign-in to your ${appInfo.name} account`}
 			heading="New sign-in to your account"
 		>
 			<SecurityDetailRows occurredAt={occurredAt} {...context} />
 
-			<BodyCopy>If this was you, there's nothing else you need to do.</BodyCopy>
+			<EmailText className="mb-4">If this was you, there’s nothing else you need to do.</EmailText>
 
-			<BodyCopy>If you don't recognize this activity, change your password immediately.</BodyCopy>
+			<EmailText>If you don’t recognize this activity, change your password immediately.</EmailText>
 		</SecurityNotificationLayout>
 	)
 }
@@ -28,6 +39,7 @@ export default function SignInNotification({occurredAt, ...context}: SignInNotif
 // SAFETY: PreviewProps only feeds react-email's preview pane; the values are
 // representative placeholders for the required props.
 SignInNotification.PreviewProps = {
+	...emailPreview,
 	ipAddress: '0.0.0.0',
 	occurredAt: new Date(),
 	country: 'US',
@@ -40,6 +52,6 @@ SignInNotification.PreviewProps = {
 export async function renderSignInNotification(signInNotificationProps: SignInNotificationProps) {
 	return renderSecurityNotification(
 		<SignInNotification {...signInNotificationProps} />,
-		'New sign-in to your account',
+		`New sign-in to your ${appInfo.name} account`,
 	)
 }

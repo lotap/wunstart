@@ -1,69 +1,70 @@
 // @refresh reset
 
-import {Body, Container, Head, Heading, Html, Preview, Tailwind, Text, render} from 'react-email'
+import {render} from 'react-email'
 
-import {emailTailwindConfig} from '../tailwind-config.ts'
+import {appInfo} from '#/app-info.ts'
+
+import {EmailCode} from '../components/email-code.tsx'
+import {EmailLayout} from '../components/email-layout.tsx'
+import {EmailHeading, EmailSmallText, EmailText} from '../components/email-typography.tsx'
+import {emailPreview} from '../preview.ts'
 
 type VerifyEmailVariant = 'signup' | 'signin' | 'signup-existing'
 
 type VerifyEmailProps = {
 	code: string
+	appUrl: string
 	variant?: VerifyEmailVariant
 }
 
 const variantCopy = {
 	'signup': {
-		preview: 'Enter this code to complete your sign-up',
-		body: 'Enter this code to complete your sign-up:',
+		subject: `Your ${appInfo.name} verification code`,
+		preview: `Enter this code to complete your sign-up at ${appInfo.name}`,
+		body: `Enter this code to complete your sign-up at ${appInfo.name}:`,
 	},
 	'signin': {
-		preview: 'Enter this code to sign in',
-		body: 'Enter this code to sign in:',
+		subject: `Your ${appInfo.name} sign-in code`,
+		preview: `Enter this code to sign in to ${appInfo.name}`,
+		body: `Enter this code to sign in to ${appInfo.name}:`,
 	},
 	'signup-existing': {
-		preview: 'Enter this code to sign in',
-		body: 'Someone tried to sign up with this address. If it was you, use this code to sign in:',
+		subject: `Your ${appInfo.name} sign-in code`,
+		preview: `Someone tried to create a ${appInfo.name} account with this address`,
+		body: `Someone tried to create a ${appInfo.name} account with this address. If it was you, use this code to sign in:`,
 	},
-} satisfies Record<VerifyEmailVariant, {preview: string; body: string}>
+} satisfies Record<VerifyEmailVariant, {subject: string; preview: string; body: string}>
 
-export default function VerifyEmail({code, variant = 'signup'}: VerifyEmailProps) {
+export default function VerifyEmail({code, appUrl, variant = 'signup'}: VerifyEmailProps) {
 	const copy = variantCopy[variant]
 
 	return (
-		<Html>
-			<Tailwind config={emailTailwindConfig}>
-				<Head />
-				<Preview>{copy.preview}</Preview>
-				<Body className="m-0 font-sans">
-					<Container className="mx-auto mt-10 max-w-150 px-5">
-						<Heading className="mb-6 text-xl font-semibold">Verify your email</Heading>
-						<Text className="mb-4 text-sm leading-relaxed text-muted-foreground">{copy.body}</Text>
-						<Container className="mb-4 rounded-[8px] bg-muted p-4 text-center">
-							<Text className="m-0 font-mono text-4xl font-bold tracking-[8px]">{code}</Text>
-						</Container>
-						<Text className="text-xs leading-relaxed text-muted-foreground">
-							This code expires in 15 minutes. If you didn't request this, you can ignore this
-							email.
-						</Text>
-					</Container>
-				</Body>
-			</Tailwind>
-		</Html>
+		<EmailLayout appUrl={appUrl} preview={copy.preview} align="center">
+			<EmailHeading className="mb-4">Verify your email</EmailHeading>
+			<EmailText className="mb-6">{copy.body}</EmailText>
+			<EmailCode code={code} />
+			<EmailSmallText>
+				This code expires in 15 minutes. If you didn’t request it, you can ignore this email. Never
+				share this code with anyone.
+			</EmailSmallText>
+		</EmailLayout>
 	)
 }
 
 // SAFETY: PreviewProps only feeds react-email's preview pane; the values are
 // representative placeholders for the required props.
 VerifyEmail.PreviewProps = {
+	...emailPreview,
 	code: '123456',
 } as VerifyEmailProps
 
 export async function renderVerificationEmail(
 	code: string,
+	appUrl: string,
 	variant: VerifyEmailVariant = 'signup',
 ) {
-	const component = <VerifyEmail code={code} variant={variant} />
+	const component = <VerifyEmail code={code} appUrl={appUrl} variant={variant} />
 	const [html, text] = await Promise.all([render(component), render(component, {plainText: true})])
 
-	return {subject: 'Verify your email', html, text}
+	return {subject: variantCopy[variant].subject, html, text}
 }
