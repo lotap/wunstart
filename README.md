@@ -271,6 +271,13 @@ Three things update three ways:
 
 _By default, the auth module deploys a hashing method ([Argon2](https://en.wikipedia.org/wiki/Argon2)) using [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/). To use a different architecture, use a different hashing algorithm._
 
+Email needs two values in the deployed Worker environment:
+
+- `APP_URL` — the public origin, for example `https://your-domain.com`. It resolves the wordmark and the sign-up address in account email.
+- `EMAIL_FROM` — a sender address verified for that domain.
+
+Set them as Worker variables before deploying. In development they default to `http://localhost:3000` and `noreply@wunstart.com`.
+
 Deployment support is still in development. The focus is on simplicity and platform agnosticism.
 
 ## Git worktrees (for parallel work)

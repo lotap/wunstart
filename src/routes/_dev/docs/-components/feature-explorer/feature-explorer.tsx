@@ -24,8 +24,8 @@ import {AbusePanel} from './reference/abuse-panel.tsx'
 import {AgentsOverviewPanel} from './reference/agents-overview-panel.tsx'
 import {AuthPanel} from './reference/auth-panel.tsx'
 import {ConfigurationPanel} from './reference/configuration-panel.tsx'
+import {EmailPanel} from './reference/email-panel.tsx'
 import {MiddlewarePanel} from './reference/middleware-panel.tsx'
-import {ReactEmailPanel} from './reference/react-email-panel.tsx'
 import {RequestFlowPanel} from './reference/request-flow-panel.tsx'
 import {RouteGuardsPanel} from './reference/route-guards-panel.tsx'
 import {RuntimePanel} from './reference/runtime-panel.tsx'
@@ -37,9 +37,9 @@ const referencePanels = [
 	{key: 'agents-overview', label: 'Agents overview', Panel: AgentsOverviewPanel},
 	{key: 'auth', label: 'Auth', Panel: AuthPanel},
 	{key: 'configuration', label: 'Configuration', Panel: ConfigurationPanel},
+	{key: 'email', label: 'Email', Panel: EmailPanel},
 	{key: 'middleware', label: 'Middleware & identity', Panel: MiddlewarePanel},
 	{key: 'abuse', label: 'Rate limits & bans', Panel: AbusePanel},
-	{key: 'react-email', label: 'React Email', Panel: ReactEmailPanel},
 	{key: 'request-flow', label: 'Request flow', Panel: RequestFlowPanel},
 	{key: 'route-guards', label: 'Route guards', Panel: RouteGuardsPanel},
 	{key: 'runtime', label: 'Runtime & hashing', Panel: RuntimePanel},
