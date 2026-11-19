@@ -15,13 +15,12 @@ import {SETTINGS_SHORTCUTS} from './_settings-shortcuts.ts'
  * profile email, then the settings shortcuts as icon rows. The desktop dropdown
  * shares the shortcut data but keeps its own layout.
  */
-export function AccountLinks({open, onNavigate}: {open: boolean; onNavigate: () => void}) {
+export function AccountLinks({onNavigate}: {onNavigate: () => void}) {
 	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
 
-	const {isPending, data: profile} = useQuery({
-		...userProfileQueryOptions({serverFn: handleGetUserProfileFn}),
-		enabled: open,
-	})
+	const {isPending, data: profile} = useQuery(
+		userProfileQueryOptions({serverFn: handleGetUserProfileFn}),
+	)
 
 	return (
 		<div className="flex flex-col">
@@ -57,7 +56,7 @@ export function AccountSignOut({onNavigate}: {onNavigate: () => void}) {
 				onNavigate()
 				void signOut()
 			}}
-			className="h-14 w-full justify-center rounded-lg px-2 text-base text-muted-foreground dark:font-normal"
+			className="h-14 w-full px-2 text-base text-muted-foreground dark:font-normal"
 		>
 			Sign out
 		</Button>

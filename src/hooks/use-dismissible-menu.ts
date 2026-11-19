@@ -33,19 +33,13 @@ export function useDismissibleMenu({
 			triggerRef.current?.focus()
 		}
 
-		const onScroll = () => {
-			// A locked page cannot really scroll; ignore the programmatic reset.
-			if (document.body.style.overflow === 'hidden') return
-			close()
-		}
-
-		window.addEventListener('scroll', onScroll, {passive: true})
+		window.addEventListener('scroll', close, {passive: true})
 		window.addEventListener('resize', close)
 		document.addEventListener('pointerdown', onPointerDown)
 		window.addEventListener('keydown', onKeyDown)
 
 		return () => {
-			window.removeEventListener('scroll', onScroll)
+			window.removeEventListener('scroll', close)
 			window.removeEventListener('resize', close)
 			document.removeEventListener('pointerdown', onPointerDown)
 			window.removeEventListener('keydown', onKeyDown)

@@ -54,6 +54,10 @@ const headerFiles = [
 		job: 'The signed-in menu’s account block — a “Signed in as” label above the email, the shortcuts, and the anchored Sign out; shares the shortcut data with the dropdown.',
 	},
 	{
+		name: 'src/components/global/header/_settings-shortcuts.ts',
+		job: 'The curated settings shortcuts shared by the account dropdown and the drawer.',
+	},
+	{
 		name: 'src/components/global/wordmark.tsx',
 		job: 'The inline wordmark. Replace the SVG or swap the component.',
 	},
@@ -97,10 +101,10 @@ export function HeaderPanel() {
 				</Prose>
 				<Prose>
 					At <InlineCode>md</InlineCode> the arrays render in the bar; below it they collapse into
-					the drawer. The bar holds about four typical signed-out links before the actions need
-					room; the signed-in bar fits more because the account control is narrower. For five or six
-					links, move the breakpoint to <InlineCode>lg</InlineCode> or group the overflow into a
-					More menu.
+					the drawer. At full width the bar holds about four typical signed-out links before the
+					actions need room; fewer fit near <InlineCode>md</InlineCode>, and the signed-in bar fits
+					more because the account control is narrower. For five or six links, move the breakpoint
+					to <InlineCode>lg</InlineCode> or group the overflow into a More menu.
 				</Prose>
 			</PanelSection>
 
@@ -129,9 +133,9 @@ export function HeaderPanel() {
 					mark) and Theme (with its icon) at 16px/44px rows. Signed in, the account shortcuts join
 					that group at the same 16px/44px, each with its dropdown icon in a 16px column on the 24px
 					rail. Sign in is a ghost row and Sign up a stock 56px default button, split by 12px and
-					anchored at the bottom; signed in, a ghost Sign out takes the slot. There is no divider or
-					custom CTA. The active route keeps the 2px underline in both the bar and the drawer.
-					Change that one file to change every nav item.
+					anchored at the bottom; signed in, a ghost Sign out takes the slot. The drawer has no
+					divider or custom CTA. The active route keeps the 2px underline in both the bar and the
+					drawer. Change that one file to change every nav item.
 				</Prose>
 				<DocBulletList>
 					<li>
@@ -176,10 +180,11 @@ export function HeaderPanel() {
 			<PanelSection id="header-scope" title="Header and page">
 				<Prose>
 					The header is defined by the signed-in state, not by the page’s audience. Its height is
-					constant: 72px desktop, 56px mobile. Marketing, docs, and app pages share the same global
-					frame; page-level navigation belongs to the page. The wordmark is not a heading: each page
-					owns its <InlineCode>h1</InlineCode>. The footer still receives the resolved audience
-					because it is page-attached and revealed at the end.
+					fixed per breakpoint: 56px on phones, 64px from <InlineCode>sm</InlineCode>, and 72px from{' '}
+					<InlineCode>md</InlineCode>. Marketing, docs, and app pages share the same global frame;
+					page-level navigation belongs to the page. The wordmark is not a heading: each page owns
+					its <InlineCode>h1</InlineCode>. The footer still receives the resolved audience because
+					it is page-attached and revealed at the end.
 				</Prose>
 			</PanelSection>
 

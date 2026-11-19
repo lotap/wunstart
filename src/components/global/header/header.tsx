@@ -11,7 +11,7 @@ import {RouterButton} from '../router-button.tsx'
 import ThemeToggle from '../theme-toggle.tsx'
 import {Wordmark} from '../wordmark.tsx'
 import {GitHubIconLink} from './_github-link.tsx'
-import {ANON_LINKS, USER_LINKS} from './_links.ts'
+import {ANON_LINKS, SIGN_IN_LINK, SIGN_UP_LINK, USER_LINKS} from './_links.ts'
 import {HeaderDrawer} from './_nav-drawer.tsx'
 import {NavLink} from './_nav-link.tsx'
 import {UserNav} from './_user-nav.tsx'
@@ -51,7 +51,6 @@ export function Header() {
 						<Link
 							to="/"
 							aria-label={`${appInfo.name} home`}
-							onClick={closeMenu}
 							className="-m-1 inline-flex rounded-sm p-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
 						>
 							<Wordmark className="h-5 w-auto sm:h-6" />
@@ -66,9 +65,7 @@ export function Header() {
 					</ul>
 					<div className="col-start-3 flex items-center gap-1 justify-self-end md:gap-2">
 						{repoHref && <GitHubIconLink href={repoHref} />}
-						<div className="max-md:hidden">
-							<ThemeToggle className="size-10" />
-						</div>
+						<ThemeToggle className="size-10 max-md:hidden" />
 						<span aria-hidden="true" className="mx-2 hidden h-6 w-px bg-border md:block" />
 						{auth ? (
 							<div className="max-md:hidden">
@@ -77,20 +74,19 @@ export function Header() {
 						) : (
 							<>
 								<RouterButton
-									to="/sign-in"
+									to={SIGN_IN_LINK.to}
 									variant="ghost"
 									size="lg"
 									className="hidden h-10 px-4 text-sm text-muted-foreground md:inline-flex dark:font-normal"
 								>
-									Sign in
+									{SIGN_IN_LINK.label}
 								</RouterButton>
 								<RouterButton
-									to="/sign-up"
+									to={SIGN_UP_LINK.to}
 									size="lg"
-									onClick={closeMenu}
 									className="h-10 px-5 max-md:hidden dark:font-normal"
 								>
-									Sign up
+									{SIGN_UP_LINK.label}
 								</RouterButton>
 							</>
 						)}
@@ -108,7 +104,6 @@ export function Header() {
 								<Menu />
 							</DrawerTrigger>
 							<HeaderDrawer
-								open={menuOpen}
 								links={links}
 								repoHref={repoHref}
 								signedIn={auth !== null}

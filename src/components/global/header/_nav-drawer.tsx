@@ -1,3 +1,4 @@
+import {cn} from 'cn'
 import {X} from 'lucide-react'
 
 import {Button} from '#/components/ui/button.tsx'
@@ -7,7 +8,7 @@ import {RouterButton} from '../router-button.tsx'
 import ThemeToggle from '../theme-toggle.tsx'
 import {AccountLinks, AccountSignOut} from './_account.tsx'
 import {GitHubMenuRow} from './_github-link.tsx'
-import {SIGN_IN_LINK, type HeaderLink} from './_links.ts'
+import {SIGN_IN_LINK, SIGN_UP_LINK, type HeaderLink} from './_links.ts'
 import {NavLink} from './_nav-link.tsx'
 
 /**
@@ -16,13 +17,11 @@ import {NavLink} from './_nav-link.tsx'
  * trigger was; the middle scrolls, and the auth pair stays anchored.
  */
 export function HeaderDrawer({
-	open,
 	links,
 	repoHref,
 	signedIn,
 	onNavigate,
 }: {
-	open: boolean
 	links: readonly HeaderLink[]
 	repoHref: string | null
 	signedIn: boolean
@@ -59,23 +58,15 @@ export function HeaderDrawer({
 						))}
 					</ul>
 					<div className="mt-16 flex flex-col">
-						{signedIn ? (
-							<>
-								<AccountLinks open={open} onNavigate={onNavigate} />
-								<ThemeToggle
-									label="Theme"
-									className="-mx-2 mt-6 h-11 justify-start border-0 px-2 text-base hover:bg-transparent dark:hover:bg-transparent"
-								/>
-							</>
-						) : (
-							<>
-								{repoHref && <GitHubMenuRow href={repoHref} onNavigate={onNavigate} />}
-								<ThemeToggle
-									label="Theme"
-									className="-mx-2 h-11 justify-start border-0 px-2 text-base hover:bg-transparent dark:hover:bg-transparent"
-								/>
-							</>
-						)}
+						{!signedIn && repoHref && <GitHubMenuRow href={repoHref} onNavigate={onNavigate} />}
+						{signedIn && <AccountLinks onNavigate={onNavigate} />}
+						<ThemeToggle
+							label="Theme"
+							className={cn(
+								'-mx-2 h-11 justify-start border-0 px-2 text-base hover:bg-transparent dark:hover:bg-transparent',
+								signedIn && 'mt-6',
+							)}
+						/>
 					</div>
 				</div>
 			</div>
@@ -89,17 +80,17 @@ export function HeaderDrawer({
 							variant="ghost"
 							size="lg"
 							onClick={onNavigate}
-							className="h-14 w-full justify-center rounded-lg px-2 text-base text-muted-foreground dark:font-normal"
+							className="h-14 w-full px-2 text-base text-muted-foreground dark:font-normal"
 						>
 							{SIGN_IN_LINK.label}
 						</RouterButton>
 						<RouterButton
-							to="/sign-up"
+							to={SIGN_UP_LINK.to}
 							size="lg"
 							onClick={onNavigate}
-							className="h-14 w-full justify-center rounded-lg px-2 text-base dark:font-normal"
+							className="h-14 w-full px-2 text-base dark:font-normal"
 						>
-							Sign up
+							{SIGN_UP_LINK.label}
 						</RouterButton>
 					</div>
 				)}
