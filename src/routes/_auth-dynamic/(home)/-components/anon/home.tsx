@@ -129,7 +129,7 @@ export function AnonHome() {
 							</h3>
 							<p className="text-lg">
 								Customize this page at{' '}
-								<code className="font-mono">
+								<code className="font-mono break-all">
 									src/routes/_auth-dynamic/(home)/-components/anon/home.tsx
 								</code>
 								.

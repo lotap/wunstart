@@ -53,7 +53,9 @@ function QuickLinkCard({
 							</span>
 						</div>
 					) : (
-						<p className="font-mono text-xs leading-relaxed text-muted-foreground">{detail}</p>
+						<p className="font-mono text-xs leading-relaxed break-all text-muted-foreground">
+							{detail}
+						</p>
 					)}
 				</CardContent>
 			)}
