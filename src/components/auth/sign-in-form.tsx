@@ -329,6 +329,7 @@ export function SignInForm() {
 							router.history.push(safeRedirectTarget(redirect))
 						}}
 						email={email}
+						anonBound
 						passcodeRequestQueryOptions={passcodeRequestOptions}
 						mutatePasscodeRequest={mutatePasscodeRequest}
 						mutatePasscodeRequestIsPending={passcodeRequestIsPending}

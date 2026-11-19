@@ -15,6 +15,8 @@ type VerifyEmailProps = {
 	code: string
 	appUrl: string
 	variant?: VerifyEmailVariant
+	/** Anon-keyed rows verify only in the browser that requested the code */
+	anonBound?: boolean
 }
 
 const variantCopy = {
@@ -35,7 +37,12 @@ const variantCopy = {
 	},
 } satisfies Record<VerifyEmailVariant, {subject: string; preview: string; body: string}>
 
-export default function VerifyEmail({code, appUrl, variant = 'signup'}: VerifyEmailProps) {
+export default function VerifyEmail({
+	code,
+	appUrl,
+	variant = 'signup',
+	anonBound = false,
+}: VerifyEmailProps) {
 	const copy = variantCopy[variant]
 
 	return (
@@ -43,6 +50,12 @@ export default function VerifyEmail({code, appUrl, variant = 'signup'}: VerifyEm
 			<EmailHeading className="mb-4">Verify your email</EmailHeading>
 			<EmailText className="mb-6">{copy.body}</EmailText>
 			<EmailCode code={code} />
+			{anonBound && (
+				<EmailSmallText className="mb-2">
+					This code works only in the browser where you requested it. On a different device, request
+					a new code there.
+				</EmailSmallText>
+			)}
 			<EmailSmallText>
 				This code expires in 15 minutes. If you didn’t request it, you can ignore this email. Never
 				share this code with anyone.
@@ -56,14 +69,19 @@ export default function VerifyEmail({code, appUrl, variant = 'signup'}: VerifyEm
 VerifyEmail.PreviewProps = {
 	...emailPreview,
 	code: '123456',
+	anonBound: true,
 } as VerifyEmailProps
 
 export async function renderVerificationEmail(
 	code: string,
 	appUrl: string,
 	variant: VerifyEmailVariant = 'signup',
+	anonBound = false,
 ) {
-	const component = <VerifyEmail code={code} appUrl={appUrl} variant={variant} />
+	const component = (
+		<VerifyEmail code={code} appUrl={appUrl} variant={variant} anonBound={anonBound} />
+	)
+
 	const [html, text] = await Promise.all([render(component), render(component, {plainText: true})])
 
 	return {subject: variantCopy[variant].subject, html, text}

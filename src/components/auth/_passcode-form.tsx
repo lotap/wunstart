@@ -9,7 +9,7 @@ import {
 	CodeBlockHeader,
 	CodeBlockTitle,
 } from '#/components/ui/code-block.tsx'
-import {FieldGroup} from '#/components/ui/field.tsx'
+import {FieldDescription, FieldGroup} from '#/components/ui/field.tsx'
 import {useConfiguredAppForm, validateAfterFirstSubmit} from '#/hooks/use-app-form.ts'
 import {Passcode} from '#/isomorphic/validators.ts'
 
@@ -65,6 +65,7 @@ export function PasscodeForm({
 	onSubmitSchema,
 	onSubmitTry,
 	email,
+	anonBound = false,
 	passcodeRequestQueryOptions,
 	mutatePasscodeRequest,
 	mutatePasscodeRequestIsPending,
@@ -72,6 +73,8 @@ export function PasscodeForm({
 	onSubmitSchema?: Schema.ConstraintCodec<PasscodeSubmitCredentials>
 	onSubmitTry: (value: PasscodeSubmitCredentials) => Promise<void>
 	email: string
+	/** Anon-keyed codes verify only in the browser that requested them */
+	anonBound?: boolean
 	passcodeRequestQueryOptions: PasscodeRequestQueryOptions
 	mutatePasscodeRequest: () => Promise<{expiresAt: Date}>
 	mutatePasscodeRequestIsPending: boolean
@@ -102,6 +105,13 @@ export function PasscodeForm({
 					>
 						{(field) => <field.PasscodeField onComplete={() => form.handleSubmit()} />}
 					</form.Field>
+
+					{anonBound && (
+						<FieldDescription>
+							If you received a code, it works only in the browser where you requested it. On a
+							different device, request a new code there.
+						</FieldDescription>
+					)}
 
 					<ResetEmailVerificationButton
 						email={email}

@@ -233,6 +233,7 @@ export function SignUpForm() {
 							void router.navigate({to: '/', state: {welcome: isNewUser}})
 						}}
 						email={email}
+						anonBound
 						passcodeRequestQueryOptions={passcodeRequestOptions}
 						mutatePasscodeRequest={mutatePasscodeRequest}
 						mutatePasscodeRequestIsPending={passcodeRequestIsPending}

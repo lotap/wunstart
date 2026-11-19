@@ -18,7 +18,7 @@ export const requireAnonRegistered = createMiddleware({type: 'function'}).server
 		if (!anon?.registered) {
 			setResponseStatus(400)
 			throw new KnownServerError({
-				message: 'Something went wrong. Please refresh the page and try again.',
+				message: 'This code may have been requested in another browser. Request a new code here.',
 			})
 		}
 
