@@ -331,6 +331,12 @@ export function AuthPanel() {
 						<InlineCode>/</InlineCode>, and secure in production. Production prefixes them with{' '}
 						<InlineCode>__Http-</InlineCode>. Issuing auth cookies deletes the Anon cookie.
 					</PanelRow>
+					<PanelRow label="rollout">
+						Changing a token’s derivation — HKDF purpose, secret set, or payload shape — invalidates
+						every token minted before the deploy. Users sign out, Anon identities reset, and grace
+						replays fail. Deploy atomically; during a rolling deploy old and new versions reject
+						each other’s tokens. Unused Session rows expire on their normal 30-day schedule.
+					</PanelRow>
 				</PanelList>
 				<Prose>
 					A definitive invalid refresh token clears both auth cookies and continues as an Anon. A
