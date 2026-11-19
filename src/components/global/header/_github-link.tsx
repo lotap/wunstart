@@ -16,7 +16,7 @@ export function GitHubIconLink({href}: {href: string}) {
 						target="_blank"
 						rel="noreferrer"
 						aria-label="GitHub"
-						className={cn(buttonVariants({variant: 'ghost', size: 'icon-lg'}), 'max-lg:hidden')}
+						className={cn(buttonVariants({variant: 'ghost', size: 'icon-lg'}), 'max-md:hidden')}
 					>
 						<SiGithub aria-hidden="true" className="size-4" />
 					</a>
@@ -27,7 +27,7 @@ export function GitHubIconLink({href}: {href: string}) {
 	)
 }
 
-/** Links-panel action, with an explicit external arrow. */
+/** Menu action: the word plus an external-link mark in the secondary group. */
 export function GitHubMenuRow({href, onNavigate}: {href: string; onNavigate: () => void}) {
 	return (
 		<a
@@ -35,11 +35,10 @@ export function GitHubMenuRow({href, onNavigate}: {href: string; onNavigate: () 
 			target="_blank"
 			rel="noreferrer"
 			onClick={onNavigate}
-			className="flex h-11 w-full items-center gap-2 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset dark:font-normal"
+			className="-mx-2 flex h-11 items-center gap-2 rounded-lg px-2 text-base font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset dark:font-normal"
 		>
-			<SiGithub aria-hidden="true" className="size-4" />
 			GitHub
-			<ArrowUpRight aria-hidden="true" className="ml-auto size-4" />
+			<ArrowUpRight aria-hidden="true" className="size-4" />
 		</a>
 	)
 }

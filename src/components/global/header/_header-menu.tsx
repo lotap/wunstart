@@ -1,5 +1,7 @@
 import {cn} from 'cn'
 
+import {RouterButton} from '../router-button.tsx'
+import ThemeToggle from '../theme-toggle.tsx'
 import {GitHubMenuRow} from './_github-link.tsx'
 import {SIGN_IN_LINK, type HeaderLink} from './_links.ts'
 import {NavLink} from './_nav-link.tsx'
@@ -9,49 +11,70 @@ export function HeaderMenu({
 	open,
 	links,
 	repoHref,
-	showSignIn,
-	hideFromSm,
+	showAuth,
 	onNavigate,
 }: {
 	id: string
 	open: boolean
 	links: readonly HeaderLink[]
 	repoHref: string | null
-	showSignIn: boolean
-	hideFromSm?: boolean
+	showAuth: boolean
 	onNavigate: () => void
 }) {
 	return (
 		<div
 			id={id}
 			className={cn(
-				'absolute inset-x-0 top-full z-40 mt-1 max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain rounded-2xl bg-background p-1 shadow-md ring-1 ring-foreground/10 sm:left-auto sm:w-80 lg:hidden',
-				hideFromSm && 'sm:hidden',
-				open ? 'block' : 'hidden',
+				// `100%` is the nav height, so the sheet always ends at the viewport edge
+				// without duplicating the header’s height.
+				'absolute top-full -right-2 -left-2 z-40 flex h-[calc(100dvh-100%)] flex-col overflow-hidden bg-background p-6 pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden',
+				open ? 'flex' : 'hidden',
 			)}
 		>
-			<ul>
-				{links.map((link) => (
-					<li key={link.to}>
-						<NavLink
-							link={link}
-							onNavigate={onNavigate}
-							className="h-11 w-full rounded-lg px-3 hover:bg-muted"
+			{/* The scroller spans the sheet so its 24px pad owns the gutter; the
+			    content column does the centering, and rows may inset 8px into the pad. */}
+			<div className="-mx-6 flex min-h-0 w-auto flex-1 flex-col overflow-y-auto overscroll-contain px-6">
+				<div className="mx-auto my-auto w-full max-w-md">
+					<ul>
+						{links.map((link) => (
+							<li key={link.to}>
+								<NavLink
+									link={link}
+									onNavigate={onNavigate}
+									className="-mx-2 h-13 rounded-lg px-2 text-3xl"
+								/>
+							</li>
+						))}
+					</ul>
+					<div className="mt-16 flex flex-col">
+						{repoHref && <GitHubMenuRow href={repoHref} onNavigate={onNavigate} />}
+						<ThemeToggle
+							label="Theme"
+							className="-mx-2 h-11 justify-start border-0 px-2 text-base hover:bg-transparent"
 						/>
-					</li>
-				))}
-			</ul>
-			{links.length > 0 && (repoHref !== null || showSignIn) && (
-				<div className={cn('my-1 h-px bg-border', repoHref === null && 'sm:hidden')} />
-			)}
-			{repoHref && <GitHubMenuRow href={repoHref} onNavigate={onNavigate} />}
-			{repoHref && showSignIn && <div className="my-1 h-px bg-border sm:hidden" />}
-			{showSignIn && (
-				<NavLink
-					link={SIGN_IN_LINK}
-					onNavigate={onNavigate}
-					className="h-11 w-full rounded-lg px-3 hover:bg-muted sm:hidden"
-				/>
+					</div>
+				</div>
+			</div>
+			{showAuth && (
+				<div className="mx-auto flex w-full max-w-md shrink-0 flex-col gap-3">
+					<RouterButton
+						to={SIGN_IN_LINK.to}
+						variant="ghost"
+						size="lg"
+						onClick={onNavigate}
+						className="h-14 w-full justify-center rounded-lg px-2 text-base text-muted-foreground dark:font-normal"
+					>
+						{SIGN_IN_LINK.label}
+					</RouterButton>
+					<RouterButton
+						to="/sign-up"
+						size="lg"
+						onClick={onNavigate}
+						className="h-14 w-full justify-center rounded-lg px-2 text-base dark:font-normal"
+					>
+						Sign up
+					</RouterButton>
+				</div>
 			)}
 		</div>
 	)

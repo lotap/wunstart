@@ -27,7 +27,7 @@ export const PUBLIC_REPO_URL: string | null = 'https://github.com/you/your-app'`
 const headerFiles = [
 	{
 		name: 'src/components/global/header/header.tsx',
-		job: 'Layout, centered links, signed-out GitHub action, theme, auth, and the panel trigger.',
+		job: 'Layout, centered links, signed-out GitHub action, theme, auth, and the menu trigger.',
 	},
 	{
 		name: 'src/components/global/header/_links.ts',
@@ -35,7 +35,7 @@ const headerFiles = [
 	},
 	{
 		name: 'src/components/global/header/_github-link.tsx',
-		job: 'The project’s repo action: signed-out icon on desktop, external-arrow row in the panel.',
+		job: 'The project’s repo action: signed-out icon on desktop, word plus external mark in the menu.',
 	},
 	{
 		name: 'src/components/global/header/_nav-link.tsx',
@@ -43,7 +43,7 @@ const headerFiles = [
 	},
 	{
 		name: 'src/components/global/header/_header-menu.tsx',
-		job: 'The links panel below lg: full-width on phones, a right-aligned w-80 card from sm up, capped with internal scroll.',
+		job: 'The menu below md: a full-bleed sheet with page scroll lock, a centered link/utility block, and an anchored auth pair. Carries links, GitHub, theme, and auth.',
 	},
 	{
 		name: 'src/components/global/header/_user-nav.tsx',
@@ -92,10 +92,11 @@ export function HeaderPanel() {
 					utility, never from product navigation.
 				</Prose>
 				<Prose>
-					At <InlineCode>lg</InlineCode> the arrays render in the bar; below it they collapse into
-					the panel. The bar holds about five or six typical links before the actions need room; the
-					signed-in bar fits more because the account control is narrower. Past that, widen the
-					header or move the overflow into a More menu.
+					At <InlineCode>md</InlineCode> the arrays render in the bar; below it they collapse into
+					the menu. The bar holds about four typical signed-out links before the actions need room;
+					the signed-in bar fits more because the account control is narrower. For five or six
+					links, move the breakpoint to <InlineCode>lg</InlineCode> or group the overflow into a
+					More menu.
 				</Prose>
 			</PanelSection>
 
@@ -116,15 +117,23 @@ export function HeaderPanel() {
 
 			<PanelSection id="header-style" title="Choose the voice">
 				<Prose>
-					<InlineCode>_nav-link.tsx</InlineCode> owns both the desktop list and the links panel. The
-					default is the theme sans at 14px, 500 in light and 400 in dark, sentence case. The active
-					route gets a 2px underline under the label, in both the bar and the panel. Change that one
-					file to change every nav item.
+					<InlineCode>_nav-link.tsx</InlineCode> owns both the desktop list and the menu. The
+					default is the theme sans at 14px, 500 in light and 400 in dark, sentence case; below{' '}
+					<InlineCode>md</InlineCode> the sheet uses 30px at 52px rows inside a max-w-md column,
+					with a 24px pad. The content is one centered block: page links at 30px/52px, a 64px gap,
+					then GitHub (with an external mark) and Theme (with its icon) at 16px/44px rows. Sign in
+					is a ghost row and Sign up a stock 56px default button, split by 12px and anchored at the
+					bottom. There is no divider or custom CTA. The active route keeps the 2px underline in
+					both the bar and the menu. Change that one file to change every nav item.
 				</Prose>
 				<DocBulletList>
 					<li>
 						For the mono-caps variant, swap the base classes for{' '}
 						<InlineCode>font-mono text-xs tracking-[0.12em] uppercase</InlineCode>.
+					</li>
+					<li>
+						Hover is the text color alone: no row fill. The rows inset 8px into the gutter so the
+						focus ring sits clear of the label, while labels stay on the 24px line.
 					</li>
 					<li>
 						The wordmark is the one fixed brand artifact. Replace the SVG in{' '}
@@ -169,28 +178,31 @@ export function HeaderPanel() {
 
 			<PanelSection id="header-actions" title="Utilities and account">
 				<Prose>
-					The signed-out repository action and theme are the default utilities: on{' '}
-					<InlineCode>lg</InlineCode> and up the repo icon sits left of theme, and theme stays in
-					the cluster and the compact bar because it is a one-tap preference, not an account action.
-					Account actions sit after the divider, and sign-out stays in the account dropdown. If you
-					add another utility, keep it left of the theme so the theme remains the last control
-					before the divider.
+					At <InlineCode>md</InlineCode> and up the bar holds the utilities: the signed-out repo
+					icon, theme, a divider, then Sign in / Sign up (or the account avatar). Below{' '}
+					<InlineCode>md</InlineCode> those controls move into the menu, and the bar keeps only the
+					brand, the account control when signed in, and the trigger. The menu always has the Theme
+					control, so the trigger always exists below <InlineCode>md</InlineCode>; there is no empty
+					menu. Sign-out stays in the account dropdown.
 				</Prose>
 			</PanelSection>
 
-			<PanelSection id="header-mobile" title="Small screens">
+			<PanelSection id="header-menu" title="The collapsed menu">
 				<Prose>
-					Below <InlineCode>lg</InlineCode> the links collapse into the panel; the bar keeps the
-					theme toggle, Sign in from <InlineCode>sm</InlineCode> up, the primary account control,
-					and the trigger. The panel is full-width on phones and a right-aligned{' '}
-					<InlineCode>w-80</InlineCode> card from <InlineCode>sm</InlineCode> up; it caps to the
-					viewport and scrolls when the list grows. Panel order: page links, a divider, GitHub when{' '}
-					<InlineCode>PUBLIC_REPO_URL</InlineCode> is set, a divider, then Sign in below{' '}
-					<InlineCode>sm</InlineCode>. At <InlineCode>sm</InlineCode> and up Sign in stays in the
-					bar and drops out of the panel, so it is never duplicated. The trigger renders only when
-					the panel has a row, so a signed-in user with no app links gets no empty menu. The panel
-					closes on navigation, scroll, resize, outside press, and Escape, and Escape returns focus
-					to the trigger. That dismissal behavior is shared with the landing page’s section dock.
+					Below <InlineCode>md</InlineCode> the bar keeps only the brand, the account control when
+					signed in, and the trigger; the menu carries page links, the signed-out GitHub action,
+					theme, and Sign in / Sign up. Below <InlineCode>md</InlineCode> the menu is one full-bleed
+					sheet under the header: page scroll locks, the page behind is inert, and the sheet scrolls
+					as one centered block above the anchored auth. Its height is the viewport minus the bar,
+					measured from the nav, so it ends at the viewport edge at any header height. The block is
+					a max-w-md column: page links at 30px/52px, a 64px gap, then GitHub (with an external
+					mark) and Theme (with its icon) at 16px/44px rows. Sign in is a ghost row and Sign up a
+					stock 56px default button, split by 12px and anchored at the bottom. There is no divider
+					or custom CTA. The labeled Theme control is itself the toggle. The trigger always renders
+					below <InlineCode>md</InlineCode>; the Theme control guarantees the menu is never empty.
+					The sheet closes on navigation, resize, outside press, and Escape, and Escape returns
+					focus to the trigger; internal scrolling does not dismiss it. That dismissal behavior is
+					shared with the landing page’s section dock.
 				</Prose>
 			</PanelSection>
 		</>

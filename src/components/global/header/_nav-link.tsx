@@ -5,7 +5,7 @@ import type {HeaderLink} from './_links.ts'
 
 /**
  * Header link voice. Change this one component to restyle both the desktop list
- * and the links panel; swap `text-sm` for `font-mono text-xs tracking-[0.12em] uppercase`
+ * and the menu; swap `text-sm` for `font-mono text-xs tracking-[0.12em] uppercase`
  * to get the mono-caps variant.
  */
 export function NavLink({
