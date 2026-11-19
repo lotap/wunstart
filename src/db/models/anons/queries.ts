@@ -1,4 +1,4 @@
-import {eq, getColumns, sql} from 'drizzle-orm'
+import {desc, eq, getColumns, sql} from 'drizzle-orm'
 
 import {appendUniqueBoundedSql, createPreparedQuery} from '#/db/helpers/query-fns.ts'
 
@@ -69,6 +69,14 @@ export const archiveSelectByActiveId = createPreparedQuery({
 			.select({archiveId})
 			.from(archiveTable)
 			.where(eq(activeId, sql.placeholder('id')))
+			/**
+			 * Archive rows are append-only: a replayed cookie or a concurrent
+			 * recovery can retire the same anon id more than once, so multiple
+			 * rows are valid. Pick the newest relationship deterministically
+			 * instead of letting scan order decide which row activity logging
+			 * or a retry points at.
+			 */
+			.orderBy(desc(archiveId))
 			.limit(1)
 			.prepare(`${labelPrefix}_archive_select_by_active_id`),
 })
