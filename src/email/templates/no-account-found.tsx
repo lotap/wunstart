@@ -36,7 +36,8 @@ export default function NoAccountFound({appUrl}: NoAccountFoundProps) {
 				</Text>
 			</Section>
 			<EmailText className="mb-4 text-sm leading-5">
-				To create an account, open the address above in your browser and request a code.
+				To create an account, open the address above in your browser and request a code. If you just
+				tried to sign in, you may need to wait a minute before requesting one.
 			</EmailText>
 			<EmailSmallText className="mt-4">
 				If you didn’t try to sign in, you can ignore this email. Someone may have mistyped their
