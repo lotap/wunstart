@@ -37,7 +37,9 @@ export function UserNav() {
 
 	return (
 		<DropdownMenu open={open} onOpenChange={setOpen}>
-			<DropdownMenuTrigger render={<Button variant="ghost" size="icon-lg" aria-label="Account" />}>
+			<DropdownMenuTrigger
+				render={<Button variant="ghost" size="icon-lg" aria-label="Account" className="size-10" />}
+			>
 				<User />
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" sideOffset={8} className="min-w-48">

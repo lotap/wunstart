@@ -16,7 +16,10 @@ export function GitHubIconLink({href}: {href: string}) {
 						target="_blank"
 						rel="noreferrer"
 						aria-label="GitHub"
-						className={cn(buttonVariants({variant: 'ghost', size: 'icon-lg'}), 'max-md:hidden')}
+						className={cn(
+							buttonVariants({variant: 'ghost', size: 'icon-lg'}),
+							'size-10 max-md:hidden',
+						)}
 					>
 						<SiGithub aria-hidden="true" className="size-4" />
 					</a>

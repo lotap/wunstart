@@ -5,7 +5,7 @@ import type {HeaderLink} from './_links.ts'
 
 /**
  * Header link voice. Change this one component to restyle both the desktop list
- * and the drawer; swap `text-sm` for `font-mono text-xs tracking-[0.12em] uppercase`
+ * and the drawer; swap `text-base` for `font-mono text-xs tracking-[0.12em] uppercase`
  * to get the mono-caps variant.
  */
 export function NavLink({
@@ -22,7 +22,7 @@ export function NavLink({
 			to={link.to}
 			onClick={onNavigate}
 			className={cn(
-				'group flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset data-[status=active]:text-foreground motion-reduce:transition-none dark:font-normal',
+				'group flex items-center text-base font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset data-[status=active]:text-foreground motion-reduce:transition-none dark:font-normal',
 				className,
 			)}
 		>

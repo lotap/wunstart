@@ -45,7 +45,7 @@ export function Header() {
 			<div className="px-2">
 				<nav
 					aria-label="Main"
-					className="relative mx-auto grid h-14 max-w-5xl grid-cols-[auto_1fr_auto] items-stretch gap-1 sm:h-16 sm:gap-6"
+					className="relative mx-auto grid h-14 max-w-5xl grid-cols-[auto_1fr_auto] items-stretch gap-1 sm:h-16 sm:gap-6 md:h-18 md:gap-12"
 				>
 					<div className="flex items-center">
 						<Link
@@ -57,19 +57,19 @@ export function Header() {
 							<Wordmark className="h-5 w-auto sm:h-6" />
 						</Link>
 					</div>
-					<ul className="hidden h-full items-center gap-5 justify-self-center md:flex">
+					<ul className="hidden h-full items-center gap-6 justify-self-start md:flex">
 						{links.map((link) => (
 							<li key={link.to} className="h-full">
 								<NavLink link={link} className="h-full" />
 							</li>
 						))}
 					</ul>
-					<div className="col-start-3 flex items-center gap-1 justify-self-end">
+					<div className="col-start-3 flex items-center gap-1 justify-self-end md:gap-2">
 						{repoHref && <GitHubIconLink href={repoHref} />}
 						<div className="max-md:hidden">
-							<ThemeToggle />
+							<ThemeToggle className="size-10" />
 						</div>
-						<span aria-hidden="true" className="mx-1 hidden h-5 w-px bg-border md:block" />
+						<span aria-hidden="true" className="mx-2 hidden h-6 w-px bg-border md:block" />
 						{auth ? (
 							<div className="max-md:hidden">
 								<UserNav />
@@ -80,7 +80,7 @@ export function Header() {
 									to="/sign-in"
 									variant="ghost"
 									size="lg"
-									className="hidden px-3 text-sm text-muted-foreground md:inline-flex dark:font-normal"
+									className="hidden h-10 px-4 text-sm text-muted-foreground md:inline-flex dark:font-normal"
 								>
 									Sign in
 								</RouterButton>
@@ -88,7 +88,7 @@ export function Header() {
 									to="/sign-up"
 									size="lg"
 									onClick={closeMenu}
-									className="px-4 max-md:hidden dark:font-normal"
+									className="h-10 px-5 max-md:hidden dark:font-normal"
 								>
 									Sign up
 								</RouterButton>

@@ -27,7 +27,7 @@ export const PUBLIC_REPO_URL: string | null = 'https://github.com/you/your-app'`
 const headerFiles = [
 	{
 		name: 'src/components/global/header/header.tsx',
-		job: 'Layout, centered links, signed-out GitHub action, theme, auth, and the drawer trigger.',
+		job: 'Layout, page links, signed-out GitHub action, theme, auth, and the drawer trigger.',
 	},
 	{
 		name: 'src/components/global/header/_links.ts',
@@ -122,7 +122,8 @@ export function HeaderPanel() {
 			<PanelSection id="header-style" title="Choose the voice">
 				<Prose>
 					<InlineCode>_nav-link.tsx</InlineCode> owns both the desktop list and the drawer. The
-					default is the theme sans at 14px, 500 in light and 400 in dark, sentence case; below{' '}
+					default is the theme sans at 16px, 500 in light and 400 in dark, sentence case; in the bar
+					the list sits in a 72px row, 48px after the wordmark, at a 24px gap. Below{' '}
 					<InlineCode>md</InlineCode> the drawer uses 30px at 52px rows with a 24px gutter. The
 					content is one block: page links at 30px/52px, a 64px gap, then GitHub (with an external
 					mark) and Theme (with its icon) at 16px/44px rows. Signed in, the account shortcuts join
@@ -150,11 +151,11 @@ export function HeaderPanel() {
 
 			<PanelSection id="header-behavior" title="Choose alignment and behavior">
 				<Prose>
-					The bar is a three-slot grid: brand, links, actions. The links list is centered by
-					default; switch <InlineCode>justify-self-center</InlineCode> to{' '}
-					<InlineCode>justify-self-start</InlineCode> or <InlineCode>justify-self-end</InlineCode>{' '}
-					to move the group without changing the DOM. Centering keeps the group balanced as links
-					are added; the other two read as a denser cluster against the brand or the actions.
+					The bar is a three-slot grid: brand, links, actions. The links list is anchored to the
+					brand by default; switch <InlineCode>justify-self-start</InlineCode> to{' '}
+					<InlineCode>justify-self-center</InlineCode> or <InlineCode>justify-self-end</InlineCode>{' '}
+					to move the group without changing the DOM. Anchoring reads as one dense cluster;
+					centering balances a longer list; end tucks the group against the actions.
 				</Prose>
 				<Prose>
 					The header is static by default, on the same <InlineCode>max-w-5xl</InlineCode> grid as
@@ -175,7 +176,7 @@ export function HeaderPanel() {
 			<PanelSection id="header-scope" title="Header and page">
 				<Prose>
 					The header is defined by the signed-in state, not by the page’s audience. Its height is
-					constant: 64px desktop, 56px mobile. Marketing, docs, and app pages share the same global
+					constant: 72px desktop, 56px mobile. Marketing, docs, and app pages share the same global
 					frame; page-level navigation belongs to the page. The wordmark is not a heading: each page
 					owns its <InlineCode>h1</InlineCode>. The footer still receives the resolved audience
 					because it is page-attached and revealed at the end.
