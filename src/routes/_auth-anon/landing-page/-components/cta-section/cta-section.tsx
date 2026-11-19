@@ -47,7 +47,7 @@ function CtaTagline({
 	lineRefs: RefObject<Array<HTMLSpanElement | null>>
 }) {
 	return (
-		<h3
+		<h2
 			ref={taglineRef}
 			className="pointer-events-auto flex w-fit flex-col font-heading text-5xl leading-[0.95] tracking-[-0.04em] sm:text-6xl lg:text-7xl"
 		>
@@ -67,7 +67,7 @@ function CtaTagline({
 					</span>
 				</span>
 			))}
-		</h3>
+		</h2>
 	)
 }
 

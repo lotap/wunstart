@@ -43,7 +43,7 @@ export function Headline({
 	wordRefs: RefObject<Array<HTMLSpanElement | null>>
 }) {
 	return (
-		<h2
+		<h1
 			ref={headlineRef}
 			id="grow-next-heading"
 			className="pointer-events-auto flex max-w-full flex-col items-center justify-center gap-x-[0.24em] gap-y-2 text-center font-heading text-[clamp(2.4rem,6.3vw,6rem)] leading-[0.95] font-light tracking-[-0.035em] sm:flex-row sm:flex-wrap sm:items-baseline dark:font-extralight"
@@ -75,6 +75,6 @@ export function Headline({
 			<span ref={headlineTailRef} className="whitespace-nowrap">
 				to life
 			</span>
-		</h2>
+		</h1>
 	)
 }

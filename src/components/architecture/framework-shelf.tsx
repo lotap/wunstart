@@ -416,7 +416,7 @@ export function FrameworkShelf() {
 					<div ref={infoRef} className="flex min-w-0 flex-col md:order-2 md:border-l">
 						<div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
 							<div className="flex flex-col gap-2">
-								<h4 className="text-3xl">{selected.name}</h4>
+								<h3 className="text-3xl">{selected.name}</h3>
 								<div className="flex flex-wrap items-center gap-3">
 									<p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
 										{selected.role}
