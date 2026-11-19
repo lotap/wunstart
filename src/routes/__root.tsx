@@ -14,7 +14,7 @@ import {cva} from 'class-variance-authority'
 
 import {appInfo} from '#/app-info.ts'
 import {Footer} from '#/components/global/footer/footer.tsx'
-import {Header} from '#/components/global/header.tsx'
+import {Header} from '#/components/global/header/header.tsx'
 import {NotFound} from '#/components/global/status-pages/not-found.tsx'
 import {RouteError} from '#/components/global/status-pages/route-error.tsx'
 import {Toaster} from '#/components/ui/toast.tsx'

@@ -18,6 +18,7 @@ import {
 	RbacFeature,
 } from './features/planned-features.tsx'
 import {DatabaseMigrationsPanel} from './guides/database-migrations-panel.tsx'
+import {HeaderPanel} from './guides/header-panel.tsx'
 import {PageRecipePanel} from './guides/page-recipe-panel.tsx'
 import {WorktreesPanel} from './guides/worktrees-panel.tsx'
 import {AbusePanel} from './reference/abuse-panel.tsx'
@@ -50,6 +51,7 @@ const referencePanels = [
 // Task order, not alphabetical: the order a new project meets them.
 const guidePanels = [
 	{key: 'start-a-new-page', label: 'Start a new page', Panel: PageRecipePanel},
+	{key: 'customize-header', label: 'Customize the header', Panel: HeaderPanel},
 	{key: 'worktrees', label: 'Worktrees', Panel: WorktreesPanel},
 	{key: 'database-migrations', label: 'Database migrations', Panel: DatabaseMigrationsPanel},
 ] as const

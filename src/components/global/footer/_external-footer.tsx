@@ -3,6 +3,7 @@ import {Link} from '@tanstack/react-router'
 import {ArrowRight, ArrowUpRight} from 'lucide-react'
 
 import {appInfo} from '#/app-info.ts'
+import {PUBLIC_REPO_URL} from '#/repo.ts'
 
 import {Wordmark} from '../wordmark.tsx'
 import {FooterImage} from './_footer-image.tsx'
@@ -69,25 +70,27 @@ export function ExternalFooter() {
 								)}
 							</ul>
 						</div>
-						<div>
-							<p className="hidden text-xs font-medium tracking-[0.18em] uppercase lg:block">
-								Connect
-							</p>
-							<ul className="flex flex-row gap-4 lg:mt-3 lg:flex-col lg:gap-2">
-								<li>
-									<a
-										href="https://github.com/lotap/wunstart"
-										target="_blank"
-										rel="noreferrer"
-										className="inline-flex items-center gap-1.5 whitespace-nowrap underline decoration-transparent underline-offset-4 transition-colors hover:decoration-current"
-									>
-										<SiGithub aria-hidden="true" className="size-4" />
-										GitHub
-										<ArrowUpRight aria-hidden="true" className="size-3.5" />
-									</a>
-								</li>
-							</ul>
-						</div>
+						{PUBLIC_REPO_URL && (
+							<div>
+								<p className="hidden text-xs font-medium tracking-[0.18em] uppercase lg:block">
+									Connect
+								</p>
+								<ul className="flex flex-row gap-4 lg:mt-3 lg:flex-col lg:gap-2">
+									<li>
+										<a
+											href={PUBLIC_REPO_URL}
+											target="_blank"
+											rel="noreferrer"
+											className="inline-flex items-center gap-1.5 whitespace-nowrap underline decoration-transparent underline-offset-4 transition-colors hover:decoration-current"
+										>
+											<SiGithub aria-hidden="true" className="size-4" />
+											GitHub
+											<ArrowUpRight aria-hidden="true" className="size-3.5" />
+										</a>
+									</li>
+								</ul>
+							</div>
+						)}
 					</nav>
 				</div>
 

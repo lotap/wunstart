@@ -4,6 +4,7 @@ import {ArrowUp} from 'lucide-react'
 import {appInfo} from '#/app-info.ts'
 import ThemeToggle from '#/components/global/theme-toggle.tsx'
 import {useReducedMotion} from '#/hooks/use-reduced-motion.ts'
+import {PUBLIC_REPO_URL} from '#/repo.ts'
 
 const year = new Date().getFullYear()
 
@@ -37,13 +38,15 @@ export function FooterUtility({className}: {className?: string}) {
 				</small>
 				<UtilityLink href="#">Privacy policy</UtilityLink>
 				<UtilityLink href="#">Terms of service</UtilityLink>
-				<UtilityLink
-					href="https://github.com/lotap/wunstart/blob/trunk/LICENSE"
-					target="_blank"
-					rel="noreferrer"
-				>
-					MIT License
-				</UtilityLink>
+				{PUBLIC_REPO_URL && (
+					<UtilityLink
+						href={`${PUBLIC_REPO_URL}/blob/HEAD/LICENSE`}
+						target="_blank"
+						rel="noreferrer"
+					>
+						MIT License
+					</UtilityLink>
+				)}
 			</div>
 			<div className="flex items-center gap-2">
 				<ThemeToggle size="icon-sm" />

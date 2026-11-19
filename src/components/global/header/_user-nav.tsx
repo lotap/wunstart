@@ -1,7 +1,7 @@
 import {useQuery} from '@tanstack/react-query'
 import {Link} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
-import {LogOut, User} from 'lucide-react'
+import {LogOut, CircleUserRound, ShieldCheck, SlidersHorizontal, User} from 'lucide-react'
 import {useState} from 'react'
 
 import {userProfileQueryOptions} from '#/components/auth/_utils.ts'
@@ -17,8 +17,18 @@ import {
 } from '#/components/ui/dropdown-menu.tsx'
 import {Skeleton} from '#/components/ui/skeleton.tsx'
 import {useSignOut} from '#/hooks/use-sign-out.ts'
-import {CATEGORIES} from '#/routes/_auth-protected/settings/-categories.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
+
+/**
+ * Account-menu shortcuts into settings. The menu owns its own list so global
+ * chrome never imports a route module; the ids stay literal, so the settings
+ * route’s search schema fails the typecheck when a category is renamed.
+ */
+const SETTINGS_SHORTCUTS = [
+	{id: 'preferences', label: 'Preferences', Icon: SlidersHorizontal},
+	{id: 'profile', label: 'Profile', Icon: CircleUserRound},
+	{id: 'access', label: 'Access & Security', Icon: ShieldCheck},
+] as const
 
 export function UserNav() {
 	const signOut = useSignOut()
@@ -36,7 +46,7 @@ export function UserNav() {
 
 	return (
 		<DropdownMenu open={open} onOpenChange={setOpen}>
-			<DropdownMenuTrigger render={<Button variant="ghost" size="icon" aria-label="Account" />}>
+			<DropdownMenuTrigger render={<Button variant="ghost" size="icon-lg" aria-label="Account" />}>
 				<User />
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" sideOffset={8} className="min-w-48">
@@ -53,7 +63,7 @@ export function UserNav() {
 					</DropdownMenuGroup>
 				)}
 				{(isPending || profile) && <DropdownMenuSeparator />}
-				{CATEGORIES.map(({id, label, Icon}) => (
+				{SETTINGS_SHORTCUTS.map(({id, label, Icon}) => (
 					<DropdownMenuItem
 						key={id}
 						render={<Link to="/settings" search={{categories: [id]}} />}
