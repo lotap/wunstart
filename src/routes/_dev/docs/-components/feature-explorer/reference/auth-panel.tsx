@@ -390,8 +390,10 @@ export function AuthPanel() {
 					</PanelRow>
 					<PanelRow label="liveness check">
 						Session liveness is one prepared primary-key lookup per guarded action, never per render
-						or per row. Auth reads must bypass Hyperdrive caching: cached reads are not invalidated
-						by writes, so a cached session row can outlive a revocation.
+						or per row. The production Hyperdrive config is cache-disabled: query caching is on by
+						default (60s + 15s stale) and writes do not invalidate it. Liveness queries contain
+						<InlineCode>now()</InlineCode> and are uncacheable anyway; user and Anon reads are the
+						ones that would serve stale rows.
 					</PanelRow>
 					<PanelRow label="remove account">
 						Requires sudo. Archives the User; sessions and email verifications archive with it, and
