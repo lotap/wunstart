@@ -28,6 +28,17 @@ const environmentGroups: Array<{
 				),
 			},
 			{
+				name: 'VITE_COOKIE_SUFFIX',
+				description: (
+					<>
+						Dev only. Suffix appended to the auth and anon cookie names, written to{' '}
+						<InlineCode>.env.local</InlineCode> by <InlineCode>branch-env</InlineCode> from the
+						branch database name. Cookies ignore ports, so worktrees on{' '}
+						<InlineCode>localhost</InlineCode> would otherwise collide.
+					</>
+				),
+			},
+			{
 				name: 'CLOUDFLARE_ENV',
 				description: (
 					<>
