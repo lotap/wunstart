@@ -1,9 +1,10 @@
 import {cva} from 'class-variance-authority'
 import {cn} from 'cn'
 import {ArrowUp, ChevronDown} from 'lucide-react'
-import {type MouseEvent, type RefObject, useEffect, useRef, useState} from 'react'
+import {type MouseEvent, type RefObject, useRef, useState} from 'react'
 
 import {Tooltip, TooltipContent, TooltipTrigger} from '#/components/ui/tooltip.tsx'
+import {useDismissibleMenu} from '#/hooks/use-dismissible-menu.ts'
 import {useIsomorphicLayoutEffect} from '#/hooks/use-isomorphic-layout-effect.ts'
 import {useReducedMotion} from '#/hooks/use-reduced-motion.ts'
 
@@ -80,6 +81,14 @@ export function HeroSectionNav({
 	const triggerRef = useRef<HTMLButtonElement>(null)
 	const menuRef = useRef<HTMLDivElement>(null)
 
+	/** Transient so it never fights the hero’s scroll choreography. */
+	useDismissibleMenu({
+		open: menuOpen,
+		setOpen: setMenuOpen,
+		containerRef: navRef,
+		triggerRef,
+	})
+
 	const activeLink = HERO_SECTION_LINKS.find((link) => link.href.slice(1) === activeSection)
 	const activeName = activeLink?.label ?? 'Sections'
 
@@ -104,39 +113,6 @@ export function HeroSectionNav({
 			event.preventDefault()
 		}
 	}
-
-	/**
-	 * The mobile menu is transient: any scroll, resize, outside press, or
-	 * Escape closes it so it never fights the hero’s scroll choreography.
-	 */
-	useEffect(() => {
-		if (!menuOpen) return
-
-		const close = () => setMenuOpen(false)
-
-		const onPointerDown = (event: PointerEvent) => {
-			if (event.target instanceof Node && !navRef.current?.contains(event.target)) close()
-		}
-
-		const onKeyDown = (event: KeyboardEvent) => {
-			if (event.key !== 'Escape') return
-
-			close()
-			triggerRef.current?.focus()
-		}
-
-		window.addEventListener('scroll', close, {passive: true})
-		window.addEventListener('resize', close)
-		document.addEventListener('pointerdown', onPointerDown)
-		window.addEventListener('keydown', onKeyDown)
-
-		return () => {
-			window.removeEventListener('scroll', close)
-			window.removeEventListener('resize', close)
-			document.removeEventListener('pointerdown', onPointerDown)
-			window.removeEventListener('keydown', onKeyDown)
-		}
-	}, [menuOpen, navRef])
 
 	/** Flip the dropdown above the pill when it sits near the viewport bottom. */
 	useIsomorphicLayoutEffect(() => {
