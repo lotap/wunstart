@@ -1,9 +1,10 @@
 import {createServerOnlyFn} from '@tanstack/react-start'
 import {Effect, Layer, Result, Schema} from 'effect'
 
-import type {OpsErrorContract} from '#/db/ops/ops-error.ts'
+import {isOpsError, type OpsErrorContract} from '#/db/ops/ops-error.ts'
 import {RateLimitError} from '#/db/ops/rate-limit-error.ts'
 
+import {clearAuthCookies} from './_set-auth-cookies.ts'
 import {allowPerWindow, addRateLimitEvent} from './rate-limit.ts'
 
 /**
@@ -51,7 +52,7 @@ const IpAddressParams = Schema.Struct({ipAddress: Schema.String})
 
 /**
  * Reads the caller-supplied ipAddress for the rate limiter. Ops require `ipAddress` in
- * their params, enforced by `createOpsFn`; system ops get `0.0.0.0` injected by
+ * their params, enforced by `createOpsFn`; system ops get `SYSTEM_OPS_IP` injected by
  * `createSystemOpsFn`. But `runOp` receives opaque `OpArgs<T>`, so validate rather than
  * cast. A missing `ipAddress` is a programming error, and surfacing it as a thrown error
  * is intentional.
@@ -96,5 +97,39 @@ export const runOp = createServerOnlyFn(
 		return Effect.runPromise(
 			effect as Effect.Effect<OpResult<T>, Layer.Error<L[number]> | OpFailure>,
 		)
+	},
+)
+
+/**
+ * Failure causes that prove the refresh session behind the request is unusable:
+ * the JWS cannot be verified, or its Session row is gone, expired, or revoked.
+ *
+ * Only ops that already ran their own live-session check produce these on an
+ * authenticated request, so classifying them here adds no database read.
+ */
+const DEAD_SESSION_CAUSES: ReadonlySet<string> = new Set(['INVALID_JWS', 'SESSION_NOT_FOUND'])
+
+/**
+ * `runOp` for handlers whose op already checked the refresh session with
+ * `verifyLiveSession`. When that check fails, drop the auth cookies before
+ * rethrowing.
+ *
+ * The access token keeps working for up to 15 minutes after its Session is
+ * gone. A failed sudo-gated mutation is the point where the server knows the
+ * cookie pair is dead, so it should not leave the browser carrying it.
+ *
+ * Not for `signOutAll`: that handler stays strict on purpose and keeps the
+ * cookies when a dead or forged token fails the all-device sign-out.
+ */
+export const runOpClearingDeadSession = createServerOnlyFn(
+	async <T extends Op<L>, const L extends Layers>(args: RunArgs<L, T>): Promise<OpResult<T>> => {
+		try {
+			return await runOp(args)
+		} catch (error) {
+			if (isOpsError(error) && DEAD_SESSION_CAUSES.has(error.activity.failureCause))
+				clearAuthCookies()
+
+			throw error
+		}
 	},
 )

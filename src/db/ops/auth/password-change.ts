@@ -1,6 +1,6 @@
 import {DateTime, Effect, Schema} from 'effect'
 
-import {ArchiveCountMismatchError} from '#/db/helpers/funcs.ts'
+import {ArchiveCountMismatchError} from '#/db/helpers/archive-fns.ts'
 import * as sessionsCascades from '#/db/models/sessions/cascades.ts'
 import * as usersQueries from '#/db/models/users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
@@ -15,6 +15,7 @@ import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
 import {generateAnonToken} from './_anon-token.ts'
 import {hashTarget} from './_hashing.ts'
 import {formatUserAgent} from './_user-agent.ts'
+import {verifyLiveSession} from './_verify-live-session.ts'
 
 const genericFailureOutputMessage = 'Something went wrong. Please try again.'
 
@@ -28,6 +29,7 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 	timezone,
 	userId,
 	sudoExpiresAt,
+	refreshToken,
 }: {
 	input: (typeof PasswordChangeCredentials)['Type']
 	ipAddress: string
@@ -38,6 +40,7 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 	timezone: string | null
 	userId: string
 	sudoExpiresAt?: DateTime.Utc
+	refreshToken: string
 }) {
 	/** Ensure sudo privileges have not expired */
 	if (!sudoExpiresAt || DateTime.isPastUnsafe(sudoExpiresAt)) {
@@ -47,6 +50,9 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 			message: 'Your verification has expired. Re-verify, then try again.',
 		})
 	}
+
+	/** Ensure the refresh-token session is still live, not just the access token */
+	yield* verifyLiveSession({refreshToken, userId})
 
 	/** Before processing, check if the ip address or user should be ratelimited */
 	const currentBansAndExcessiveActivities = yield* checkCurrentBansAndExcessiveActivities({

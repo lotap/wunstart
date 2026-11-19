@@ -6,7 +6,7 @@ import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
 import {emailChange} from '#/db/ops/auth/email-change.ts'
 import {emailLayer} from '#/email/layer.ts'
 import {EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
-import {runOp} from '#/middleware/_run-op.server.ts'
+import {runOpClearingDeadSession} from '#/middleware/_run-op.server.ts'
 import {rateLimit} from '#/middleware/rate-limit.ts'
 import {requireAuth} from '#/middleware/require-auth.ts'
 
@@ -23,10 +23,10 @@ export const handleEmailChange = createServerFn({method: 'POST'})
 				city,
 				region,
 				timezone,
-				auth: {userId, sudoExpiresAt},
+				auth: {userId, sudoExpiresAt, refreshToken},
 			},
 		}) => {
-			return await runOp({
+			return await runOpClearingDeadSession({
 				op: emailChange,
 				data: {
 					input: data,
@@ -38,6 +38,7 @@ export const handleEmailChange = createServerFn({method: 'POST'})
 					timezone,
 					userId,
 					sudoExpiresAt,
+					refreshToken,
 				},
 				layers: [authLayer, dbLayer, emailLayer],
 			})

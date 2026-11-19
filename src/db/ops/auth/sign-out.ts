@@ -1,14 +1,12 @@
 import {Effect} from 'effect'
 
 import {archive as archiveSession} from '#/db/models/sessions/cascades.ts'
-import * as sessionsQueries from '#/db/models/sessions/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
-import {verifyTarget} from '#/db/ops/auth/_hashing.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
-import {HashingStub} from '#/db/ops/service-bindings.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
-import {extractRefreshTokenPayload} from './_refresh-token.ts'
+import {decodeRefreshSession} from './_refresh-session.ts'
+import {verifyRefreshNonce} from './_verify-refresh-nonce.ts'
 
 /**
  * Remove session and add it to sessionsArchive
@@ -31,40 +29,46 @@ const _signOut = Effect.fn('signOut')(function* ({
 	city: string | null
 	region: string | null
 }) {
-	const {nonce, sessionId} = yield* extractRefreshTokenPayload(token).pipe(
-		Effect.mapError(({operation}) =>
-			opsFailure({
-				failureCause: 'INVALID_JWS',
-				meta: {operation},
-				rateAllowance: 3,
-			}),
-		),
-	)
+	const message = 'Your session has expired. Sign in and try again.'
 
-	/** Find the session by id */
-	const [session] = yield* sessionsQueries.select({id: sessionId})
+	const resolved = yield* decodeRefreshSession({token})
 
-	/** If the session is not found, throw an associated error */
-	if (!session)
+	/**
+	 * Revoked/expired/invalid tokens are terminal states the handler completes
+	 * locally, so they keep the audit row but carry no ban weight (a few stale
+	 * devices behind one IP must not lock it out)
+	 */
+	if (resolved.status === 'invalid')
 		return yield* opsFailure({
-			failureCause: 'SESSION_NOT_FOUND',
-			meta: {sessionId},
-			rateAllowance: 3,
+			failureCause: 'INVALID_JWS',
+			meta: {operation: resolved.operation},
+			rateAllowance: Infinity,
+			message,
 		})
 
-	const {nonceHash, userId} = session
+	if (resolved.status === 'missing')
+		return yield* opsFailure({
+			failureCause: 'SESSION_NOT_FOUND',
+			meta: {sessionId: resolved.sessionId},
+			rateAllowance: Infinity,
+			message,
+		})
 
-	/** Ensure the refresh token matches the hashed one stored in the database */
-	const isNonceVerified = yield* verifyTarget(nonceHash, nonce).pipe(
-		// oxlint-disable-next-line effecttsgo/strict-effect-provide
-		Effect.provide(HashingStub.layer(userId)),
-	)
+	const {generation, nonce, session} = resolved
+
+	const {userId} = session
+
+	/** Ensure the refresh token matches the hash (or grace nonce) stored in the database */
+	const nonceCheck = yield* verifyRefreshNonce({session, generation, nonce})
 
 	/** If the refresh token doesn't match, throw an associated error */
-	if (!isNonceVerified)
+	if (nonceCheck !== 'match')
 		return yield* opsFailure({
 			failureCause: 'WRONG_NONCE',
-			rateAllowance: 3,
+			/** Same terminal-state handling: no ban weight for a sign-out the handler completes locally */
+			rateAllowance: Infinity,
+			userId,
+			message,
 		})
 
 	/**
@@ -73,7 +77,7 @@ const _signOut = Effect.fn('signOut')(function* ({
 	 * transaction back rather than half-archiving), which is still a successful
 	 * sign-out. Treat it as a no-op rather than an error
 	 */
-	yield* archiveSession({id: sessionId}).pipe(
+	yield* archiveSession({id: session.id}).pipe(
 		Effect.catchTags({
 			ArchiveNotFoundError: () => Effect.void,
 			ArchiveCountMismatchError: () => Effect.void,
@@ -89,7 +93,7 @@ const _signOut = Effect.fn('signOut')(function* ({
 		regions: region ? [region] : [],
 	})
 
-	return {anonToken}
+	return {anonToken, logging: {userId}}
 })
 
 export const signOut = createOpsFn({fn: _signOut, label: 'AUTH_SIGN_OUT'})

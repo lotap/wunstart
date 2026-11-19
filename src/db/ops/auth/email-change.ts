@@ -13,6 +13,7 @@ import {renderEmailChangeConfirmation} from '#/email/templates/email-change-conf
 import {EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 
 import {formatUserAgent} from './_user-agent.ts'
+import {verifyLiveSession} from './_verify-live-session.ts'
 import {burnPasscode} from './email/_burn-passcode.ts'
 import {verify} from './email/_verify.ts'
 
@@ -28,6 +29,7 @@ const _emailChange = Effect.fn('emailChange')(function* ({
 	timezone,
 	userId,
 	sudoExpiresAt,
+	refreshToken,
 }: {
 	input: (typeof EmailPasscodeCredentials)['Type']
 	ipAddress: string
@@ -38,6 +40,7 @@ const _emailChange = Effect.fn('emailChange')(function* ({
 	timezone: string | null
 	userId: string
 	sudoExpiresAt?: DateTime.Utc
+	refreshToken: string
 }) {
 	/** Ensure sudo privileges have not expired */
 	if (!sudoExpiresAt || DateTime.isPastUnsafe(sudoExpiresAt)) {
@@ -47,6 +50,9 @@ const _emailChange = Effect.fn('emailChange')(function* ({
 			message: 'Your verification has expired. Re-verify, then try again.',
 		})
 	}
+
+	/** Ensure the refresh-token session is still live, not just the access token */
+	yield* verifyLiveSession({refreshToken, userId})
 
 	/** Before processing, check if the ip address or user should be ratelimited */
 	const currentBansAndExcessiveActivities = yield* checkCurrentBansAndExcessiveActivities({

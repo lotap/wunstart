@@ -9,6 +9,8 @@ import {useSignOutAll} from '#/hooks/use-sign-out-all.ts'
 import {useSignOut} from '#/hooks/use-sign-out.ts'
 import {handleGetSessions} from '#/server-fns/handle-get-sessions.ts'
 
+import {useStaleSessionRedirect} from '../-hooks/use-stale-session-redirect.ts'
+
 type SessionDisplay = {
 	createdAt: Date
 	createdAtString: string
@@ -58,24 +60,30 @@ function CurrentBox({children}: {children: ReactNode}) {
 	)
 }
 
-function SessionsList() {
+function useSessionsQuery() {
 	const handleGetSessionsFn = useServerFn(handleGetSessions)
 
-	const sessionsQueryOptions = queryOptions({
-		queryKey: ['sessions'],
-		queryFn: () => handleGetSessionsFn(),
-		/**
-		 * Locale-dependent display text is derived as query data (select),
-		 * not formatted during render
-		 */
-		select: (sessions) =>
-			sessions.map((session) => ({
-				...session,
-				createdAtString: session.createdAt.toLocaleString(),
-			})),
-	})
+	return useQuery(
+		queryOptions({
+			queryKey: ['sessions'],
+			queryFn: () => handleGetSessionsFn(),
+			/**
+			 * Locale-dependent display text is derived as query data (select),
+			 * not formatted during render
+			 */
+			select: (sessions) =>
+				sessions.map((session) => ({
+					...session,
+					createdAtString: session.createdAt.toLocaleString(),
+				})),
+		}),
+	)
+}
 
-	const {isPending, error, data: sessions} = useQuery(sessionsQueryOptions)
+type SessionsQuery = ReturnType<typeof useSessionsQuery>
+
+function SessionsList({query}: {query: SessionsQuery}) {
+	const {isPending, error, data: sessions} = query
 
 	if (isPending)
 		return (
@@ -106,8 +114,9 @@ function SessionsList() {
 	const current = sessions.find((session) => session.isCurrent)
 	const others = sessions.filter((session) => !session.isCurrent)
 
-	/** Every session is gone (e.g. a remote sign-out-all): nothing to list or leave */
-	if (!sessions.length) return <p className="text-sm text-muted-foreground">No active sessions.</p>
+	/** Every session is gone (e.g. a remote sign-out-all): the guard is about to redirect */
+	if (!sessions.length)
+		return <p className="text-sm text-muted-foreground">Your session has ended.</p>
 
 	/** Fail-closed: current unknown, keep the single combined list */
 	if (!current)
@@ -145,23 +154,35 @@ function SessionsList() {
 
 export function SessionsSection() {
 	const signOutAll = useSignOutAll()
+	const sessionsQuery = useSessionsQuery()
+
+	/**
+	 * Stale device: `handleGetSessions` cleared the dead cookies when it found no
+	 * live sessions. Hide the action while the guard redirects to sign-in.
+	 */
+	const hasNoSessions =
+		!sessionsQuery.isPending && !sessionsQuery.error && sessionsQuery.data.length === 0
+
+	useStaleSessionRedirect(hasNoSessions)
 
 	return (
 		<section className="flex flex-col gap-4">
 			<h3 className="text-sm font-medium text-muted-foreground">Sessions</h3>
 			<div className="flex flex-col gap-2">
 				<ErrorBoundary fallback={<p>Couldn’t render your sessions. Please try again.</p>}>
-					<SessionsList />
+					<SessionsList query={sessionsQuery} />
 				</ErrorBoundary>
-				{/** Extra top margin as a deliberate break before the sign-out-all action */}
-				<div className="mt-2 flex flex-row flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border p-4">
-					<Button variant="outline" onClick={async () => await signOutAll()} className="w-fit">
-						Sign Out All
-					</Button>
-					<p className="min-w-0 flex-1 basis-64 text-sm text-muted-foreground">
-						Ends every session, including this device. You will need to sign in again.
-					</p>
-				</div>
+				{hasNoSessions ? null : (
+					/** Extra top margin as a deliberate break before the sign-out-all action */
+					<div className="mt-2 flex flex-row flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border p-4">
+						<Button variant="outline" onClick={async () => await signOutAll()} className="w-fit">
+							Sign Out All
+						</Button>
+						<p className="min-w-0 flex-1 basis-64 text-sm text-muted-foreground">
+							Ends every session, including this device. You will need to sign in again.
+						</p>
+					</div>
+				)}
 			</div>
 		</section>
 	)

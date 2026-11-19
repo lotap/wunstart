@@ -7,6 +7,7 @@ import {opsFailure} from '#/db/ops/ops-error.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
+import {verifyLiveSession} from './_verify-live-session.ts'
 
 const genericFailureOutputMessage = 'Something went wrong. Please try again.'
 
@@ -27,6 +28,7 @@ const _removeUser = Effect.fn('removeUser')(function* ({
 	region,
 	userId,
 	sudoExpiresAt,
+	refreshToken,
 }: {
 	ipAddress: string
 	userAgent: string
@@ -35,6 +37,7 @@ const _removeUser = Effect.fn('removeUser')(function* ({
 	region: string | null
 	userId: string
 	sudoExpiresAt?: DateTime.Utc
+	refreshToken: string
 }) {
 	/** Ensure sudo privileges have not expired */
 	if (!sudoExpiresAt || DateTime.isPastUnsafe(sudoExpiresAt)) {
@@ -44,6 +47,9 @@ const _removeUser = Effect.fn('removeUser')(function* ({
 			message: 'Your verification has expired. Re-verify, then try again.',
 		})
 	}
+
+	/** Ensure the refresh-token session is still live, not just the access token */
+	yield* verifyLiveSession({refreshToken, userId})
 
 	/** Before processing, check if the ip address or user should be ratelimited */
 	const currentBansAndExcessiveActivities = yield* checkCurrentBansAndExcessiveActivities({
