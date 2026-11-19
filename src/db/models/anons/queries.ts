@@ -88,6 +88,7 @@ export const archiveInsert = createPreparedQuery({
 				countries: sql.placeholder('countries'),
 				cities: sql.placeholder('cities'),
 				regions: sql.placeholder('regions'),
+				userId: sql.placeholder('userId'),
 			})
 			.returning({archiveId})
 			.prepare(`${labelPrefix}_archive_insert`),

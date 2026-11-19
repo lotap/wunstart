@@ -67,6 +67,13 @@ export const retireAnon = Effect.fn('retireAnon')(function* (
 			 * A registered token can outlive its row: a cross-database dev cookie,
 			 * a branch reset, or a concurrent archive. Sign-in must not fail for
 			 * that, so fall through to the archive rather than rolling back.
+			 *
+			 * A concurrent archive that loses the delete race raises
+			 * `ArchiveCountMismatchError` instead. Callers retry the whole
+			 * transaction (`retryTransientOrArchiveRace`), so the next attempt finds the
+			 * winner’s row here. Do not catch it inside this transaction: Postgres
+			 * has already aborted it, and the loser’s archive insert would commit
+			 * as a duplicate.
 			 */
 			.pipe(Effect.catchTag('ArchiveNotFoundError', () => Effect.succeed([])))
 
@@ -92,6 +99,7 @@ export const retireAnon = Effect.fn('retireAnon')(function* (
 				countries: newCountries,
 				cities: newCities,
 				regions: newRegions,
+				userId,
 			},
 			tx,
 		)
@@ -111,6 +119,7 @@ export const retireAnon = Effect.fn('retireAnon')(function* (
 			countries: newCountries,
 			cities: newCities,
 			regions: newRegions,
+			userId,
 		},
 		tx,
 	)
