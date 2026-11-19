@@ -108,9 +108,12 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 		 * Don't fail whole operation on missend, but log the failure
 		 */
 		yield* Effect.gen(function* () {
+			const {send, appUrl} = yield* EmailService
+
 			const {html, text, subject} = yield* Effect.tryPromise({
 				try: () =>
 					renderPasswordChangeConfirmation({
+						appUrl,
 						ipAddress,
 						occurredAt: rowData.updatedAt,
 						country,
@@ -125,7 +128,6 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 					}),
 			})
 
-			const {send} = yield* EmailService
 			yield* send({to: rowData.email, subject, html, text})
 		}).pipe(
 			Effect.ignore({log: true, message: 'Failed to dispatch the password change confirmation'}),

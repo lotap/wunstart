@@ -5,6 +5,7 @@ import {appInfo} from '#/app-info.ts'
 import {RouterButton} from './router-button.tsx'
 import ThemeToggle from './theme-toggle.tsx'
 import {UserNav} from './user-nav.tsx'
+import {Wordmark} from './wordmark.tsx'
 
 const rootApi = getRouteApi('__root__')
 
@@ -14,8 +15,10 @@ export function Header() {
 	return (
 		<header className="relative z-30 border-b bg-background">
 			<nav className="mx-auto flex max-w-5xl flex-row items-center justify-between px-2">
-				<h1 className="font-heading text-2xl font-bold dark:font-semibold">
-					<Link to="/">{appInfo.name}</Link>
+				<h1 className="flex items-center">
+					<Link to="/" aria-label={`${appInfo.name} home`} className="inline-flex">
+						<Wordmark className="h-5 w-auto sm:h-6" />
+					</Link>
 				</h1>
 				<ul className="flex gap-4">
 					<li className="hidden sm:block">

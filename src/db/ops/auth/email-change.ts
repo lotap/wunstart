@@ -127,9 +127,12 @@ const _emailChange = Effect.fn('emailChange')(function* ({
 			 * the account moved. Don't fail the operation on missend, but log it
 			 */
 			yield* Effect.gen(function* () {
+				const {send, appUrl} = yield* EmailService
+
 				const {html, text, subject} = yield* Effect.tryPromise({
 					try: () =>
 						renderEmailChangeConfirmation({
+							appUrl,
 							ipAddress,
 							occurredAt: rowData.updatedAt,
 							country,
@@ -144,7 +147,6 @@ const _emailChange = Effect.fn('emailChange')(function* ({
 						}),
 				})
 
-				const {send} = yield* EmailService
 				yield* send({to: user.email, subject, html, text})
 			}).pipe(
 				Effect.ignore({log: true, message: 'Failed to dispatch the email change confirmation'}),

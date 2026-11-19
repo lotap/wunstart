@@ -3,6 +3,7 @@ import {ArrowUpRight} from 'lucide-react'
 
 import {appInfo} from '#/app-info.ts'
 
+import {Wordmark} from '../wordmark.tsx'
 import {FooterUtility} from './_footer-utility.tsx'
 
 export function InternalFooter() {
@@ -10,12 +11,8 @@ export function InternalFooter() {
 		<footer className="relative bg-background font-normal">
 			<div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8 text-muted-foreground">
 				<div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-					<Link
-						to="/"
-						aria-label={`${appInfo.name} home`}
-						className="text-3xl font-bold tracking-tight text-foreground"
-					>
-						{appInfo.name}
+					<Link to="/" aria-label={`${appInfo.name} home`} className="text-foreground">
+						<Wordmark className="h-8 w-auto" />
 					</Link>
 
 					<nav

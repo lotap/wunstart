@@ -63,9 +63,43 @@ export const emailTailwindConfig = {
 				input: neutral[200],
 				ring: neutral[400],
 			},
+			/**
+			 * Inter is a progressive enhancement: it renders only when the
+			 * recipient already has it installed. No remote font is requested, so
+			 * the system stack carries everyone else and layout must work without
+			 * it.
+			 */
 			fontFamily: {
-				sans: ['Inter', 'Arial', 'Helvetica', 'sans-serif'],
-				heading: ['Inter', 'Arial', 'Helvetica', 'sans-serif'],
+				sans: [
+					'Inter',
+					'-apple-system',
+					'BlinkMacSystemFont',
+					'Segoe UI',
+					'Roboto',
+					'Helvetica Neue',
+					'Arial',
+					'Noto Sans',
+					'sans-serif',
+				],
+				heading: [
+					'Inter',
+					'-apple-system',
+					'BlinkMacSystemFont',
+					'Segoe UI',
+					'Roboto',
+					'Helvetica Neue',
+					'Arial',
+					'Noto Sans',
+					'sans-serif',
+				],
+				mono: [
+					'ui-monospace',
+					'SFMono-Regular',
+					'Menlo',
+					'Consolas',
+					'Liberation Mono',
+					'monospace',
+				],
 			},
 			borderRadius: {
 				'sm': '0.375rem',

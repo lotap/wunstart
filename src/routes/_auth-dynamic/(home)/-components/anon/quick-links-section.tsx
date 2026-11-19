@@ -67,7 +67,7 @@ export function QuickLinksSection() {
 	return (
 		<section aria-labelledby="quick-links-title" className="w-full max-w-5xl">
 			<SlashGrid />
-			<h3 id="quick-links-title" className="px-6 py-3 text-right text-3xl">
+			<h3 id="quick-links-title" className="px-6 py-3 text-right font-heading text-3xl">
 				Quick links
 			</h3>
 			<SlashGrid />

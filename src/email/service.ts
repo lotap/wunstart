@@ -65,6 +65,10 @@ const errorCode = (cause: unknown): string => {
 	return Schema.is(Schema.String)(code) ? code : ''
 }
 
+/**
+ * Sender and public origin. `APP_URL` resolves the wordmark and the sign-up
+ * address, so production must set it to the deployed origin.
+ */
 export class EmailConfig extends Context.Service<
 	EmailConfig,
 	{
@@ -87,6 +91,7 @@ export class EmailService extends Context.Service<
 	EmailService,
 	{
 		readonly from: string
+		/** Public app URL used to build absolute content URLs; delivery never reads it */
 		readonly appUrl: string
 		send: (message: EmailMessage) => Effect.Effect<void, EmailSendError>
 	}

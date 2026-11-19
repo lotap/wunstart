@@ -195,9 +195,12 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 		 * Don't fail whole operation on missend, but log the failure
 		 */
 		yield* Effect.gen(function* () {
+			const {send, appUrl} = yield* EmailService
+
 			const {html, text, subject} = yield* Effect.tryPromise({
 				try: () =>
 					renderSignInNotification({
+						appUrl,
 						ipAddress,
 						occurredAt: DateTime.toDate(now),
 						country,
@@ -212,7 +215,6 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 					}),
 			})
 
-			const {send} = yield* EmailService
 			yield* send({to: userEmail, subject, html, text})
 		}).pipe(Effect.ignore({log: true, message: 'Failed to dispatch the sign-in notification'}))
 

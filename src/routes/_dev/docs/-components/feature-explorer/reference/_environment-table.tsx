@@ -131,7 +131,7 @@ const environmentGroups: Array<{
 				name: 'APP_URL',
 				description: (
 					<>
-						App URL exposed to the email service. Defaults to{' '}
+						Public app URL used by email for the wordmark and sign-up address. Defaults to{' '}
 						<InlineCode>http://localhost:3000</InlineCode>; set your public URL in production.
 					</>
 				),
