@@ -1,5 +1,6 @@
 import {Effect} from 'effect'
 
+import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
 import * as sessionsUsersQueries from '#/db/models/sessions---users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
@@ -84,7 +85,7 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 		if (
 			currentBansAndExcessiveActivities.filter((element) => element.scope === 'FAILED_CREDENTIAL')
 				.length &&
-			!user.ipAddresses.includes(ipAddress)
+			(!isClientIpAddress(ipAddress) || !user.ipAddresses.includes(ipAddress))
 		)
 			return yield* rateLimitFailure({
 				message: genericFailureOutputMessage,

@@ -6,9 +6,22 @@ const ARGON2_HASH_REGEX =
 
 export const Argon2Hash = Schema.String.check(Schema.isPattern(ARGON2_HASH_REGEX))
 
-// From: https://github.com/open-circle/valibot/blob/main/library/src/regex.ts
+/**
+ * IPv4/IPv6 syntax Postgres `inet` accepts.
+ *
+ * These values are written to `inet` columns and used as ban/rate-limit keys,
+ * so the validator must not accept a value the database rejects. The Valibot
+ * regex this derives from allowed a link-local zone (`fe80::1%eth0`) and
+ * embedded IPv4 with a leading zero (`::ffff:1.2.3.04`); both are valid in other
+ * contexts but fail `inet` parsing, turning a header value into a 500. Rejecting
+ * them here lets `getRequestInfo` fall back to the invalid-IP sentinel. Pure
+ * IPv4 stays deliberately stricter than `inet` on leading zeros: such requests
+ * are treated as unknown rather than normalized.
+ *
+ * Derived from: https://github.com/open-circle/valibot/blob/main/library/src/regex.ts
+ */
 const IP_REGEX =
-	/^(?:(?:[1-9]|1\d|2[0-4])?\d|25[0-5])(?:\.(?:(?:[1-9]|1\d|2[0-4])?\d|25[0-5])){3}$|^(?:(?:[\da-f]{1,4}:){7}[\da-f]{1,4}|(?:[\da-f]{1,4}:){1,7}:|(?:[\da-f]{1,4}:){1,6}:[\da-f]{1,4}|(?:[\da-f]{1,4}:){1,5}(?::[\da-f]{1,4}){1,2}|(?:[\da-f]{1,4}:){1,4}(?::[\da-f]{1,4}){1,3}|(?:[\da-f]{1,4}:){1,3}(?::[\da-f]{1,4}){1,4}|(?:[\da-f]{1,4}:){1,2}(?::[\da-f]{1,4}){1,5}|[\da-f]{1,4}:(?::[\da-f]{1,4}){1,6}|:(?:(?::[\da-f]{1,4}){1,7}|:)|fe80:(?::[\da-f]{0,4}){0,4}%[\da-z]+|::(?:f{4}(?::0{1,4})?:)?(?:(?:25[0-5]|(?:2[0-4]|1?\d)?\d)\.){3}(?:25[0-5]|(?:2[0-4]|1?\d)?\d)|(?:[\da-f]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1?\d)?\d)\.){3}(?:25[0-5]|(?:2[0-4]|1?\d)?\d))$/iu
+	/^(?:(?:[1-9]|1\d|2[0-4])?\d|25[0-5])(?:\.(?:(?:[1-9]|1\d|2[0-4])?\d|25[0-5])){3}$|^(?:(?:[\da-f]{1,4}:){7}[\da-f]{1,4}|(?:[\da-f]{1,4}:){1,7}:|(?:[\da-f]{1,4}:){1,6}:[\da-f]{1,4}|(?:[\da-f]{1,4}:){1,5}(?::[\da-f]{1,4}){1,2}|(?:[\da-f]{1,4}:){1,4}(?::[\da-f]{1,4}){1,3}|(?:[\da-f]{1,4}:){1,3}(?::[\da-f]{1,4}){1,4}|(?:[\da-f]{1,4}:){1,2}(?::[\da-f]{1,4}){1,5}|[\da-f]{1,4}:(?::[\da-f]{1,4}){1,6}|:(?:(?::[\da-f]{1,4}){1,7}|:)|::(?:f{4}(?::0{1,4})?:)?(?:(?:(?:[1-9]|1\d|2[0-4])?\d|25[0-5])\.){3}(?:(?:[1-9]|1\d|2[0-4])?\d|25[0-5])|(?:[\da-f]{1,4}:){1,4}:(?:(?:(?:[1-9]|1\d|2[0-4])?\d|25[0-5])\.){3}(?:(?:[1-9]|1\d|2[0-4])?\d|25[0-5]))$/iu
 
 /**
  * Validation for ipv4/ipv6

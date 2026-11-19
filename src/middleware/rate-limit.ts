@@ -15,7 +15,10 @@ const THRESHOLD = 12_600 // Least Common Multiple of 1-10 & 25
 /** How long to hold points for a request */
 const WINDOW_MS = 60_000 // 1 min
 
-/** In-memory score store keyed by ip. */
+/** Hard cap on tracked keys so spoofed addresses cannot grow the store without bound */
+const MAX_STORE_ENTRIES = 10_000
+
+/** In-memory score store keyed by rate-limit key. */
 const store = new Map<
 	string,
 	{
@@ -23,6 +26,26 @@ const store = new Map<
 		timestamp: number
 	}[]
 >()
+
+/**
+ * Normalizes pure IPv6 addresses to their /64 prefix so a client rotating interface
+ * identifiers within a single /64 allocation shares one rate-limit bucket.
+ * IPv4 and IPv4-mapped IPv6 addresses (containing `.`) keep their full address.
+ */
+const toRateLimitKey = (ipAddress: string) => {
+	if (!ipAddress.includes(':') || ipAddress.includes('.')) return ipAddress.toLowerCase()
+
+	const [head = '', tail = ''] = ipAddress.toLowerCase().split('::')
+	const headParts = head ? head.split(':') : []
+	const tailParts = tail ? tail.split(':') : []
+	const missing = Math.max(0, 8 - headParts.length - tailParts.length)
+	const full = [...headParts, ...Array.from({length: missing}, () => '0'), ...tailParts]
+
+	return `${full
+		.slice(0, 4)
+		.map((hextet) => hextet.padStart(4, '0'))
+		.join(':')}::/64`
+}
 
 let cleanCounter = 0
 
@@ -59,28 +82,42 @@ const rejectRateLimited = createServerOnlyFn(() => {
 })
 
 /**
- * Record a scored event for an IP address and check the rate-limit threshold.
+ * Record a scored event for a rate-limit key and check the threshold.
  *
  * Expired events (older than `WINDOW_MS`) are pruned before the check.
  * If the accumulated score exceeds `THRESHOLD`, the response is set to 429
- * and a `KnownServerError` is thrown. This must only be called within a
- * request context (middleware or server function).
+ * and a `KnownServerError` is thrown. Once a key is over threshold, further
+ * events are rejected without being recorded, so a flooded key cannot grow
+ * its own event array or slide its window forward. This must only be called
+ * within a request context (middleware or server function).
  *
  * @throws {KnownServerError} with HTTP 429 when threshold is breached.
  */
 export function addRateLimitEvent({ipAddress, weight}: {ipAddress: string; weight: number}) {
 	const now = Date.now()
-	const events = store.get(ipAddress)?.filter((e) => e.timestamp > now - WINDOW_MS) ?? []
-	events.unshift({weight, timestamp: now})
-	store.set(ipAddress, events)
+	const key = toRateLimitKey(ipAddress)
 
-	let sum = 0
+	if (!store.has(key) && store.size >= MAX_STORE_ENTRIES) {
+		/**
+		 * O(1) FIFO eviction. The full prune stays on the amortized cleanup
+		 * path above; sweeping 10k keys here would let an attacker at capacity
+		 * trigger an O(store × events) scan on every new key.
+		 */
+		const oldestKey = store.keys().next().value
 
-	for (const {weight: _weight} of events) {
-		sum = sum + _weight
-
-		if (sum > THRESHOLD) rejectRateLimited()
+		if (oldestKey !== undefined) store.delete(oldestKey)
 	}
+
+	const events = store.get(key)?.filter((event) => event.timestamp > now - WINDOW_MS) ?? []
+
+	const previousWeight = events.reduce((sum, event) => sum + event.weight, 0)
+
+	if (previousWeight > THRESHOLD) return rejectRateLimited()
+
+	events.unshift({weight, timestamp: now})
+	store.set(key, events)
+
+	if (previousWeight + weight > THRESHOLD) rejectRateLimited()
 }
 
 /**
