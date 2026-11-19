@@ -82,24 +82,27 @@ function useSessionsQuery() {
 
 type SessionsQuery = ReturnType<typeof useSessionsQuery>
 
-function SessionsList({query}: {query: SessionsQuery}) {
-	const {isPending, error, data: sessions} = query
+function SessionsLoading() {
+	return (
+		<CurrentBox>
+			{/* min-h matches the three-line current-session content below so the box never changes height */}
+			<p
+				// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+				role="status"
+				aria-busy="true"
+				className="flex min-h-16 items-center gap-1 text-sm text-muted-foreground"
+			>
+				Loading sessions <Spinner />
+			</p>
+			<SignOutButton />
+		</CurrentBox>
+	)
+}
 
-	if (isPending)
-		return (
-			<CurrentBox>
-				{/* min-h matches the three-line current-session content below so the box never changes height */}
-				<p
-					// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-					role="status"
-					aria-busy="true"
-					className="flex min-h-16 items-center gap-1 text-sm text-muted-foreground"
-				>
-					Loading sessions <Spinner />
-				</p>
-				<SignOutButton />
-			</CurrentBox>
-		)
+function SessionsList({query}: {query: SessionsQuery}) {
+	const {isPending, error, data: sessions, isFetchedAfterMount} = query
+
+	if (isPending) return <SessionsLoading />
 
 	if (error)
 		return (
@@ -110,6 +113,13 @@ function SessionsList({query}: {query: SessionsQuery}) {
 				<SignOutButton />
 			</CurrentBox>
 		)
+
+	/**
+	 * A cached empty list is not evidence: a remote sign-out leaves `[]` in the
+	 * cache, and a later sign-in would show “Your session has ended.” until the
+	 * refetch lands. Wait for a fetch that started after this mount.
+	 */
+	if (sessions.length === 0 && !isFetchedAfterMount) return <SessionsLoading />
 
 	const current = sessions.find((session) => session.isCurrent)
 	const others = sessions.filter((session) => !session.isCurrent)
@@ -158,10 +168,15 @@ export function SessionsSection() {
 
 	/**
 	 * Stale device: `handleGetSessions` cleared the dead cookies when it found no
-	 * live sessions. Hide the action while the guard redirects to sign-in.
+	 * live sessions. Hide the action while the guard redirects to sign-in. Only a
+	 * response fetched after this mount counts: a cached empty list survives a
+	 * later sign-in and would otherwise redirect on stale data.
 	 */
 	const hasNoSessions =
-		!sessionsQuery.isPending && !sessionsQuery.error && sessionsQuery.data.length === 0
+		sessionsQuery.isFetchedAfterMount &&
+		!sessionsQuery.isPending &&
+		!sessionsQuery.error &&
+		sessionsQuery.data.length === 0
 
 	useStaleSessionRedirect(hasNoSessions)
 
