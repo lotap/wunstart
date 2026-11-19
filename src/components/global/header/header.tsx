@@ -1,6 +1,6 @@
 import {Link, getRouteApi} from '@tanstack/react-router'
 import {Menu} from 'lucide-react'
-import {useEffect, useState} from 'react'
+import {useState} from 'react'
 
 import {appInfo} from '#/app-info.ts'
 import {Button} from '#/components/ui/button.tsx'
@@ -24,19 +24,6 @@ export function Header() {
 
 	const links = auth ? USER_LINKS : ANON_LINKS
 	const repoHref = auth ? null : PUBLIC_REPO_URL
-
-	// The trigger is hidden at `md`; close a drawer left open across the resize.
-	useEffect(() => {
-		const query = window.matchMedia('(width >= 48rem)')
-
-		const onChange = () => {
-			if (query.matches) setMenuOpen(false)
-		}
-
-		query.addEventListener('change', onChange)
-
-		return () => query.removeEventListener('change', onChange)
-	}, [])
 
 	const closeMenu = () => setMenuOpen(false)
 
