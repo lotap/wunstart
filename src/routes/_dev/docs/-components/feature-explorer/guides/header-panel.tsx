@@ -50,6 +50,10 @@ const headerFiles = [
 		job: 'The account dropdown: profile, settings shortcuts, and sign out.',
 	},
 	{
+		name: 'src/components/global/header/_account.tsx',
+		job: 'The signed-in menu’s account block — a “Signed in as” label above the email, the shortcuts, and the anchored Sign out; shares the shortcut data with the dropdown.',
+	},
+	{
 		name: 'src/components/global/wordmark.tsx',
 		job: 'The inline wordmark. Replace the SVG or swap the component.',
 	},
@@ -121,10 +125,12 @@ export function HeaderPanel() {
 					default is the theme sans at 14px, 500 in light and 400 in dark, sentence case; below{' '}
 					<InlineCode>md</InlineCode> the sheet uses 30px at 52px rows inside a max-w-md column,
 					with a 24px pad. The content is one centered block: page links at 30px/52px, a 64px gap,
-					then GitHub (with an external mark) and Theme (with its icon) at 16px/44px rows. Sign in
-					is a ghost row and Sign up a stock 56px default button, split by 12px and anchored at the
-					bottom. There is no divider or custom CTA. The active route keeps the 2px underline in
-					both the bar and the menu. Change that one file to change every nav item.
+					then GitHub (with an external mark) and Theme (with its icon) at 16px/44px rows. Signed
+					in, the account shortcuts join that group at the same 16px/44px, each with its dropdown
+					icon in a 16px column on the 24px rail. Sign in is a ghost row and Sign up a stock 56px
+					default button, split by 12px and anchored at the bottom; signed in, a ghost Sign out
+					takes the slot. There is no divider or custom CTA. The active route keeps the 2px
+					underline in both the bar and the menu. Change that one file to change every nav item.
 				</Prose>
 				<DocBulletList>
 					<li>
@@ -181,28 +187,32 @@ export function HeaderPanel() {
 					At <InlineCode>md</InlineCode> and up the bar holds the utilities: the signed-out repo
 					icon, theme, a divider, then Sign in / Sign up (or the account avatar). Below{' '}
 					<InlineCode>md</InlineCode> those controls move into the menu, and the bar keeps only the
-					brand, the account control when signed in, and the trigger. The menu always has the Theme
-					control, so the trigger always exists below <InlineCode>md</InlineCode>; there is no empty
-					menu. Sign-out stays in the account dropdown.
+					brand and the trigger. The menu always has the Theme control, so the trigger always exists
+					below <InlineCode>md</InlineCode>; there is no empty menu. Sign out lives in the account
+					dropdown at <InlineCode>md</InlineCode> and up, and in the menu below it.
 				</Prose>
 			</PanelSection>
 
 			<PanelSection id="header-menu" title="The collapsed menu">
 				<Prose>
-					Below <InlineCode>md</InlineCode> the bar keeps only the brand, the account control when
-					signed in, and the trigger; the menu carries page links, the signed-out GitHub action,
-					theme, and Sign in / Sign up. Below <InlineCode>md</InlineCode> the menu is one full-bleed
+					Below <InlineCode>md</InlineCode> the bar keeps only the brand and the trigger; the menu
+					carries page links, the signed-out GitHub action, theme, and Sign in / Sign up, or the
+					signed-in account block. Below <InlineCode>md</InlineCode> the menu is one full-bleed
 					sheet under the header: page scroll locks, the page behind is inert, and the sheet scrolls
-					as one centered block above the anchored auth. Its height is the viewport minus the bar,
+					as one centered block above the anchored action. Its height is the viewport minus the bar,
 					measured from the nav, so it ends at the viewport edge at any header height. The block is
 					a max-w-md column: page links at 30px/52px, a 64px gap, then GitHub (with an external
-					mark) and Theme (with its icon) at 16px/44px rows. Sign in is a ghost row and Sign up a
-					stock 56px default button, split by 12px and anchored at the bottom. There is no divider
-					or custom CTA. The labeled Theme control is itself the toggle. The trigger always renders
-					below <InlineCode>md</InlineCode>; the Theme control guarantees the menu is never empty.
-					The sheet closes on navigation, resize, outside press, and Escape, and Escape returns
-					focus to the trigger; internal scrolling does not dismiss it. That dismissal behavior is
-					shared with the landing page’s section dock.
+					mark) and Theme (with its icon) at 16px/44px rows. Signed in, the group opens with the
+					account: a muted “Signed in as” label, the profile email on its own line beneath it
+					(truncating when long), then Preferences, Profile, and Access &amp; Security with the same
+					icons as the dropdown, in a 16px column on the 24px rail, with Theme last. Sign in is a
+					ghost row and Sign up a stock 56px default button, split by 12px and anchored at the
+					bottom; signed in, a single ghost Sign out takes that slot. There is no divider or custom
+					CTA. The labeled Theme control is itself the toggle. The trigger always renders below{' '}
+					<InlineCode>md</InlineCode>; the Theme control guarantees the menu is never empty. The
+					sheet closes on navigation, resize, outside press, and Escape, and Escape returns focus to
+					the trigger; internal scrolling does not dismiss it. That dismissal behavior is shared
+					with the landing page’s section dock.
 				</Prose>
 			</PanelSection>
 		</>

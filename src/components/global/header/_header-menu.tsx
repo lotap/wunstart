@@ -2,6 +2,7 @@ import {cn} from 'cn'
 
 import {RouterButton} from '../router-button.tsx'
 import ThemeToggle from '../theme-toggle.tsx'
+import {AccountLinks, AccountSignOut} from './_account.tsx'
 import {GitHubMenuRow} from './_github-link.tsx'
 import {SIGN_IN_LINK, type HeaderLink} from './_links.ts'
 import {NavLink} from './_nav-link.tsx'
@@ -11,14 +12,14 @@ export function HeaderMenu({
 	open,
 	links,
 	repoHref,
-	showAuth,
+	signedIn,
 	onNavigate,
 }: {
 	id: string
 	open: boolean
 	links: readonly HeaderLink[]
 	repoHref: string | null
-	showAuth: boolean
+	signedIn: boolean
 	onNavigate: () => void
 }) {
 	return (
@@ -47,15 +48,31 @@ export function HeaderMenu({
 						))}
 					</ul>
 					<div className="mt-16 flex flex-col">
-						{repoHref && <GitHubMenuRow href={repoHref} onNavigate={onNavigate} />}
-						<ThemeToggle
-							label="Theme"
-							className="-mx-2 h-11 justify-start border-0 px-2 text-base hover:bg-transparent"
-						/>
+						{signedIn ? (
+							<>
+								<AccountLinks open={open} onNavigate={onNavigate} />
+								<ThemeToggle
+									label="Theme"
+									className="-mx-2 mt-6 h-11 justify-start border-0 px-2 text-base hover:bg-transparent"
+								/>
+							</>
+						) : (
+							<>
+								{repoHref && <GitHubMenuRow href={repoHref} onNavigate={onNavigate} />}
+								<ThemeToggle
+									label="Theme"
+									className="-mx-2 h-11 justify-start border-0 px-2 text-base hover:bg-transparent"
+								/>
+							</>
+						)}
 					</div>
 				</div>
 			</div>
-			{showAuth && (
+			{signedIn ? (
+				<div className="mx-auto w-full max-w-md shrink-0">
+					<AccountSignOut onNavigate={onNavigate} />
+				</div>
+			) : (
 				<div className="mx-auto flex w-full max-w-md shrink-0 flex-col gap-3">
 					<RouterButton
 						to={SIGN_IN_LINK.to}

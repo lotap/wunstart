@@ -72,7 +72,9 @@ export function Header() {
 						</div>
 						<span aria-hidden="true" className="mx-1 hidden h-5 w-px bg-border md:block" />
 						{auth ? (
-							<UserNav />
+							<div className="max-md:hidden">
+								<UserNav />
+							</div>
 						) : (
 							<>
 								<RouterButton
@@ -112,7 +114,7 @@ export function Header() {
 						open={menuOpen}
 						links={links}
 						repoHref={repoHref}
-						showAuth={!auth}
+						signedIn={auth !== null}
 						onNavigate={closeMenu}
 					/>
 				</nav>

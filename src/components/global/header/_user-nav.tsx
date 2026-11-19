@@ -1,7 +1,7 @@
 import {useQuery} from '@tanstack/react-query'
 import {Link} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
-import {LogOut, CircleUserRound, ShieldCheck, SlidersHorizontal, User} from 'lucide-react'
+import {LogOut, User} from 'lucide-react'
 import {useState} from 'react'
 
 import {userProfileQueryOptions} from '#/components/auth/_utils.ts'
@@ -19,16 +19,7 @@ import {Skeleton} from '#/components/ui/skeleton.tsx'
 import {useSignOut} from '#/hooks/use-sign-out.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 
-/**
- * Account-menu shortcuts into settings. The menu owns its own list so global
- * chrome never imports a route module; the ids stay literal, so the settings
- * route’s search schema fails the typecheck when a category is renamed.
- */
-const SETTINGS_SHORTCUTS = [
-	{id: 'preferences', label: 'Preferences', Icon: SlidersHorizontal},
-	{id: 'profile', label: 'Profile', Icon: CircleUserRound},
-	{id: 'access', label: 'Access & Security', Icon: ShieldCheck},
-] as const
+import {SETTINGS_SHORTCUTS} from './_settings-shortcuts.ts'
 
 export function UserNav() {
 	const signOut = useSignOut()
@@ -81,7 +72,7 @@ export function UserNav() {
 					}}
 				>
 					<LogOut />
-					Sign Out
+					Sign out
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
