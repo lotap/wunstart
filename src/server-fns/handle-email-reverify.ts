@@ -5,7 +5,7 @@ import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
 import {emailReverify} from '#/db/ops/auth/email/reverify.ts'
 import {PasscodeCredentials} from '#/isomorphic/validations/auth.ts'
-import {runOp} from '#/middleware/_run-op.server.ts'
+import {runOpClearingDeadSession} from '#/middleware/_run-op.server.ts'
 import {setAccessTokenCookie} from '#/middleware/_set-auth-cookies.ts'
 import {rateLimit} from '#/middleware/rate-limit.ts'
 import {requireAuth} from '#/middleware/require-auth.ts'
@@ -18,12 +18,12 @@ export const handleEmailReverify = createServerFn({method: 'POST'})
 			data,
 			context: {
 				ipAddress,
-				auth: {userId},
+				auth: {userId, refreshToken},
 			},
 		}) => {
-			const {token, exp, sudoExpiresAt} = await runOp({
+			const {token, exp, sudoExpiresAt} = await runOpClearingDeadSession({
 				op: emailReverify,
-				data: {input: data, ipAddress, userId},
+				data: {input: data, ipAddress, userId, refreshToken},
 				layers: [authLayer, dbLayer],
 			})
 

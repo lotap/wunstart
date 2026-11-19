@@ -12,6 +12,7 @@ import {PasswordCredentials} from '#/isomorphic/validations/auth.ts'
 
 import {generateAccessToken} from './_access-token.ts'
 import {needsRehash} from './_check-rehash.ts'
+import {verifyLiveSession} from './_verify-live-session.ts'
 import {SUDO_EXPIRATION_WINDOW} from './consts.ts'
 
 const genericFailureOutputMessage = 'That password doesn’t match. Double-check it and try again.'
@@ -24,11 +25,21 @@ const _passwordReverify = Effect.fn('passwordReverify')(function* ({
 	input: {password},
 	ipAddress,
 	userId,
+	refreshToken,
 }: {
 	input: (typeof PasswordCredentials)['Type']
 	ipAddress: string
 	userId: string
+	refreshToken: string
 }) {
+	/**
+	 * Minting an access token is an identity-extending action: it must come from
+	 * a live refresh session, not just a still-valid access token. Without this,
+	 * a device evicted by `signOutAll` could renew its access token indefinitely
+	 * with the password and never create a session row to revoke.
+	 */
+	yield* verifyLiveSession({refreshToken, userId})
+
 	/** Before processing, check if the ip address or user should be ratelimited */
 	const currentBansAndExcessiveActivities = yield* checkCurrentBansAndExcessiveActivities({
 		ipAddress,

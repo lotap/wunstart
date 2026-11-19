@@ -11,6 +11,7 @@ import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 import type {PasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 
+import {verifyLiveSession} from '../_verify-live-session.ts'
 import {burnPasscode} from './_burn-passcode.ts'
 import {verify} from './_verify.ts'
 
@@ -24,11 +25,21 @@ const _emailReverify = Effect.fn('emailReverify')(function* ({
 	input: {passcode},
 	ipAddress,
 	userId,
+	refreshToken,
 }: {
 	input: (typeof PasscodeCredentials)['Type']
 	ipAddress: string
 	userId: string
+	refreshToken: string
 }) {
+	/**
+	 * Minting an access token is an identity-extending action: it must come from
+	 * a live refresh session, not just a still-valid access token. Without this,
+	 * a device evicted by `signOutAll` could renew its access token indefinitely
+	 * with an emailed passcode and never create a session row to revoke.
+	 */
+	yield* verifyLiveSession({refreshToken, userId})
+
 	/** Before processing, check if the ip address or user should be ratelimited */
 	const currentBansAndExcessiveActivities = yield* checkCurrentBansAndExcessiveActivities({
 		ipAddress,

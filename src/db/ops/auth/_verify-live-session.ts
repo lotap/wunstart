@@ -5,14 +5,16 @@ import {opsFailure} from '#/db/ops/ops-error.ts'
 import {decodeRefreshSession} from './_refresh-session.ts'
 
 /**
- * Reject a sudo-gated mutation when the refresh-token session is no longer live.
+ * Reject an authenticated action whose refresh-token session is no longer live.
  *
  * The access token proves userId + sudo, but it remains valid for up to 15
- * minutes after `signOutAll` archives the session row. The refresh token is
- * signed and carries the sessionId; a plain PK lookup is enough here.
+ * minutes after `signOutAll` archives the session row. Sudo-gated mutations,
+ * user-keyed passcode requests, and the two reverify ops call this before
+ * acting or minting a replacement token. The refresh token is signed and
+ * carries the sessionId; a plain PK lookup is enough here.
  * `decodeRefreshSession` verifies the refresh JWS signature itself
  * (`verifyAuth` only verifies the access token); only the nonce hash is skipped:
- * that costs an Argon2 DO round-trip, and this path mints nothing.
+ * that costs an Argon2 DO round-trip, and no path here rotates the session.
  */
 export const verifyLiveSession = Effect.fn('verifyLiveSession')(function* ({
 	refreshToken,
@@ -51,6 +53,10 @@ export const verifyLiveSession = Effect.fn('verifyLiveSession')(function* ({
 
 	const {session} = resolved
 
+	/**
+	 * Keep this comparison in JS: filtering by `userId` in the query would
+	 * silently turn a charged mismatch into a weight-0 missing session.
+	 */
 	if (session.userId !== userId)
 		return yield* opsFailure({
 			failureCause: 'SESSION_NOT_FOUND',
