@@ -383,12 +383,12 @@ export function AuthPanel() {
 						The settings session list covers every live Session for the User, so an empty result
 						makes <InlineCode>handleGetSessions</InlineCode> clear both auth cookies; the page then
 						refreshes the router and the guard redirects to sign-in. Auth transitions also clear the
-						client cache (<InlineCode>clearIdentityCache</InlineCode>), so the next identity never
-						sees the previous user’s sessions, profile, or sudo-gated email. Sudo-gated mutations,
-						user-keyed passcode requests, and both reverify ops that already ran their live-session
-						check clear the same cookies when it fails, without an extra read. The reverify check
-						blocks an evicted device from minting a replacement token, so the access token cannot
-						outlive its Session by more than the remaining 15 minutes.
+						client cache (<InlineCode>clearIdentityCache</InlineCode>) and notify other open tabs,
+						so another tab does not keep the previous user’s sessions, profile, or sudo-gated email.
+						Sudo-gated mutations, user-keyed passcode requests, and both reverify ops that already
+						ran their live-session check clear the same cookies when it fails, without an extra
+						read. The reverify check blocks an evicted device from minting a replacement token, so
+						the access token cannot outlive its Session by more than the remaining 15 minutes.
 					</PanelRow>
 					<PanelRow label="liveness check">
 						Session liveness is one prepared primary-key lookup per guarded action, never per render

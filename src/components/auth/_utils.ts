@@ -52,6 +52,12 @@ export const userProfileQueryOptions = ({
 	})
 
 /**
+ * Storage key used to tell other tabs that the signed-in identity changed.
+ * Auth cookies are shared across tabs; React Query is not.
+ */
+export const authTransitionStorageKey = 'auth-identity-transition'
+
+/**
  * Drop every cached query when the signed-in identity changes.
  *
  * React Query keeps data across route changes, so without this the next user
@@ -59,7 +65,18 @@ export const userProfileQueryOptions = ({
  * in-flight fetch from the old identity can settle into the new mount.
  * `clear()` instead of a key list: profile already uses `staleTime: Infinity`,
  * and a future identity-scoped query must not be forgotten.
+ *
+ * Also leave a storage marker: cookies are shared across tabs, so other open
+ * tabs clear their cache and refresh the router through `useAuthCacheSync`.
  */
 export function clearIdentityCache(queryClient: QueryClient) {
 	queryClient.clear()
+
+	if (typeof window === 'undefined') return
+
+	try {
+		window.localStorage.setItem(authTransitionStorageKey, crypto.randomUUID())
+	} catch {
+		/** Storage can be unavailable; the current tab is already cleared. */
+	}
 }
