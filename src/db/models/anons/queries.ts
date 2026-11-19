@@ -1,6 +1,6 @@
 import {eq, getColumns, sql} from 'drizzle-orm'
 
-import {createPreparedQuery} from '#/db/helpers/funcs.ts'
+import {appendUniqueBoundedSql, createPreparedQuery} from '#/db/helpers/query-fns.ts'
 
 import {activeTable, archiveTable, tableName} from './schemas.ts'
 import * as V from './validations.ts'
@@ -30,11 +30,11 @@ export const insert = createPreparedQuery({
 			.onConflictDoUpdate({
 				target: id,
 				set: {
-					ipAddresses: sql`${ipAddresses} || EXCLUDED.ip_addresses`,
-					userAgents: sql`${userAgents} || EXCLUDED.user_agents`,
-					countries: sql`${countries} || EXCLUDED.countries`,
-					cities: sql`${cities} || EXCLUDED.cities`,
-					regions: sql`${regions} || EXCLUDED.regions`,
+					ipAddresses: appendUniqueBoundedSql(ipAddresses, sql`EXCLUDED.ip_addresses`),
+					userAgents: appendUniqueBoundedSql(userAgents, sql`EXCLUDED.user_agents`),
+					countries: appendUniqueBoundedSql(countries, sql`EXCLUDED.countries`),
+					cities: appendUniqueBoundedSql(cities, sql`EXCLUDED.cities`),
+					regions: appendUniqueBoundedSql(regions, sql`EXCLUDED.regions`),
 				},
 			})
 			.returning({id})
