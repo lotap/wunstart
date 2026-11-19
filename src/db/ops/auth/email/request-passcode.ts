@@ -12,6 +12,7 @@ import {extractPgConstraint, extractPgError} from '#/db/ops/_extract-pg-error.ts
 import {retryTransientDb} from '#/db/ops/_retry.ts'
 import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/_anon-token.ts'
 import {hashTarget} from '#/db/ops/auth/_hashing.ts'
+import {verifyLiveSession} from '#/db/ops/auth/_verify-live-session.ts'
 import {extractErrorProps, allowRatePerWindow, opsFailure} from '#/db/ops/ops-error.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
@@ -31,11 +32,13 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 	input: {email, intent},
 	anonTokenPayload,
 	userId,
+	refreshToken,
 	ipAddress,
 }: {
 	input: {email?: string; intent: (typeof PasscodeIntent)['Type']}
 	anonTokenPayload: AnonTokenPayloadCustomClaims | null
 	userId?: string
+	refreshToken?: string
 	ipAddress: string
 }) {
 	const hasherId = userId ?? anonTokenPayload?.id
@@ -55,6 +58,23 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 			anonId: registeredAnonId,
 			message: 'input: email is required when userId is absent',
 		})
+
+	/**
+	 * User-keyed requests (reverify, email change) must come from a live refresh
+	 * session, not just a still-valid access token. These paths send account
+	 * mail, so a device revoked elsewhere must not be able to trigger them until
+	 * the 15-minute access token and 5-minute sudo lease expire.
+	 */
+	if (userId) {
+		if (!refreshToken)
+			return yield* opsFailure({
+				failureCause: 'INVALID_PARAMS',
+				userId,
+				message: 'Your session has expired. Sign in and try again.',
+			})
+
+		yield* verifyLiveSession({refreshToken, userId})
+	}
 
 	/**
 	 * The registered claim is a cached assertion, not a guarantee: a token can

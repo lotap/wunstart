@@ -34,7 +34,8 @@ export function EmailPanel() {
 					</PanelRow>
 					<PanelRow label="Request paths" labelVariant="text">
 						Sign-up and sign-in requests require an Anon. Reverify and email-change requests require
-						a signed-in User; email change also requires sudo at request and confirm time.
+						a signed-in User and a live session; email change also requires sudo at request and
+						confirm time.
 					</PanelRow>
 					<PanelRow label="Resend" labelVariant="text">
 						A re-request replaces the active row, unless it is still more than about a minute from
