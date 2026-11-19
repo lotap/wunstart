@@ -1,6 +1,6 @@
 import {eq, sql} from 'drizzle-orm'
 
-import {createPreparedQuery} from '#/db/helpers/funcs.ts'
+import {createPreparedQuery} from '#/db/helpers/query-fns.ts'
 import type {QueryExecutor} from '#/db/helpers/types.ts'
 import {activeTable as sessions} from '#/db/models/sessions/schemas.ts'
 import {activeTable as users} from '#/db/models/users/schemas.ts'

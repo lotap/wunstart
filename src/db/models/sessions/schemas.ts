@@ -1,8 +1,8 @@
 import {sql} from 'drizzle-orm'
 import {bigint, inet, smallint, text, timestamp, uuid} from 'drizzle-orm/pg-core'
 
-import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/consts.ts'
-import {createActiveTable, createArchiveTable} from '#/db/helpers/tables.ts'
+import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/column-config.ts'
+import {createActiveTable, createArchiveTable} from '#/db/helpers/table-fns.ts'
 import {activeTable as users, archiveTable as usersArchive} from '#/db/models/users/schemas.ts'
 
 export const tableName = 'sessions'

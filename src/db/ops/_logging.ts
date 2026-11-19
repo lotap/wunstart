@@ -281,7 +281,7 @@ const logActivityAndHandleBans = Effect.fn('logActivityAndHandleBans')(
 											/**
 											 * SAFETY: the row's scope is a plain enum, not a discriminant, so TS
 											 * cannot see which Insert variant each payload matches; the schema
-											 * decodes it at runtime (same VSchema-narrowing limitation as funcs.ts)
+											 * decodes it at runtime (same VSchema-narrowing limitation as query-fns.ts)
 											 */
 											payloads as (typeof BansInsertMany)['Encoded'],
 											tx,

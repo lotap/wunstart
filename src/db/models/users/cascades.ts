@@ -1,7 +1,7 @@
 import {eq} from 'drizzle-orm'
 import {Effect} from 'effect'
 
-import {createArchiveFn} from '#/db/helpers/funcs.ts'
+import {createArchiveFn} from '#/db/helpers/archive-fns.ts'
 import {
 	activeTable as activities,
 	archiveTable as activitiesArchive,

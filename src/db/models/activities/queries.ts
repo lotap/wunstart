@@ -1,6 +1,6 @@
 import {asc, eq, getColumns, lte, sql} from 'drizzle-orm'
 
-import {createPreparedQuery} from '#/db/helpers/funcs.ts'
+import {createPreparedQuery} from '#/db/helpers/query-fns.ts'
 
 import {activeTable, tableName} from './schemas.ts'
 import * as V from './validations.ts'

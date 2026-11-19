@@ -9,7 +9,7 @@ const tester = new RuleTester({languageOptions: {parserOptions: {lang: 'ts'}}})
 tester.run('wunshot/no-pgtable-direct', noPgTableDirectRule, {
 	valid: [
 		"import {snakeCase} from 'drizzle-orm/pg-core';",
-		"import {createActiveTable} from '#/db/helpers/tables.ts';",
+		"import {createActiveTable} from '#/db/helpers/table-fns.ts';",
 		"export {snakeCase} from 'drizzle-orm/pg-core';",
 		// Bare dynamic import is not use (legitimate members load this way); calls still flag.
 		"const pg = await import('drizzle-orm/pg-core');",

@@ -1,6 +1,6 @@
 import {getColumns, sql} from 'drizzle-orm'
 
-import {createPreparedQuery, createQueryFn} from '#/db/helpers/funcs.ts'
+import {createPreparedQuery, createQueryFn} from '#/db/helpers/query-fns.ts'
 import {EXCESSIVE_ACTIVITIES_THRESHOLD} from '#/db/models/activities/consts.ts'
 
 import {PENALTY_INTERVAL_INITIAL_QTY, PENALTY_INTERVAL_MAX_QTY} from './consts.ts'

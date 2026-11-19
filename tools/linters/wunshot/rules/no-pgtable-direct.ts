@@ -21,7 +21,7 @@ export const noPgTableDirectRule = defineRule({
 		},
 		messages: {
 			pgTableDirect:
-				'Do not use `pgTable` directly. Use `createActiveTable` / `createArchiveTable` / `createActiveLogTable` / `createArchiveLogTable` from `db/helpers/tables.ts` so active/archive pairs stay consistent.',
+				'Do not use `pgTable` directly. Use `createActiveTable` / `createArchiveTable` / `createActiveLogTable` / `createArchiveLogTable` from `db/helpers/table-fns.ts` so active/archive pairs stay consistent.',
 		},
 	},
 	create(context) {

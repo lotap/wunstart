@@ -1,6 +1,6 @@
 import {and, eq} from 'drizzle-orm'
 
-import {createArchiveFn} from '#/db/helpers/funcs.ts'
+import {createArchiveFn} from '#/db/helpers/archive-fns.ts'
 
 import * as queries from './queries.ts'
 import {activeTable, archiveTable} from './schemas.ts'

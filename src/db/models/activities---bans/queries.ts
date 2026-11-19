@@ -1,7 +1,7 @@
 import {and, eq, getColumns, gte, isNotNull, sql} from 'drizzle-orm'
 import type {PgColumn} from 'drizzle-orm/pg-core'
 
-import {createQueryFn, createPreparedQuery} from '#/db/helpers/funcs.ts'
+import {createQueryFn, createPreparedQuery} from '#/db/helpers/query-fns.ts'
 import type {QueryExecutor} from '#/db/helpers/types.ts'
 import {
 	EXCESSIVE_ACTIVITIES_THRESHOLD,
