@@ -15,34 +15,41 @@ class JwtKeyDerivationError extends Schema.TaggedError<
 	{readonly brand: unique symbol}
 >()('JwtKeyDerivationError', {cause: Schema.Defect()}) {}
 
+/** Purpose tag for HKDF domain separation, one per token type. */
+export type TokenPurpose = 'access' | 'refresh' | 'refresh-grace' | 'anon'
+
 /**
  * Derives an encryption key from the provided secret and salt.
- * Uses the HKDF function to ensure uniform randomness in the generated key, even if the secret is weak
+ * Uses the HKDF function to ensure uniform randomness in the generated key, even if the secret is weak.
+ * The purpose tag binds the derived key to a single token type (RFC 5869 §3.2)
  */
 export function deriveHashKey({
 	secret,
 	salt,
+	purpose,
 }: {
 	secret: Parameters<typeof hkdf>[1]
 	salt: Parameters<typeof hkdf>[2]
+	purpose: TokenPurpose
 }) {
 	return Effect.callback<Uint8Array, JwtKeyDerivationError>((resume) => {
-		hkdf('sha256', secret, salt, 'Generated for wunstart', 32, (err, derivedKey) => {
+		hkdf('sha256', secret, salt, `Generated for Wunstart:${purpose}`, 32, (err, derivedKey) => {
 			if (err) return resume(Effect.fail(new JwtKeyDerivationError({cause: err})))
 			resume(Effect.succeed(new Uint8Array(derivedKey)))
 		})
 	})
 }
 
-/** Generates a salt and uses {@link deriveHashKey} to generate a unique key */
+/** Generates a salt and uses {@link deriveHashKey} to generate a unique key for a token purpose */
 export const generateSaltedKey = Effect.fn('generateSaltedKey')(function* (
 	secretsEntries: [id: string, secret: Redacted.Redacted][],
+	purpose: TokenPurpose,
 ) {
 	if (!secretsEntries[0]) return yield* Effect.die(new Error('secretEntries cannot be empty'))
 
 	const [kid, secret] = secretsEntries[0]
 	const salt = randomBytes(32).toString('base64url')
-	const key = yield* deriveHashKey({secret: Redacted.value(secret), salt})
+	const key = yield* deriveHashKey({secret: Redacted.value(secret), salt, purpose})
 
 	return {kid, salt, key}
 })
@@ -54,7 +61,10 @@ export const generateSaltedKey = Effect.fn('generateSaltedKey')(function* (
  *
  * This function is passed to `jwtDecrypt` and `jwtVerify` from `jose` directly - it MUST return a promise, not an effect
  */
-export function getKeyFromSecretsMap(secretsMap: Map<string, Redacted.Redacted>) {
+export function getKeyFromSecretsMap(
+	secretsMap: Map<string, Redacted.Redacted>,
+	purpose: TokenPurpose,
+) {
 	return function getKey({
 		kid,
 		s,
@@ -69,7 +79,7 @@ export function getKeyFromSecretsMap(secretsMap: Map<string, Redacted.Redacted>)
 
 		if (!secret) throw new Error('Unknown `kid` claim')
 
-		return Effect.runPromise(deriveHashKey({secret: Redacted.value(secret), salt: s}))
+		return Effect.runPromise(deriveHashKey({secret: Redacted.value(secret), salt: s, purpose}))
 	}
 }
 

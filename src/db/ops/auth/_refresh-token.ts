@@ -63,7 +63,7 @@ export const generateRefreshToken = Effect.fn('generateRefreshToken')(function* 
 	nonce: string
 }) {
 	const {secretsEntries} = yield* RefreshTokenSecretsConfig
-	const {kid, salt, key} = yield* generateSaltedKey(secretsEntries)
+	const {kid, salt, key} = yield* generateSaltedKey(secretsEntries, 'refresh')
 
 	return yield* Effect.tryPromise({
 		try: () =>
@@ -82,7 +82,7 @@ export const extractRefreshTokenPayload = Effect.fn('extractRefreshTokenPayload'
 	const {secretsMap} = yield* RefreshTokenSecretsConfig
 
 	const {payload} = yield* Effect.tryPromise({
-		try: () => jwtVerify(token, getKeyFromSecretsMap(secretsMap), {algorithms: [alg]}),
+		try: () => jwtVerify(token, getKeyFromSecretsMap(secretsMap, 'refresh'), {algorithms: [alg]}),
 		catch: (cause) => new JwtHandlerError({operation: 'verify', cause}),
 	})
 

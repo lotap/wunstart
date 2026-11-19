@@ -11,13 +11,13 @@ import {EmailRenderError, EmailService} from '#/email/service.ts'
 import {renderSessionEndedNotification} from '#/email/templates/session-ended-notification.tsx'
 
 import {generateAccessToken} from './_access-token.ts'
-import {hkdfFailure, isJwtKeyDerivationError} from './_jwt-utils.ts'
-import {generateRefreshGraceToken, extractRefreshGraceToken} from './_refresh-grace-token.ts'
 import {
-	extractRefreshTokenPayload,
-	generateRefreshToken,
-	type RefreshTokenPayloadCustomClaims,
-} from './_refresh-token.ts'
+	generateRefreshGraceToken,
+	extractRefreshGraceToken,
+	noncesMatch,
+} from './_refresh-grace-token.ts'
+import {decodeRefreshSession} from './_refresh-session.ts'
+import {generateRefreshToken, type RefreshTokenPayloadCustomClaims} from './_refresh-token.ts'
 import {formatUserAgent} from './_user-agent.ts'
 import {authTokenFailure} from './token-error.ts'
 
@@ -95,6 +95,7 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 		nonceHash: nextNonceHash,
 	} = yield* generateRefreshGraceToken({
 		generation: rowData.refreshGeneration + 1,
+		previousNonce: nonce,
 	})
 
 	const [updatedSession] = yield* sessionsQueries.rotate({
@@ -251,6 +252,7 @@ const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
  */
 const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 	session,
+	nonce,
 	ipAddress,
 	userAgent,
 	country,
@@ -259,6 +261,7 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 	timezone,
 }: {
 	session: SessionRow
+	nonce: string
 	ipAddress: string
 	userAgent: string
 	country: string
@@ -274,16 +277,40 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 			message: 'Grace replay failed: grace token is missing on the session row',
 		})
 
-	/** Revoke if not within grace period duration */
-	if (graceExpiresAt.getTime() <= DateTime.nowUnsafe().epochMilliseconds)
-		return yield* revokeForReuse({session, ipAddress, userAgent, country, city, region, timezone})
-
-	const graceTokenData = yield* extractRefreshGraceToken(graceToken)
+	const graceTokenData = yield* extractRefreshGraceToken(graceToken).pipe(
+		/**
+		 * A grace token we cannot decrypt means the secret set rotated or the row
+		 * is corrupt. Treat it as an invalid token (cookies clear, user can sign
+		 * in again) instead of an infrastructure failure: an INTERNAL_ERROR here
+		 * becomes a degraded 503 that blocks every server fn, including sign-in,
+		 * on every retry. Weight 0 because the cause is not user abuse.
+		 */
+		Effect.catchTag('JwtHandlerError', (error) =>
+			authTokenFailure({
+				failureCause: 'WRONG_NONCE',
+				rateAllowance: Infinity,
+				meta: {operation: error.operation},
+				message: genericFailureOutputMessage,
+			}),
+		),
+	)
 
 	if (graceTokenData.generation !== refreshGeneration)
 		return yield* new RefreshStateError({
 			message: 'Grace replay failed: grace token generation does not match the session',
 		})
+
+	/** Ensure the presented gen-1 token carries the authentic gen-1 nonce */
+	if (!noncesMatch(graceTokenData.previousNonce, nonce))
+		return yield* authTokenFailure({
+			failureCause: 'WRONG_NONCE',
+			rateAllowance: 4,
+			message: genericFailureOutputMessage,
+		})
+
+	/** Authentic gen-1 token presented after grace window expired -> revoke family for reuse */
+	if (graceExpiresAt.getTime() <= DateTime.nowUnsafe().epochMilliseconds)
+		return yield* revokeForReuse({session, ipAddress, userAgent, country, city, region, timezone})
 
 	const sessionExpiresAt = DateTime.fromDateUnsafe(expiresAt)
 
@@ -341,6 +368,7 @@ const classifySession = Effect.fn('classifySession')(function* ({
 	if (generation === rowData.refreshGeneration - 1)
 		return yield* replayFromGraceToken({
 			session: rowData,
+			nonce,
 			ipAddress,
 			userAgent,
 			country,
@@ -432,20 +460,26 @@ const _refresh = Effect.fn('refresh')(function* ({
 	region: string | null
 	timezone: string | null
 }) {
-	const tokenData = yield* extractRefreshTokenPayload(token).pipe(
-		Effect.mapError((error) =>
-			isJwtKeyDerivationError(error)
-				? hkdfFailure(error)
-				: authTokenFailure({
-						failureCause: 'INVALID_JWS',
-						meta: {operation: error.operation},
-						rateAllowance: 4,
-						message: genericFailureOutputMessage,
-					}),
-		),
-	)
+	const resolved = yield* decodeRefreshSession({token})
 
-	const session = yield* getSessionRow(tokenData.sessionId)
+	if (resolved.status === 'invalid')
+		return yield* authTokenFailure({
+			failureCause: 'INVALID_JWS',
+			meta: {operation: resolved.operation},
+			rateAllowance: 4,
+			message: genericFailureOutputMessage,
+		})
+
+	if (resolved.status === 'missing')
+		return yield* authTokenFailure({
+			failureCause: 'SESSION_NOT_FOUND',
+			meta: {sessionId: resolved.sessionId},
+			rateAllowance: 4,
+			message: genericFailureOutputMessage,
+		})
+
+	const {generation, nonce, session} = resolved
+	const tokenData: RefreshTokenPayloadCustomClaims = {generation, nonce, sessionId: session.id}
 
 	/** Before processing, check if the ip address should be ratelimited */
 	const currentBansAndExcessiveActivities = yield* checkCurrentBansAndExcessiveActivities({

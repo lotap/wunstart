@@ -1,3 +1,9 @@
+// `nodeBuiltinImport` suggests Effect's Crypto service, which needs a platform
+// layer this app does not install. node:crypto is available in both the Workers
+// and Node runtimes.
+// @effect-diagnostics-next-line nodeBuiltinImport:off
+import {timingSafeEqual} from 'node:crypto'
+
 import {Effect, Schema} from 'effect'
 import {EncryptJWT, jwtDecrypt} from 'jose'
 
@@ -9,7 +15,22 @@ import {generateSaltedKey, getKeyFromSecretsMap, JwtHandlerError} from './_jwt-u
 const alg = 'dir'
 const enc = 'A256GCM'
 
-const RefreshGraceTokenPayload = Schema.Struct({nonce: Schema.String, generation: Schema.Int})
+const RefreshGraceTokenPayload = Schema.Struct({
+	previousNonce: Schema.String,
+	nonce: Schema.String,
+	generation: Schema.Int,
+})
+
+/** Constant-time comparison for grace-slot nonces */
+export const noncesMatch = (a: string, b: string) => {
+	const encoder = new TextEncoder()
+	const left = encoder.encode(a)
+	const right = encoder.encode(b)
+
+	if (left.byteLength !== right.byteLength) return false
+
+	return timingSafeEqual(left, right)
+}
 
 /**
  * Encrypts a successive nonce into a jwe so it can be stored AND extracted from the db
@@ -24,15 +45,16 @@ const RefreshGraceTokenPayload = Schema.Struct({nonce: Schema.String, generation
  */
 export const generateRefreshGraceToken = Effect.fn('generateRefreshGraceToken')(function* ({
 	generation,
+	previousNonce,
 }: Omit<(typeof RefreshGraceTokenPayload)['Type'], 'nonce'>) {
 	const {secretsEntries} = yield* RefreshGraceTokenSecretsConfig
-	const {kid, salt, key} = yield* generateSaltedKey(secretsEntries)
+	const {kid, salt, key} = yield* generateSaltedKey(secretsEntries, 'refresh-grace')
 
 	const {nonce, nonceHash} = yield* generateNonce()
 
 	const token = yield* Effect.tryPromise({
 		try: () =>
-			new EncryptJWT({nonce, generation})
+			new EncryptJWT({previousNonce, nonce, generation})
 				.setProtectedHeader({alg, enc, kid, s: salt})
 				.encrypt(key, {crit: {kid: true, s: true}}),
 		catch: (cause) => new JwtHandlerError({operation: 'encrypt', cause}),
@@ -53,7 +75,7 @@ export const extractRefreshGraceToken = Effect.fn('extractRefreshGraceToken')(fu
 
 	const {payload} = yield* Effect.tryPromise({
 		try: () =>
-			jwtDecrypt(token, getKeyFromSecretsMap(secretsMap), {
+			jwtDecrypt(token, getKeyFromSecretsMap(secretsMap, 'refresh-grace'), {
 				contentEncryptionAlgorithms: [enc],
 			}),
 		catch: (cause) => new JwtHandlerError({operation: 'decrypt', cause}),

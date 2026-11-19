@@ -39,6 +39,23 @@ const AnonTokenPayload = Schema.Struct({
 export type AnonTokenPayloadCustomClaims = Omit<(typeof AnonTokenPayload)['Type'], 'iat'>
 
 /**
+ * Cookie-carried per-array caps, sized against a soft 3.5KB signed-token budget.
+ * Typical ASCII metadata (two 512-byte user agents plus location history)
+ * measured ~3,458 bytes. These caps are not a hard UTF-8-byte guarantee: header
+ * values can be multi-byte, and a hostile client can exceed the browser cookie
+ * limit for its own anon identity — the browser drops the cookie and the next
+ * request issues a fresh anon. The database arrays have their own 32-entry
+ * bound; these caps are separate.
+ */
+export const ANON_METADATA_COOKIE_CAPS = {
+	ipAddresses: 6,
+	userAgents: 2,
+	countries: 4,
+	cities: 5,
+	regions: 5,
+} as const
+
+/**
  * Generates a JSON Web Signature (JWS) token with a random uuid.
  * This implementation generates a unique salt per token that is stored in a custom `s` header.
  * Using a unique salt per token mitigates some risks of rainbow table attacks and limits exposure if the derived key is compromised
@@ -56,7 +73,7 @@ export const generateAnonToken = Effect.fn('generateAnonToken')(function* ({
 	const issuedAt = createdAt ?? (yield* DateTime.now)
 
 	const {secretsEntries} = yield* AnonTokenSecretsConfig
-	const {kid, salt, key} = yield* generateSaltedKey(secretsEntries)
+	const {kid, salt, key} = yield* generateSaltedKey(secretsEntries, 'anon')
 
 	const payload = {
 		id,
@@ -88,7 +105,7 @@ export const extractAnonTokenPayload = Effect.fn('extractAnonTokenPayload')(func
 	const {secretsMap} = yield* AnonTokenSecretsConfig
 
 	const {payload} = yield* Effect.tryPromise({
-		try: () => jwtVerify(token, getKeyFromSecretsMap(secretsMap), {algorithms: [alg]}),
+		try: () => jwtVerify(token, getKeyFromSecretsMap(secretsMap, 'anon'), {algorithms: [alg]}),
 		catch: (cause) => new JwtHandlerError({operation: 'verify', cause}),
 	})
 

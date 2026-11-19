@@ -32,7 +32,7 @@ export const generateAccessToken = Effect.fn('generateAccessToken')(function* ({
 	sudoExpiresAt,
 }: Omit<(typeof AccessTokenPayload)['Type'], 'exp'>) {
 	const {secretsEntries} = yield* AccessTokenSecretsConfig
-	const {kid, salt, key} = yield* generateSaltedKey(secretsEntries)
+	const {kid, salt, key} = yield* generateSaltedKey(secretsEntries, 'access')
 
 	const now = yield* DateTime.now
 	const exp = DateTime.add(now, {milliseconds: ACCESS_TOKEN_EXPIRATION_MILLISECONDS})
@@ -60,7 +60,9 @@ export const extractAccessTokenPayload = Effect.fn('extractAccessTokenPayload')(
 
 	const {payload} = yield* Effect.tryPromise({
 		try: () =>
-			jwtDecrypt(token, getKeyFromSecretsMap(secretsMap), {contentEncryptionAlgorithms: [enc]}),
+			jwtDecrypt(token, getKeyFromSecretsMap(secretsMap, 'access'), {
+				contentEncryptionAlgorithms: [enc],
+			}),
 		catch: (cause) => new JwtHandlerError({operation: 'decrypt', cause}),
 	})
 
