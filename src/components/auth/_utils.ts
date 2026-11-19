@@ -1,4 +1,4 @@
-import {queryOptions} from '@tanstack/react-query'
+import {queryOptions, type QueryClient} from '@tanstack/react-query'
 import type {useServerFn} from '@tanstack/react-start'
 import {Result, Schema} from 'effect'
 
@@ -50,3 +50,16 @@ export const userProfileQueryOptions = ({
 		queryFn: () => serverFn(),
 		staleTime: Infinity,
 	})
+
+/**
+ * Drop every cached query when the signed-in identity changes.
+ *
+ * React Query keeps data across route changes, so without this the next user
+ * can see the previous identity’s session list, profile, or email, and an
+ * in-flight fetch from the old identity can settle into the new mount.
+ * `clear()` instead of a key list: profile already uses `staleTime: Infinity`,
+ * and a future identity-scoped query must not be forgotten.
+ */
+export function clearIdentityCache(queryClient: QueryClient) {
+	queryClient.clear()
+}

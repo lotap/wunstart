@@ -117,7 +117,7 @@ function SessionsList({query}: {query: SessionsQuery}) {
 	/**
 	 * A cached empty list is not evidence: a remote sign-out leaves `[]` in the
 	 * cache, and a later sign-in would show “Your session has ended.” until the
-	 * refetch lands. Wait for a fetch that started after this mount.
+	 * refetch lands. Wait for a fetch that completed after this mount.
 	 */
 	if (sessions.length === 0 && !isFetchedAfterMount) return <SessionsLoading />
 
@@ -169,8 +169,8 @@ export function SessionsSection() {
 	/**
 	 * Stale device: `handleGetSessions` cleared the dead cookies when it found no
 	 * live sessions. Hide the action while the guard redirects to sign-in. Only a
-	 * response fetched after this mount counts: a cached empty list survives a
-	 * later sign-in and would otherwise redirect on stale data.
+	 * response that completed after this mount counts: a cached empty list survives
+	 * a later sign-in and would otherwise redirect on stale data.
 	 */
 	const hasNoSessions =
 		sessionsQuery.isFetchedAfterMount &&

@@ -1,5 +1,5 @@
 import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
-import {useQuery} from '@tanstack/react-query'
+import {useQuery, useQueryClient} from '@tanstack/react-query'
 import {useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 import {lazy, useEffect, useState} from 'react'
@@ -25,7 +25,7 @@ import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 import {handlePasswordChange} from '#/server-fns/handle-password-change.ts'
 
-import {userProfileQueryOptions} from './_utils.ts'
+import {clearIdentityCache, userProfileQueryOptions} from './_utils.ts'
 
 const ReverifyDrawer = lazy(() =>
 	import('./_reverify-drawer.tsx').then((m) => ({default: m.ReverifyDrawer})),
@@ -43,6 +43,8 @@ export function ChangePasswordForm({
 	const {hasSudo} = useHasSudo()
 
 	const router = useRouter()
+
+	const queryClient = useQueryClient()
 
 	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
 
@@ -68,7 +70,10 @@ export function ChangePasswordForm({
 			await handlePasswordChangeFn({data: {password, signOutAllSessions}})
 
 			/** Every session was archived, including this one, so refresh app state */
-			if (signOutAllSessions) await router.invalidate()
+			if (signOutAllSessions) {
+				clearIdentityCache(queryClient)
+				await router.invalidate()
+			}
 
 			if (closePasswordChangeDrawer) closePasswordChangeDrawer()
 			toast.add({

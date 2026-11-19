@@ -1,4 +1,5 @@
 import {useSelector} from '@tanstack/react-form'
+import {useQueryClient} from '@tanstack/react-query'
 import {Link, useRouter, useSearch} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 import {Schema} from 'effect'
@@ -22,6 +23,7 @@ import {
 	useLocalStorageEmail,
 } from './_hooks.ts'
 import {PasscodeForm} from './_passcode-form.tsx'
+import {clearIdentityCache} from './_utils.ts'
 
 const LinkToSignUp = () => (
 	<Link to="/sign-up" className="mt-10 font-bold text-muted-foreground hover:underline">
@@ -51,6 +53,8 @@ export function SignInForm() {
 	const handleEmailVerifyPasscodeFn = useServerFn(handleEmailVerifyPasscode)
 
 	const router = useRouter()
+
+	const queryClient = useQueryClient()
 
 	const {redirect} = useSearch({from: '/_auth-gateway/sign-in'})
 
@@ -87,6 +91,7 @@ export function SignInForm() {
 
 			if (branchRef.current === 'password') {
 				await handlePasswordSignInFn({data: {email, password}})
+				clearIdentityCache(queryClient)
 				removeLocalStorageSignInState()
 				router.history.push(safeRedirectTarget(redirect))
 			} else if (branchRef.current === 'passcode-send') {
@@ -325,6 +330,7 @@ export function SignInForm() {
 						onSubmitSchema={EmailPasscodeCredentials}
 						onSubmitTry={async ({passcode}) => {
 							await handleEmailVerifyPasscodeFn({data: {email, passcode}})
+							clearIdentityCache(queryClient)
 							removeLocalStorageSignInState()
 							router.history.push(safeRedirectTarget(redirect))
 						}}
