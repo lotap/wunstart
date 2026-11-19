@@ -24,6 +24,7 @@ const MANAGED_ENV_KEYS: Set<string> = new Set([
 	'DATABASE_URL',
 	'DEV_PORT',
 	'MAILPIT_URL',
+	'VITE_COOKIE_SUFFIX',
 ])
 
 /**
@@ -32,8 +33,9 @@ const MANAGED_ENV_KEYS: Set<string> = new Set([
  * unescaped `$` (a password) corrupts on the next read. Only the `$`
  * round-trips exactly through both readers (dotenv-cli natively,
  * parseEnvFile's backslash branch); the other backslash escapes are
- * parseEnvFile-only, which is fine — every managed key is a URL/port, and
- * `$` is the only special char reachable in a DATABASE_URL password.
+ * parseEnvFile-only, which is fine — every managed key is a URL/port or the
+ * branch DB name, and `$` is the only special char reachable in a
+ * DATABASE_URL password.
  */
 function envQuote(value: string): string {
 	return `"${value.replace(/\\/g, '\\\\').replace(/\$/g, '\\$').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')}"`

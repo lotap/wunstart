@@ -277,6 +277,12 @@ async function main(): Promise<void> {
 
 		managedOverrides.set('DEV_PORT', String(devPort))
 		managedOverrides.set('AGENT_DEV_PORT', String(agentDevPort))
+		/**
+		 * Cookies ignore ports, so every worktree on localhost shares auth cookie
+		 * names. The branch database name is a stable per-worktree suffix; the
+		 * cookie-name helper appends it in dev only.
+		 */
+		managedOverrides.set('VITE_COOKIE_SUFFIX', dbWant)
 		// Always write it: client-side inbox links read MAILPIT_URL, so the
 		// default port must be present too, not only a shifted one.
 		managedOverrides.set('MAILPIT_URL', plan.mailpitUrl)

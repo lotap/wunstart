@@ -26,6 +26,7 @@ interface ViteTypeOptions {
 
 interface ImportMetaEnv {
 	readonly VITE_COOKIE_DOMAIN: string
+	readonly VITE_COOKIE_SUFFIX?: string
 	readonly MAILPIT_URL?: string
 	// more env variables...
 }

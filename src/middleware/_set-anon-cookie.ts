@@ -1,7 +1,9 @@
 import {setCookie} from '@tanstack/react-start/server'
 import {DateTime} from 'effect'
 
-export const ANON_TOKEN_COOKIE_NAME = `${import.meta.env.PROD ? '__Http-' : ''}anon`
+import {cookieName} from './_cookie-names.ts'
+
+export const ANON_TOKEN_COOKIE_NAME = cookieName('anon')
 
 export const anonCookieConfig = {
 	httpOnly: true,
