@@ -9,9 +9,9 @@ New-module recipe, in order: `schemas.ts` → `validations.ts` → `queries.ts` 
 5. FKs a core model? Extend that model's `cascades.ts` now — the owner's delete fails on the FK until you do. Which form (per-user archival call vs in-place re-point + sweep): see `references/module-walkthrough.md`.
 6. Verify: typecheck + lint + `drizzle-kit check`.
 
-Every domain table has an active twin and an archive twin. Deletes never touch the active row in place: `createArchiveFn` (in `db/helpers/funcs.ts`) selects → inserts into archive (validate + `extraData`) → runs domain cascades → deletes active rows with `id IN (...)` + optional `deleteWhere` CAS guard → count-checks. Count mismatch rolls back as typed `ArchiveCountMismatchError`; zero rows is `ArchiveNotFoundError`. Recover with `Effect.catchTags({ArchiveNotFoundError: () => Effect.void, ArchiveCountMismatchError: () => Effect.void})` (`catchTag` for a single tag). Batched system archivals loop with a batch limit until short (e.g. 500); NotFound/Mismatch → `[]` stops (next run resumes).
+Every domain table has an active twin and an archive twin. Deletes never touch the active row in place: `createArchiveFn` (in `db/helpers/archive-fns.ts`) selects → inserts into archive (validate + `extraData`) → runs domain cascades → deletes active rows with `id IN (...)` + optional `deleteWhere` CAS guard → count-checks. Count mismatch rolls back as typed `ArchiveCountMismatchError`; zero rows is `ArchiveNotFoundError`. Recover with `Effect.catchTags({ArchiveNotFoundError: () => Effect.void, ArchiveCountMismatchError: () => Effect.void})` (`catchTag` for a single tag). Batched system archivals loop with a batch limit until short (e.g. 500); NotFound/Mismatch → `[]` stops (next run resumes).
 
-## Factories (`db/helpers/tables.ts`, all wrap `snakeCase.table`)
+## Factories (`db/helpers/table-fns.ts`, all wrap `snakeCase.table`)
 
 - `createActiveTable(name, cols)`: adds `id` uuid PK defaultRandom, `createdAt`/`updatedAt` timestamptz defaultNow + `$onUpdate`
 - `createArchiveTable(name, cols)`: adds `id` uuid NOT NULL (plain, not PK, no defaults — machinery copies values), `createdAt`/`updatedAt` (no defaults), `archiveId` bigint identity PK, `archivedAt` defaultNow. PII columns go nullable here
@@ -22,7 +22,7 @@ Rejected: `deleted_at` column (dangling FKs), hard delete (loses audit), event s
 ## Column gotchas
 
 - `snakeCase.table` snake_cases COLUMN KEYS ONLY; table name passes through verbatim. No column helper exists — don't invent one. Hand-write `export const tableName = 'email_verifications'` in snake_case. TS access stays camelCase; only SQL is snake_case. Hand-written fragments must spell `EXCLUDED.ip_addresses`.
-- Always `timestamp(TIMESTAMPTZ_CONFIG)`; never inline `{withTimezone: true}`. Archive id always `bigint('archive_id', ...)` via `ARCHIVE_ID_CONFIG` outside `tables.ts`; never inline `{mode: 'bigint'}` in schemas (the factory itself spells the full column def).
+- Always `timestamp(TIMESTAMPTZ_CONFIG)`; never inline `{withTimezone: true}`. Archive id always `bigint('archive_id', ...)` via `ARCHIVE_ID_CONFIG` outside `table-fns.ts`; never inline `{mode: 'bigint'}` in schemas (the factory itself spells the full column def).
 - `inet().array()` / `uuid().array()` for ban `activityIds` (PG can't FK arrays — no FK by design, cascade owns integrity).
 - SQL defaults need nowrap `sql'...'` (no params).
 - CTE aliases `.as('snake_case')`.

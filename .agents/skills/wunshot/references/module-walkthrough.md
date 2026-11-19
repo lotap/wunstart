@@ -117,7 +117,7 @@ const _syncSubscription = Effect.fn('syncSubscription')(function* ({providerSubs
 export const syncSubscription = createSystemOpsFn({fn: _syncSubscription, label: 'SYSTEM_SYNC_SUBSCRIPTION'})
 ```
 
-(`createSystemOpsFn` defaults `ipAddress` to `'0.0.0.0'`; see `archive-old-activities` for the full system-op shape including batched loops.)
+(`createSystemOpsFn` defaults `ipAddress` to `SYSTEM_OPS_IP` (`'0.0.0.0'`); see `archive-old-activities` for the full system-op shape including batched loops.)
 
 ## Cross-domain read: `subscriptions---users/`
 

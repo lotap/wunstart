@@ -6,6 +6,12 @@ Strategy, rotation, eviction posture, email-service and sudo-lease invariants ar
 
 `useHasSudo()` gate + lazy `ReverifyDrawer` inside `AsyncBoundary` (see `remove-account.tsx`); the server fn's op rejects stale verification (`STALE_VERIFICATION` → re-verify first, see `remove-user.ts`). Lifecycle: provider holds the `sudoExpiresAt` timestamp as state (seeded from auth context) with a timer clearing it at expiry; a successful reverify sets a fresh timestamp via `setSudoExpiresAt`. Provider placement: see `references/app.md` routes.
 
+Sign-in grants the lease because re-entering the same password seconds later adds no protection against someone who already knows it; requiring email verification for all sudo is deferred until a lost-old-email recovery path exists. The read-only email lookup stays sudo-gated without the live-session check so Settings does not pay a session lookup on every render. The password-change drawer defaults `signOutAllSessions` off: passwordless-first users often set a password for the first time, and default-on would sign them out of the current device.
+
 ## Sessions list, no per-session revoke
 
 Settings page lists sessions with device + geolocation context — formatted op-side in `list-sessions.ts` (`formatUserAgent` from `_user-agent.ts`, `formatLocation` from `#/email/format-location.ts`), so the page never imports `#/email/…` itself (`email-layer-allowlist` would block it). Eviction UI is `signOutAll` only. Linted by `wunstart/no-single-session-revoke`.
+
+The list is also the stale-device check: it covers every live session for the user, so an empty result makes `handleGetSessions` clear both auth cookies. The page then refreshes the router once, and the route guard redirects to sign-in. This closes the window where the access token outlives its session by up to 15 minutes.
+
+Sudo-gated mutations that already ran `verifyLiveSession` use `runOpClearingDeadSession` (`middleware/_run-op.server.ts`): when that check fails with `INVALID_JWS` or `SESSION_NOT_FOUND`, the wrapper clears the same cookies and rethrows. No extra read is added — the op already paid for the check. `handleSignOutAll` deliberately keeps the cookies on failure so an evicted token cannot masquerade as a successful all-device sign-out.

@@ -25,7 +25,7 @@ New module: start at `references/module-walkthrough.md`, then tables-archive →
 
 ## Hard rules
 
-- **Never `pgTable` directly.** Use factories in `db/helpers/tables.ts` (all wrap `snakeCase.table`). Linted by `wunshot/no-pgtable-direct`.
+- **Never `pgTable` directly.** Use factories in `db/helpers/table-fns.ts` (all wrap `snakeCase.table`). Linted by `wunshot/no-pgtable-direct`.
 - **Effect Schema only.** No zod, no valibot. Bridge via `drizzle-orm/effect-schema`. Linted by `wunshot/no-zod-valibot`.
 - **Every table has an active + archive pair.** Deletes move rows, never hard-delete audit data. Append-only event streams use the log factories (`createActiveLogTable`, e.g. `activities`); entities use the regular ones. See `references/tables-archive.md`.
 - **Denials never carry `failedCredential`.** Pass email as `meta: {credential}` for audit only. Linted by `wunshot/no-failed-credential-in-denial`.
@@ -53,21 +53,25 @@ Import rules (model files stay self-contained):
 
 | File | Imports from |
 | ---- | ------------ |
-| `schemas.ts` | `drizzle-orm`, `drizzle-orm/pg-core` column builders, `db/helpers/consts.ts` + `tables.ts`, related models' `schemas.ts` |
+| `schemas.ts` | `drizzle-orm`, `drizzle-orm/pg-core` column builders, `db/helpers/column-config.ts` + `table-fns.ts`, related models' `schemas.ts` |
 | `validations.ts` | `drizzle-orm/effect-schema`, `effect`, `RefinementsFor` from `db/helpers/types.ts`, shared refinements from `db/helpers/validators.ts` (+ client-shared shapes from your app's shared validators), `./schemas.ts` |
-| `queries.ts` | `drizzle-orm` operators, `createPreparedQuery` / `createQueryFn` from `db/helpers/funcs.ts`, `./schemas.ts`, `./validations.ts`, `./views` (when the model has one) (+ connected models' schemas/validations/consts in `---` dirs) |
-| `cascades.ts` | `createArchiveFn` from `db/helpers/funcs.ts`, `./queries.ts`, `./schemas.ts` (+ other models' schemas/cascades for re-pointing) |
+| `queries.ts` | `drizzle-orm` operators, `createPreparedQuery` / `createQueryFn` from `db/helpers/query-fns.ts`, `./schemas.ts`, `./validations.ts`, `./views` (when the model has one) (+ connected models' schemas/validations/consts in `---` dirs) |
+| `cascades.ts` | `createArchiveFn` from `db/helpers/archive-fns.ts`, `./queries.ts`, `./schemas.ts` (+ other models' schemas/cascades for re-pointing) |
 | `consts.ts` | — (`UPPER_SNAKE` model constants consumed by ops / other models) |
 
 Cross-domain joins use `---` dirs, alphabetical (`activities---bans`): queries + validations, never tables of their own. A shared enum may live in their `schemas.ts` (e.g. `banScopes`). Never add `relations()` calls — the Drizzle init (`db/index.ts`) carries no schema object, so the relational Query API is unavailable; cross-model reads go in `---` dirs with explicit joins.
 
-Top-level `db/helpers/` serves all models: `tables.ts` (factories), `funcs.ts` (`createPreparedQuery` / `createQueryFn` / `createArchiveFn` / `createArchiveManyFn`), `consts.ts` (shared column config: `TIMESTAMPTZ_CONFIG`, `ARCHIVE_ID_CONFIG`), `types.ts` (`Tx`, `QueryExecutor`, …), `validators.ts` (shared Effect refinements: `IpAddress`, `Argon2Hash`, …).
+Top-level `db/helpers/` serves all models: `table-fns.ts` (table factories), `query-fns.ts` (`createPreparedQuery` / `createQueryFn` + query SQL fragment helpers), `archive-fns.ts` (`createArchiveFn` / `createArchiveManyFn` + archive errors), `column-config.ts` (shared Drizzle column options: `TIMESTAMPTZ_CONFIG`, `ARCHIVE_ID_CONFIG`), `types.ts` (cross-module type aliases: `Tx`, `QueryExecutor`, …), `validators.ts` (shared Effect refinements: `IpAddress`, `Argon2Hash`, …), `array-fns.ts` (pure array helpers: `appendUniqueBounded`).
+
+**Constants placement:** choose by ownership, not by whether the value is a constant. Shared schema/column options (Drizzle `mode`, `withTimezone`, …) live in the shared column-config module (`db/helpers/column-config.ts`). Domain constants live in the nearest `consts.ts` (`models/<domain>/` or `ops/<domain>/`). A value that is a cross-layer contract or carries behavior gets its own named helper (e.g., `ip-sentinels.ts`), never `consts.ts`.
+
+**Helpers placement and naming:** name a helper module by what it exports, not by the domain it touches. Callables and factories → `<domain>-fns.ts`: query/prepared-query factories and query SQL fragments → `query-fns.ts`; archive factories, archive errors, and cascade machinery → `archive-fns.ts`; table factories → `table-fns.ts`; pure array utilities → `array-fns.ts`. Values and schemas keep the plain noun: column options → `column-config.ts`; schema refinements → `validators.ts`. Type aliases only → `types.ts`. A cross-layer contract gets its own named module (e.g., `ip-sentinels.ts`). Do not create a `funcs.ts` or other catch-all: if a new helper does not fit a named module, name the module after it.
 
 ## Installing
 
 In this repo the modules already live under `src/db/` — the install story below applies to a new host project. Core modules install via Shadcn from the `wunshot` registry. Install `init` first — every domain module imports `helpers/`:
 
-- `init` → `db/helpers/*` (factories, query/archive helpers, shared consts/types/validators) + `db/index.ts` + drizzle config. `db/index.ts` ships connection resolution for its home runtime — adapt it (your connection string/layer), don't copy it verbatim. Keep its contract: `export class DB`, `dbLayer`, the lazy pool, and the pg `customTypes` passthrough.
+- `init` → `db/helpers/*` (factories, query/archive helpers, shared column config/types/validators) + `db/index.ts` + drizzle config. `db/index.ts` ships connection resolution for its home runtime — adapt it (your connection string/layer), don't copy it verbatim. Keep its contract: `export class DB`, `dbLayer`, the lazy pool, and the pg `customTypes` passthrough.
 - Domain items → `db/models/<domain>/` + `db/ops/<domain>/` (map `db/` to your tree). No registration step: the drizzle-kit glob auto-discovers `*schemas.ts`, and twins migrate together. Installing ops also needs the shared machinery at `db/ops/` root: `ops-error.ts`, `_create-ops-fn.ts`, `_logging.ts`, `_retry.ts`, `_extract-pg-error.ts`, `_current-bans-and-excessive-activities.ts`, `rate-limit-error.ts`. Its import closure reaches further — `_logging.ts` pulls `models/{activities, activities---bans, anons, bans, users}` + `ops/auth/_calc-penalty-time.ts`; `ops-error.ts` pulls `models/activities/{consts,validations}`. Include those model modules in the install, or the imports break. `service-bindings.ts` is host Cloudflare code, not portable — keep the `HashingStub` tag, implement its layer for your runtime.
 - npm deps: `drizzle-orm` (includes `drizzle-orm/effect-schema`), `effect`, `@effect/sql-pg`, `pg`; dev: `drizzle-kit`, `@types/pg`
 
