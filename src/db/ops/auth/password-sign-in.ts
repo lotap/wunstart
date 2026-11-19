@@ -1,12 +1,13 @@
 import {DateTime, Effect} from 'effect'
 
+import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
 import {DB} from '#/db/index.ts'
 import * as sessionsUsersQueries from '#/db/models/sessions---users/queries.ts'
 import * as usersQueries from '#/db/models/users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
 import {retryTransientDb} from '#/db/ops/_retry.ts'
-import {hashTarget, verifyTarget} from '#/db/ops/auth/_hashing.ts'
+import {DUMMY_ARGON2_HASH, hashTarget, verifyTarget} from '#/db/ops/auth/_hashing.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
@@ -25,6 +26,17 @@ import {SUDO_EXPIRATION_WINDOW} from './consts.ts'
 
 const genericFailureOutputMessage =
 	'That email and password don’t match. Double-check them and try again.'
+
+/**
+ * Burn the same Wasm work as a real password check on paths with no hash to
+ * verify, keeping sign-in latency uniform for unknown and passwordless emails.
+ * Sharded by the caller's anon identity, never the target user's.
+ */
+const verifyDummyPassword = (password: string, hasherId: string) =>
+	verifyTarget(DUMMY_ARGON2_HASH, password).pipe(
+		// oxlint-disable-next-line effecttsgo/strict-effect-provide
+		Effect.provide(HashingStub.layer(hasherId)),
+	)
 
 /**
  * Authenticate a user and start an associated session.
@@ -83,37 +95,17 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 	/** Attempt to find the user for the given credentials */
 	const [user] = yield* sessionsUsersQueries.selectUserWithIpAddressesByEmail({email})
 
-	/** If no user is found, throw an error */
-	if (!user)
-		return yield* opsFailure({
-			failureCause: 'USER_NOT_FOUND',
-			failedCredential: email,
-			anonId: registeredAnonId,
-			rateAllowance: 4,
-			message: genericFailureOutputMessage,
-		})
-
-	const {id: userId, ipAddresses, passwordHash, email: userEmail} = user
-
-	if (!passwordHash)
-		return yield* opsFailure({
-			failureCause: 'NO_PASSWORD_ON_USER',
-			failedCredential: email,
-			anonId: registeredAnonId,
-			rateAllowance: 4,
-			message: genericFailureOutputMessage,
-		})
-
 	/**
-	 * If the credential used to find the user has bans or excessive activities
-	 * AND this is a new ip address for the user throw an error.
-	 * This will allow a user to log in with a known ip address if a bad actor is trying to brute-force lock them out
-	 * it will also prevent brute-force attacks where a bad actor switches ip addresses for several attempts at guessing a password
+	 * If the credential has bans or excessive activities AND this is not a known IP
+	 * for an existing user, reject with rateLimitFailure before running Argon2id.
+	 * This allows a legitimate user on a known IP to sign in during a brute-force attack,
+	 * while routing unknown-IP denial weight to IP_ADDRESS scope without extending the
+	 * credential ban or burning AuthHasher DO CPU.
 	 */
 	if (
 		currentBansAndExcessiveActivities.filter((element) => element.scope === 'FAILED_CREDENTIAL')
 			.length &&
-		!ipAddresses.includes(ipAddress)
+		(!user || !isClientIpAddress(ipAddress) || !user.ipAddresses.includes(ipAddress))
 	)
 		return yield* rateLimitFailure({
 			message: genericFailureOutputMessage,
@@ -121,6 +113,33 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 			meta: {credential: email},
 			anonId: registeredAnonId,
 		})
+
+	/** If no user is found, run dummy verification for timing uniformity, then fail */
+	if (!user) {
+		yield* verifyDummyPassword(password, anonTokenPayload.id)
+
+		return yield* opsFailure({
+			failureCause: 'USER_NOT_FOUND',
+			failedCredential: email,
+			anonId: registeredAnonId,
+			rateAllowance: 4,
+			message: genericFailureOutputMessage,
+		})
+	}
+
+	const {id: userId, passwordHash, email: userEmail} = user
+
+	if (!passwordHash) {
+		yield* verifyDummyPassword(password, anonTokenPayload.id)
+
+		return yield* opsFailure({
+			failureCause: 'NO_PASSWORD_ON_USER',
+			failedCredential: email,
+			anonId: registeredAnonId,
+			rateAllowance: 4,
+			message: genericFailureOutputMessage,
+		})
+	}
 
 	return yield* Effect.gen(function* () {
 		const isPasswordVerified = yield* verifyTarget(passwordHash, password)
