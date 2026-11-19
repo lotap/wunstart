@@ -41,7 +41,7 @@ export const signUpWithVerifiedCode = Effect.fn('emailVerifyPasscode.signUp')(fu
 				})
 
 				/** Create a user */
-				const {user, session, access} = yield* createUser({
+				const {user, session, anonsArchive, access} = yield* createUser({
 					input: {email},
 					anonTokenPayload,
 					ipAddress,
@@ -58,7 +58,11 @@ export const signUpWithVerifiedCode = Effect.fn('emailVerifyPasscode.signUp')(fu
 					tx,
 				)
 
-				return {session, access}
+				return {
+					session,
+					access,
+					logging: {anonId: null, anonsArchiveId: anonsArchive.archiveId, userId: user.id},
+				}
 			}),
 		),
 	)

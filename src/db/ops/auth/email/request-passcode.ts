@@ -1,15 +1,18 @@
-import {Effect} from 'effect'
+import {EffectDrizzleQueryError} from 'drizzle-orm/effect-core'
+import {Effect, Schema} from 'effect'
+import type {SchemaError} from 'effect/Schema'
 
+import * as anonsQueries from '#/db/models/anons/queries.ts'
 import * as emailVerificationsCascades from '#/db/models/email-verifications/cascades.ts'
 import * as emailVerificationsQueries from '#/db/models/email-verifications/queries.ts'
 import * as usersQueries from '#/db/models/users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
-import {extractPgError} from '#/db/ops/_extract-pg-error.ts'
+import {extractPgConstraint, extractPgError} from '#/db/ops/_extract-pg-error.ts'
 import {retryTransientDb} from '#/db/ops/_retry.ts'
 import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/_anon-token.ts'
 import {hashTarget} from '#/db/ops/auth/_hashing.ts'
-import {extractErrorProps, opsFailure} from '#/db/ops/ops-error.ts'
+import {extractErrorProps, allowRatePerWindow, opsFailure} from '#/db/ops/ops-error.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 import {EmailService} from '#/email/service.ts'
@@ -18,6 +21,11 @@ import {renderVerificationEmail} from '#/email/templates/verify-email.tsx'
 import type {PasscodeIntent} from '#/isomorphic/validations/auth.ts'
 
 const genericFailureOutputMessage = 'Something went wrong. Please try again in a moment.'
+
+/** The anon FK can fail when a registered token outlives its row; other constraint failures are internal */
+const isAnonFkViolation = (error: EffectDrizzleQueryError | SchemaError) =>
+	Schema.is(EffectDrizzleQueryError)(error) &&
+	extractPgConstraint(error) === 'email_verifications_anon_id_anons_id_fkey'
 
 const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 	input: {email, intent},
@@ -47,6 +55,24 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 			anonId: registeredAnonId,
 			message: 'input: email is required when userId is absent',
 		})
+
+	/**
+	 * The registered claim is a cached assertion, not a guarantee: a token can
+	 * outlive its row (cross-database dev cookie, branch reset, archive race). Check
+	 * before hashing so a stale claim fails as a recoverable auth state, not an FK
+	 * write after an Argon2 round-trip and email render.
+	 */
+	if (registeredAnonId) {
+		const [anon] = yield* anonsQueries.select({id: registeredAnonId})
+
+		if (!anon)
+			return yield* opsFailure({
+				failureCause: 'ANON_NOT_FOUND',
+				rateAllowance: Infinity,
+				meta: {anonId: registeredAnonId},
+				message: 'Your session expired. Refresh the page and try again.',
+			})
+	}
 
 	/** Rate-limit check against ip address & id */
 	const currentBansAndExcessiveActivities = yield* checkCurrentBansAndExcessiveActivities({
@@ -136,6 +162,12 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 		const {send, appUrl} = yield* EmailService
 
 		/**
+		 * Only anon-keyed rows verify against the anon cookie; a User’s row
+		 * verifies from any signed-in device.
+		 */
+		const anonBound = Boolean(registeredAnonId)
+
+		/**
 		 * Render the email before the verification row commits: a
 		 * render failure fails the operation
 		 */
@@ -158,6 +190,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 								code,
 								appUrl,
 								intent === 'sign-up' ? (recipientExists ? 'signup-existing' : 'signup') : 'signin',
+								anonBound,
 							),
 			catch: (cause) =>
 				opsFailure({
@@ -179,6 +212,21 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 
 				return Effect.fail(drizzleError)
 			}),
+			/**
+			 * Race backstop for the pre-check above: the row can disappear between
+			 * the read and this insert. Match the specific anon constraint so other
+			 * constraint failures still surface as internal errors.
+			 */
+			Effect.catchIf(isAnonFkViolation, () =>
+				Effect.fail(
+					opsFailure({
+						failureCause: 'ANON_NOT_FOUND',
+						rateAllowance: Infinity,
+						meta: {anonId: registeredAnonId},
+						message: 'Your session expired. Refresh the page and try again.',
+					}),
+				),
+			),
 		)
 
 		if (!data)
@@ -231,7 +279,11 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 			),
 		)
 
-		return data
+		return {
+			...data,
+			/** Six sends per 10 minutes per IP/anon/user, enforced by the ban pipeline */
+			logging: {anonId: registeredAnonId, weight: allowRatePerWindow(6)},
+		}
 	}).pipe(
 		// oxlint-disable-next-line effecttsgo/strict-effect-provide
 		Effect.provide(HashingStub.layer(hasherId)),

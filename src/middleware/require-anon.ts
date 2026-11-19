@@ -17,7 +17,7 @@ export const requireAnon = createMiddleware({type: 'function'}).server(async ({n
 	if (!anon) {
 		setResponseStatus(400)
 		throw new KnownServerError({
-			message: 'Something went wrong. Please refresh the page and try again.',
+			message: 'You’re already signed in. Refresh the page to continue.',
 		})
 	}
 

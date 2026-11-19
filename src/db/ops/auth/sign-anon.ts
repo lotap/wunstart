@@ -1,6 +1,7 @@
 import {Effect} from 'effect'
 
-import {generateAnonToken} from '#/db/ops/auth/_anon-token.ts'
+import {appendUniqueBounded} from '#/db/helpers/array-fns.ts'
+import {ANON_METADATA_COOKIE_CAPS, generateAnonToken} from '#/db/ops/auth/_anon-token.ts'
 
 import {createOpsFn} from '../_create-ops-fn.ts'
 
@@ -19,23 +20,39 @@ const _signAnon = Effect.fn('signAnon')(function* ({
 	city: string | null
 	region: string | null
 }) {
-	const ipAddresses = new Set([...(existingData?.ipAddresses ?? []), ipAddress])
-	const userAgents = new Set([...(existingData?.userAgents ?? []), userAgent])
-	const countries = new Set([...(existingData?.countries ?? []), country])
-	const cities = new Set(existingData?.cities ?? [])
-	const regions = new Set(existingData?.regions ?? [])
+	const ipAddresses = appendUniqueBounded(
+		existingData?.ipAddresses,
+		ipAddress,
+		ANON_METADATA_COOKIE_CAPS.ipAddresses,
+	)
 
-	if (city) cities.add(city)
+	const userAgents = appendUniqueBounded(
+		existingData?.userAgents,
+		userAgent,
+		ANON_METADATA_COOKIE_CAPS.userAgents,
+	)
 
-	if (region) regions.add(region)
+	const countries = appendUniqueBounded(
+		existingData?.countries,
+		country,
+		ANON_METADATA_COOKIE_CAPS.countries,
+	)
+
+	const cities = appendUniqueBounded(existingData?.cities, city, ANON_METADATA_COOKIE_CAPS.cities)
+
+	const regions = appendUniqueBounded(
+		existingData?.regions,
+		region,
+		ANON_METADATA_COOKIE_CAPS.regions,
+	)
 
 	return yield* generateAnonToken({
 		...existingData,
-		ipAddresses: [...ipAddresses],
-		userAgents: [...userAgents],
-		countries: [...countries],
-		cities: [...cities],
-		regions: [...regions],
+		ipAddresses,
+		userAgents,
+		countries,
+		cities,
+		regions,
 	})
 })
 
