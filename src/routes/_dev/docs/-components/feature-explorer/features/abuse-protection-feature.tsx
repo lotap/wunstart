@@ -15,11 +15,8 @@ export const handlePasswordSignIn = createServerFn({method: 'POST'})
 const captchaPrompt =
 	'Add a Cloudflare Turnstile challenge after three failed credential attempts. Verify the token server-side before the credential op and store only the verification outcome on the Activity.'
 
-const durableLimiterPrompt =
-	'Replace the in-memory rate-limit store with a Durable Object keyed by IP. Keep the 60-second window and the 12,600 threshold, expose one Durable Object binding, and fail open when the object is unavailable.'
-
-const banAdminPrompt =
-	'Add a ban management page under /settings. List active bans with scope, target, weight, and expiry; allow revoking one ban and show recent Activities for the target. Require sudo for revocation.'
+const sharedLimiterPrompt =
+	'Replace the in-memory rate-limit store with a shared, atomic Redis-compatible service such as Redis, Valkey, or Upstash. Keep the 60-second weighted window, the 12,600 threshold, the op denial penalty, and the IPv6 /64 keying; read the connection from environment config and fail open when the store is unavailable. Postgres bans remain the durable ceiling; this layer only rejects bursts across instances.'
 
 /** Catalog entry for abuse protection. Details live in the Rate limits & bans reference panel. */
 export function AbuseProtectionFeature() {
@@ -60,7 +57,8 @@ export function AbuseProtectionFeature() {
 				<CodeBlock code={stricterLimit} label="Endpoint rate limit" language="typescript" />
 				<Prose>
 					The limiter is in-memory and per isolate. It rejects bursts in front of the op; it is not
-					a global edge limit. Pair it with a Cloudflare rule or a Durable Object for that.
+					a shared limit. Pair it with an edge rate-limiting rule or a shared Redis-compatible
+					limiter for that.
 				</Prose>
 			</PanelSection>
 
@@ -97,8 +95,7 @@ export function AbuseProtectionFeature() {
 
 			<PanelSection id="abuse-extend" title="Extension prompts" className="border-t pt-6">
 				<PromptBlock title="Add a CAPTCHA challenge" prompt={captchaPrompt} />
-				<PromptBlock title="Add a durable rate limiter" prompt={durableLimiterPrompt} />
-				<PromptBlock title="Add ban management" prompt={banAdminPrompt} />
+				<PromptBlock title="Add a shared rate limiter" prompt={sharedLimiterPrompt} />
 			</PanelSection>
 		</FeatureShell>
 	)

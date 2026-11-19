@@ -92,8 +92,9 @@ export function AbusePanel() {
 					</PanelRow>
 				</PanelList>
 				<Prose>
-					For a real edge limit, add a Cloudflare rate-limiting rule or a Durable Object. The
-					in-memory limiter stays useful as the last local guard.
+					For a real cross-instance limit, add an edge rate-limiting rule or a shared
+					Redis-compatible limiter (Redis, Valkey, Upstash). The in-memory limiter stays useful as
+					the last local guard.
 				</Prose>
 			</PanelSection>
 
@@ -107,6 +108,11 @@ export function AbusePanel() {
 					<PanelRow label="baseline">
 						84 for a successful activity, derived from 12,600 ÷ 150. A successful action alone never
 						approaches the ban threshold.
+					</PanelRow>
+					<PanelRow label="passcode sends">
+						Each successful passcode request weighs 2,100 instead, so six sends per IP in ten
+						minutes reach the threshold. The weight applies to the IP, Anon, and User scopes
+						together, so a shared NAT can be banned for about twenty minutes; retries extend it.
 					</PanelRow>
 					<PanelRow label="credential failure">
 						The op’s <InlineCode>rateAllowance</InlineCode> sets the weight: 4 allows about four

@@ -4,11 +4,12 @@ import {FeatureFlows, type FeatureFlow} from '../feature-blocks.tsx'
 
 const requestPasscodeChart = (formPath: string) => `flowchart LR
   form(["${formPath}"]) -->|"email + intent"| fn["handleEmailRequestPasscode"]
-  fn -->|"rate limit"| rl["rateLimit"] -->|"runOp"| op["emailRequestPasscode"]
+  fn -->|"middleware"| rl["rateLimit · requireAnon"] -->|"runOp"| op["emailRequestPasscode"]
   fn -->|"runOp · if unregistered"| reg["registerAnon"] -->|"insert"| anons[("anons")]
   reg -->|"log"| logs[("activities · bans")]
   reg -.->|"registered anon · Set-Cookie"| cookie[/"anon cookie"/]
   op -->|"pre-check"| logs
+  op -->|"anon liveness"| anons
   op -->|"lookup recipient"| users[("users")]
   op -->|"upsert code"| verifications[("email_verifications")]
   op -->|"hash code"| hash{{"AuthHasher DO"}}
@@ -70,18 +71,20 @@ const refreshChart = `flowchart LR
   verify -->|"refresh ok"| context["server fn context"]`
 
 const signOutChart = `flowchart LR
-  menu(["/settings · user menu"]) -->|"this device"| outFn["handleSignOut"] --> authOut["requireAuth"] -->|"runOp"| outOp["signOut"]
+  menu(["/settings · user menu"]) -->|"this device"| outFn["handleSignOut"] --> authOut["rateLimit · requireAuth"] -->|"runOp"| outOp["signOut"]
   outOp -->|"refresh JWS"| secrets{{"authLayer secrets"}}
   outOp -->|"verify nonce"| hash{{"AuthHasher DO"}}
   outOp -->|"read"| active[("sessions")]
   outOp -->|"archive"| sessions[("sessions_archive")]
   outOp -->|"log"| logs[("activities · bans")]
   outFn -.->|"refresh in · clear auth · set anon"| cookie[/"Set-Cookie"/]
-  menu -->|"all devices"| allFn["handleSignOutAll"] --> authAll["requireAuth"] -->|"runOp"| allOp["signOutAll"]
-  allOp -->|"access JWE"| secrets{{"authLayer secrets"}}
+  menu -->|"all devices"| allFn["handleSignOutAll"] --> authAll["rateLimit · requireAuth"] -->|"runOp"| allOp["signOutAll"]
+  allOp -->|"refresh JWS"| secrets
+  allOp -->|"live session · nonce · grace"| active
+  allOp -->|"verify nonce"| hash
   allOp -->|"archive by user"| sessions
   allOp -->|"log"| logs
-  allFn -.->|"access in · clear auth · set anon"| cookie`
+  allFn -.->|"refresh in · clear auth · set anon"| cookie`
 
 const passwordChangeChart = `flowchart LR
   form(["/settings"]) -->|"current password"| reverifyFn["handlePasswordReverify"]
@@ -94,10 +97,11 @@ const passwordChangeChart = `flowchart LR
   form -->|"new password"| changeFn["handlePasswordChange · strength check"]
   changeFn -->|"rate limit + requireAuth"| mw2["rateLimit · requireAuth"] -->|"runOp"| changeOp["passwordChange"]
   changeOp -->|"pre-check"| logs
+  changeOp -->|"live session"| sessionArchive[("sessions · sessions_archive")]
   changeOp -->|"sudo lease · stale fails"| sudo{"sudoExpiresAt"}
   changeOp -->|"update hash"| users
   changeOp -->|"hash new password"| hash
-  changeOp -->|"optional: archive all"| sessionArchive[("sessions · sessions_archive")]
+  changeOp -->|"optional: archive all"| sessionArchive
   changeOp -->|"optional: anon token"| anon[/"anon cookie"/]
   changeOp -->|"confirm"| mail{{"EmailService"}}
   changeOp -->|"log"| logs
@@ -128,6 +132,7 @@ const authFlows: FeatureFlow[] = [
 		],
 		notes: [
 			'Checks rate limits and bans before issuing or verifying a code.',
+			'A registered anon whose row is missing is replaced with a fresh identity and the request retried once.',
 			'New emails create the account and session. Local email lands in Mailpit.',
 			'Failed sends archive the verification row immediately. Wrong codes count up to four attempts before the row is archived.',
 			'A sign-up race against an existing email falls back to sign-in with the already-verified code.',
@@ -163,6 +168,7 @@ const authFlows: FeatureFlow[] = [
 		],
 		notes: [
 			'Both branches set auth cookies. Passcode sign-in uses the same request and verify ops as sign-up.',
+			'A registered anon whose row is missing is replaced with a fresh identity and the request retried once.',
 			'Unknown emails and wrong passwords share one generic error.',
 			'A passcode request for an unknown email sends a no-account notice instead of a code.',
 		],
@@ -195,8 +201,8 @@ const authFlows: FeatureFlow[] = [
 		models: ['sessions', 'sessions_archive', 'activities', 'bans'],
 		charts: [{source: signOutChart}],
 		notes: [
-			'Archives sessions, clears auth cookies, and issues a fresh Anon.',
-			'Single sign-out verifies the refresh token. Sign out all uses the access token and archives every session.',
+			'Archives sessions, clears auth cookies, and issues a fresh Anon on success.',
+			'Single sign-out verifies the refresh token. Sign out all verifies that the refresh session is still live and its nonce matches, then archives every Session; a dead session surfaces an error instead of a local sign-out.',
 		],
 	},
 	{
@@ -286,7 +292,9 @@ export function AuthPanel() {
 					</PanelRow>
 					<PanelRow label="cross-flow">
 						One active row exists per email and identity. Sign-up and sign-in share the Anon’s code;
-						reverify uses the User’s row. A code stays valid until it is burned or expires.
+						reverify uses the User’s row. Anon-keyed codes verify only in the browser that requested
+						them; User-keyed codes work from any signed-in device. A code stays valid until it is
+						burned or expires.
 					</PanelRow>
 					<PanelRow label="delivery">
 						Development sends to Mailpit. Production uses the configured email transport.
@@ -339,8 +347,16 @@ export function AuthPanel() {
 					before any write with a reverify message.
 				</Prose>
 				<Prose>
+					Sign-in grants the lease because the user just proved the password. Prompting for the same
+					password seconds later is friction without stopping anyone who already knows it. Requiring
+					an emailed code for every sudo action would break password-only recovery for people who
+					lost their old inbox, so that step is deferred until a lost-email recovery flow exists.
+				</Prose>
+				<Prose>
 					<InlineCode>useHasSudo()</InlineCode> reads the lease in the client. Settings components
 					gate destructive actions on it and open the reverify drawer when it is missing or expired.
+					The read-only email lookup is sudo-gated but skips the live-session check, so Settings
+					does not pay a session lookup on every render.
 				</Prose>
 			</PanelSection>
 
@@ -348,11 +364,22 @@ export function AuthPanel() {
 				<PanelList>
 					<PanelRow label="sign out">
 						Verifies the refresh token, archives that Session, clears both auth cookies, and issues
-						a fresh Anon.
+						a fresh Anon. If the session is already invalid, revoked, or expired, it clears the
+						cookies without an Anon; the next request issues one.
 					</PanelRow>
 					<PanelRow label="sign out all">
-						Uses the access token to archive every Session for the User, then clears the cookies and
-						issues a new Anon.
+						Verifies the refresh token, requires its Session to still be live in the database, and
+						checks the refresh nonce (current or grace generation); then archives every Session for
+						the User, clears the cookies, and issues a new Anon. Unlike single sign-out, a dead
+						session surfaces an error.
+					</PanelRow>
+					<PanelRow label="stale session">
+						The settings session list covers every live Session for the User, so an empty result
+						makes <InlineCode>handleGetSessions</InlineCode> clear both auth cookies; the page then
+						refreshes the router and the guard redirects to sign-in. Sudo-gated mutations that
+						already ran their live-session check clear the same cookies when it fails, without an
+						extra read. This closes the window where the access token outlives its Session by up to
+						15 minutes.
 					</PanelRow>
 					<PanelRow label="remove account">
 						Requires sudo. Archives the User; sessions and email verifications archive with it, and
@@ -360,6 +387,38 @@ export function AuthPanel() {
 					</PanelRow>
 					<PanelRow label="repeat removal">
 						A concurrent removal is treated as success; the desired end state is already true.
+					</PanelRow>
+				</PanelList>
+			</PanelSection>
+
+			<PanelSection id="auth-notes" title="Design notes">
+				<PanelList>
+					<PanelRow label="tokens">
+						Self-rolled JWE/JWS plus database Sessions instead of an auth provider, so revocation
+						and ban checks run inline. Access tokens are stateless for 15 minutes; refresh rotation
+						is the revocation point.
+					</PanelRow>
+					<PanelRow label="verify first">
+						No User row exists before inbox proof, so unverified email and password PII never lands
+						in the database.
+					</PanelRow>
+					<PanelRow label="revocation">
+						All-or-own only. There is no per-session revoke, because a stolen cookie could otherwise
+						run a watcher loop against every new Session the owner creates.
+					</PanelRow>
+					<PanelRow label="at rest">
+						Passcodes and refresh nonces are Argon2id hashes; the grace nonce is encrypted under a
+						separate secret set. Each token purpose derives a separate key, so one derived key
+						cannot stand in for another.
+					</PanelRow>
+					<PanelRow label="secrets">
+						Purpose tags do not protect a shared master secret. Production needs four distinct
+						secret sets per environment and database; the generator is deferred.
+					</PanelRow>
+					<PanelRow label="passcode limits">
+						No per-email cooldown — an attacker could exhaust it and lock the owner out. Per-IP
+						limits and weighted bans are the ceiling; six sends per IP in ten minutes can ban a
+						shared NAT, which is the accepted cost of bounding cookie-dropping.
 					</PanelRow>
 				</PanelList>
 			</PanelSection>

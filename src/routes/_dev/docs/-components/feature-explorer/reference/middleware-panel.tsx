@@ -177,6 +177,35 @@ export function MiddlewarePanel() {
 				</PanelList>
 			</PanelSection>
 
+			<PanelSection id="middleware-ip" title="Client IP">
+				<Prose>
+					Production runs on Cloudflare, where the edge supplies the client IP. A deployment that
+					can reach the Worker without a trusted proxy must supply its own overwriting header, or
+					every such client shares one rate-limit bucket and one ban scope.
+				</Prose>
+				<PanelList>
+					<PanelRow label="trusted header">
+						Only <InlineCode>cf-connecting-ip</InlineCode> is read. Cloudflare overwrites it at the
+						edge; <InlineCode>X-Forwarded-For</InlineCode> and <InlineCode>Forwarded</InlineCode>{' '}
+						are ignored because a client can forge them behind a naive proxy.
+					</PanelRow>
+					<PanelRow label="fallback">
+						The runtime socket address when one is exposed, otherwise{' '}
+						<InlineCode>192.0.2.1</InlineCode> — RFC 5737 TEST-NET-1, reserved for documentation and
+						never a real client.
+					</PanelRow>
+					<PanelRow label="stored address">
+						The full address is stored and shown in Settings and security emails. IPv6{' '}
+						<InlineCode>/64</InlineCode> normalization applies only inside the in-memory limiter, so
+						displayed history stays exact.
+					</PanelRow>
+					<PanelRow label="system ops">
+						<InlineCode>0.0.0.0</InlineCode> marks a system operation with no client. Neither
+						sentinel ever counts as a known IP for the failed-credential bypass.
+					</PanelRow>
+				</PanelList>
+			</PanelSection>
+
 			<PanelSection id="middleware-cookies" title="Cookies">
 				<Prose>
 					Auth and Anon cookies are <InlineCode>httpOnly</InlineCode>,{' '}
@@ -185,6 +214,14 @@ export function MiddlewarePanel() {
 					production prefixes both names with <InlineCode>__Http-</InlineCode>. Issuing an auth
 					session deletes the Anon cookie; signing out deletes the auth cookies and issues a fresh
 					Anon.
+				</Prose>
+				<Prose>
+					<InlineCode>__Http-</InlineCode> rather than <InlineCode>__Host-</InlineCode>:{' '}
+					<InlineCode>__Host-</InlineCode> forbids the <InlineCode>Domain</InlineCode> attribute
+					that <InlineCode>VITE_COOKIE_DOMAIN</InlineCode> needs for subdomain scoping. Leaving the
+					domain unset gives host-only cookies. In development, a per-branch suffix keeps worktrees
+					on <InlineCode>localhost</InlineCode> from reading each other&apos;s cookies, because
+					cookies ignore ports.
 				</Prose>
 			</PanelSection>
 

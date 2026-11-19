@@ -32,6 +32,15 @@ export function EmailPanel() {
 						Rate-limited before the op runs. A sign-in request for an unknown address sends the
 						no-account notice instead of a code; the response shape stays the same.
 					</PanelRow>
+					<PanelRow label="Request paths" labelVariant="text">
+						Sign-up and sign-in requests require an Anon. Reverify and email-change requests require
+						a signed-in User; email change also requires sudo at request and confirm time.
+					</PanelRow>
+					<PanelRow label="Resend" labelVariant="text">
+						A re-request replaces the active row, unless it is still more than about a minute from
+						expiry. There is no per-email cap: an attacker could exhaust it and lock the owner out,
+						so per-IP limits and weighted bans are the ceiling.
+					</PanelRow>
 					<PanelRow label="Deliverable mail" labelVariant="text">
 						The code is rendered before the verification row commits. A render failure fails the op;
 						a send failure retires the intent so a retry mints a fresh code.
