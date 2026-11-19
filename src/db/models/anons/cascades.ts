@@ -46,11 +46,14 @@ export const archive = createArchiveFn({
 		emailVerificationsCascades
 			.archiveByAnon({anonId: id}, {tx: tx, extraData: {anonId: null, anonsArchiveId: archiveId}})
 			.pipe(
-				// No rows is expected (the anon's verification may already have been burned at sign-up)
-				Effect.catchTags({
-					ArchiveNotFoundError: () => Effect.void,
-					ArchiveCountMismatchError: () => Effect.void,
-				}),
+				/**
+				 * No active rows is expected: the anon's verification was already burned
+				 * (sign-up archives it first) or archived elsewhere. A count mismatch is
+				 * not expected — swallowing it would commit this cascade's archive insert
+				 * as a duplicate, so let it fail and roll the whole transaction back for
+				 * the caller's retry (`retryTransientOrArchiveRace`).
+				 */
+				Effect.catchTag('ArchiveNotFoundError', () => Effect.void),
 			),
 	],
 })
