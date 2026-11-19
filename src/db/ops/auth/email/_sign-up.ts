@@ -2,7 +2,7 @@ import {Effect} from 'effect'
 
 import {DB} from '#/db/index.ts'
 import * as emailVerificationsQueries from '#/db/models/email-verifications/queries.ts'
-import {retryTransientDb} from '#/db/ops/_retry.ts'
+import {retryTransientOrArchiveRace} from '#/db/ops/_retry.ts'
 import {createUser} from '#/db/ops/auth/_create-user.ts'
 import {generateNonce} from '#/db/ops/auth/_refresh-token.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
@@ -29,7 +29,7 @@ export const signUpWithVerifiedCode = Effect.fn('emailVerifyPasscode.signUp')(fu
 	// oxlint-disable-next-line effecttsgo/strict-effect-provide
 	const sessionNonce = yield* Effect.provide(generateNonce(), HashingStub.layer(anonId))
 
-	return yield* retryTransientDb(
+	return yield* retryTransientOrArchiveRace(
 		db.transaction((tx) =>
 			Effect.gen(function* () {
 				/** Burn the passcode so it cannot be reused. Fails if a concurrent submission or reset got there first */

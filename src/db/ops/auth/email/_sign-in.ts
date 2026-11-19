@@ -1,7 +1,7 @@
 import {DateTime, Effect} from 'effect'
 
 import {DB} from '#/db/index.ts'
-import {retryTransientDb} from '#/db/ops/_retry.ts'
+import {retryTransientOrArchiveRace} from '#/db/ops/_retry.ts'
 import {generateAccessToken} from '#/db/ops/auth/_access-token.ts'
 import {createSession} from '#/db/ops/auth/_create-session.ts'
 import {generateNonce} from '#/db/ops/auth/_refresh-token.ts'
@@ -42,7 +42,7 @@ export const signInWithVerifiedCode = Effect.fn('emailVerifyPasscode.signIn')(fu
 
 		const db = yield* DB
 
-		const {session, access, retiredAnon} = yield* retryTransientDb(
+		const {session, access, retiredAnon} = yield* retryTransientOrArchiveRace(
 			db.transaction((tx) =>
 				Effect.gen(function* () {
 					/**

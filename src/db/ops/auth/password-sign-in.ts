@@ -6,7 +6,7 @@ import * as sessionsUsersQueries from '#/db/models/sessions---users/queries.ts'
 import * as usersQueries from '#/db/models/users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
-import {retryTransientDb} from '#/db/ops/_retry.ts'
+import {retryTransientDb, retryTransientOrArchiveRace} from '#/db/ops/_retry.ts'
 import {DUMMY_ARGON2_HASH, hashTarget, verifyTarget} from '#/db/ops/auth/_hashing.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
@@ -185,7 +185,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 		 * If retireAnon succeeds and createSession fails, it could cause an issue where the anon cannot sign-in
 		 * because of the unique constraint of the anonsArchive. The transaction ensures that state can't be reached.
 		 */
-		const [session, access, retiredAnon] = yield* retryTransientDb(
+		const [session, access, retiredAnon] = yield* retryTransientOrArchiveRace(
 			db.transaction((tx) =>
 				/** Concurrently create a session, archive the anon token if it exists, and generate an access token. */
 				Effect.all(
