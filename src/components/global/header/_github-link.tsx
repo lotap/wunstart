@@ -27,7 +27,7 @@ export function GitHubIconLink({href}: {href: string}) {
 	)
 }
 
-/** Menu action: the word plus an external-link mark in the secondary group. */
+/** Drawer row: the word plus an external-link mark in the secondary group. */
 export function GitHubMenuRow({href, onNavigate}: {href: string; onNavigate: () => void}) {
 	return (
 		<a

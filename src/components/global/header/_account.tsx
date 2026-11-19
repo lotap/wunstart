@@ -11,9 +11,9 @@ import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 import {SETTINGS_SHORTCUTS} from './_settings-shortcuts.ts'
 
 /**
- * The signed-in account block in the menu: the profile email as a group label,
- * then the settings shortcuts as plain rows. The desktop dropdown shares the
- * shortcut data but keeps its icons.
+ * The signed-in account block in the drawer: a “Signed in as” label above the
+ * profile email, then the settings shortcuts as icon rows. The desktop dropdown
+ * shares the shortcut data but keeps its own layout.
  */
 export function AccountLinks({open, onNavigate}: {open: boolean; onNavigate: () => void}) {
 	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)

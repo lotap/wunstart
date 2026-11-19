@@ -27,7 +27,7 @@ export const PUBLIC_REPO_URL: string | null = 'https://github.com/you/your-app'`
 const headerFiles = [
 	{
 		name: 'src/components/global/header/header.tsx',
-		job: 'Layout, centered links, signed-out GitHub action, theme, auth, and the menu trigger.',
+		job: 'Layout, centered links, signed-out GitHub action, theme, auth, and the drawer trigger.',
 	},
 	{
 		name: 'src/components/global/header/_links.ts',
@@ -35,15 +35,15 @@ const headerFiles = [
 	},
 	{
 		name: 'src/components/global/header/_github-link.tsx',
-		job: 'The project’s repo action: signed-out icon on desktop, word plus external mark in the menu.',
+		job: 'The project’s repo action: signed-out icon on desktop, word plus external mark in the drawer.',
 	},
 	{
 		name: 'src/components/global/header/_nav-link.tsx',
 		job: 'The one page-link style: type, hover, focus, and active underline.',
 	},
 	{
-		name: 'src/components/global/header/_header-menu.tsx',
-		job: 'The menu below md: a full-bleed sheet with page scroll lock, a centered link/utility block, and an anchored auth pair. Carries links, GitHub, theme, and auth.',
+		name: 'src/components/global/header/_nav-drawer.tsx',
+		job: 'The menu below md: a right-hand drawer over a dimmed page, with the link/utility block scrolling above an anchored auth pair.',
 	},
 	{
 		name: 'src/components/global/header/_user-nav.tsx',
@@ -97,8 +97,8 @@ export function HeaderPanel() {
 				</Prose>
 				<Prose>
 					At <InlineCode>md</InlineCode> the arrays render in the bar; below it they collapse into
-					the menu. The bar holds about four typical signed-out links before the actions need room;
-					the signed-in bar fits more because the account control is narrower. For five or six
+					the drawer. The bar holds about four typical signed-out links before the actions need
+					room; the signed-in bar fits more because the account control is narrower. For five or six
 					links, move the breakpoint to <InlineCode>lg</InlineCode> or group the overflow into a
 					More menu.
 				</Prose>
@@ -121,16 +121,16 @@ export function HeaderPanel() {
 
 			<PanelSection id="header-style" title="Choose the voice">
 				<Prose>
-					<InlineCode>_nav-link.tsx</InlineCode> owns both the desktop list and the menu. The
+					<InlineCode>_nav-link.tsx</InlineCode> owns both the desktop list and the drawer. The
 					default is the theme sans at 14px, 500 in light and 400 in dark, sentence case; below{' '}
-					<InlineCode>md</InlineCode> the sheet uses 30px at 52px rows inside a max-w-md column,
-					with a 24px pad. The content is one centered block: page links at 30px/52px, a 64px gap,
-					then GitHub (with an external mark) and Theme (with its icon) at 16px/44px rows. Signed
-					in, the account shortcuts join that group at the same 16px/44px, each with its dropdown
-					icon in a 16px column on the 24px rail. Sign in is a ghost row and Sign up a stock 56px
-					default button, split by 12px and anchored at the bottom; signed in, a ghost Sign out
-					takes the slot. There is no divider or custom CTA. The active route keeps the 2px
-					underline in both the bar and the menu. Change that one file to change every nav item.
+					<InlineCode>md</InlineCode> the drawer uses 30px at 52px rows with a 24px gutter. The
+					content is one block: page links at 30px/52px, a 64px gap, then GitHub (with an external
+					mark) and Theme (with its icon) at 16px/44px rows. Signed in, the account shortcuts join
+					that group at the same 16px/44px, each with its dropdown icon in a 16px column on the 24px
+					rail. Sign in is a ghost row and Sign up a stock 56px default button, split by 12px and
+					anchored at the bottom; signed in, a ghost Sign out takes the slot. There is no divider or
+					custom CTA. The active route keeps the 2px underline in both the bar and the drawer.
+					Change that one file to change every nav item.
 				</Prose>
 				<DocBulletList>
 					<li>
@@ -186,33 +186,32 @@ export function HeaderPanel() {
 				<Prose>
 					At <InlineCode>md</InlineCode> and up the bar holds the utilities: the signed-out repo
 					icon, theme, a divider, then Sign in / Sign up (or the account avatar). Below{' '}
-					<InlineCode>md</InlineCode> those controls move into the menu, and the bar keeps only the
-					brand and the trigger. The menu always has the Theme control, so the trigger always exists
-					below <InlineCode>md</InlineCode>; there is no empty menu. Sign out lives in the account
-					dropdown at <InlineCode>md</InlineCode> and up, and in the menu below it.
+					<InlineCode>md</InlineCode> those controls move into the drawer, and the bar keeps only
+					the brand and the trigger. The menu always has the Theme control, so the trigger always
+					exists below <InlineCode>md</InlineCode>; there is no empty menu. Sign out lives in the
+					account dropdown at <InlineCode>md</InlineCode> and up, and in the drawer below it.
 				</Prose>
 			</PanelSection>
 
-			<PanelSection id="header-menu" title="The collapsed menu">
+			<PanelSection id="header-menu" title="The mobile drawer">
 				<Prose>
-					Below <InlineCode>md</InlineCode> the bar keeps only the brand and the trigger; the menu
+					Below <InlineCode>md</InlineCode> the bar keeps only the brand and the trigger; the drawer
 					carries page links, the signed-out GitHub action, theme, and Sign in / Sign up, or the
-					signed-in account block. Below <InlineCode>md</InlineCode> the menu is one full-bleed
-					sheet under the header: page scroll locks, the page behind is inert, and the sheet scrolls
-					as one centered block above the anchored action. Its height is the viewport minus the bar,
-					measured from the nav, so it ends at the viewport edge at any header height. The block is
-					a max-w-md column: page links at 30px/52px, a 64px gap, then GitHub (with an external
-					mark) and Theme (with its icon) at 16px/44px rows. Signed in, the group opens with the
-					account: a muted “Signed in as” label, the profile email on its own line beneath it
-					(truncating when long), then Preferences, Profile, and Access &amp; Security with the same
-					icons as the dropdown, in a 16px column on the 24px rail, with Theme last. Sign in is a
-					ghost row and Sign up a stock 56px default button, split by 12px and anchored at the
-					bottom; signed in, a single ghost Sign out takes that slot. There is no divider or custom
-					CTA. The labeled Theme control is itself the toggle. The trigger always renders below{' '}
-					<InlineCode>md</InlineCode>; the Theme control guarantees the menu is never empty. The
-					sheet closes on navigation, resize, outside press, and Escape, and Escape returns focus to
-					the trigger; internal scrolling does not dismiss it. That dismissal behavior is shared
-					with the landing page’s section dock.
+					signed-in account block. It is the stock drawer sliding in from the right over a dimmed,
+					blurred page: page scroll locks, focus stays inside, and it closes on navigation, a resize
+					past <InlineCode>md</InlineCode>, a backdrop press, a rightward swipe, or Escape. Escape
+					and the close button return focus to the trigger. The drawer header mirrors the bar height
+					and holds the close control; the middle scrolls as one block above the anchored action, so
+					a long link list never pushes the auth pair away. Page links sit at 30px/52px with a 24px
+					gutter; after a 64px gap come GitHub (with an external mark) and Theme (with its icon) at
+					16px/44px rows. Signed in, the group opens with the account: a muted “Signed in as” label,
+					the profile email on its own line beneath it (truncating when long), then Preferences,
+					Profile, and Access &amp; Security with the same icons as the dropdown, in a 16px column
+					on the 24px rail, with Theme last. Sign in is a ghost row and Sign up a stock 56px default
+					button, split by 12px and anchored at the bottom; signed in, a single ghost Sign out takes
+					that slot. There is no divider or custom CTA. The labeled Theme control is itself the
+					toggle, and the trigger always renders below <InlineCode>md</InlineCode>. Motion and swipe
+					come from the drawer primitive and stop under reduced motion.
 				</Prose>
 			</PanelSection>
 		</>
