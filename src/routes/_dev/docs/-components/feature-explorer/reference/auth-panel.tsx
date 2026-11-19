@@ -382,10 +382,10 @@ export function AuthPanel() {
 					<PanelRow label="stale session">
 						The settings session list covers every live Session for the User, so an empty result
 						makes <InlineCode>handleGetSessions</InlineCode> clear both auth cookies; the page then
-						refreshes the router and the guard redirects to sign-in. Sudo-gated mutations that
-						already ran their live-session check clear the same cookies when it fails, without an
-						extra read. This closes the window where the access token outlives its Session by up to
-						15 minutes.
+						refreshes the router and the guard redirects to sign-in. Sudo-gated mutations and
+						user-keyed passcode requests that already ran their live-session check clear the same
+						cookies when it fails, without an extra read. This closes the window where the access
+						token outlives its Session by up to 15 minutes.
 					</PanelRow>
 					<PanelRow label="remove account">
 						Requires sudo. Archives the User; sessions and email verifications archive with it, and

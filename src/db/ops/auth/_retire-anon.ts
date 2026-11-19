@@ -71,9 +71,9 @@ export const retireAnon = Effect.fn('retireAnon')(function* (
 			 * A concurrent archive that loses the delete race raises
 			 * `ArchiveCountMismatchError` instead. Callers retry the whole
 			 * transaction (`retryTransientOrArchiveRace`), so the next attempt finds the
-			 * winner’s row here. Do not catch it inside this transaction: Postgres
-			 * has already aborted it, and the loser’s archive insert would commit
-			 * as a duplicate.
+			 * winner’s row here. Do not catch it inside this transaction: the loser’s
+			 * archive insert would commit as a duplicate; let the error roll back and be
+			 * retried by the caller.
 			 */
 			.pipe(Effect.catchTag('ArchiveNotFoundError', () => Effect.succeed([])))
 

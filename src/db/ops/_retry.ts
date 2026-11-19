@@ -33,12 +33,12 @@ export const retryTransientDb = retryOn(isTransientPgError)
  * Retries on transient Postgres failures or a lost concurrent-archive race.
  *
  * An archive reads its rows, inserts copies, then deletes by id. Two writers
- * can both select the same row; the loser’s delete matches zero rows and raises
- * `ArchiveCountMismatchError`. Retrying the whole transaction is safe because
- * the failed attempt rolled back, so the retry sees no active row and can
- * return the winner’s archive row. Do not catch the mismatch inside the
- * transaction: Postgres has already aborted it, and the loser’s archive insert
- * would commit as a duplicate.
+ * can both select the same row; the loser’s delete succeeds but returns zero
+ * rows, and the application-level count check raises
+ * `ArchiveCountMismatchError`. The transaction is still healthy at that point,
+ * but catching the error here would commit the loser’s archive insert as a
+ * duplicate. Let it roll the transaction back and retry; the next attempt sees
+ * no active row and can return the winner’s archive row.
  *
  * Used by the sign-in/sign-up transactions that retire a registered Anon.
  */

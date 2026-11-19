@@ -115,8 +115,9 @@ const DEAD_SESSION_CAUSES: ReadonlySet<string> = new Set(['INVALID_JWS', 'SESSIO
  * rethrowing.
  *
  * The access token keeps working for up to 15 minutes after its Session is
- * gone. A failed sudo-gated mutation is the point where the server knows the
- * cookie pair is dead, so it should not leave the browser carrying it.
+ * gone. A failed live-session check on a sudo-gated mutation or a user-keyed
+ * passcode request is the point where the server knows the cookie pair is dead,
+ * so it should not leave the browser carrying it.
  *
  * Not for `signOutAll`: that handler stays strict on purpose and keeps the
  * cookies when a dead or forged token fails the all-device sign-out.
