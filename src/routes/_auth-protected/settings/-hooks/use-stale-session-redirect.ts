@@ -2,7 +2,7 @@ import {useQueryClient} from '@tanstack/react-query'
 import {useRouter} from '@tanstack/react-router'
 import {useEffect, useRef} from 'react'
 
-import {clearIdentityCache} from '#/components/auth/_utils.ts'
+import {clearIdentityCache} from '#/components/auth/identity-cache.ts'
 
 /**
  * The sessions list covers every live session for the user, so an empty result

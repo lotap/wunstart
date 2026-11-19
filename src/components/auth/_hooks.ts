@@ -1,7 +1,9 @@
 import {useMutation, useQueryClient} from '@tanstack/react-query'
+import {useRouter} from '@tanstack/react-router'
 import {DateTime} from 'effect'
 
 import {useLocalStorageQuery} from '#/hooks/use-local-storage-query.ts'
+import {SIGN_IN_REQUIRED_MESSAGE, SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {
 	passcodeRequestQueryOptions,
@@ -10,6 +12,30 @@ import {
 	type RequestEmailPasscodeServerFn,
 	type PasscodeRequestQueryOptions,
 } from './_utils.ts'
+import {clearIdentityCache} from './identity-cache.ts'
+
+/**
+ * Recover the client after a protected mutation finds the session gone.
+ *
+ * `runOpClearingDeadSession` and `requireAuth` end the dead cookie pair
+ * server-side, but the router context and cached identity survive until the
+ * next navigation. Clear both here so the guard can redirect immediately.
+ * Only matching auth failures act; every other error passes through.
+ */
+export function useDeadSessionRecovery() {
+	const queryClient = useQueryClient()
+	const router = useRouter()
+
+	return (cause: unknown) => {
+		if (!(cause instanceof Error)) return
+
+		if (cause.message !== SESSION_EXPIRED_MESSAGE && cause.message !== SIGN_IN_REQUIRED_MESSAGE)
+			return
+
+		clearIdentityCache(queryClient)
+		void router.invalidate().catch(() => undefined)
+	}
+}
 
 export function useLocalStorageEmail() {
 	const queries = useLocalStorageQuery({key: 'auth-email', schema: LocalStorageEmailSchema})

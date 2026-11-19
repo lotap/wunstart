@@ -59,17 +59,22 @@ export function extractPgError(drizzleError: EffectDrizzleQueryError) {
 
 /**
  * The Postgres constraint name from a constraint violation, if the driver
- * attached one. The server fields live on the reason's `cause`, not on
- * `SqlError.message`, which stays a generic connection message.
+ * attached one. A unique violation carries the normalized name directly on the
+ * reason; FK/CHECK violations expose the server fields on the reason's `cause`.
+ * Neither lives on `SqlError.message`, which stays a generic connection message.
  */
-const PgConstraintCause = Schema.Struct({constraint: Schema.String})
+const PgConstraint = Schema.Struct({constraint: Schema.String})
 
 export const extractPgConstraint = (drizzleError: EffectDrizzleQueryError) => {
 	const reason = findSqlError(drizzleError)?.reason
 
-	if (!reason || !('cause' in reason)) return undefined
+	if (!reason) return undefined
 
-	return Schema.is(PgConstraintCause)(reason.cause) ? reason.cause.constraint : undefined
+	if (Schema.is(PgConstraint)(reason)) return reason.constraint
+
+	if (!('cause' in reason)) return undefined
+
+	return Schema.is(PgConstraint)(reason.cause) ? reason.cause.constraint : undefined
 }
 
 // @effect-diagnostics-next-line unstableApiUsage:off

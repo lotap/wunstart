@@ -7,9 +7,8 @@ import {opsFailure} from '#/db/ops/ops-error.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
+import {GENERIC_AUTH_FAILURE_MESSAGE, VERIFICATION_EXPIRED_MESSAGE} from './_messages.ts'
 import {verifyLiveSession} from './_verify-live-session.ts'
-
-const genericFailureOutputMessage = 'Something went wrong. Please try again.'
 
 /**
  * Remove the signed-in user's account.
@@ -44,7 +43,7 @@ const _removeUser = Effect.fn('removeUser')(function* ({
 		return yield* opsFailure({
 			failureCause: 'STALE_VERIFICATION',
 			userId,
-			message: 'Your verification has expired. Re-verify, then try again.',
+			message: VERIFICATION_EXPIRED_MESSAGE,
 		})
 	}
 
@@ -62,7 +61,7 @@ const _removeUser = Effect.fn('removeUser')(function* ({
 	 * log the activity as a rate limit failure and return a generic error
 	 */
 	if (currentBansAndExcessiveActivities.length)
-		return yield* rateLimitFailure({message: genericFailureOutputMessage, userId})
+		return yield* rateLimitFailure({message: GENERIC_AUTH_FAILURE_MESSAGE, userId})
 
 	/**
 	 * Archive the user. A concurrent removal (another device/tab) may have

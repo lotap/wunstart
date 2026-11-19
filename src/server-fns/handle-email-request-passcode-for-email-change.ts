@@ -3,6 +3,7 @@ import {DateTime, Schema} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
+import {VERIFICATION_EXPIRED_MESSAGE} from '#/db/ops/auth/_messages.ts'
 import {emailRequestPasscode} from '#/db/ops/auth/email/request-passcode.ts'
 import {emailLayer} from '#/email/layer.ts'
 import {EmailCredentials} from '#/isomorphic/validations/auth.ts'
@@ -26,7 +27,7 @@ export const handleEmailRequestPasscodeForEmailChange = createServerFn({method: 
 
 		if (!sudoExpiresAt || DateTime.isPastUnsafe(sudoExpiresAt))
 			throw new KnownServerError({
-				message: 'Your verification has expired. Re-verify, then try again.',
+				message: VERIFICATION_EXPIRED_MESSAGE,
 			})
 
 		const {expiresAt} = await runOpClearingDeadSession({

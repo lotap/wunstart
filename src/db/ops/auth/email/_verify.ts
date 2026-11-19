@@ -8,6 +8,8 @@ import {verifyTarget} from '#/db/ops/auth/_hashing.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 
+import {INVALID_PASSCODE_MESSAGE} from '../_messages.ts'
+
 const MAX_ATTEMPTS = 4
 
 const archiveWithPasscode = (input: {id: string; passcodeHash: string}) =>
@@ -60,7 +62,7 @@ export const verify = Effect.fn('emailVerify')(function* (
 			failedCredential: email,
 			failureCause: 'NOT_FOUND_OR_EXPIRED',
 			rateAllowance: 6,
-			message: 'That code is no longer valid. Request a fresh one.',
+			message: INVALID_PASSCODE_MESSAGE,
 		})
 
 	const {id, attempts, passcodeHash} = verification
@@ -112,7 +114,7 @@ export const verify = Effect.fn('emailVerify')(function* (
 					failureCause: 'NOT_FOUND_ON_INCREMENT',
 					meta: {id},
 					rateAllowance: 4,
-					message: 'That code is no longer valid. Request a fresh one.',
+					message: INVALID_PASSCODE_MESSAGE,
 				})
 
 			if (incrementedRow.attempts >= MAX_ATTEMPTS) {

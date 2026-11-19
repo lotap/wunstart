@@ -1,6 +1,7 @@
 import {createMiddleware} from '@tanstack/react-start'
 import {setResponseStatus} from '@tanstack/react-start/server'
 
+import {SIGN_IN_REQUIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 import type {GlobalServerFnContext} from '#/start-types.ts'
 
 import {KnownServerError} from './sanitize-errors.ts'
@@ -16,7 +17,7 @@ export const requireAuth = createMiddleware({type: 'function'}).server(async ({n
 
 	if (!auth) {
 		setResponseStatus(401)
-		throw new KnownServerError({message: 'You need to sign in to do that.'})
+		throw new KnownServerError({message: SIGN_IN_REQUIRED_MESSAGE})
 	}
 
 	return next({context: {auth}})

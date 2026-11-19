@@ -3,6 +3,7 @@ import {Effect} from 'effect'
 import {archive as archiveSession} from '#/db/models/sessions/cascades.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
+import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
 import {decodeRefreshSession} from './_refresh-session.ts'
@@ -29,8 +30,6 @@ const _signOut = Effect.fn('signOut')(function* ({
 	city: string | null
 	region: string | null
 }) {
-	const message = 'Your session has expired. Sign in and try again.'
-
 	const resolved = yield* decodeRefreshSession({token})
 
 	/**
@@ -43,7 +42,7 @@ const _signOut = Effect.fn('signOut')(function* ({
 			failureCause: 'INVALID_JWS',
 			meta: {operation: resolved.operation},
 			rateAllowance: Infinity,
-			message,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	if (resolved.status === 'missing')
@@ -51,7 +50,7 @@ const _signOut = Effect.fn('signOut')(function* ({
 			failureCause: 'SESSION_NOT_FOUND',
 			meta: {sessionId: resolved.sessionId},
 			rateAllowance: Infinity,
-			message,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	const {generation, nonce, session} = resolved
@@ -68,7 +67,7 @@ const _signOut = Effect.fn('signOut')(function* ({
 			/** Same terminal-state handling: no ban weight for a sign-out the handler completes locally */
 			rateAllowance: Infinity,
 			userId,
-			message,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	/**

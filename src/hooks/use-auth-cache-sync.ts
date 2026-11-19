@@ -2,7 +2,7 @@ import {useQueryClient} from '@tanstack/react-query'
 import {useRouter} from '@tanstack/react-router'
 import {useEffect} from 'react'
 
-import {authTransitionStorageKey} from '#/components/auth/_utils.ts'
+import {authTransitionStorageKey} from '#/components/auth/identity-cache.ts'
 
 /**
  * Keep the query cache in sync with auth changes made by another tab.

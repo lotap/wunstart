@@ -1,6 +1,7 @@
 import {Effect} from 'effect'
 
 import {opsFailure} from '#/db/ops/ops-error.ts'
+import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {decodeRefreshSession} from './_refresh-session.ts'
 
@@ -23,8 +24,6 @@ export const verifyLiveSession = Effect.fn('verifyLiveSession')(function* ({
 	refreshToken: string
 	userId: string
 }) {
-	const message = 'Your session has expired. Sign in and try again.'
-
 	const resolved = yield* decodeRefreshSession({token: refreshToken})
 
 	if (resolved.status === 'invalid')
@@ -32,7 +31,7 @@ export const verifyLiveSession = Effect.fn('verifyLiveSession')(function* ({
 			failureCause: 'INVALID_JWS',
 			meta: {operation: resolved.operation},
 			rateAllowance: 3,
-			message,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	/**
@@ -48,7 +47,7 @@ export const verifyLiveSession = Effect.fn('verifyLiveSession')(function* ({
 			userId,
 			meta: {sessionId: resolved.sessionId},
 			rateAllowance: Infinity,
-			message,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	const {session} = resolved
@@ -62,6 +61,6 @@ export const verifyLiveSession = Effect.fn('verifyLiveSession')(function* ({
 			failureCause: 'SESSION_NOT_FOUND',
 			userId,
 			rateAllowance: 3,
-			message,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 })

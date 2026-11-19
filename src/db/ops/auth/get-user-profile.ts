@@ -5,6 +5,8 @@ import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
 import {maskEmail} from '#/isomorphic/mask-email.ts'
 
+import {GENERIC_AUTH_FAILURE_MESSAGE} from './_messages.ts'
+
 const _getUserProfile = Effect.fn('getUserProfile')(function* ({userId}: {userId: string}) {
 	const [user] = yield* usersQueries.selectProfile({id: userId})
 
@@ -14,7 +16,7 @@ const _getUserProfile = Effect.fn('getUserProfile')(function* ({userId}: {userId
 			/** meta, not the userId column: the referenced user may no longer exist, which would violate the FK */
 			meta: {userId},
 			rateAllowance: 6,
-			message: 'Something went wrong. Please try again.',
+			message: GENERIC_AUTH_FAILURE_MESSAGE,
 		})
 
 	/** The full address never leaves the server unprivileged; clients get the masked form */

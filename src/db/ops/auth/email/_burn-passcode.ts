@@ -5,6 +5,7 @@ import * as emailVerificationsQueries from '#/db/models/email-verifications/quer
 import {archiveTable} from '#/db/models/email-verifications/schemas.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
 
+import {INVALID_PASSCODE_MESSAGE} from '../_messages.ts'
 import type {verify} from './_verify.ts'
 
 /**
@@ -35,7 +36,7 @@ export const burnPasscode = Effect.fn('emailVerifyBurnPasscode')(function* ({
 			failedCredential: email,
 			failureCause: 'NOT_FOUND_OR_EXPIRED',
 			rateAllowance: 6,
-			message: 'That code is no longer valid. Request a fresh one.',
+			message: INVALID_PASSCODE_MESSAGE,
 		})
 
 	yield* tx

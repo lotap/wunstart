@@ -5,6 +5,7 @@ import {Schema} from 'effect'
 import {dbLayer} from '#/db/index.ts'
 import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/_anon-token.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
+import {ANON_SESSION_EXPIRED_MESSAGE} from '#/db/ops/auth/_messages.ts'
 import {emailRequestPasscode} from '#/db/ops/auth/email/request-passcode.ts'
 import {registerAnon} from '#/db/ops/auth/register-anon.ts'
 import {signAnon} from '#/db/ops/auth/sign-anon.ts'
@@ -87,7 +88,7 @@ export const handleEmailRequestPasscode = createServerFn({method: 'POST'})
 				deleteCookie(ANON_TOKEN_COOKIE_NAME, anonCookieConfig)
 				setResponseStatus(400)
 				throw new KnownServerError({
-					message: 'Your session expired. Refresh the page and try again.',
+					message: ANON_SESSION_EXPIRED_MESSAGE,
 				})
 			}
 		}

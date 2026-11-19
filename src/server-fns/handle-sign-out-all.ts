@@ -20,7 +20,7 @@ export const handleSignOutAll = createServerFn({method: 'POST'})
 	.handler(
 		async ({
 			context: {
-				auth: {refreshToken},
+				auth: {refreshToken, userId},
 				ipAddress,
 				userAgent,
 				country,
@@ -32,7 +32,7 @@ export const handleSignOutAll = createServerFn({method: 'POST'})
 				anonToken: {token},
 			} = await runOp({
 				op: signOutAll,
-				data: {token: refreshToken, ipAddress, userAgent, country, city, region},
+				data: {token: refreshToken, userId, ipAddress, userAgent, country, city, region},
 				layers: [authLayer, dbLayer],
 			})
 

@@ -1,6 +1,7 @@
 import {Effect} from 'effect'
 
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
+import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {extractAccessTokenPayload} from './_access-token.ts'
 import {hkdfFailure, isJwtKeyDerivationError} from './_jwt-utils.ts'
@@ -15,7 +16,7 @@ const _verifyAccess = Effect.fn('verifyAccess')(function* ({token}: {token: stri
 						failureCause: 'INVALID_JWE',
 						meta: {operation: error.operation},
 						rateAllowance: 3,
-						message: 'Your session has expired. Sign in and try again.',
+						message: SESSION_EXPIRED_MESSAGE,
 					}),
 		),
 	)

@@ -14,10 +14,9 @@ import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
 import {hashTarget} from './_hashing.ts'
+import {GENERIC_AUTH_FAILURE_MESSAGE, VERIFICATION_EXPIRED_MESSAGE} from './_messages.ts'
 import {formatUserAgent} from './_user-agent.ts'
 import {verifyLiveSession} from './_verify-live-session.ts'
-
-const genericFailureOutputMessage = 'Something went wrong. Please try again.'
 
 const _passwordChange = Effect.fn('passwordChange')(function* ({
 	input: {password, signOutAllSessions},
@@ -47,7 +46,7 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 		return yield* opsFailure({
 			failureCause: 'STALE_VERIFICATION',
 			userId,
-			message: 'Your verification has expired. Re-verify, then try again.',
+			message: VERIFICATION_EXPIRED_MESSAGE,
 		})
 	}
 
@@ -65,7 +64,7 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 	 * log the activity as a rate limit failure and return a generic error
 	 */
 	if (currentBansAndExcessiveActivities.length)
-		return yield* rateLimitFailure({message: genericFailureOutputMessage, userId})
+		return yield* rateLimitFailure({message: GENERIC_AUTH_FAILURE_MESSAGE, userId})
 
 	return yield* Effect.gen(function* () {
 		const passwordHash = yield* hashTarget(password)
@@ -76,7 +75,7 @@ const _passwordChange = Effect.fn('passwordChange')(function* ({
 			return yield* opsFailure({
 				failureCause: 'PASSWORD_HASH_UPDATE_FAILED',
 				rateAllowance: 6,
-				message: genericFailureOutputMessage,
+				message: GENERIC_AUTH_FAILURE_MESSAGE,
 			})
 
 		/**

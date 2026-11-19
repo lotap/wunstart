@@ -25,7 +25,8 @@ import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 import {handlePasswordChange} from '#/server-fns/handle-password-change.ts'
 
-import {clearIdentityCache, userProfileQueryOptions} from './_utils.ts'
+import {useDeadSessionRecovery} from './_hooks.ts'
+import {clearIdentityCache, userProfileQueryOptions} from './identity-cache.ts'
 
 const ReverifyDrawer = lazy(() =>
 	import('./_reverify-drawer.tsx').then((m) => ({default: m.ReverifyDrawer})),
@@ -45,6 +46,8 @@ export function ChangePasswordForm({
 	const router = useRouter()
 
 	const queryClient = useQueryClient()
+
+	const recoverDeadSession = useDeadSessionRecovery()
 
 	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
 
@@ -67,20 +70,25 @@ export function ChangePasswordForm({
 		},
 		onSubmitSchema: PasswordChangeCredentials,
 		onSubmitTry: async ({password, signOutAllSessions}) => {
-			await handlePasswordChangeFn({data: {password, signOutAllSessions}})
+			try {
+				await handlePasswordChangeFn({data: {password, signOutAllSessions}})
 
-			/** Every session was archived, including this one, so refresh app state */
-			if (signOutAllSessions) {
-				clearIdentityCache(queryClient)
-				await router.invalidate()
+				/** Every session was archived, including this one, so refresh app state */
+				if (signOutAllSessions) {
+					clearIdentityCache(queryClient)
+					await router.invalidate()
+				}
+
+				if (closePasswordChangeDrawer) closePasswordChangeDrawer()
+				toast.add({
+					type: 'success',
+					title: 'Password updated',
+					description: signOutAllSessions ? 'You have been signed out of all sessions' : undefined,
+				})
+			} catch (error) {
+				recoverDeadSession(error)
+				throw error
 			}
-
-			if (closePasswordChangeDrawer) closePasswordChangeDrawer()
-			toast.add({
-				type: 'success',
-				title: 'Password updated',
-				description: signOutAllSessions ? 'You have been signed out of all sessions' : undefined,
-			})
 		},
 	})
 

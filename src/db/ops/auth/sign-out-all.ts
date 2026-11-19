@@ -4,6 +4,7 @@ import {ArchiveCountMismatchError} from '#/db/helpers/archive-fns.ts'
 import {archiveByUser} from '#/db/models/sessions/cascades.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
+import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
 import {decodeRefreshSession} from './_refresh-session.ts'
@@ -12,12 +13,15 @@ import {verifyRefreshNonce} from './_verify-refresh-nonce.ts'
 /**
  * Remove all sessions for a user based on the given refresh token. Used to sign-out on all devices.
  *
- * Verifies that the caller holds a live, unrevoked session in the database first so an
- * already-evicted session still holding an unexpired 15-minute access token cannot
- * repeatedly invoke `signOutAll` in a watcher loop as the account owner signs back in.
+ * Verifies that the caller holds a live, unrevoked session for the authenticated user
+ * first, so an already-evicted session still holding an unexpired 15-minute access
+ * token cannot repeatedly invoke `signOutAll` in a watcher loop as the account owner
+ * signs back in. The user binding also fails closed on mixed cookies: the refresh
+ * token must belong to the user the access token proved.
  */
 const _signOutAll = Effect.fn('signOutAll')(function* ({
 	token,
+	userId,
 	ipAddress,
 	userAgent,
 	country,
@@ -25,14 +29,13 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 	region,
 }: {
 	token: string
+	userId: string
 	ipAddress: string
 	userAgent: string
 	country: string
 	city: string | null
 	region: string | null
 }) {
-	const message = 'Your session has expired. Sign in and try again.'
-
 	const resolved = yield* decodeRefreshSession({token})
 
 	if (resolved.status === 'invalid')
@@ -40,7 +43,7 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 			failureCause: 'INVALID_JWS',
 			meta: {operation: resolved.operation},
 			rateAllowance: 3,
-			message,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	/**
@@ -54,12 +57,25 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 			failureCause: 'SESSION_NOT_FOUND',
 			meta: {sessionId: resolved.sessionId},
 			rateAllowance: Infinity,
-			message,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	const {generation, nonce, session} = resolved
 
-	const {userId} = session
+	const {userId: sessionUserId} = session
+
+	/**
+	 * The access token proved `userId`; bind the refresh session to it so mixed
+	 * cookies fail closed instead of archiving another user’s sessions. Compare
+	 * before the nonce check: a mismatched token does not need a hasher round-trip.
+	 */
+	if (sessionUserId !== userId)
+		return yield* opsFailure({
+			failureCause: 'SESSION_NOT_FOUND',
+			userId,
+			rateAllowance: 3,
+			message: SESSION_EXPIRED_MESSAGE,
+		})
 
 	const nonceCheck = yield* verifyRefreshNonce({session, generation, nonce})
 
@@ -72,7 +88,7 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 			 */
 			rateAllowance: nonceCheck === 'grace-unreadable' ? Infinity : 3,
 			userId,
-			message,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	/**
@@ -80,7 +96,7 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 	 * have already archived some. A count mismatch means another sign-out raced us,
 	 * so retry to archive whatever is still active before treating the remainder as a no-op
 	 */
-	yield* archiveByUser({userId}).pipe(
+	yield* archiveByUser({userId: sessionUserId}).pipe(
 		Effect.retry({
 			times: 3,
 			while: (error) => Schema.is(ArchiveCountMismatchError)(error),
@@ -100,7 +116,7 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 		regions: region ? [region] : [],
 	})
 
-	return {anonToken, logging: {userId}}
+	return {anonToken, logging: {userId: sessionUserId}}
 })
 
 export const signOutAll = createOpsFn({

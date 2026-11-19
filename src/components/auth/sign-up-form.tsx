@@ -22,7 +22,7 @@ import {
 	useLocalStorageEmail,
 } from './_hooks.ts'
 import {PasscodeForm} from './_passcode-form.tsx'
-import {clearIdentityCache} from './_utils.ts'
+import {clearIdentityCache} from './identity-cache.ts'
 
 const LinkToSignIn = () => (
 	<Link to="/sign-in" className="mt-10 font-bold text-muted-foreground hover:underline">

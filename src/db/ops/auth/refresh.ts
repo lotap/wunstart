@@ -9,6 +9,7 @@ import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 import {EmailRenderError, EmailService} from '#/email/service.ts'
 import {renderSessionEndedNotification} from '#/email/templates/session-ended-notification.tsx'
+import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {generateAccessToken} from './_access-token.ts'
 import {
@@ -20,8 +21,6 @@ import {decodeRefreshSession} from './_refresh-session.ts'
 import {generateRefreshToken, type RefreshTokenPayloadCustomClaims} from './_refresh-token.ts'
 import {formatUserAgent} from './_user-agent.ts'
 import {authTokenFailure} from './token-error.ts'
-
-const genericFailureOutputMessage = 'Your session has expired. Sign in and try again.'
 
 /** Unexpected internal session state that prevents safe refresh resolution. Wrapped as INTERNAL_ERROR by createOpsFn */
 class RefreshStateError extends Schema.TaggedError<
@@ -46,7 +45,7 @@ const getSessionRow = Effect.fn('getSessionRow')(function* (sessionId: string) {
 			failureCause: 'SESSION_NOT_FOUND',
 			meta: {sessionId},
 			rateAllowance: 4,
-			message: genericFailureOutputMessage,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	return rowData
@@ -82,7 +81,7 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 		return yield* authTokenFailure({
 			failureCause: 'WRONG_NONCE',
 			rateAllowance: 4,
-			message: genericFailureOutputMessage,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	const now = yield* DateTime.now
@@ -242,7 +241,7 @@ const revokeForReuse = Effect.fn('revokeForReuse')(function* ({
 		failureCause: 'REFRESH_TOKEN_REUSE',
 		userId: session.userId,
 		/** Probably a token theft victim, don't penalize */
-		message: genericFailureOutputMessage,
+		message: SESSION_EXPIRED_MESSAGE,
 	})
 })
 
@@ -290,7 +289,7 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 				failureCause: 'WRONG_NONCE',
 				rateAllowance: Infinity,
 				meta: {operation: error.operation},
-				message: genericFailureOutputMessage,
+				message: SESSION_EXPIRED_MESSAGE,
 			}),
 		),
 	)
@@ -305,7 +304,7 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 		return yield* authTokenFailure({
 			failureCause: 'WRONG_NONCE',
 			rateAllowance: 4,
-			message: genericFailureOutputMessage,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	/** Authentic gen-1 token presented after grace window expired -> revoke family for reuse */
@@ -393,7 +392,7 @@ const classifySession = Effect.fn('classifySession')(function* ({
 	return yield* authTokenFailure({
 		failureCause: 'INVALID_REFRESH_GENERATION',
 		rateAllowance: 4,
-		message: genericFailureOutputMessage,
+		message: SESSION_EXPIRED_MESSAGE,
 	})
 })
 
@@ -467,7 +466,7 @@ const _refresh = Effect.fn('refresh')(function* ({
 			failureCause: 'INVALID_JWS',
 			meta: {operation: resolved.operation},
 			rateAllowance: 4,
-			message: genericFailureOutputMessage,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	if (resolved.status === 'missing')
@@ -475,7 +474,7 @@ const _refresh = Effect.fn('refresh')(function* ({
 			failureCause: 'SESSION_NOT_FOUND',
 			meta: {sessionId: resolved.sessionId},
 			rateAllowance: 4,
-			message: genericFailureOutputMessage,
+			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	const {generation, nonce, session} = resolved
@@ -492,7 +491,7 @@ const _refresh = Effect.fn('refresh')(function* ({
 	 * log the activity as a rate limit failure and return a generic error
 	 */
 	if (currentBansAndExcessiveActivities.length)
-		return yield* rateLimitFailure({message: genericFailureOutputMessage, userId: session.userId})
+		return yield* rateLimitFailure({message: SESSION_EXPIRED_MESSAGE, userId: session.userId})
 
 	return yield* resolveSession({
 		tokenData,

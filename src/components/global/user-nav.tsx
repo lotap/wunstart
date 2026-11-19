@@ -4,7 +4,7 @@ import {useServerFn} from '@tanstack/react-start'
 import {LogOut, User} from 'lucide-react'
 import {useState} from 'react'
 
-import {userProfileQueryOptions} from '#/components/auth/_utils.ts'
+import {userProfileQueryOptions} from '#/components/auth/identity-cache.ts'
 import {Button} from '#/components/ui/button.tsx'
 import {
 	DropdownMenu,

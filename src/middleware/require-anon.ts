@@ -5,6 +5,9 @@ import type {GlobalServerFnContext} from '#/start-types.ts'
 
 import {KnownServerError} from './sanitize-errors.ts'
 
+/** Shared with `requireAnonRegistered`, which rejects authenticated requests the same way. */
+export const ALREADY_SIGNED_IN_MESSAGE = 'You’re already signed in. Refresh the page to continue.'
+
 export const requireAnon = createMiddleware({type: 'function'}).server(async ({next, context}) => {
 	const ctx: unknown = context
 	// SAFETY: standalone `function` middlewares can't declare their context type,
@@ -16,9 +19,7 @@ export const requireAnon = createMiddleware({type: 'function'}).server(async ({n
 
 	if (!anon) {
 		setResponseStatus(400)
-		throw new KnownServerError({
-			message: 'You’re already signed in. Refresh the page to continue.',
-		})
+		throw new KnownServerError({message: ALREADY_SIGNED_IN_MESSAGE})
 	}
 
 	return next({context: {anon}})

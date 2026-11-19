@@ -27,9 +27,10 @@ import {handleEmailReverify} from '#/server-fns/handle-email-reverify.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 import {handlePasswordReverify} from '#/server-fns/handle-password-reverify.ts'
 
-import {usePasscodeRequestMutation} from './_hooks.ts'
+import {useDeadSessionRecovery, usePasscodeRequestMutation} from './_hooks.ts'
 import {PasscodeForm} from './_passcode-form.tsx'
-import {passcodeRequestQueryOptions, userProfileQueryOptions} from './_utils.ts'
+import {passcodeRequestQueryOptions} from './_utils.ts'
+import {userProfileQueryOptions} from './identity-cache.ts'
 
 /**
  * Reverification via email passcode.
@@ -47,6 +48,7 @@ import {passcodeRequestQueryOptions, userProfileQueryOptions} from './_utils.ts'
 function ReverifyEmailForm({email}: {email: string}) {
 	const handleEmailRequestPasscodeFromSessionFn = useServerFn(handleEmailRequestPasscodeFromSession)
 	const handleEmailReverifyFn = useServerFn(handleEmailReverify)
+	const recoverDeadSession = useDeadSessionRecovery()
 
 	const _passcodeRequestQueryOptions = passcodeRequestQueryOptions({
 		serverFn: handleEmailRequestPasscodeFromSessionFn,
@@ -82,6 +84,7 @@ function ReverifyEmailForm({email}: {email: string}) {
 							await mutatePasscodeRequest()
 							setPasscodeSent(true)
 						} catch (error) {
+							recoverDeadSession(error)
 							toast.add({
 								type: 'error',
 								title:
@@ -107,8 +110,13 @@ function ReverifyEmailForm({email}: {email: string}) {
 			<PasscodeForm
 				onSubmitSchema={PasscodeCredentials}
 				onSubmitTry={async ({passcode}) => {
-					const {sudoExpiresAt} = await handleEmailReverifyFn({data: {passcode}})
-					setSudoExpiresAt(sudoExpiresAt)
+					try {
+						const {sudoExpiresAt} = await handleEmailReverifyFn({data: {passcode}})
+						setSudoExpiresAt(sudoExpiresAt)
+					} catch (error) {
+						recoverDeadSession(error)
+						throw error
+					}
 				}}
 				email={email}
 				passcodeRequestQueryOptions={_passcodeRequestQueryOptions}
@@ -124,14 +132,21 @@ function ConfirmPasswordForm() {
 
 	const {setSudoExpiresAt} = useHasSudo()
 
+	const recoverDeadSession = useDeadSessionRecovery()
+
 	const form = useConfiguredAppForm({
 		defaultValues: {
 			password: '',
 		},
 		onSubmitSchema: PasswordCredentials,
 		onSubmitTry: async ({password}) => {
-			const {sudoExpiresAt} = await handlePasswordReverifyFn({data: {password}})
-			setSudoExpiresAt(sudoExpiresAt)
+			try {
+				const {sudoExpiresAt} = await handlePasswordReverifyFn({data: {password}})
+				setSudoExpiresAt(sudoExpiresAt)
+			} catch (error) {
+				recoverDeadSession(error)
+				throw error
+			}
 		},
 	})
 

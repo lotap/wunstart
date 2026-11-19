@@ -374,10 +374,10 @@ export function AuthPanel() {
 						cookies without an Anon; the next request issues one.
 					</PanelRow>
 					<PanelRow label="sign out all">
-						Verifies the refresh token, requires its Session to still be live in the database, and
-						checks the refresh nonce (current or grace generation); then archives every Session for
-						the User, clears the cookies, and issues a new Anon. Unlike single sign-out, a dead
-						session surfaces an error.
+						Verifies the refresh token, requires its Session to still be live in the database and to
+						belong to the authenticated User, and checks the refresh nonce (current or grace
+						generation); then archives every Session for the User, clears the cookies, and issues a
+						new Anon. Unlike single sign-out, a dead session surfaces an error.
 					</PanelRow>
 					<PanelRow label="stale session">
 						The settings session list covers every live Session for the User, so an empty result
@@ -387,8 +387,10 @@ export function AuthPanel() {
 						so another tab does not keep the previous user’s sessions, profile, or sudo-gated email.
 						Sudo-gated mutations, user-keyed passcode requests, and both reverify ops that already
 						ran their live-session check clear the same cookies when it fails, without an extra
-						read. The reverify check blocks an evicted device from minting a replacement token, so
-						the access token cannot outlive its Session by more than the remaining 15 minutes.
+						read; <InlineCode>useDeadSessionRecovery</InlineCode> then clears the identity cache and
+						refreshes the router, so the page does not keep rendering the dead identity. The
+						reverify check blocks an evicted device from minting a replacement token, so the access
+						token cannot outlive its Session by more than the remaining 15 minutes.
 					</PanelRow>
 					<PanelRow label="liveness check">
 						Session liveness is one prepared primary-key lookup per guarded action, never per render

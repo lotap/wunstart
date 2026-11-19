@@ -28,9 +28,10 @@ import {handleEmailRequestPasscodeForEmailChange} from '#/server-fns/handle-emai
 import {handleGetUserEmail} from '#/server-fns/handle-get-user-email.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 
-import {usePasscodeRequestMutation} from './_hooks.ts'
+import {useDeadSessionRecovery, usePasscodeRequestMutation} from './_hooks.ts'
 import {PasscodeForm} from './_passcode-form.tsx'
-import {passcodeRequestQueryOptions, userProfileQueryOptions} from './_utils.ts'
+import {passcodeRequestQueryOptions} from './_utils.ts'
+import {userProfileQueryOptions} from './identity-cache.ts'
 
 const ReverifyDrawer = lazy(() =>
 	import('./_reverify-drawer.tsx').then((m) => ({default: m.ReverifyDrawer})),
@@ -41,14 +42,21 @@ function NewEmailForm({onCodeSent}: {onCodeSent: (email: string) => void}) {
 		handleEmailRequestPasscodeForEmailChange,
 	)
 
+	const recoverDeadSession = useDeadSessionRecovery()
+
 	const form = useConfiguredAppForm({
 		defaultValues: {
 			email: '',
 		},
 		onSubmitSchema: EmailCredentials,
 		onSubmitTry: async ({email}) => {
-			await handleEmailRequestPasscodeForEmailChangeFn({data: {email}})
-			onCodeSent(email)
+			try {
+				await handleEmailRequestPasscodeForEmailChangeFn({data: {email}})
+				onCodeSent(email)
+			} catch (error) {
+				recoverDeadSession(error)
+				throw error
+			}
 		},
 	})
 
@@ -102,6 +110,8 @@ function VerifyNewEmailForm({
 
 	const queryClient = useQueryClient()
 
+	const recoverDeadSession = useDeadSessionRecovery()
+
 	const requestServerFn = () =>
 		handleEmailRequestPasscodeForEmailChangeFn({data: {email: newEmail}})
 
@@ -125,16 +135,21 @@ function VerifyNewEmailForm({
 			<PasscodeForm
 				onSubmitSchema={EmailPasscodeCredentials}
 				onSubmitTry={async ({passcode}) => {
-					await handleEmailChangeFn({data: {email: newEmail, passcode}})
-					await queryClient.invalidateQueries({
-						queryKey: userProfileQueryOptions({serverFn: handleGetUserProfileFn}).queryKey,
-					})
+					try {
+						await handleEmailChangeFn({data: {email: newEmail, passcode}})
+						await queryClient.invalidateQueries({
+							queryKey: userProfileQueryOptions({serverFn: handleGetUserProfileFn}).queryKey,
+						})
 
-					if (closeEmailChangeDrawer) closeEmailChangeDrawer()
-					toast.add({
-						type: 'success',
-						title: 'Email updated',
-					})
+						if (closeEmailChangeDrawer) closeEmailChangeDrawer()
+						toast.add({
+							type: 'success',
+							title: 'Email updated',
+						})
+					} catch (error) {
+						recoverDeadSession(error)
+						throw error
+					}
 				}}
 				email={newEmail}
 				passcodeRequestQueryOptions={_passcodeRequestQueryOptions}

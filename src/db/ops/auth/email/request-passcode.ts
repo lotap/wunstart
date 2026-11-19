@@ -12,6 +12,7 @@ import {extractPgConstraint, extractPgError} from '#/db/ops/_extract-pg-error.ts
 import {retryTransientDb} from '#/db/ops/_retry.ts'
 import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/_anon-token.ts'
 import {hashTarget} from '#/db/ops/auth/_hashing.ts'
+import {ANON_SESSION_EXPIRED_MESSAGE} from '#/db/ops/auth/_messages.ts'
 import {verifyLiveSession} from '#/db/ops/auth/_verify-live-session.ts'
 import {extractErrorProps, allowRatePerWindow, opsFailure} from '#/db/ops/ops-error.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
@@ -19,6 +20,7 @@ import {HashingStub} from '#/db/ops/service-bindings.ts'
 import {EmailService} from '#/email/service.ts'
 import {renderNoAccountFound} from '#/email/templates/no-account-found.tsx'
 import {renderVerificationEmail} from '#/email/templates/verify-email.tsx'
+import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 import type {PasscodeIntent} from '#/isomorphic/validations/auth.ts'
 
 const genericFailureOutputMessage = 'Something went wrong. Please try again in a moment.'
@@ -70,7 +72,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 			return yield* opsFailure({
 				failureCause: 'INVALID_PARAMS',
 				userId,
-				message: 'Your session has expired. Sign in and try again.',
+				message: SESSION_EXPIRED_MESSAGE,
 			})
 
 		yield* verifyLiveSession({refreshToken, userId})
@@ -90,7 +92,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 				failureCause: 'ANON_NOT_FOUND',
 				rateAllowance: Infinity,
 				meta: {anonId: registeredAnonId},
-				message: 'Your session expired. Refresh the page and try again.',
+				message: ANON_SESSION_EXPIRED_MESSAGE,
 			})
 	}
 
@@ -243,7 +245,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 						failureCause: 'ANON_NOT_FOUND',
 						rateAllowance: Infinity,
 						meta: {anonId: registeredAnonId},
-						message: 'Your session expired. Refresh the page and try again.',
+						message: ANON_SESSION_EXPIRED_MESSAGE,
 					}),
 				),
 			),

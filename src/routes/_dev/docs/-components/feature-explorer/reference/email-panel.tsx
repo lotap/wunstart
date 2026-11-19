@@ -38,9 +38,9 @@ export function EmailPanel() {
 						confirm time.
 					</PanelRow>
 					<PanelRow label="Resend" labelVariant="text">
-						A re-request replaces the active row, unless it is still more than about a minute from
-						expiry. There is no per-email cap: an attacker could exhaust it and lock the owner out,
-						so per-IP limits and weighted bans are the ceiling.
+						A re-request replaces the active row, unless it was sent less than about a minute ago.
+						There is no per-email cap: an attacker could exhaust it and lock the owner out, so
+						per-IP limits and weighted bans are the ceiling.
 					</PanelRow>
 					<PanelRow label="Deliverable mail" labelVariant="text">
 						The code is rendered before the verification row commits. A render failure fails the op;

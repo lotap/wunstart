@@ -19,7 +19,8 @@ import {toast} from '#/components/ui/toast.tsx'
 import {useHasSudo} from '#/contexts/has-sudo.tsx'
 import {handleRemoveUser} from '#/server-fns/handle-remove-user.ts'
 
-import {clearIdentityCache} from './_utils.ts'
+import {useDeadSessionRecovery} from './_hooks.ts'
+import {clearIdentityCache} from './identity-cache.ts'
 
 const ReverifyDrawer = lazy(() =>
 	import('./_reverify-drawer.tsx').then((m) => ({default: m.ReverifyDrawer})),
@@ -29,6 +30,7 @@ function ConfirmRemoval({closeRemoveAccountDrawer}: {closeRemoveAccountDrawer?: 
 	const handleRemoveUserFn = useServerFn(handleRemoveUser)
 	const router = useRouter()
 	const queryClient = useQueryClient()
+	const recoverDeadSession = useDeadSessionRecovery()
 
 	const {hasSudo} = useHasSudo()
 
@@ -99,6 +101,7 @@ function ConfirmRemoval({closeRemoveAccountDrawer}: {closeRemoveAccountDrawer?: 
 								toast.add({title: 'Your account has been removed', type: 'success'})
 							} catch (error) {
 								setIsRemoving(false)
+								recoverDeadSession(error)
 								toast.add({
 									type: 'error',
 									title:

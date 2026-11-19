@@ -182,8 +182,9 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 		/**
 		 * Wrap the auth processes in a transaction
 		 *
-		 * If retireAnon succeeds and createSession fails, it could cause an issue where the anon cannot sign-in
-		 * because of the unique constraint of the anonsArchive. The transaction ensures that state can't be reached.
+		 * A failed createSession must not leave the anon retired with no session
+		 * behind it. The archive is append-only and `retireAnon` recovers an
+		 * existing row on replay, so this is about atomicity, not uniqueness.
 		 */
 		const [session, access, retiredAnon] = yield* retryTransientOrArchiveRace(
 			db.transaction((tx) =>

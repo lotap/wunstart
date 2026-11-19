@@ -11,11 +11,10 @@ import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 import type {PasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 
+import {GENERIC_AUTH_FAILURE_MESSAGE} from '../_messages.ts'
 import {verifyLiveSession} from '../_verify-live-session.ts'
 import {burnPasscode} from './_burn-passcode.ts'
 import {verify} from './_verify.ts'
-
-const genericFailureOutputMessage = 'Something went wrong. Please try again.'
 
 /**
  * Verify a signed-in user with a passcode.
@@ -47,7 +46,7 @@ const _emailReverify = Effect.fn('emailReverify')(function* ({
 	})
 
 	if (currentBansAndExcessiveActivities.length)
-		return yield* rateLimitFailure({message: genericFailureOutputMessage, userId})
+		return yield* rateLimitFailure({message: GENERIC_AUTH_FAILURE_MESSAGE, userId})
 
 	/** Find the user by id */
 	const [user] = yield* usersQueries.select({id: userId})
@@ -58,7 +57,7 @@ const _emailReverify = Effect.fn('emailReverify')(function* ({
 			/** meta, not the userId column: the referenced user may no longer exist, which would violate the FK */
 			meta: {userId},
 			rateAllowance: 4,
-			message: genericFailureOutputMessage,
+			message: GENERIC_AUTH_FAILURE_MESSAGE,
 		})
 
 	/**

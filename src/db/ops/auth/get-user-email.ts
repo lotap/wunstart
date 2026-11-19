@@ -4,6 +4,8 @@ import * as usersQueries from '#/db/models/users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
 
+import {GENERIC_AUTH_FAILURE_MESSAGE, VERIFICATION_EXPIRED_MESSAGE} from './_messages.ts'
+
 const _getUserEmail = Effect.fn('getUserEmail')(function* ({
 	userId,
 	sudoExpiresAt,
@@ -16,7 +18,7 @@ const _getUserEmail = Effect.fn('getUserEmail')(function* ({
 		return yield* opsFailure({
 			failureCause: 'STALE_VERIFICATION',
 			userId,
-			message: 'Your verification has expired. Re-verify, then try again.',
+			message: VERIFICATION_EXPIRED_MESSAGE,
 		})
 	}
 
@@ -28,7 +30,7 @@ const _getUserEmail = Effect.fn('getUserEmail')(function* ({
 			/** meta, not the userId column: the referenced user may no longer exist, which would violate the FK */
 			meta: {userId},
 			rateAllowance: 6,
-			message: 'Something went wrong. Please try again.',
+			message: GENERIC_AUTH_FAILURE_MESSAGE,
 		})
 
 	return {email: user.email}

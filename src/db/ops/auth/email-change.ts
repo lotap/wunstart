@@ -12,12 +12,11 @@ import {EmailRenderError, EmailService} from '#/email/service.ts'
 import {renderEmailChangeConfirmation} from '#/email/templates/email-change-confirmation.tsx'
 import {EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 
+import {GENERIC_AUTH_FAILURE_MESSAGE, VERIFICATION_EXPIRED_MESSAGE} from './_messages.ts'
 import {formatUserAgent} from './_user-agent.ts'
 import {verifyLiveSession} from './_verify-live-session.ts'
 import {burnPasscode} from './email/_burn-passcode.ts'
 import {verify} from './email/_verify.ts'
-
-const genericFailureOutputMessage = 'Something went wrong. Please try again.'
 
 const _emailChange = Effect.fn('emailChange')(function* ({
 	input: {email: newEmail, passcode},
@@ -47,7 +46,7 @@ const _emailChange = Effect.fn('emailChange')(function* ({
 		return yield* opsFailure({
 			failureCause: 'STALE_VERIFICATION',
 			userId,
-			message: 'Your verification has expired. Re-verify, then try again.',
+			message: VERIFICATION_EXPIRED_MESSAGE,
 		})
 	}
 
@@ -65,7 +64,7 @@ const _emailChange = Effect.fn('emailChange')(function* ({
 	 * log the activity as a rate limit failure and return a generic error
 	 */
 	if (currentBansAndExcessiveActivities.length)
-		return yield* rateLimitFailure({message: genericFailureOutputMessage, userId})
+		return yield* rateLimitFailure({message: GENERIC_AUTH_FAILURE_MESSAGE, userId})
 
 	/** Find the user by id */
 	const [user] = yield* usersQueries.select({id: userId})
@@ -76,7 +75,7 @@ const _emailChange = Effect.fn('emailChange')(function* ({
 			/** meta, not the userId column: the referenced user may no longer exist, which would violate the FK */
 			meta: {userId},
 			rateAllowance: 4,
-			message: genericFailureOutputMessage,
+			message: GENERIC_AUTH_FAILURE_MESSAGE,
 		})
 
 	/** The Email validator lowercases, so a case-insensitive compare is exact */
@@ -125,7 +124,7 @@ const _emailChange = Effect.fn('emailChange')(function* ({
 					userId,
 					failedCredential: newEmail,
 					rateAllowance: 6,
-					message: genericFailureOutputMessage,
+					message: GENERIC_AUTH_FAILURE_MESSAGE,
 				})
 
 			/**
