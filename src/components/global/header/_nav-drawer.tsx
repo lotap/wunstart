@@ -38,7 +38,7 @@ export function HeaderDrawer({
 							variant="ghost"
 							size="icon-lg"
 							aria-label="Close site menu"
-							className="size-11 hover:bg-transparent"
+							className="size-11 hover:bg-transparent dark:hover:bg-transparent"
 						/>
 					}
 				>
@@ -64,7 +64,7 @@ export function HeaderDrawer({
 								<AccountLinks open={open} onNavigate={onNavigate} />
 								<ThemeToggle
 									label="Theme"
-									className="-mx-2 mt-6 h-11 justify-start border-0 px-2 text-base hover:bg-transparent"
+									className="-mx-2 mt-6 h-11 justify-start border-0 px-2 text-base hover:bg-transparent dark:hover:bg-transparent"
 								/>
 							</>
 						) : (
@@ -72,7 +72,7 @@ export function HeaderDrawer({
 								{repoHref && <GitHubMenuRow href={repoHref} onNavigate={onNavigate} />}
 								<ThemeToggle
 									label="Theme"
-									className="-mx-2 h-11 justify-start border-0 px-2 text-base hover:bg-transparent"
+									className="-mx-2 h-11 justify-start border-0 px-2 text-base hover:bg-transparent dark:hover:bg-transparent"
 								/>
 							</>
 						)}

@@ -100,7 +100,7 @@ export function Header() {
 									<Button
 										variant="ghost"
 										size="icon-lg"
-										className="size-11 hover:bg-transparent aria-expanded:bg-transparent md:hidden"
+										className="size-11 hover:bg-transparent aria-expanded:bg-transparent md:hidden dark:hover:bg-transparent"
 										aria-label="Open site menu"
 									/>
 								}
