@@ -27,43 +27,39 @@ export const PUBLIC_REPO_URL: string | null = 'https://github.com/you/your-app'`
 const headerFiles = [
 	{
 		name: 'src/components/global/header/header.tsx',
-		job: 'Layout, page links, signed-out GitHub action, theme, auth, and the drawer trigger.',
+		job: 'Layout, page links, signed-out repo action, theme, auth, and the drawer trigger.',
 	},
 	{
 		name: 'src/components/global/header/_links.ts',
-		job: 'Signed-out and signed-in link arrays. Add a route here; the link type validates it.',
+		job: 'The signed-out and signed-in link arrays; add routes here.',
 	},
 	{
 		name: 'src/components/global/header/_github-link.tsx',
-		job: 'The project’s repo action: signed-out icon on desktop, word plus external mark in the drawer.',
+		job: 'The signed-out repository action: desktop icon and drawer row.',
 	},
 	{
 		name: 'src/components/global/header/_nav-link.tsx',
-		job: 'The one page-link style: type, hover, focus, and active underline.',
+		job: 'The page-link style shared by the bar and the drawer.',
 	},
 	{
 		name: 'src/components/global/header/_nav-drawer.tsx',
-		job: 'The menu below md: a right-hand drawer over a dimmed page, with the link/utility block scrolling above an anchored auth pair.',
+		job: 'The site menu below md.',
 	},
 	{
 		name: 'src/components/global/header/_user-nav.tsx',
-		job: 'The account dropdown: profile, settings shortcuts, and sign out.',
+		job: 'The account dropdown.',
 	},
 	{
 		name: 'src/components/global/header/_account.tsx',
-		job: 'The signed-in menu’s account block — a “Signed in as” label above the email, the shortcuts, and the anchored Sign out; shares the shortcut data with the dropdown.',
+		job: 'The signed-in drawer’s account block and sign out.',
 	},
 	{
 		name: 'src/components/global/header/_settings-shortcuts.ts',
-		job: 'The curated settings shortcuts shared by the account dropdown and the drawer.',
+		job: 'The settings shortcuts shared by the dropdown and the drawer.',
 	},
 	{
 		name: 'src/components/global/wordmark.tsx',
-		job: 'The inline brand mark: imports the shared artwork and adds the decorative semantics.',
-	},
-	{
-		name: 'src/assets/images/brand/wordmark.svg',
-		job: 'The brand artwork. The starter mark uses currentColor for the footer blend; replace it, or switch wordmark.tsx to ?url and an img for a raster logo.',
+		job: 'The inline brand mark; replace its asset to change the logo.',
 	},
 ]
 
@@ -87,149 +83,48 @@ export function HeaderPanel() {
 
 			<PanelSection id="header-links" title="Set the links">
 				<Prose>
-					Add routes to <InlineCode>_links.ts</InlineCode>. <InlineCode>ANON_LINKS</InlineCode>{' '}
-					shows before sign-in; <InlineCode>USER_LINKS</InlineCode> shows after. The link type
-					accepts any valid router path, so adding a route is a one-line edit; a typo fails the
-					typecheck.
+					Add routes to <InlineCode>ANON_LINKS</InlineCode> or <InlineCode>USER_LINKS</InlineCode>{' '}
+					in <InlineCode>_links.ts</InlineCode>. The <InlineCode>to</InlineCode> type accepts any
+					router path, so a typo fails the typecheck. Replace the starter examples, and keep
+					dev-only pages such as <InlineCode>/docs</InlineCode> out of both arrays.
 				</Prose>
 				<CodeBlock code={linkExample} label="Add a link" language="typescript" />
 				<Prose>
-					<InlineCode>ANON_LINKS</InlineCode> ships with the landing page and a pricing placeholder
-					as examples; replace them with your product’s pages rather than keeping the starter’s
-					labels. <InlineCode>USER_LINKS</InlineCode> is empty until your app has signed-in routes.
-				</Prose>
-				<Prose>
-					These arrays are the signed-out and signed-in page hierarchies. A dev-only page such as{' '}
-					<InlineCode>/docs</InlineCode> stays out of both; link it from the README or a dev-only
-					utility, never from product navigation.
-				</Prose>
-				<Prose>
 					At <InlineCode>md</InlineCode> the arrays render in the bar; below it they collapse into
-					the drawer. At full width the bar holds about four typical signed-out links before the
-					actions need room; fewer fit near <InlineCode>md</InlineCode>, and the signed-in bar fits
-					more because the account control is narrower. For five or six links, move the breakpoint
-					to <InlineCode>lg</InlineCode> or group the overflow into a More menu.
+					the drawer. At full width, about four typical signed-out links fit before the actions need
+					room; fewer fit near <InlineCode>md</InlineCode>. For five or six, move the breakpoint to{' '}
+					<InlineCode>lg</InlineCode> or group the overflow into a More menu. The link style lives
+					in <InlineCode>_nav-link.tsx</InlineCode> and applies to both surfaces.
 				</Prose>
 			</PanelSection>
 
-			<PanelSection id="header-repo" title="Repository link">
+			<PanelSection id="header-brand" title="Replace the brand">
 				<Prose>
-					<InlineCode>PUBLIC_REPO_URL</InlineCode> (<InlineCode>src/repo.ts</InlineCode>) is your
-					project’s public repository, or <InlineCode>null</InlineCode> when it doesn’t have one. It
-					is project config, not app identity. The signed-out header action, the external footer’s
-					Connect column, and the license line render only when it is set.
-				</Prose>
-				<CodeBlock code={repoConfigExample} label="Set the repository" language="typescript" />
-				<Prose>
-					Point it at your repo to share it; set <InlineCode>null</InlineCode> to remove every
-					repository link at once. Nothing else needs editing. The signed-in header and the internal
-					footer never show a repository link.
-				</Prose>
-			</PanelSection>
-
-			<PanelSection id="header-style" title="Choose the voice">
-				<Prose>
-					<InlineCode>_nav-link.tsx</InlineCode> owns both the desktop list and the drawer. The
-					default is the theme sans at 16px, 500 in light and 400 in dark, sentence case; in the bar
-					the list sits in a 72px row, 48px after the wordmark, at a 24px gap. Below{' '}
-					<InlineCode>md</InlineCode> the drawer uses 30px at 52px rows with a 24px gutter. The
-					content is one block: page links at 30px/52px, a 64px gap, then GitHub (with an external
-					mark) and Theme (with its icon) at 16px/44px rows. Signed in, the account shortcuts join
-					that group at the same 16px/44px, each with its dropdown icon in a 16px column on the 24px
-					rail. Sign in is a ghost row and Sign up a stock 56px default button, split by 12px and
-					anchored at the bottom; signed in, a ghost Sign out takes the slot. The drawer has no
-					divider or custom CTA. The active route keeps the 2px underline in both the bar and the
-					drawer. Change that one file to change every nav item.
+					Replace <InlineCode>src/assets/images/brand/wordmark.svg</InlineCode>;{' '}
+					<InlineCode>wordmark.tsx</InlineCode> imports it inline. The starter mark uses{' '}
+					<InlineCode>currentColor</InlineCode> and evenodd stripes so it can blend in the footer.
 				</Prose>
 				<DocBulletList>
 					<li>
-						For the mono-caps variant, swap the base classes for{' '}
-						<InlineCode>font-mono text-xs tracking-[0.12em] uppercase</InlineCode>.
+						A replacement SVG keeps its own fills. If it is colored, drop the footer’s{' '}
+						<InlineCode>mix-blend-difference</InlineCode> or supply a mono variant.
 					</li>
 					<li>
-						Hover is the text color alone: no row fill. The rows inset 8px into the gutter so the
-						focus ring sits clear of the label, while labels stay on the 24px line.
-					</li>
-					<li>
-						The wordmark is the one fixed brand artifact. Replace{' '}
-						<InlineCode>src/assets/images/brand/wordmark.svg</InlineCode>. The starter asset uses{' '}
-						<InlineCode>currentColor</InlineCode> so it can blend in the footer; a replacement SVG
-						keeps its own fills. The footer’s difference blend assumes a monochrome mark, so drop it
-						or supply a mono variant for a colored logo. For a raster logo, change the import in{' '}
-						<InlineCode>wordmark.tsx</InlineCode> to <InlineCode>?url</InlineCode> and render an{' '}
-						<InlineCode>{'<img>'}</InlineCode>. Keep the wrapping link’s accessible name. Inline SVG
-						is for this committed asset only; a user-uploaded logo belongs in an{' '}
-						<InlineCode>{'<img>'}</InlineCode>.
+						For a raster logo, change the import in <InlineCode>wordmark.tsx</InlineCode> to{' '}
+						<InlineCode>?url</InlineCode> and render an <InlineCode>{'<img>'}</InlineCode>, keeping
+						the wrapping link’s accessible name.
 					</li>
 				</DocBulletList>
 			</PanelSection>
 
-			<PanelSection id="header-behavior" title="Choose alignment and behavior">
+			<PanelSection id="header-repo" title="Repository link">
 				<Prose>
-					The bar is a three-slot grid: brand, links, actions. The links list is anchored to the
-					brand by default; switch <InlineCode>justify-self-start</InlineCode> to{' '}
-					<InlineCode>justify-self-center</InlineCode> or <InlineCode>justify-self-end</InlineCode>{' '}
-					to move the group without changing the DOM. Anchoring reads as one dense cluster;
-					centering balances a longer list; end tucks the group against the actions.
+					<InlineCode>PUBLIC_REPO_URL</InlineCode> in <InlineCode>src/repo.ts</InlineCode> drives
+					the signed-out header action, the drawer row, the external footer’s Connect column, and
+					the license line. Set it to <InlineCode>null</InlineCode> to remove all four; the
+					signed-in header and internal footer never show one.
 				</Prose>
-				<Prose>
-					The header is static by default, on the same <InlineCode>max-w-5xl</InlineCode> grid as
-					the page, with the page background and a 1px bottom border. Sticky is opt-in: add{' '}
-					<InlineCode>sticky top-0</InlineCode> and a background in{' '}
-					<InlineCode>header.tsx</InlineCode>. If the landing page’s section dock is still mounted,
-					offset its docked position to the header height so the two fixed layers do not compete.
-				</Prose>
-				<Prose>
-					The plain border is the scaffold default because it survives a re-skin. For the gallery’s
-					tinted, floating, or capsule bars, keep the frame and change the surface: remove{' '}
-					<InlineCode>border-b</InlineCode> and either add a surface token or wrap the nav in a
-					rounded container with <InlineCode>ring-1</InlineCode> and a shadow. Those are brand
-					decisions; the default stays neutral.
-				</Prose>
-			</PanelSection>
-
-			<PanelSection id="header-scope" title="Header and page">
-				<Prose>
-					The header is defined by the signed-in state, not by the page’s audience. Its height is
-					fixed per breakpoint: 56px on phones, 64px from <InlineCode>sm</InlineCode>, and 72px from{' '}
-					<InlineCode>md</InlineCode>. Marketing, docs, and app pages share the same global frame;
-					page-level navigation belongs to the page. The wordmark is not a heading: each page owns
-					its <InlineCode>h1</InlineCode>. The footer still receives the resolved audience because
-					it is page-attached and revealed at the end.
-				</Prose>
-			</PanelSection>
-
-			<PanelSection id="header-actions" title="Utilities and account">
-				<Prose>
-					At <InlineCode>md</InlineCode> and up the bar holds the utilities: the signed-out repo
-					icon, theme, a divider, then Sign in / Sign up (or the account avatar). Below{' '}
-					<InlineCode>md</InlineCode> those controls move into the drawer, and the bar keeps only
-					the brand and the trigger. The menu always has the Theme control, so the trigger always
-					exists below <InlineCode>md</InlineCode>; there is no empty menu. Sign out lives in the
-					account dropdown at <InlineCode>md</InlineCode> and up, and in the drawer below it.
-				</Prose>
-			</PanelSection>
-
-			<PanelSection id="header-menu" title="The mobile drawer">
-				<Prose>
-					Below <InlineCode>md</InlineCode> the bar keeps only the brand and the trigger; the drawer
-					carries page links, the signed-out GitHub action, theme, and Sign in / Sign up, or the
-					signed-in account block. It is the stock drawer sliding in from the right over a dimmed,
-					blurred page: page scroll locks, focus stays inside, and it closes on navigation, a resize
-					past <InlineCode>md</InlineCode>, a backdrop press, a rightward swipe, or Escape. Escape
-					and the close button return focus to the trigger. The drawer header mirrors the bar height
-					and holds the close control; the middle scrolls as one block above the anchored action, so
-					a long link list never pushes the auth pair away. Page links sit at 30px/52px with a 24px
-					gutter; after a 64px gap come GitHub (with an external mark) and Theme (with its icon) at
-					16px/44px rows. Signed in, the group opens with the account: a muted “Signed in as” label,
-					the profile email on its own line beneath it (truncating when long), then Preferences,
-					Profile, and Access &amp; Security with the same icons as the dropdown, in a 16px column
-					on the 24px rail, with Theme last. Sign in is a ghost row and Sign up a stock 56px default
-					button, split by 12px and anchored at the bottom; signed in, a single ghost Sign out takes
-					that slot. There is no divider or custom CTA. The labeled Theme control is itself the
-					toggle, and the trigger always renders below <InlineCode>md</InlineCode>. Motion and swipe
-					come from the drawer primitive and stop under reduced motion.
-				</Prose>
+				<CodeBlock code={repoConfigExample} label="Set the repository" language="typescript" />
 			</PanelSection>
 		</>
 	)
