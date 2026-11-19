@@ -6,6 +6,8 @@ _Load for layout and styling work: composition, spacing, typography, color, medi
 
 Mobile views should not break the established hierarchy.
 
+Heading hierarchy belongs to the page: one `h1` naming the page, then `h2` sections. The header wordmark is not a heading.
+
 (marketing) Above-the-fold content must provide a striking headline, image, video, or interactive experience. Style it as a poster, not a document. App surfaces answer to task clarity first (`process.md`); chrome is judged on every route. When no legitimate imagery exists, the headline is the image — set the type as the hero. Purposeful shader or canvas treatments count as crafted media; stock and generative filler do not (see Images and icons).
 
 Do not save space for non-existent features.
