@@ -75,7 +75,15 @@ export function clearIdentityCache(queryClient: QueryClient) {
 	if (typeof window === 'undefined') return
 
 	try {
-		window.localStorage.setItem(authTransitionStorageKey, crypto.randomUUID())
+		/**
+		 * Only needs to change. Avoid `crypto.randomUUID()`: it is unavailable
+		 * in insecure contexts such as an HTTP LAN preview, where the swallowed
+		 * error would silently disable cross-tab sync.
+		 */
+		window.localStorage.setItem(
+			authTransitionStorageKey,
+			`${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`,
+		)
 	} catch {
 		/** Storage can be unavailable; the current tab is already cleared. */
 	}
