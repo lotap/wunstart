@@ -67,8 +67,10 @@ export function StaticImagesPanel() {
 			<PanelSection id="static-image-add" title="Adding an image">
 				<Prose>
 					Put private images in a <InlineCode>-images</InlineCode> folder near the page or component
-					that uses them. Shared images go in <InlineCode>src/assets/images</InlineCode>. Both are
-					optimized when imported with <InlineCode>?responsive</InlineCode>.
+					that uses them. Shared images go in{' '}
+					<InlineCode>src/assets/images/&lt;domain&gt;</InlineCode>, such as{' '}
+					<InlineCode>brand/</InlineCode>. Both are optimized when imported with{' '}
+					<InlineCode>?responsive</InlineCode>.
 				</Prose>
 				<CodeBlock code={usage} label="Responsive image usage" language="tsx" />
 				<figure className="mt-4">

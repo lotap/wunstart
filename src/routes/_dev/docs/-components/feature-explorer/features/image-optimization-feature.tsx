@@ -39,7 +39,9 @@ export function ImageOptimizationFeature() {
 			<PanelSection id="image-adding" title="Add an image">
 				<Prose>
 					Put private images in an <InlineCode>-images</InlineCode> folder near the page or
-					component that uses them. Shared images go in <InlineCode>src/assets/images</InlineCode>.
+					component that uses them. Shared images go in{' '}
+					<InlineCode>src/assets/images/&lt;domain&gt;</InlineCode>, such as{' '}
+					<InlineCode>brand/</InlineCode>.
 				</Prose>
 				<CodeBlock code={usage} label="Responsive image usage" language="tsx" />
 				<Prose>

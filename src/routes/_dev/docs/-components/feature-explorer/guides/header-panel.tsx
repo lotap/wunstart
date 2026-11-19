@@ -59,7 +59,11 @@ const headerFiles = [
 	},
 	{
 		name: 'src/components/global/wordmark.tsx',
-		job: 'The inline wordmark. Replace the SVG or swap the component.',
+		job: 'The inline brand mark: imports the shared artwork and adds the decorative semantics.',
+	},
+	{
+		name: 'src/assets/images/brand/wordmark.svg',
+		job: 'The brand artwork. The starter mark uses currentColor for the footer blend; replace it, or switch wordmark.tsx to ?url and an img for a raster logo.',
 	},
 ]
 
@@ -147,8 +151,15 @@ export function HeaderPanel() {
 						focus ring sits clear of the label, while labels stay on the 24px line.
 					</li>
 					<li>
-						The wordmark is the one fixed brand artifact. Replace the SVG in{' '}
-						<InlineCode>wordmark.tsx</InlineCode>; keep the wrapping link’s accessible name.
+						The wordmark is the one fixed brand artifact. Replace{' '}
+						<InlineCode>src/assets/images/brand/wordmark.svg</InlineCode>. The starter asset uses{' '}
+						<InlineCode>currentColor</InlineCode> so it can blend in the footer; a replacement SVG
+						keeps its own fills. The footer’s difference blend assumes a monochrome mark, so drop it
+						or supply a mono variant for a colored logo. For a raster logo, change the import in{' '}
+						<InlineCode>wordmark.tsx</InlineCode> to <InlineCode>?url</InlineCode> and render an{' '}
+						<InlineCode>{'<img>'}</InlineCode>. Keep the wrapping link’s accessible name. Inline SVG
+						is for this committed asset only; a user-uploaded logo belongs in an{' '}
+						<InlineCode>{'<img>'}</InlineCode>.
 					</li>
 				</DocBulletList>
 			</PanelSection>

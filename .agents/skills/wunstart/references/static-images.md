@@ -5,7 +5,7 @@ Build-time AVIF variants for committed images. `vite-imagetools` plus `sharp` ru
 ## Placement
 
 - Route- or component-private images: `-images/` beside the owner. The `-` prefix keeps the folder out of the route tree, so deleting the owner deletes its images.
-- Shared images: `src/assets/images/`, optionally by domain (`brand/`, `auth/`).
+- Shared images: `src/assets/images/<domain>/` (`brand/`, `auth/`), matching the owning domain rather than a flat catchall.
 - Promote on the second consumer, matching component promotion.
 - `public/` is only for stable-URL or unprocessed files. It is outside the image pipeline: `?responsive` has no effect, and files are referenced at the root URL. Content images belong in `src` so the build can hash and optimize them.
 
