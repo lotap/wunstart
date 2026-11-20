@@ -37,6 +37,7 @@ export function Header() {
 			{/* The in-flow slot reserves the bar’s height while the bar is out of flow. */}
 			<div
 				ref={barRef}
+				data-header-bar
 				className="absolute inset-x-0 top-0 z-40 h-14 border-b bg-background data-reveal:animate-in data-reveal:duration-150 data-reveal:ease-out data-reveal:slide-in-from-top sm:h-16 md:h-18"
 			>
 				<div className="h-full px-2">

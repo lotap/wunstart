@@ -124,6 +124,30 @@ function scrollToSection(id: string) {
 }
 
 /**
+ * Scroll the explorer to the top edge. An upward scroll pins the site bar, so
+ * the target reserves the bar’s height before it appears.
+ */
+function scrollToExplorer(section: HTMLElement, behavior: ScrollBehavior) {
+	const scrollY = window.scrollY
+	const inset = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0
+	const sectionTop = section.getBoundingClientRect().top + scrollY - inset
+	const bar = document.querySelector<HTMLElement>('[data-header-bar]')
+	const barHeight = bar?.offsetHeight ?? 0
+	const pinned = bar ? getComputedStyle(bar).position === 'fixed' : false
+	let target = sectionTop - (pinned ? barHeight : 0)
+
+	if (target > scrollY && pinned) {
+		// A downward scroll releases the bar, so the section can use the edge.
+		target = sectionTop
+	} else if (target < scrollY && !pinned) {
+		// The upward scroll pins the bar before smooth scrolling reaches the target.
+		target = sectionTop - barHeight
+	}
+
+	window.scrollTo({top: Math.max(target, 0), behavior})
+}
+
+/**
  * The docs page owns its scroll because `/docs` opts out of router scroll
  * restoration. On arrival, a hash or panel is a deep link; otherwise reset the
  * offset a client navigation kept from the previous page.
@@ -139,7 +163,7 @@ function scrollToDocsTarget(section: HTMLElement | null, behavior: ScrollBehavio
 	}
 
 	if (section && new URLSearchParams(window.location.search).has('panel')) {
-		section.scrollIntoView({behavior, block: 'start'})
+		scrollToExplorer(section, behavior)
 
 		return
 	}
@@ -393,7 +417,10 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 		<PanelNavigationProvider onSelect={selectPanelTarget}>
 			<section ref={sectionRef} className="w-full max-w-5xl">
 				<div className="flex flex-col md:flex-row md:items-start md:gap-6">
-					<div className="font-mono text-xs md:sticky md:top-4 md:w-60 md:shrink-0 md:pt-4">
+					<div
+						className="font-mono text-xs md:sticky md:w-60 md:shrink-0 md:pt-4 md:transition-[top] md:duration-(--header-dock-transition,0ms) md:ease-out"
+						style={{top: 'calc(1rem + var(--header-dock, 0px))'}}
+					>
 						<SidePanelGroup
 							group="guide"
 							label="Guides"
