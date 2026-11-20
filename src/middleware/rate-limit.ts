@@ -27,19 +27,64 @@ const store = new Map<
 	}[]
 >()
 
+const IPV4_TAIL = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+
+/** Rewrite a dotted IPv4 tail into two hexadecimal hextets, or null if absent */
+const expandIpv4Tail = (ipAddress: string) => {
+	const separator = ipAddress.lastIndexOf(':'),
+		match = IPV4_TAIL.exec(ipAddress.slice(separator + 1))
+
+	if (separator < 0 || !match) return null
+
+	const [a = 0, b = 0, c = 0, d = 0] = match.slice(1).map(Number)
+
+	return `${ipAddress.slice(0, separator + 1)}${((a << 8) | b).toString(16)}:${((c << 8) | d).toString(16)}`
+}
+
 /**
- * Normalizes pure IPv6 addresses to their /64 prefix so a client rotating interface
+ * Normalizes IPv6 addresses to their /64 prefix so a client rotating interface
  * identifiers within a single /64 allocation shares one rate-limit bucket.
- * IPv4 and IPv4-mapped IPv6 addresses (containing `.`) keep their full address.
+ *
+ * A dotted tail is valid IPv6 notation, not proof of IPv4: expand it to hextets
+ * before taking the prefix, otherwise every interface identifier in a routed
+ * /64 becomes its own bucket. An IPv4-mapped address collapses to the wrapped
+ * IPv4 key, so the same client is not counted under mapped and plain forms
+ * separately, and mapped clients do not all share the zero /64.
  */
 const toRateLimitKey = (ipAddress: string) => {
-	if (!ipAddress.includes(':') || ipAddress.includes('.')) return ipAddress.toLowerCase()
+	const lower = ipAddress.toLowerCase()
 
-	const [head = '', tail = ''] = ipAddress.toLowerCase().split('::')
+	if (!lower.includes(':')) return lower
+
+	const expanded = lower.includes('.') ? expandIpv4Tail(lower) : lower
+
+	if (!expanded) return lower
+
+	const [head = '', tail = ''] = expanded.split('::')
 	const headParts = head ? head.split(':') : []
 	const tailParts = tail ? tail.split(':') : []
-	const missing = Math.max(0, 8 - headParts.length - tailParts.length)
+	const missing = 8 - headParts.length - tailParts.length
+
+	if (missing < 0) return lower
+
 	const full = [...headParts, ...Array.from({length: missing}, () => '0'), ...tailParts]
+
+	const [first, second, third, fourth, fifth, sixth, seventh, eighth] = full.map((hextet) =>
+		Number.parseInt(hextet, 16),
+	)
+
+	if (
+		first === 0 &&
+		second === 0 &&
+		third === 0 &&
+		fourth === 0 &&
+		((fifth === 0 && sixth === 0xffff) || (fifth === 0xffff && sixth === 0))
+	) {
+		const high = seventh ?? 0
+		const low = eighth ?? 0
+
+		return `${high >> 8}.${high & 0xff}.${low >> 8}.${low & 0xff}`
+	}
 
 	return `${full
 		.slice(0, 4)
