@@ -84,10 +84,11 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 								className="grow justify-between text-muted-foreground"
 							>
 								<span className="flex items-center gap-2">
-									<Icon data-icon="inline-start" />
+									<Icon aria-hidden="true" data-icon="inline-start" />
 									{label}
 								</span>
 								<ChevronDown
+									aria-hidden="true"
 									data-icon="inline-end"
 									className={cn(navChevronVariants({expanded: isExpanded}))}
 								/>

@@ -209,7 +209,7 @@ export function SignUpForm() {
 							branchRef.current = 'default'
 						}}
 					>
-						<ArrowLeft data-icon="inline-start" /> Change email
+						<ArrowLeft aria-hidden="true" data-icon="inline-start" /> Change email
 					</Button>
 
 					<FormHeading

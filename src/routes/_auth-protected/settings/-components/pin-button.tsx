@@ -40,7 +40,7 @@ export function PinButton({
 						}
 						aria-pressed={isPinned}
 					>
-						<Pin />
+						<Pin aria-hidden="true" />
 					</Button>
 				}
 			/>

@@ -256,7 +256,7 @@ export function EmailChangeDrawer({triggerClassName}: {triggerClassName?: string
 					/>
 				}
 			>
-				<Edit />
+				<Edit aria-hidden="true" />
 			</DrawerTrigger>
 			<DrawerPrimitive.VirtualKeyboardProvider>
 				<DrawerContent className="min-h-2/3">

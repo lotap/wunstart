@@ -59,7 +59,7 @@ function FlowNotes({flow}: {flow: FeatureFlow}) {
 					rel="noreferrer"
 					className="mt-3 inline-flex w-fit items-center gap-1 text-base text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
 				>
-					Open Mailpit <ArrowUpRight className="size-4" />
+					Open Mailpit <ArrowUpRight aria-hidden="true" className="size-4" />
 				</a>
 			)}
 		</>
@@ -93,7 +93,10 @@ function Flow({flow, idPrefix}: {flow: FeatureFlow; idPrefix: string}) {
 					<summary className="-ml-2.5 inline-flex h-8 w-fit shrink-0 cursor-pointer list-none items-center justify-center gap-1 rounded-md px-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-all outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:hover:bg-accent/50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&::-webkit-details-marker]:hidden">
 						<span className="group-open:hidden">View detailed flow</span>
 						<span className="hidden group-open:inline">Hide detailed flow</span>
-						<ChevronDown className="size-3.5 transition-transform duration-200 group-open:rotate-180" />
+						<ChevronDown
+							aria-hidden="true"
+							className="size-3.5 transition-transform duration-200 group-open:rotate-180"
+						/>
 					</summary>
 
 					<div className="mt-4 flex flex-col gap-5">
@@ -150,7 +153,10 @@ export function FeatureActions({actions}: {actions: FeatureAction[]}) {
 							<span className="text-base font-medium group-hover:underline">{action.label}</span>
 							<span className="text-base text-muted-foreground">{action.description}</span>
 						</span>
-						<ArrowUpRight className="mt-0.5 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+						<ArrowUpRight
+							aria-hidden="true"
+							className="mt-0.5 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
+						/>
 					</a>
 				</li>
 			))}

@@ -309,7 +309,7 @@ export function SignInForm() {
 							branchRef.current = 'password'
 						}}
 					>
-						<ArrowLeft data-icon="inline-start" /> Change email
+						<ArrowLeft aria-hidden="true" data-icon="inline-start" /> Change email
 					</Button>
 
 					<FormHeading

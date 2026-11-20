@@ -32,7 +32,7 @@ function PanelFooter({panelRef}: {panelRef: Ref<HTMLDivElement>}) {
 				rel="noreferrer"
 				className="inline-flex items-center gap-1 text-sm font-semibold underline-offset-4 hover:underline dark:font-medium"
 			>
-				Open on GitHub <ArrowUpRight className="size-3.5" />
+				Open on GitHub <ArrowUpRight aria-hidden="true" className="size-3.5" />
 			</a>
 			<p className="text-sm text-muted-foreground">MIT licensed</p>
 		</div>

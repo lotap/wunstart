@@ -143,7 +143,7 @@ export function CopyButton({
 								}
 							}}
 						>
-							{copied ? <Check /> : <Copy />}
+							{copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
 						</Button>
 					}
 				/>

@@ -40,7 +40,7 @@ export function UserNav() {
 			<DropdownMenuTrigger
 				render={<Button variant="ghost" size="icon-lg" aria-label="Account" className="size-10" />}
 			>
-				<User />
+				<User aria-hidden="true" />
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" sideOffset={8} className="min-w-48">
 				{(isPending || profile) && (
@@ -62,7 +62,7 @@ export function UserNav() {
 						render={<Link to="/settings" search={{categories: [id]}} />}
 						className="cursor-pointer"
 					>
-						<Icon />
+						<Icon aria-hidden="true" />
 						{label}
 					</DropdownMenuItem>
 				))}
@@ -73,7 +73,7 @@ export function UserNav() {
 						void signOut()
 					}}
 				>
-					<LogOut />
+					<LogOut aria-hidden="true" />
 					Sign out
 				</DropdownMenuItem>
 			</DropdownMenuContent>

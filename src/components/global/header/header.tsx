@@ -99,7 +99,7 @@ export function Header() {
 										/>
 									}
 								>
-									<Menu />
+									<Menu aria-hidden="true" />
 								</DrawerTrigger>
 								<HeaderDrawer
 									links={links}

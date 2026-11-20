@@ -259,7 +259,7 @@ export function LocalDevPanel() {
 								terminalTriggerRef.current?.focus()
 							}}
 						>
-							<X />
+							<X aria-hidden="true" />
 						</Button>
 					</div>
 				</div>
