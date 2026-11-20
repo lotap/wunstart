@@ -25,7 +25,10 @@ export function GitHubIconLink({href}: {href: string}) {
 					</a>
 				}
 			/>
-			<TooltipContent>GitHub</TooltipContent>
+			<TooltipContent>
+				<span>GitHub</span>
+				<ArrowUpRight aria-hidden="true" className="size-3.5" />
+			</TooltipContent>
 		</Tooltip>
 	)
 }
