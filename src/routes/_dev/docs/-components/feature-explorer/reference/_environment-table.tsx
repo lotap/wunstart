@@ -239,7 +239,7 @@ export function EnvironmentTable() {
 				<caption className="sr-only">Environment variables</caption>
 				<thead>
 					<tr className="bg-muted/30">
-						<PanelTableHeader scope="col" className="w-[40%] px-5 py-4">
+						<PanelTableHeader scope="col" className="w-2/5 px-5 py-4">
 							Variable
 						</PanelTableHeader>
 						<PanelTableHeader scope="col" className="px-5 py-4">

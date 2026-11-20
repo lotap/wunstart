@@ -139,6 +139,8 @@ const rowWidths = {
 	wide: 'sm:grid-cols-[19rem_1fr]',
 } as const
 
+const labelSizes = {xs: 'text-xs', sm: 'text-sm'} as const
+
 function PanelRowLabel({
 	variant,
 	size,
@@ -149,11 +151,7 @@ function PanelRowLabel({
 	children: React.ReactNode
 }) {
 	if (variant === 'code') {
-		return (
-			<code className={cn('font-mono text-foreground', size === 'xs' ? 'text-xs' : 'text-sm')}>
-				{children}
-			</code>
-		)
+		return <code className={cn('font-mono text-foreground', labelSizes[size])}>{children}</code>
 	}
 
 	if (variant === 'text') return <p className="text-sm font-medium">{children}</p>

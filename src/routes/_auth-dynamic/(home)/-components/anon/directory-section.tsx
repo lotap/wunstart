@@ -75,7 +75,7 @@ export function DirectorySection() {
 								>
 									{route.path}
 								</Link>
-								<span className="font-mono text-[0.65rem] tracking-[0.16em] text-muted-foreground uppercase">
+								<span className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
 									{route.access}
 								</span>
 								<div className="flex min-w-0 flex-col gap-1">
