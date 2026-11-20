@@ -22,6 +22,8 @@ import {
 import {DatabaseMigrationsPanel} from './guides/database-migrations-panel.tsx'
 import {HeaderPanel} from './guides/header-panel.tsx'
 import {PageRecipePanel} from './guides/page-recipe-panel.tsx'
+import {UnslopReactPanel} from './guides/unslop-react-panel.tsx'
+import {UpdateDependenciesPanel} from './guides/update-dependencies-panel.tsx'
 import {WorktreesPanel} from './guides/worktrees-panel.tsx'
 import {AbusePanel} from './reference/abuse-panel.tsx'
 import {AgentsOverviewPanel} from './reference/agents-overview-panel.tsx'
@@ -56,6 +58,8 @@ const guidePanels = [
 	{key: 'customize-header', label: 'Customize the header', Panel: HeaderPanel},
 	{key: 'worktrees', label: 'Worktrees', Panel: WorktreesPanel},
 	{key: 'database-migrations', label: 'Database migrations', Panel: DatabaseMigrationsPanel},
+	{key: 'update-dependencies', label: 'Update dependencies', Panel: UpdateDependenciesPanel},
+	{key: 'unslop-react', label: 'Unslop React', Panel: UnslopReactPanel},
 ] as const
 
 // Alphabetical by label; keep sorted.
