@@ -7,11 +7,11 @@ import {signOut, TerminalSignOutError} from '#/db/ops/auth/sign-out.ts'
 import {runOp} from '#/middleware/_run-op.server.ts'
 import {setAnonCookie} from '#/middleware/_set-anon-cookie.ts'
 import {clearAuthCookies} from '#/middleware/_set-auth-cookies.ts'
-import {rateLimit} from '#/middleware/rate-limit.ts'
+import {signOutRateLimit} from '#/middleware/rate-limit.ts'
 import {requireAuth} from '#/middleware/require-auth.ts'
 
 export const handleSignOut = createServerFn({method: 'POST'})
-	.middleware([rateLimit, requireAuth])
+	.middleware([signOutRateLimit, requireAuth])
 	.handler(
 		async ({
 			context: {

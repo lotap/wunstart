@@ -8,6 +8,8 @@ const guardrailsChart = `flowchart LR
   mw -->|"server fn"| auth["verifyAuth"]
   auth -->|"fallback refresh"| refresh["30/min refresh · refresh:IP"]
   refresh -->|"over limit"| denied
+  auth -->|"sign-out"| sout["30/min sign-out · sign-out:IP"]
+  sout -->|"over limit"| denied
   auth -->|"server fn"| op["runOp · createOpsFn"]
   op -->|"credential ops"| check["checkCurrentBansAndExcessiveActivities"]
   check --> bans[("bans")]
@@ -62,10 +64,11 @@ export function AbusePanel() {
 				<Prose>
 					<InlineCode>src/start.ts</InlineCode> installs{' '}
 					<InlineCode>createRateLimit(150)</InlineCode> on every server function. Auth server
-					functions add the tighter <InlineCode>rateLimit</InlineCode>; fallback refresh attempts
-					consume a separate <InlineCode>refresh</InlineCode> bucket before the refresh op runs. Ops
-					log their outcome through <InlineCode>createOpsFn</InlineCode>, and credential ops
-					pre-check bans before doing any work.
+					functions add the tighter <InlineCode>rateLimit</InlineCode>; sign-out uses its own scoped{' '}
+					<InlineCode>signOutRateLimit</InlineCode>, and fallback refresh attempts consume a
+					separate <InlineCode>refresh</InlineCode> bucket before the refresh op runs. Ops log their
+					outcome through <InlineCode>createOpsFn</InlineCode>, and credential ops pre-check bans
+					before doing any work.
 				</Prose>
 			</PanelSection>
 
@@ -74,8 +77,8 @@ export function AbusePanel() {
 					<InlineCode>createRateLimit(max)</InlineCode> admits <InlineCode>max</InlineCode> requests
 					per IP in a 60-second window. Each request adds{' '}
 					<InlineCode>ceil(12,600 / max)</InlineCode> to the IP’s score; the request that pushes the
-					score above 12,600 gets a 429. The scoped refresh bucket uses the same formula at 30/min,
-					so each attempt weighs 420 in its own key.
+					score above 12,600 gets a 429. The scoped refresh and sign-out buckets use the same
+					formula at 30/min, so each attempt weighs 420 in its own key.
 				</Prose>
 				<PanelList>
 					<PanelRow label="createRateLimit(150)">
@@ -93,6 +96,13 @@ export function AbusePanel() {
 						Checked in <InlineCode>verifyAuth</InlineCode> before the refresh op; a normal browser
 						refreshes about once per 15 minutes.
 					</PanelRow>
+					<PanelRow label="sign-out bucket">
+						30 sign-out requests per minute per IP, keyed{' '}
+						<InlineCode>sign-out:&lt;ip&gt;</InlineCode>. Both sign-out handlers run the refresh
+						nonce check, but sign-out cannot guess a credential and a shared egress can sign out
+						several devices at once, so the lane bounds the Argon2 work without spending the 5/min
+						auth budget. The global limiter remains the outer bound.
+					</PanelRow>
 					<PanelRow label="storage">
 						An in-memory <InlineCode>Map</InlineCode> in the Worker. It is per isolate, not shared
 						across instances, and resets on deploy. Treat it as defense in depth, not a global edge
@@ -100,8 +110,8 @@ export function AbusePanel() {
 					</PanelRow>
 					<PanelRow label="stacking">
 						The global and auth limiters feed the same per-IP score, so a request that passes both
-						consumes both weights. The refresh bucket has its own scoped key and does not spend that
-						budget.
+						consumes both weights. The refresh and sign-out buckets have their own scoped keys and
+						do not spend that budget.
 					</PanelRow>
 				</PanelList>
 				<Prose>

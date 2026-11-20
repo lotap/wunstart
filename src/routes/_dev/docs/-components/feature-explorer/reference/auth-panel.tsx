@@ -71,14 +71,14 @@ const refreshChart = `flowchart LR
   verify -->|"refresh ok"| context["server fn context"]`
 
 const signOutChart = `flowchart LR
-  menu(["/settings · user menu"]) -->|"this device"| outFn["handleSignOut"] --> authOut["rateLimit · requireAuth"] -->|"runOp"| outOp["signOut"]
+  menu(["/settings · user menu"]) -->|"this device"| outFn["handleSignOut"] --> authOut["signOutRateLimit · requireAuth"] -->|"runOp"| outOp["signOut"]
   outOp -->|"refresh JWS"| secrets{{"authLayer secrets"}}
   outOp -->|"verify nonce"| hash{{"AuthHasher DO"}}
   outOp -->|"read"| active[("sessions")]
   outOp -->|"archive"| sessions[("sessions_archive")]
   outOp -->|"log"| logs[("activities · bans")]
   outFn -.->|"refresh in · clear auth · set anon"| cookie[/"Set-Cookie"/]
-  menu -->|"all devices"| allFn["handleSignOutAll"] --> authAll["rateLimit · requireAuth"] -->|"runOp"| allOp["signOutAll"]
+  menu -->|"all devices"| allFn["handleSignOutAll"] --> authAll["signOutRateLimit · requireAuth"] -->|"runOp"| allOp["signOutAll"]
   allOp -->|"refresh JWS"| secrets
   allOp -->|"live session · nonce · grace"| active
   allOp -->|"verify nonce"| hash

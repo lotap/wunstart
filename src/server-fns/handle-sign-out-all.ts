@@ -6,7 +6,7 @@ import {signOutAll} from '#/db/ops/auth/sign-out-all.ts'
 import {runOp} from '#/middleware/_run-op.server.ts'
 import {setAnonCookie} from '#/middleware/_set-anon-cookie.ts'
 import {clearAuthCookies} from '#/middleware/_set-auth-cookies.ts'
-import {rateLimit} from '#/middleware/rate-limit.ts'
+import {signOutRateLimit} from '#/middleware/rate-limit.ts'
 import {requireAuth} from '#/middleware/require-auth.ts'
 
 /**
@@ -16,7 +16,7 @@ import {requireAuth} from '#/middleware/require-auth.ts'
  * the action once no sessions remain.
  */
 export const handleSignOutAll = createServerFn({method: 'POST'})
-	.middleware([rateLimit, requireAuth])
+	.middleware([signOutRateLimit, requireAuth])
 	.handler(
 		async ({
 			context: {

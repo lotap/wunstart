@@ -178,6 +178,15 @@ export function addRateLimitEvent({
 }
 
 /**
+ * Sign-out attempts allowed per IP per minute. Sign-out runs the Argon2 nonce
+ * check but cannot guess a credential, and one shared egress can legitimately
+ * produce several sign-outs at once. Its own lane keeps a sign-out burst from
+ * spending the 5/min credential budget; the global limiter stays the outer
+ * bound.
+ */
+const SIGN_OUT_ATTEMPTS_PER_MINUTE = 30
+
+/**
  * Per-IP rate limiting middleware. Not shared across clusters/instances/isolates.
  * Defense in depth only; pair with a real edge rate limit + a real redis/db solution
  * Each request adds ({@link THRESHOLD} / max) weight to the ip's score with a timestamp; events older than {@link WINDOW_MS} are ignored.
@@ -186,8 +195,9 @@ export function addRateLimitEvent({
  * Expired events are purged every 10_000 requests as a safeguard.
  *
  * @argument max The number of requests allowed by an ip within {@link WINDOW_MS}. Must be a positive integer to function as intended
+ * @argument scope Optional namespace for a dedicated bucket; omit to spend the shared per-IP score
  */
-export function createRateLimit(max: number) {
+export function createRateLimit(max: number, scope?: string) {
 	return createMiddleware({type: 'function'})
 		.middleware([getRequestInfo])
 		.server(async ({next, context: {ipAddress}}) => {
@@ -195,7 +205,7 @@ export function createRateLimit(max: number) {
 
 			if (cleanCounter > 10_000) cleanup()
 
-			addRateLimitEvent({ipAddress, weight: allowPerWindow(max)})
+			addRateLimitEvent({ipAddress, weight: allowPerWindow(max), scope})
 
 			return next()
 		})
@@ -203,3 +213,10 @@ export function createRateLimit(max: number) {
 
 /** Default: 5 requests per minute per ip */
 export const rateLimit = createRateLimit(5)
+
+/**
+ * Sign-out lane: 30 requests per minute per IP, keyed `sign-out:<ip>`.
+ * Both sign-out handlers run the refresh nonce check, so the lane bounds the
+ * Argon2 work without charging it to the shared auth budget.
+ */
+export const signOutRateLimit = createRateLimit(SIGN_OUT_ATTEMPTS_PER_MINUTE, 'sign-out')
