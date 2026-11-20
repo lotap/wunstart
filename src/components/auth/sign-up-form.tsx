@@ -140,7 +140,7 @@ export function SignUpForm() {
 									buttonProps={{disabled: branch !== 'default'}}
 									label="Continue"
 									changeLabelWhileSubmitting={branch === 'default'}
-									labelWhileSubmitting="Sending Code"
+									labelWhileSubmitting="Sending code"
 								/>
 
 								<step0Form.SubmitButton
@@ -177,7 +177,7 @@ export function SignUpForm() {
 											setBranch('skip')
 										},
 									}}
-									label="Have a Passcode?"
+									label="Have a passcode?"
 									changeLabelWhileSubmitting={branch === 'skip'}
 									labelWhileSubmitting="Loading"
 								/>

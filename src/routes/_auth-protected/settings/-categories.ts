@@ -7,7 +7,7 @@ import {CircleUserRound, ShieldCheck, SlidersHorizontal} from 'lucide-react'
 export const CATEGORIES = [
 	{id: 'preferences', label: 'Preferences', Icon: SlidersHorizontal},
 	{id: 'profile', label: 'Profile', Icon: CircleUserRound},
-	{id: 'access', label: 'Access & Security', Icon: ShieldCheck},
+	{id: 'access', label: 'Access & security', Icon: ShieldCheck},
 ] as const
 
 export type CategoryId = (typeof CATEGORIES)[number]['id']

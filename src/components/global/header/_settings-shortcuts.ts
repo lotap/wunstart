@@ -8,5 +8,5 @@ import {CircleUserRound, ShieldCheck, SlidersHorizontal} from 'lucide-react'
 export const SETTINGS_SHORTCUTS = [
 	{id: 'preferences', label: 'Preferences', Icon: SlidersHorizontal},
 	{id: 'profile', label: 'Profile', Icon: CircleUserRound},
-	{id: 'access', label: 'Access & Security', Icon: ShieldCheck},
+	{id: 'access', label: 'Access & security', Icon: ShieldCheck},
 ] as const

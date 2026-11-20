@@ -30,7 +30,7 @@ const blurPrompt =
 	'Replace the build-time gradient placeholder with a blurred LQIP. Generate a 24 px-wide AVIF under 1 KB, inline it on the import, paint it until the image loads, and drop the gradient it replaces. No extra request, no layout shift.'
 
 const sizePrompt =
-	"Add a production image size report. Print each emitted AVIF variant's source, width, and size, plus a total per source. Fail when a variant exceeds 400 KB or total image output exceeds 4 MB."
+	'Add a production image size report. Print each emitted AVIF variant’s source, width, and size, plus a total per source. Fail when a variant exceeds 400 KB or total image output exceeds 4 MB.'
 
 /** Catalog entry for the static image pipeline. Details live in the reference panel. */
 export function ImageOptimizationFeature() {

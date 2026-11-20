@@ -245,7 +245,7 @@ export function SignInForm() {
 											setBranch('passcode-send')
 										},
 									}}
-									label="Send a Passcode"
+									label="Send a passcode"
 									changeLabelWhileSubmitting={branch === 'passcode-send'}
 									labelWhileSubmitting="Sending code"
 								/>
@@ -286,7 +286,7 @@ export function SignInForm() {
 											setBranch('passcode-skip')
 										},
 									}}
-									label="Already Have a Passcode?"
+									label="Already have a passcode?"
 									changeLabelWhileSubmitting={branch === 'passcode-skip'}
 									labelWhileSubmitting="Loading"
 								/>

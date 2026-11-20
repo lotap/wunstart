@@ -203,7 +203,7 @@ function ReverifyFormSwitcher({email, hasPassword}: {email: string; hasPassword:
 						selectForm('confirm-password')
 					}}
 				>
-					Confirm Password Instead
+					Confirm password instead
 				</Button>
 			)}
 		</>
@@ -275,7 +275,7 @@ export function ReverifyDrawer({
 			<DrawerPrimitive.VirtualKeyboardProvider>
 				<DrawerContent className="min-h-2/3">
 					<DrawerHeader>
-						<DrawerTitle className="text-4xl font-bold">Reverify Your Account</DrawerTitle>
+						<DrawerTitle className="text-4xl font-bold">Reverify your account</DrawerTitle>
 						<DrawerDescription>We want to make sure it’s really you</DrawerDescription>
 					</DrawerHeader>
 					<div className="flex grow flex-col items-center justify-center p-4">

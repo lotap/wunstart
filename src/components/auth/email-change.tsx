@@ -77,7 +77,7 @@ function NewEmailForm({onCodeSent}: {onCodeSent: (email: string) => void}) {
 
 							<form.OnSubmitErrors />
 
-							<form.SubmitButton label="Send Code" labelWhileSubmitting="Sending" />
+							<form.SubmitButton label="Send code" labelWhileSubmitting="Sending" />
 						</FieldGroup>
 					</FieldGroup>
 				</form>
@@ -261,7 +261,7 @@ export function EmailChangeDrawer({triggerClassName}: {triggerClassName?: string
 			<DrawerPrimitive.VirtualKeyboardProvider>
 				<DrawerContent className="min-h-2/3">
 					<DrawerHeader>
-						<DrawerTitle className="text-4xl font-bold">Update Your Email</DrawerTitle>
+						<DrawerTitle className="text-4xl font-bold">Update your email</DrawerTitle>
 						<DrawerDescription>We’ll send a code to verify the new address</DrawerDescription>
 					</DrawerHeader>
 					<div className="flex grow flex-col items-center justify-center p-4">

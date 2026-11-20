@@ -169,7 +169,7 @@ export function ChangePasswordForm({
 
 						<form.OnSubmitErrors />
 
-						<form.SubmitButton label="Set Password" labelWhileSubmitting="Updating" />
+						<form.SubmitButton label="Set password" labelWhileSubmitting="Updating" />
 					</FieldGroup>
 				</form>
 			</div>
@@ -189,12 +189,12 @@ export function PasswordChangeDrawer({
 	return (
 		<Drawer showSwipeHandle open={open} onOpenChange={setOpen}>
 			<DrawerTrigger render={<Button variant={triggerVariant} className={triggerClassName} />}>
-				Change Password
+				Change password
 			</DrawerTrigger>
 			<DrawerPrimitive.VirtualKeyboardProvider>
 				<DrawerContent className="min-h-2/3">
 					<DrawerHeader>
-						<DrawerTitle className="text-4xl font-bold">Update Your Password</DrawerTitle>
+						<DrawerTitle className="text-4xl font-bold">Update your password</DrawerTitle>
 						<DrawerDescription>Changes will take effect immediately</DrawerDescription>
 					</DrawerHeader>
 					<div className="flex grow flex-col items-center justify-center p-4">

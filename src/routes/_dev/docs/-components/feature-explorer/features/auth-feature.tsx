@@ -85,7 +85,7 @@ export function AuthFeature() {
 				</Prose>
 				<PanelList>
 					<PanelRow label="Password">
-						Change it in Settings → Access & Security. The drawer can sign out all sessions,
+						Change it in Settings → Access & security. The drawer can sign out all sessions,
 						including this device, and sends a confirmation email.
 					</PanelRow>
 					<PanelRow label="Email">
@@ -93,11 +93,11 @@ export function AuthFeature() {
 						stops working once the change lands.
 					</PanelRow>
 					<PanelRow label="Sessions">
-						Settings → Access & Security lists active sessions with device and location. Sign out
+						Settings → Access & security lists active sessions with device and location. Sign out
 						one device or all devices.
 					</PanelRow>
 					<PanelRow label="Removal">
-						Settings → Access & Security archives the account and everything attached to it. There
+						Settings → Access & security archives the account and everything attached to it. There
 						is no undelete.
 					</PanelRow>
 				</PanelList>

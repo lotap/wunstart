@@ -132,20 +132,18 @@ export function RemoveAccountDrawer({triggerClassName}: {triggerClassName?: stri
 	return (
 		<Drawer showSwipeHandle open={open} onOpenChange={setOpen}>
 			<DrawerTrigger render={<Button variant="destructive" className={triggerClassName} />}>
-				Remove Account
+				Remove account
 			</DrawerTrigger>
 			<DrawerContent className="min-h-2/3">
 				<DrawerHeader>
-					<DrawerTitle className="text-4xl font-bold">Remove Your Account</DrawerTitle>
+					<DrawerTitle className="text-4xl font-bold">Remove your account</DrawerTitle>
 					<DrawerDescription>Permanently lose access</DrawerDescription>
 				</DrawerHeader>
-				{/* <div className="flex grow flex-col items-center justify-center p-4"> */}
 				<ConfirmRemoval
 					closeRemoveAccountDrawer={() => {
 						setOpen(false)
 					}}
 				/>
-				{/* </div> */}
 			</DrawerContent>
 		</Drawer>
 	)
