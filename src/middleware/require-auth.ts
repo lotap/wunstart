@@ -15,6 +15,14 @@ export const requireAuth = createMiddleware({type: 'function'}).server(async ({n
 	// so it is widened to `unknown` before the single assertion.
 	const {auth} = ctx as GlobalServerFnContext
 
+	/**
+	 * Report the request state; `requireAuth` does not end cookies. `verifyAuth`
+	 * has already ended the pair when it saw a definitively invalid token, and
+	 * deliberately keeps it when a ban or rate limit refused the refresh,
+	 * because the Session behind it may still be alive. The client cannot tell
+	 * those states apart from this rejection, so the 401 must not be read as
+	 * proof that the cookies are dead.
+	 */
 	if (!auth) {
 		setResponseStatus(401)
 		throw new KnownServerError({message: SIGN_IN_REQUIRED_MESSAGE})

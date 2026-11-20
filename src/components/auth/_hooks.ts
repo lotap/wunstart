@@ -3,7 +3,7 @@ import {useRouter} from '@tanstack/react-router'
 import {DateTime} from 'effect'
 
 import {useLocalStorageQuery} from '#/hooks/use-local-storage-query.ts'
-import {SIGN_IN_REQUIRED_MESSAGE, SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
+import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {
 	passcodeRequestQueryOptions,
@@ -17,10 +17,16 @@ import {clearIdentityCache} from './identity-cache.ts'
 /**
  * Recover the client after a protected mutation finds the session gone.
  *
- * `runOpClearingDeadSession` and `requireAuth` end the dead cookie pair
- * server-side, but the router context and cached identity survive until the
- * next navigation. Clear both here so the guard can redirect immediately.
- * Only matching auth failures act; every other error passes through.
+ * `runOpClearingDeadSession` ends the dead cookie pair server-side and rethrows
+ * the session-expired message, but the router context and cached identity
+ * survive until the next navigation. Clear both here so the guard can redirect
+ * immediately.
+ *
+ * Act on that message alone. A `requireAuth` 401 merely says this request had no
+ * usable identity: `verifyAuth` keeps the cookie pair when a ban or rate limit
+ * refused the refresh, so the session behind it may still be alive. Surfacing
+ * that error in place leaves the retained pair to restore the identity once the
+ * refusal lifts. Every other error passes through.
  */
 export function useDeadSessionRecovery() {
 	const queryClient = useQueryClient()
@@ -29,8 +35,7 @@ export function useDeadSessionRecovery() {
 	return (cause: unknown) => {
 		if (!(cause instanceof Error)) return
 
-		if (cause.message !== SESSION_EXPIRED_MESSAGE && cause.message !== SIGN_IN_REQUIRED_MESSAGE)
-			return
+		if (cause.message !== SESSION_EXPIRED_MESSAGE) return
 
 		clearIdentityCache(queryClient)
 		void router.invalidate().catch(() => undefined)
