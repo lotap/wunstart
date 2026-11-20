@@ -9,7 +9,7 @@ import {
 	BOXES_BLOCK_TOP_VH,
 	FEATURES_TEXT_BLOCK_TOP_VH,
 	FEATURES_TEXT_IN_VH,
-	FEATURES_TEXT_STICKY_TOP_VH,
+	FEATURES_TEXT_STICKY_TOP_PX,
 	FIRST_WORD_VH,
 	HEADLINE_FADE_VH,
 	MOBILE_MAX_WIDTH_PX,
@@ -63,10 +63,10 @@ const HEADLINE_EXIT_SHIFT_PX = 24
 const NAV_STICKY_TOP_PX = 16
 
 /**
- * Gap below the pinned subline. Twice the dock offset so the visual gap clears
- * the subline’s descenders, which overflow its line box.
+ * Gap below the pinned subline, in pixels. The line’s descenders overflow its
+ * box, so this reads as the visual gap.
  */
-const NAV_SUBLINE_GAP_PX = NAV_STICKY_TOP_PX * 2
+const NAV_SUBLINE_GAP_PX = 40
 
 /** Viewport top band where the subline counts as pinned for the nav hold. */
 const NAV_SUBLINE_PINNED_VH = 20
@@ -214,7 +214,7 @@ export function useGrowNextScroll({
 			const textHeightVh = (layout.textHeight / viewport) * 100
 
 			const shaderReleaseStartVh =
-				FEATURES_TEXT_STICKY_TOP_VH + textHeightVh + SHADER_RELEASE_LEAD_VH
+				(FEATURES_TEXT_STICKY_TOP_PX / viewport) * 100 + textHeightVh + SHADER_RELEASE_LEAD_VH
 
 			const shaderParentHeightVh =
 				BOXES_BLOCK_TOP_VH - shaderReleaseStartVh + SHADER_STICKY_TOP_VH + SHADER_STICKY_HEIGHT_VH
@@ -249,8 +249,7 @@ export function useGrowNextScroll({
 			const slotBottom = navSlot.offsetTop + navSlot.offsetHeight
 			const stickyTop = (STICKY_TOP_VH / 100) * viewport
 
-			const holdTop =
-				(FEATURES_TEXT_STICKY_TOP_VH / 100) * viewport + subline.offsetHeight + NAV_SUBLINE_GAP_PX
+			const holdTop = FEATURES_TEXT_STICKY_TOP_PX + subline.offsetHeight + NAV_SUBLINE_GAP_PX
 
 			const releaseStart = holdTop + navHeight + (NAV_RELEASE_LEAD_VH / 100) * viewport
 			const releaseTravel = Math.max(holdTop - NAV_STICKY_TOP_PX, 0)
@@ -373,12 +372,7 @@ export function useGrowNextScroll({
 			if (!layout) return
 
 			const dock = navDockRef.current
-
-			if (dock) {
-				const docked = window.scrollY >= navDockStart && window.scrollY < navDockEnd
-
-				if (dock.dataset['docked'] !== String(docked)) dock.dataset['docked'] = String(docked)
-			}
+			const docked = window.scrollY >= navDockStart && window.scrollY < navDockEnd
 
 			const subline = sublineRef.current
 			const sublineRect = subline?.getBoundingClientRect()
@@ -387,9 +381,17 @@ export function useGrowNextScroll({
 				? sublineRect.top <= viewport * (NAV_SUBLINE_PINNED_VH / 100)
 				: false
 
-			const sublineTop = sublinePinned
-				? (FEATURES_TEXT_STICKY_TOP_VH / 100) * viewport
-				: (sublineRect?.top ?? 0)
+			/**
+			 * The line and the held nav ride the revealed bar together. The docked
+			 * nav keeps the offset through its top state; the exit drops it.
+			 */
+			if (dock) {
+				const shifted = docked || (sublinePinned && window.scrollY < navDockStart)
+
+				if (dock.dataset['shifted'] !== String(shifted)) dock.dataset['shifted'] = String(shifted)
+			}
+
+			const sublineTop = sublinePinned ? FEATURES_TEXT_STICKY_TOP_PX : (sublineRect?.top ?? 0)
 
 			const sublineBottom = sublineTop + (subline?.offsetHeight ?? 0)
 			const firstCardTopPx = rect.top + layout.blockTop + (layout.cardOffsets[0] ?? 0)
@@ -466,7 +468,8 @@ export function useGrowNextScroll({
 				? wordScrollTop(HERO_WORDS.length - 1, rect, viewport)
 				: rect.top +
 					window.scrollY +
-					((FEATURES_TEXT_BLOCK_TOP_VH - FEATURES_TEXT_STICKY_TOP_VH) / 100) * viewport
+					(FEATURES_TEXT_BLOCK_TOP_VH / 100) * viewport -
+					FEATURES_TEXT_STICKY_TOP_PX
 
 			const promptFadeDistance = (PROMPT_FADE_VH / 100) * viewport
 

@@ -140,7 +140,7 @@ export function HeroSectionNav({
 		>
 			<div
 				ref={dockRef}
-				className="pointer-events-none data-[docked=true]:translate-y-(--header-dock,0px) data-[ready=true]:fixed data-[ready=true]:inset-x-0 data-[ready=true]:top-0 data-[ready=true]:z-40 data-[ready=true]:flex data-[ready=true]:justify-center data-[ready=true]:px-4 data-[ready=true]:transition-transform data-[ready=true]:duration-(--header-dock-transition,0ms) data-[ready=true]:ease-out"
+				className="pointer-events-none data-[ready=true]:fixed data-[ready=true]:inset-x-0 data-[ready=true]:top-0 data-[ready=true]:z-40 data-[ready=true]:flex data-[ready=true]:justify-center data-[ready=true]:px-4 data-[ready=true]:transition-transform data-[ready=true]:duration-(--header-dock-transition,0ms) data-[ready=true]:ease-out data-[shifted=true]:translate-y-(--header-dock,0px)"
 			>
 				<nav
 					ref={navRef}
