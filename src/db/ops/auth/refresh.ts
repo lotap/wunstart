@@ -461,6 +461,12 @@ const _refresh = Effect.fn('refresh')(function* ({
 }) {
 	const resolved = yield* decodeRefreshSession({token})
 
+	/**
+	 * The token never verified, so this counts as a failed credential
+	 * presentation even though a rotated secret set or a corrupted cookie produces
+	 * the same failure. Keep the charge: the activity is logged either way, and
+	 * the weight’s effect is the IP ban, which blocks that address’s other flows.
+	 */
 	if (resolved.status === 'invalid')
 		return yield* authTokenFailure({
 			failureCause: 'INVALID_JWS',
@@ -469,11 +475,18 @@ const _refresh = Effect.fn('refresh')(function* ({
 			message: SESSION_EXPIRED_MESSAGE,
 		})
 
+	/**
+	 * The JWS verified, so the caller provably held a genuine refresh token; the
+	 * row is just gone, expired, or revoked. That is the ordinary state after a
+	 * remote sign-out or a password change that signs out all sessions, so charge
+	 * no ban weight: a few stale devices behind one IP must not lock that address
+	 * out of signing in. No userId is available — the row that named it is gone.
+	 */
 	if (resolved.status === 'missing')
 		return yield* authTokenFailure({
 			failureCause: 'SESSION_NOT_FOUND',
 			meta: {sessionId: resolved.sessionId},
-			rateAllowance: 4,
+			rateAllowance: Infinity,
 			message: SESSION_EXPIRED_MESSAGE,
 		})
 

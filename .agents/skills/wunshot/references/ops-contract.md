@@ -12,7 +12,7 @@ const genericFailureOutputMessage = '…' // one neutral message for this flow
 const _signOut = Effect.fn('signOut')(function* ({token, ipAddress}: {…}) {
 	const {nonce, sessionId} = yield* extractRefreshTokenPayload(token).pipe(Effect.mapError(…))
 	const [session] = yield* sessionsQueries.select({id: sessionId})
-	if (!session) return yield* opsFailure({failureCause: 'SESSION_NOT_FOUND', rateAllowance: 3})
+	if (!session) return yield* opsFailure({failureCause: 'SESSION_NOT_FOUND', rateAllowance: Infinity})
 	…
 })
 export const signOut = createOpsFn({fn: _signOut, label: 'AUTH_SIGN_OUT'})
