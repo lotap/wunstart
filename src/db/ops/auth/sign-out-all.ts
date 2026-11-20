@@ -96,11 +96,13 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 		return yield* opsFailure({
 			failureCause: nonceCheck === 'grace-unknown-kid' ? 'UNKNOWN_KID' : 'WRONG_NONCE',
 			/**
-			 * An unknown grace kid is treated as a rotated-out secret; an unreadable
-			 * grace token is config/corruption. Both are weight 0, same rule as
-			 * refresh. A nonce mismatch stays charged.
+			 * A nonce mismatch cannot archive anything: the access token already
+			 * bound the caller to this user, and the stale generation is reachable
+			 * from ordinary rotation or theft. Keep the strict error, but charge no
+			 * ban weight — this action exists to recover from theft, and a USER ban
+			 * would refuse the refresh it needs.
 			 */
-			rateAllowance: nonceCheck === 'mismatch' ? 3 : Infinity,
+			rateAllowance: Infinity,
 			userId,
 			message: SESSION_EXPIRED_MESSAGE,
 		})

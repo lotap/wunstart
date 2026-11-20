@@ -385,7 +385,9 @@ export function AuthPanel() {
 						Verifies the refresh token, requires its Session to still be live in the database and to
 						belong to the authenticated User, and checks the refresh nonce (current or grace
 						generation); then archives every Session for the User, clears the cookies, and issues a
-						new Anon. Unlike single sign-out, a dead session surfaces an error.
+						new Anon. Unlike single sign-out, a dead session surfaces an error. A nonce mismatch
+						keeps that strict error at weight 0: it cannot archive anything, and the stale state
+						must not ban the account’s recovery path.
 					</PanelRow>
 					<PanelRow label="stale session">
 						The settings session list covers every live Session for the User, so a result without
