@@ -4,6 +4,7 @@ import * as sessionsQueries from '#/db/models/sessions/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {formatLocation} from '#/email/format-location.ts'
 
+import {hkdfFailure, isJwtKeyDerivationError} from './_jwt-utils.ts'
 import {extractRefreshTokenPayload} from './_refresh-token.ts'
 import {formatUserAgent} from './_user-agent.ts'
 
@@ -16,7 +17,15 @@ const _listSessions = Effect.fn('listSessions')(function* ({
 }) {
 	const currentSessionId = yield* extractRefreshTokenPayload(refreshToken).pipe(
 		Effect.map((payload) => payload.sessionId),
-		Effect.orElseSucceed(() => null),
+		/**
+		 * An invalid, expired, or rotated-out refresh JWS only means this device’s
+		 * session cannot be identified; the endpoint then clears the pair. An HKDF
+		 * failure is an infrastructure outage and must not look like an invalid
+		 * token, so it stays a failure and the cookies are kept.
+		 */
+		Effect.catchTag('JwtHandlerError', (error) =>
+			isJwtKeyDerivationError(error) ? Effect.fail(hkdfFailure(error)) : Effect.succeed(null),
+		),
 	)
 
 	const sessions = yield* sessionsQueries.selectFromUnexpiredUnrevokedByUser({userId})
