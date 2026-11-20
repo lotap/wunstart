@@ -17,8 +17,9 @@ import {requireAuth} from '#/middleware/require-auth.ts'
  * the client refresh the router and the guard redirect.
  *
  * A filtered or paginated list must keep the current row in its result, or check
- * liveness separately. Never call this from a loader or prefetch: the cookie
- * clear is a logout, not a cache refresh.
+ * liveness separately. Never call this from a loader, router prefetch, or React
+ * Query prefetch (`prefetchQuery`, `ensureQueryData`): the cookie clear is a
+ * logout, not a cache refresh.
  */
 export const handleGetSessions = createServerFn({method: 'GET'})
 	.middleware([requireAuth])
