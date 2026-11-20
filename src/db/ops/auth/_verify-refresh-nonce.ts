@@ -1,7 +1,7 @@
 import {Effect} from 'effect'
 
 import {verifyTarget} from '#/db/ops/auth/_hashing.ts'
-import {isUnknownKidError} from '#/db/ops/auth/_jwt-utils.ts'
+import {hkdfFailure, isJwtKeyDerivationError, isUnknownKidError} from '#/db/ops/auth/_jwt-utils.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 
 import {extractRefreshGraceToken, noncesMatch} from './_refresh-grace-token.ts'
@@ -30,6 +30,9 @@ export type RefreshNonceCheck = 'match' | 'mismatch' | 'grace-unreadable' | 'gra
  * mints nothing, the session must still be live, and a slightly stale cookie
  * must still be able to end its session (rejecting it would accrue USER ban
  * weight and block refresh for the very user trying to sign out).
+ *
+ * An HKDF failure while opening the grace token is infrastructure, not a token
+ * verdict, so it fails the effect instead of returning a weight-0 check result.
  */
 export const verifyRefreshNonce = Effect.fn('verifyRefreshNonce')(function* ({
 	session,
@@ -53,16 +56,15 @@ export const verifyRefreshNonce = Effect.fn('verifyRefreshNonce')(function* ({
 		const graceTokenData = yield* extractRefreshGraceToken(session.graceToken).pipe(
 			Effect.map((data) => ({ok: true, data}) as const),
 			Effect.tapError((error) =>
-				Effect.logWarning(
-					'Grace token could not be decoded; treating its nonce as unverifiable',
-					error.operation,
-				),
+				Effect.logWarning('Grace token could not be decoded', error.operation),
 			),
 			Effect.catchTag('JwtHandlerError', (error) =>
-				Effect.succeed({
-					ok: false,
-					reason: isUnknownKidError(error) ? 'grace-unknown-kid' : 'grace-unreadable',
-				} as const),
+				isJwtKeyDerivationError(error)
+					? Effect.fail(hkdfFailure(error))
+					: Effect.succeed({
+							ok: false,
+							reason: isUnknownKidError(error) ? 'grace-unknown-kid' : 'grace-unreadable',
+						} as const),
 			),
 		)
 

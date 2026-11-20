@@ -12,7 +12,7 @@ import {renderSessionEndedNotification} from '#/email/templates/session-ended-no
 import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {generateAccessToken} from './_access-token.ts'
-import {isUnknownKidError} from './_jwt-utils.ts'
+import {hkdfFailure, isJwtKeyDerivationError, isUnknownKidError} from './_jwt-utils.ts'
 import {
 	generateRefreshGraceToken,
 	extractRefreshGraceToken,
@@ -284,20 +284,26 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 
 	const graceTokenData = yield* extractRefreshGraceToken(graceToken).pipe(
 		/**
-		 * An unknown grace `kid` is treated as a rotated-out secret; an unreadable
-		 * token is config/corruption. Both are weight 0 and are treated as an
-		 * invalid token (cookies clear, user can sign in again) instead of an
-		 * infrastructure failure: an INTERNAL_ERROR here becomes a degraded 503
-		 * that blocks every server fn, including sign-in, on every retry. A nonce
-		 * mismatch stays charged.
+		 * An HKDF failure is infrastructure, not a token verdict: fail it so the
+		 * request degrades instead of clearing a live cookie pair. An unknown
+		 * grace `kid` is treated as a rotated-out secret; an unreadable token is
+		 * config/corruption. Both are weight 0 and are treated as an invalid token
+		 * (cookies clear, user can sign in again) instead of an infrastructure
+		 * failure: an INTERNAL_ERROR here becomes a degraded 503 that blocks every
+		 * server fn, including sign-in, on every retry. A nonce mismatch stays
+		 * charged.
 		 */
 		Effect.catchTag('JwtHandlerError', (error) =>
-			authTokenFailure({
-				failureCause: isUnknownKidError(error) ? 'UNKNOWN_KID' : 'WRONG_NONCE',
-				rateAllowance: Infinity,
-				meta: {operation: error.operation},
-				message: SESSION_EXPIRED_MESSAGE,
-			}),
+			Effect.fail(
+				isJwtKeyDerivationError(error)
+					? hkdfFailure(error)
+					: authTokenFailure({
+							failureCause: isUnknownKidError(error) ? 'UNKNOWN_KID' : 'WRONG_NONCE',
+							rateAllowance: Infinity,
+							meta: {operation: error.operation},
+							message: SESSION_EXPIRED_MESSAGE,
+						}),
+			),
 		),
 	)
 
