@@ -316,7 +316,8 @@ export function SignInForm() {
 						headline="Verify your email"
 						subhead={
 							<>
-								We sent a passcode/instructions to <strong>{email}</strong>
+								We sent a passcode/instructions to{' '}
+								<strong className="dark:font-semibold">{email}</strong>
 							</>
 						}
 					/>

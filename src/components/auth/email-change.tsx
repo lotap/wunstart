@@ -119,7 +119,7 @@ function VerifyNewEmailForm({
 	return (
 		<div className="w-full max-w-sm">
 			<div className="mb-3 text-center">
-				We sent a 6-digit code to <strong>{newEmail}</strong>
+				We sent a 6-digit code to <strong className="dark:font-semibold">{newEmail}</strong>
 			</div>
 
 			<PasscodeForm
@@ -233,7 +233,7 @@ export function ChangeEmailForm({closeEmailChangeDrawer}: {closeEmailChangeDrawe
 		<>
 			{userEmail?.email && (
 				<p className="mb-16 text-center text-muted-foreground">
-					<strong className="text-xl">{userEmail.email}</strong>
+					<strong className="text-xl dark:font-semibold">{userEmail.email}</strong>
 				</p>
 			)}
 			<NewEmailForm onCodeSent={setNewEmail} />

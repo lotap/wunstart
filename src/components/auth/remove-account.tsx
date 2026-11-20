@@ -72,7 +72,7 @@ function ConfirmRemoval({closeRemoveAccountDrawer}: {closeRemoveAccountDrawer?: 
 			<div className="flex w-full max-w-md flex-col items-center gap-4 text-center">
 				<p>This will permanently remove your account and sign you out on&nbsp;all&nbsp;devices.</p>
 				<p>
-					<strong>
+					<strong className="dark:font-semibold">
 						Your account data will be archived and this action cannot&nbsp;be&nbsp;undone.
 					</strong>
 				</p>

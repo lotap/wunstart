@@ -54,6 +54,8 @@ Adapt the line-height to the font-size and paragraph width. Small font gets tall
 
 Adapt the letter-spacing to the font-size. Headlines get tight tracking. Body copy gets normal or comparatively looser tracking. All-caps lines also get looser tracking.
 
+Weight is theme-relative: dark mode runs one step lighter than light (`font-bold` → `dark:font-semibold`, `font-semibold` → `dark:font-medium`).
+
 Left-align any text longer than 3 lines.
 
 When using multiple font sizes in one line, align them along the baseline, not vertical center.

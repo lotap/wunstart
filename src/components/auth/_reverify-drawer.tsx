@@ -71,8 +71,8 @@ function ReverifyEmailForm({email}: {email: string}) {
 		return (
 			<div className="flex w-full max-w-sm flex-col items-center gap-3">
 				<p className="text-center">
-					We’ll send a secret code to your registered email address: <strong>{email}</strong> to
-					verify your&nbsp;access.
+					We’ll send a secret code to your registered email address:{' '}
+					<strong className="dark:font-semibold">{email}</strong> to verify your&nbsp;access.
 				</p>
 				<Button
 					className="w-full"
@@ -101,7 +101,7 @@ function ReverifyEmailForm({email}: {email: string}) {
 	return (
 		<div className="w-full max-w-sm">
 			<div className="mb-3 text-center">
-				We sent a 6-digit code to <strong>{email}</strong>
+				We sent a 6-digit code to <strong className="dark:font-semibold">{email}</strong>
 			</div>
 
 			<PasscodeForm
