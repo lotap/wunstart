@@ -30,7 +30,7 @@ New module: start at `references/module-walkthrough.md`, then tables-archive →
 - **Every table has an active + archive pair.** Deletes move rows, never hard-delete audit data. Append-only event streams use the log factories (`createActiveLogTable`, e.g. `activities`); entities use the regular ones. See `references/tables-archive.md`.
 - **Never catch `ArchiveCountMismatchError` inside a transaction or cascade body.** It means a concurrent archive won the delete; catching it commits the loser’s duplicate archive insert. Let it roll back and retry (`retryTransientOrArchiveRace`); catch it only outside an archive call that owns its transaction. Linted by `wunshot/no-catch-archive-count-mismatch-in-tx`; see `references/tables-archive.md`.
 - **Denials never carry `failedCredential`.** Pass email as `meta: {credential}` for audit only. Linted by `wunshot/no-failed-credential-in-denial`.
-- **`failureCause` and activity `label` stay free-form text.** Deliberate maintenance decision; do not "fix" into enums.
+- **`failureCause` and activity `label` stay free-form text.** Deliberate maintenance decision; do not “fix” into enums. Control flow uses the tagged error class, never the cause string: a caller that recovers from a specific failure declares an outcome class and catches it by tag or `Schema.is`.
 - **Ops ship here; server functions do not.** Effect ops, no HTTP/cookies. Cookie handling, routing, and op call sites live in the consumer (your app's router/server layer).
 
 ## Module anatomy

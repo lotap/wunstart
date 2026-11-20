@@ -39,14 +39,14 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 	const resolved = yield* decodeRefreshSession({token})
 
 	/**
-	 * An undecodable refresh JWS is not evidence of abuse: a rotated secret set or
-	 * a corrupted cookie produces the same failure, and the access token already
-	 * proved who is asking. Attribute it to the user, but charge no ban weight — a
-	 * few retries must not ban the caller’s IP over a token that cannot be used.
+	 * An unusable refresh JWS is not evidence of abuse: it may be expired, from a
+	 * rotated secret set, or corrupted, and the access token already proved who is
+	 * asking. Attribute it to the user, but charge no ban weight — a few retries
+	 * must not ban the caller’s IP over a token that cannot be used.
 	 */
 	if (resolved.status === 'invalid')
 		return yield* opsFailure({
-			failureCause: 'INVALID_JWS',
+			failureCause: resolved.expired ? 'EXPIRED_JWS' : 'INVALID_JWS',
 			userId,
 			meta: {operation: resolved.operation},
 			rateAllowance: Infinity,

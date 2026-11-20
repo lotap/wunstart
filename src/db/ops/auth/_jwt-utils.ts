@@ -5,7 +5,7 @@
 import {hkdf, randomBytes} from 'node:crypto'
 
 import {Effect, Redacted, Schema} from 'effect'
-import type {JWTHeaderParameters} from 'jose'
+import {errors, type JWTHeaderParameters} from 'jose'
 
 import {opsFailure} from '#/db/ops/ops-error.ts'
 
@@ -95,6 +95,15 @@ export class JwtHandlerError extends Schema.TaggedError<
 /** Determine if passed JwtHandlerError is a JwtKeyDerivationError */
 export const isJwtKeyDerivationError = (error: JwtHandlerError) =>
 	Schema.is(JwtKeyDerivationError)(error.cause)
+
+/**
+ * True when jose rejected an otherwise authenticated token only because its
+ * `exp` claim had passed. The signature or decryption held, so the caller
+ * presented a genuine credential past its lifetime — the ordinary end of a
+ * Session, not a failed credential presentation.
+ */
+export const isJwtExpiredError = (error: JwtHandlerError) =>
+	error.cause instanceof errors.JWTExpired
 
 /**
  * Ops failure for HKDF infra errors. Weight 0 so it never feeds ban thresholds.

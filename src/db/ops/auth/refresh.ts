@@ -467,16 +467,18 @@ const _refresh = Effect.fn('refresh')(function* ({
 	const resolved = yield* decodeRefreshSession({token})
 
 	/**
-	 * The token never verified, so this counts as a failed credential
-	 * presentation even though a rotated secret set or a corrupted cookie produces
-	 * the same failure. Keep the charge: the activity is logged either way, and
-	 * the weight’s effect is the IP ban, which blocks that address’s other flows.
+	 * An expired JWS held a valid signature, so the caller presented a genuine
+	 * token past its life — the ordinary end of a Session. Log it at weight 0 and
+	 * let the auth middleware clear the cookies. An unverifiable JWS is different:
+	 * the token never proved anything, so it stays charged as a failed credential
+	 * presentation, and the weight’s effect is the IP ban that blocks that
+	 * address’s other flows.
 	 */
 	if (resolved.status === 'invalid')
 		return yield* authTokenFailure({
-			failureCause: 'INVALID_JWS',
+			failureCause: resolved.expired ? 'EXPIRED_JWS' : 'INVALID_JWS',
 			meta: {operation: resolved.operation},
-			rateAllowance: 4,
+			rateAllowance: resolved.expired ? Infinity : 4,
 			message: SESSION_EXPIRED_MESSAGE,
 		})
 

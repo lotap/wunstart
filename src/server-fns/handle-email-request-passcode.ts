@@ -6,10 +6,9 @@ import {dbLayer} from '#/db/index.ts'
 import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/_anon-token.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
 import {ANON_SESSION_EXPIRED_MESSAGE} from '#/db/ops/auth/_messages.ts'
-import {emailRequestPasscode} from '#/db/ops/auth/email/request-passcode.ts'
+import {AnonNotFoundError, emailRequestPasscode} from '#/db/ops/auth/email/request-passcode.ts'
 import {registerAnon} from '#/db/ops/auth/register-anon.ts'
 import {signAnon} from '#/db/ops/auth/sign-anon.ts'
-import {isOpsError} from '#/db/ops/ops-error.ts'
 import {emailLayer} from '#/email/layer.ts'
 import {EmailPasscodeIntentCredentials} from '#/isomorphic/validations/auth.ts'
 import {runOp} from '#/middleware/_run-op.server.ts'
@@ -55,7 +54,7 @@ export const handleEmailRequestPasscode = createServerFn({method: 'POST'})
 
 			return {expiresAt}
 		} catch (error) {
-			if (!isOpsError(error) || error.activity.failureCause !== 'ANON_NOT_FOUND') throw error
+			if (!Schema.is(AnonNotFoundError)(error)) throw error
 
 			/**
 			 * The registered claim outlived its row (cross-database dev cookie, branch
@@ -81,8 +80,7 @@ export const handleEmailRequestPasscode = createServerFn({method: 'POST'})
 
 				return {expiresAt}
 			} catch (retryError) {
-				if (!isOpsError(retryError) || retryError.activity.failureCause !== 'ANON_NOT_FOUND')
-					throw retryError
+				if (!Schema.is(AnonNotFoundError)(retryError)) throw retryError
 
 				/** A second miss is not a loop: drop the identity and ask for a reload */
 				deleteCookie(ANON_TOKEN_COOKIE_NAME, anonCookieConfig)

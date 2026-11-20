@@ -1,9 +1,9 @@
 import {createServerFn} from '@tanstack/react-start'
+import {Schema} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {signOut} from '#/db/ops/auth/sign-out.ts'
-import {isOpsError} from '#/db/ops/ops-error.ts'
+import {signOut, TerminalSignOutError} from '#/db/ops/auth/sign-out.ts'
 import {runOp} from '#/middleware/_run-op.server.ts'
 import {setAnonCookie} from '#/middleware/_set-anon-cookie.ts'
 import {clearAuthCookies} from '#/middleware/_set-auth-cookies.ts'
@@ -36,16 +36,7 @@ export const handleSignOut = createServerFn({method: 'POST'})
 
 				setAnonCookie(token)
 			} catch (error) {
-				if (!isOpsError(error)) throw error
-
-				const {failureCause} = error.activity
-
-				if (
-					failureCause !== 'INVALID_JWS' &&
-					failureCause !== 'SESSION_NOT_FOUND' &&
-					failureCause !== 'WRONG_NONCE'
-				)
-					throw error
+				if (!Schema.is(TerminalSignOutError)(error)) throw error
 
 				/**
 				 * The refresh session is already invalid/expired/revoked, or its nonce

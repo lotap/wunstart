@@ -1,9 +1,9 @@
 import {Effect} from 'effect'
 
-import {opsFailure} from '#/db/ops/ops-error.ts'
 import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {decodeRefreshSession} from './_refresh-session.ts'
+import {deadSessionFailure} from './token-error.ts'
 
 /**
  * Reject an authenticated action whose refresh-token session is no longer live.
@@ -28,16 +28,16 @@ export const verifyLiveSession = Effect.fn('verifyLiveSession')(function* ({
 	const resolved = yield* decodeRefreshSession({token: refreshToken})
 
 	/**
-	 * A refresh JWS that does not verify is not evidence of abuse: a rotated
-	 * secret set and a corrupted cookie produce the same failure, and the access
-	 * token already proves who is asking. Attribute it to the user, but charge no
-	 * ban weight: the action is rejected either way, and three retries must not
-	 * ban the account over a cookie that cannot be used (same rule as the
-	 * undecodable grace token in the refresh op).
+	 * An unusable refresh JWS is not evidence of abuse: it may be expired, from a
+	 * rotated secret set, or corrupted, and the access token already proves who is
+	 * asking. Attribute it to the user, but charge no ban weight: the action is
+	 * rejected either way, and three retries must not ban the account over a
+	 * cookie that cannot be used (same rule as the unreadable grace token in the
+	 * refresh op).
 	 */
 	if (resolved.status === 'invalid')
-		return yield* opsFailure({
-			failureCause: 'INVALID_JWS',
+		return yield* deadSessionFailure({
+			failureCause: resolved.expired ? 'EXPIRED_JWS' : 'INVALID_JWS',
 			userId,
 			meta: {operation: resolved.operation},
 			rateAllowance: Infinity,
@@ -52,7 +52,7 @@ export const verifyLiveSession = Effect.fn('verifyLiveSession')(function* ({
 	 * create a USER ban that blocks the user's own refresh and sign-in.
 	 */
 	if (resolved.status === 'missing')
-		return yield* opsFailure({
+		return yield* deadSessionFailure({
 			failureCause: 'SESSION_NOT_FOUND',
 			userId,
 			meta: {sessionId: resolved.sessionId},
@@ -71,7 +71,7 @@ export const verifyLiveSession = Effect.fn('verifyLiveSession')(function* ({
 	 * must not ban their account.
 	 */
 	if (session.userId !== userId)
-		return yield* opsFailure({
+		return yield* deadSessionFailure({
 			failureCause: 'SESSION_NOT_FOUND',
 			userId,
 			meta: {sessionId: session.id},

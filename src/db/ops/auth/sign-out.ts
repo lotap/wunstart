@@ -1,13 +1,26 @@
-import {Effect} from 'effect'
+import {Effect, Schema} from 'effect'
 
 import {archive as archiveSession} from '#/db/models/sessions/cascades.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
-import {opsFailure} from '#/db/ops/ops-error.ts'
+import {createOpsFailure, OpsErrorSchema} from '#/db/ops/ops-error.ts'
 import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
 import {decodeRefreshSession} from './_refresh-session.ts'
 import {verifyRefreshNonce} from './_verify-refresh-nonce.ts'
+
+/**
+ * The local sign-out is already complete: the refresh pair is unusable, or its
+ * nonce no longer matches. The handler clears the cookies instead of surfacing
+ * an error; the class is the control-flow signal, while `failureCause` remains
+ * audit text.
+ */
+export class TerminalSignOutError extends Schema.TaggedError<
+	TerminalSignOutError,
+	{readonly brand: unique symbol}
+>()('TerminalSignOutError', OpsErrorSchema) {}
+
+const terminalSignOutFailure = createOpsFailure(TerminalSignOutError)
 
 /**
  * Remove session and add it to sessionsArchive
@@ -38,15 +51,15 @@ const _signOut = Effect.fn('signOut')(function* ({
 	 * devices behind one IP must not lock it out)
 	 */
 	if (resolved.status === 'invalid')
-		return yield* opsFailure({
-			failureCause: 'INVALID_JWS',
+		return yield* terminalSignOutFailure({
+			failureCause: resolved.expired ? 'EXPIRED_JWS' : 'INVALID_JWS',
 			meta: {operation: resolved.operation},
 			rateAllowance: Infinity,
 			message: SESSION_EXPIRED_MESSAGE,
 		})
 
 	if (resolved.status === 'missing')
-		return yield* opsFailure({
+		return yield* terminalSignOutFailure({
 			failureCause: 'SESSION_NOT_FOUND',
 			meta: {sessionId: resolved.sessionId},
 			rateAllowance: Infinity,
@@ -62,7 +75,7 @@ const _signOut = Effect.fn('signOut')(function* ({
 
 	/** If the refresh token doesn't match, throw an associated error */
 	if (nonceCheck !== 'match')
-		return yield* opsFailure({
+		return yield* terminalSignOutFailure({
 			failureCause: 'WRONG_NONCE',
 			/** Same terminal-state handling: no ban weight for a sign-out the handler completes locally */
 			rateAllowance: Infinity,

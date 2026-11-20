@@ -1,17 +1,29 @@
 import type {EffectDrizzleQueryError} from 'drizzle-orm/effect-core'
-import {DateTime, Effect} from 'effect'
+import {DateTime, Effect, Schema} from 'effect'
 
 import type {Tx} from '#/db/helpers/types.ts'
 import * as usersQueries from '#/db/models/users/queries.ts'
 import {extractPgError} from '#/db/ops/_extract-pg-error.ts'
 import type {NonceWithHash} from '#/db/ops/auth/_refresh-token.ts'
-import {type OpsError, opsFailure} from '#/db/ops/ops-error.ts'
+import {createOpsFailure, OpsErrorSchema} from '#/db/ops/ops-error.ts'
 
 import {generateAccessToken} from './_access-token.ts'
 import type {AnonTokenPayloadCustomClaims} from './_anon-token.ts'
 import {createSession} from './_create-session.ts'
 import {retireAnon} from './_retire-anon.ts'
 import {SUDO_EXPIRATION_WINDOW} from './consts.ts'
+
+/**
+ * The email already belongs to an account. The verify flow catches this to fall
+ * back to sign-in after losing a creation race; the class is the control-flow
+ * signal, while `failureCause` remains audit text.
+ */
+export class UserAlreadyExistsError extends Schema.TaggedError<
+	UserAlreadyExistsError,
+	{readonly brand: unique symbol}
+>()('UserAlreadyExistsError', OpsErrorSchema) {}
+
+const userAlreadyExistsFailure = createOpsFailure(UserAlreadyExistsError)
 
 type CreateUserInput = {
 	email: string
@@ -55,14 +67,14 @@ export const createUser = Effect.fn('createUser')(function* ({
 		.pipe(
 			Effect.catchTag(
 				'EffectDrizzleQueryError',
-				(drizzleError): Effect.Effect<never, OpsError | EffectDrizzleQueryError> => {
+				(drizzleError): Effect.Effect<never, UserAlreadyExistsError | EffectDrizzleQueryError> => {
 					/**
 					 * If a user already exists with the given credential, return specified error
 					 * https://www.postgresql.org/docs/current/errcodes-appendix.html#ERRCODES-TABLE
 					 */
 					if (extractPgError(drizzleError) === 'UniqueViolation')
 						return Effect.fail(
-							opsFailure({
+							userAlreadyExistsFailure({
 								failureCause: 'USER_ALREADY_EXISTS',
 								failedCredential: email,
 								anonId: anonId,

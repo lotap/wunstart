@@ -1,7 +1,8 @@
 import {createServerOnlyFn} from '@tanstack/react-start'
 import {Effect, Layer, Result, Schema} from 'effect'
 
-import {isOpsError, type OpsErrorContract} from '#/db/ops/ops-error.ts'
+import {DeadSessionError} from '#/db/ops/auth/token-error.ts'
+import type {OpsErrorContract} from '#/db/ops/ops-error.ts'
 import {RateLimitError} from '#/db/ops/rate-limit-error.ts'
 
 import {clearAuthCookies} from './_set-auth-cookies.ts'
@@ -101,18 +102,9 @@ export const runOp = createServerOnlyFn(
 )
 
 /**
- * Failure causes that prove the refresh session behind the request is unusable:
- * the JWS cannot be verified, or its Session row is gone, expired, or revoked.
- *
- * Only ops that already ran their own live-session check produce these on an
- * authenticated request, so classifying them here adds no database read.
- */
-const DEAD_SESSION_CAUSES: ReadonlySet<string> = new Set(['INVALID_JWS', 'SESSION_NOT_FOUND'])
-
-/**
  * `runOp` for handlers whose op already checked the refresh session with
- * `verifyLiveSession`. When that check fails, drop the auth cookies before
- * rethrowing.
+ * `verifyLiveSession`. When that check throws `DeadSessionError`, drop the auth
+ * cookies before rethrowing.
  *
  * The access token keeps working for up to 15 minutes after its Session is
  * gone. A failed live-session check is the point where the server knows the
@@ -126,8 +118,7 @@ export const runOpClearingDeadSession = createServerOnlyFn(
 		try {
 			return await runOp(args)
 		} catch (error) {
-			if (isOpsError(error) && DEAD_SESSION_CAUSES.has(error.activity.failureCause))
-				clearAuthCookies()
+			if (Schema.is(DeadSessionError)(error)) clearAuthCookies()
 
 			throw error
 		}

@@ -14,7 +14,13 @@ import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/_anon-token.ts'
 import {hashTarget} from '#/db/ops/auth/_hashing.ts'
 import {ANON_SESSION_EXPIRED_MESSAGE} from '#/db/ops/auth/_messages.ts'
 import {verifyLiveSession} from '#/db/ops/auth/_verify-live-session.ts'
-import {extractErrorProps, allowRatePerWindow, opsFailure} from '#/db/ops/ops-error.ts'
+import {
+	extractErrorProps,
+	allowRatePerWindow,
+	createOpsFailure,
+	OpsErrorSchema,
+	opsFailure,
+} from '#/db/ops/ops-error.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 import {EmailService} from '#/email/service.ts'
@@ -24,6 +30,18 @@ import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 import type {PasscodeIntent} from '#/isomorphic/validations/auth.ts'
 
 const genericFailureOutputMessage = 'Something went wrong. Please try again in a moment.'
+
+/**
+ * The registered Anon claim outlived its `anons` row. The caller mints a fresh
+ * identity and retries once; the class is the control-flow signal, while
+ * `failureCause` remains audit text.
+ */
+export class AnonNotFoundError extends Schema.TaggedError<
+	AnonNotFoundError,
+	{readonly brand: unique symbol}
+>()('AnonNotFoundError', OpsErrorSchema) {}
+
+const anonNotFoundFailure = createOpsFailure(AnonNotFoundError)
 
 /** The anon FK can fail when a registered token outlives its row; other constraint failures are internal */
 const isAnonFkViolation = (error: EffectDrizzleQueryError | SchemaError) =>
@@ -88,7 +106,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 		const [anon] = yield* anonsQueries.select({id: registeredAnonId})
 
 		if (!anon)
-			return yield* opsFailure({
+			return yield* anonNotFoundFailure({
 				failureCause: 'ANON_NOT_FOUND',
 				rateAllowance: Infinity,
 				meta: {anonId: registeredAnonId},
@@ -241,7 +259,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 			 */
 			Effect.catchIf(isAnonFkViolation, () =>
 				Effect.fail(
-					opsFailure({
+					anonNotFoundFailure({
 						failureCause: 'ANON_NOT_FOUND',
 						rateAllowance: Infinity,
 						meta: {anonId: registeredAnonId},

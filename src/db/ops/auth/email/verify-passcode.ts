@@ -1,10 +1,11 @@
-import {Effect} from 'effect'
+import {Effect, Schema} from 'effect'
 
 import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
 import * as sessionsUsersQueries from '#/db/models/sessions---users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
 import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/_anon-token.ts'
+import {UserAlreadyExistsError} from '#/db/ops/auth/_create-user.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import type {EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 
@@ -137,24 +138,23 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 
 	return yield* signUpWithVerifiedCode({verification, ctx}).pipe(
 		Effect.map((result) => ({isNewUser: true as const, ...result})),
-		Effect.catchTag('OpsError', (error) =>
+		Effect.catchIf(Schema.is(UserAlreadyExistsError), (error) =>
 			/**
 			 * Lost the creation race: a user was created for this email between the
 			 * lookup and the insert. Fall through to the sign-in branch with the
 			 * already-verified code instead of failing.
 			 */
-			error.activity.failureCause === 'USER_ALREADY_EXISTS'
-				? sessionsUsersQueries.selectUserWithIpAddressesByEmail({email}).pipe(
-						Effect.flatMap(([racedUser]) => {
-							if (!racedUser) return Effect.fail(error)
+			Effect.gen(function* () {
+				const [racedUser] = yield* sessionsUsersQueries.selectUserWithIpAddressesByEmail({
+					email,
+				})
 
-							return Effect.map(
-								signInWithVerifiedCode({verification, user: racedUser, ctx}),
-								(result) => ({isNewUser: false as const, ...result}),
-							)
-						}),
-					)
-				: Effect.fail(error),
+				if (!racedUser) return yield* error
+
+				return yield* signInWithVerifiedCode({verification, user: racedUser, ctx}).pipe(
+					Effect.map((result) => Object.assign({isNewUser: false as const}, result)),
+				)
+			}),
 		),
 	)
 })

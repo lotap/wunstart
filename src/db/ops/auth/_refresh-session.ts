@@ -3,7 +3,12 @@ import {Effect} from 'effect'
 import * as sessionsQueries from '#/db/models/sessions/queries.ts'
 import type {activeTable} from '#/db/models/sessions/schemas.ts'
 
-import {hkdfFailure, isJwtKeyDerivationError, type JwtHandlerError} from './_jwt-utils.ts'
+import {
+	hkdfFailure,
+	isJwtExpiredError,
+	isJwtKeyDerivationError,
+	type JwtHandlerError,
+} from './_jwt-utils.ts'
 import {extractRefreshTokenPayload} from './_refresh-token.ts'
 
 type SessionRow = (typeof activeTable)['$inferSelect']
@@ -19,7 +24,11 @@ export type RefreshSessionResolution =
 			readonly nonce: string
 			readonly session: SessionRow
 	  }
-	| {readonly status: 'invalid'; readonly operation: JwtHandlerError['operation']}
+	| {
+			readonly status: 'invalid'
+			readonly operation: JwtHandlerError['operation']
+			readonly expired: boolean
+	  }
 	| {readonly status: 'missing'; readonly sessionId: string}
 
 /**
@@ -33,11 +42,14 @@ export type RefreshSessionResolution =
  * calls this first.
  *
  * Returns `invalid` when the token cannot be verified, `missing` when the row is
- * gone, expired, or revoked, and `ok` with the session otherwise. It does not
- * compare the nonce (pair it with `verifyRefreshNonce` when possession of the
- * current token matters) and it changes nothing. Callers choose the error class,
- * weight, and message for each failure, since the same dead session is routine
- * for a sign-out and suspicious elsewhere.
+ * gone, expired, or revoked, and `ok` with the session otherwise. `expired` on
+ * an invalid resolution distinguishes a genuine token past its `exp` claim from
+ * one that never verified, so callers can weight the ordinary end of a Session
+ * separately from a failed credential presentation. It does not compare the
+ * nonce (pair it with `verifyRefreshNonce` when possession of the current token
+ * matters) and it changes nothing. Callers choose the error class, weight, and
+ * message for each failure, since the same dead session is routine for a
+ * sign-out and suspicious elsewhere.
  */
 export const decodeRefreshSession = Effect.fn('decodeRefreshSession')(function* ({
 	token,
@@ -49,11 +61,20 @@ export const decodeRefreshSession = Effect.fn('decodeRefreshSession')(function* 
 		Effect.catchTag('JwtHandlerError', (error) =>
 			isJwtKeyDerivationError(error)
 				? Effect.fail(hkdfFailure(error))
-				: Effect.succeed({ok: false, operation: error.operation} as const),
+				: Effect.succeed({
+						ok: false,
+						operation: error.operation,
+						expired: isJwtExpiredError(error),
+					} as const),
 		),
 	)
 
-	if (!decoded.ok) return {status: 'invalid', operation: decoded.operation} as const
+	if (!decoded.ok)
+		return {
+			status: 'invalid',
+			operation: decoded.operation,
+			expired: decoded.expired,
+		} as const
 
 	const {generation, nonce, sessionId} = decoded.payload
 	const [session] = yield* sessionsQueries.selectFromUnexpiredUnrevoked({id: sessionId})
