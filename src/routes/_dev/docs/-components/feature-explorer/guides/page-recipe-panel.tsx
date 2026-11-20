@@ -185,8 +185,9 @@ export function PageRecipePanel() {
 			<PanelSection id="add-query" title="3. Add the query">
 				<Prose>
 					Reads go through TanStack Query, not ad-hoc fetching in the component. Put shared query
-					options beside the feature, or in{' '}
-					<InlineCode>src/components/&lt;domain&gt;/_utils.ts</InlineCode>.
+					options beside the feature. A query shared within its domain can live in that domain’s{' '}
+					<InlineCode>_utils.ts</InlineCode>; a query used by another domain belongs in an
+					unprefixed module.
 				</Prose>
 				<CodeBlock code={queryExample} label="Query options" language="typescript" />
 

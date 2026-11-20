@@ -12,9 +12,9 @@ import {SIGN_IN_LINK, SIGN_UP_LINK, type HeaderLink} from './_links.ts'
 import {NavLink} from './_nav-link.tsx'
 
 /**
- * The site menu below `md`, as a right-hand drawer over a dimmed page. The
- * drawer header mirrors the bar height so the close control lands where the
- * trigger was; the middle scrolls, and the auth pair stays anchored.
+ * The site menu where the bar collapses, as a right-hand drawer over a dimmed
+ * page. The drawer header mirrors the bar height so the close control lands
+ * where the trigger was; the middle scrolls, and the auth pair stays anchored.
  */
 export function HeaderDrawer({
 	links,

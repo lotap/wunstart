@@ -81,7 +81,7 @@ export function useStickyHeaderScroll({headerRef}: StickyHeaderScrollOptions) {
 		const update = () => {
 			frame = 0
 
-			/** Use the same 1svh probe as the rest of the intro so mobile chrome does not shift thresholds. */
+			/** Use the same viewport probe as the rest of the intro so mobile chrome does not shift thresholds. */
 			const viewport = getViewportHeight(probe ?? null)
 
 			if (viewport <= 0) return

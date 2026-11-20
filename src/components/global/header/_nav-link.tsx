@@ -4,9 +4,8 @@ import {cn} from 'cn'
 import type {HeaderLink} from './_links.ts'
 
 /**
- * Header link voice. Restyle it here and every header link follows; swap
- * `text-base` for `font-mono text-xs tracking-[0.12em] uppercase` to get the
- * mono-caps variant.
+ * Header link voice, shared by the bar and the drawer. The active state comes
+ * from the router’s status attribute.
  */
 export function NavLink({
 	link,

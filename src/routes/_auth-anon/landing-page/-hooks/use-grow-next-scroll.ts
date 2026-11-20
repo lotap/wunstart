@@ -177,8 +177,8 @@ export function useGrowNextScroll({
 		let layout: LayoutMetrics | null = null
 
 		/**
-		 * Read the svh reference from a 1svh probe so the section can grow with
-		 * the feature stack without losing the viewport-height scale.
+		 * Read the viewport reference from the shared probe so the section can
+		 * grow with the feature stack without losing the viewport-height scale.
 		 */
 		const getViewport = () => getViewportHeight(svhProbeRef.current)
 

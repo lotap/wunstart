@@ -1,7 +1,7 @@
 import {HalftoneCmyk} from '@paper-design/shaders-react'
 
-// The shader takes one texture URL, so it cannot use a srcset. `?w=1600` pins
-// the texture size; like the rest of the pipeline it is AVIF-only, so a browser
+// The shader takes one texture URL, so it cannot use a srcset; the import pins
+// the texture size. Like the rest of the pipeline it is AVIF-only, so a browser
 // without AVIF decode renders the shader without the texture.
 import footerTexture from './-images/footer-bg.jpg?w=1600&responsive'
 

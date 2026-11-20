@@ -80,7 +80,7 @@ export function DocBulletList({
 	)
 }
 
-/** mono font inline code box */
+/** Inline code in a monospace box. */
 export function InlineCode({children}: {children: React.ReactNode}) {
 	return (
 		<code className="rounded-sm bg-muted px-1 py-0.5 font-mono text-sm text-foreground">

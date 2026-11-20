@@ -47,7 +47,7 @@ const headerFiles = [
 	},
 	{
 		name: 'src/components/global/header/_nav-drawer.tsx',
-		job: 'The site menu below md.',
+		job: 'The site menu where the bar collapses.',
 	},
 	{
 		name: 'src/components/global/header/_user-nav.tsx',
@@ -98,11 +98,10 @@ export function HeaderPanel() {
 				</Prose>
 				<CodeBlock code={linkExample} label="Add a link" language="typescript" />
 				<Prose>
-					At <InlineCode>md</InlineCode> the arrays render in the bar; below it they collapse into
-					the drawer. At full width, about four typical signed-out links fit before the actions need
-					room; fewer fit near <InlineCode>md</InlineCode>. For five or six, move the breakpoint to{' '}
-					<InlineCode>lg</InlineCode> or group the overflow into a More menu. The link style lives
-					in <InlineCode>_nav-link.tsx</InlineCode> and applies to both surfaces.
+					The arrays render in the bar on desktop and collapse into the drawer on narrow screens.
+					The link list has limited room, so move the bar’s breakpoint or group the overflow into a
+					More menu when it outgrows the bar. The link style lives in{' '}
+					<InlineCode>_nav-link.tsx</InlineCode> and applies to both surfaces.
 				</Prose>
 			</PanelSection>
 

@@ -122,7 +122,7 @@ export function useBarPin({barRef, slotRef}: BarPinOptions) {
 		}
 
 		const resizeObserver = new ResizeObserver(() => {
-			/** Keep the published height current across breakpoints (the bar grows to 64/72px). */
+			/** Keep the published height current across breakpoints. */
 			if (pinned.current) applyDock(bar.offsetHeight, dockMotion)
 		})
 

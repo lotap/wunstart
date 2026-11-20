@@ -10,7 +10,7 @@ export function StickySectionHeader({title, description}: {title: string; descri
 	useStickyHeaderScroll({headerRef})
 
 	return (
-		// The bottom padding keeps the first content block 18svh below the copy.
+		// The bottom padding keeps the first content block below the copy.
 		<div className="pointer-events-none sticky top-20 z-20 pb-[18svh] lg:top-[8svh]">
 			<div ref={headerRef} className="pointer-events-auto flex flex-col gap-5">
 				<h2 className="max-w-3xl font-heading text-4xl leading-none font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl dark:font-medium">

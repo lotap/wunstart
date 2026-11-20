@@ -25,7 +25,7 @@ export function useGalleryActive(
 
 		if (!gallery || !trigger) return
 
-		/** Match the reveal’s 1svh probe so both thresholds move together. */
+		/** Match the reveal’s viewport probe so both thresholds move together. */
 		const probe = gallery
 			.closest('[data-intro-sections]')
 			?.querySelector<HTMLElement>('[data-svh-probe]')
