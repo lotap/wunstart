@@ -114,9 +114,9 @@ export function PageRecipePanel() {
 					Every page owns its <InlineCode>h1</InlineCode> and its metadata. The header wordmark is a{' '}
 					<InlineCode>div</InlineCode>, not a heading, so a new route must supply its own{' '}
 					<InlineCode>h1</InlineCode>. Add <InlineCode>head</InlineCode> to the route for the tab
-					title, description, and Open Graph pair; <InlineCode>pageMeta</InlineCode> appends the
-					site name, and the root supplies the fallbacks, the canonical link, and{' '}
-					<InlineCode>og:site_name</InlineCode>.
+					title, description, and Open Graph pair; <InlineCode>pageMeta</InlineCode> from{' '}
+					<InlineCode>lib/page-meta.ts</InlineCode> appends the site name, and the root supplies the
+					fallbacks, the canonical link, and <InlineCode>og:site_name</InlineCode>.
 				</Prose>
 				<CodeBlock code={metadataExample} label="Page metadata" language="tsx" />
 				<Prose>
