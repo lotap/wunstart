@@ -8,7 +8,12 @@ import {clearAuthCookies} from '#/middleware/_set-auth-cookies.ts'
 import {requireAuth} from '#/middleware/require-auth.ts'
 
 /**
- * The Settings session list, and the one read that ends a dead session.
+ * The Settings session list, and the one action that ends a dead session.
+ *
+ * POST because a dead session makes this clear both auth cookies; the returned
+ * list is still the query payload. The method keeps HTTP prefetchers and caches
+ * away, but React Query prefetch still runs the query function, so the warning
+ * below still applies.
  *
  * This check relies on the list covering every live Session for the User: no
  * `isCurrent` entry then means this device’s refresh session is revoked,
@@ -21,7 +26,7 @@ import {requireAuth} from '#/middleware/require-auth.ts'
  * Query prefetch (`prefetchQuery`, `ensureQueryData`): the cookie clear is a
  * logout, not a cache refresh.
  */
-export const handleGetSessions = createServerFn({method: 'GET'})
+export const handleSessions = createServerFn({method: 'POST'})
 	.middleware([requireAuth])
 	.handler(
 		async ({

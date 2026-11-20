@@ -7,7 +7,7 @@ import {Button} from '#/components/ui/button.tsx'
 import {Spinner} from '#/components/ui/spinner.tsx'
 import {useSignOutAll} from '#/hooks/use-sign-out-all.ts'
 import {useSignOut} from '#/hooks/use-sign-out.ts'
-import {handleGetSessions} from '#/server-fns/handle-get-sessions.ts'
+import {handleSessions} from '#/server-fns/handle-sessions.ts'
 
 import {useStaleSessionRedirect} from '../-hooks/use-stale-session-redirect.ts'
 
@@ -61,12 +61,12 @@ function CurrentBox({children}: {children: ReactNode}) {
 }
 
 function useSessionsQuery() {
-	const handleGetSessionsFn = useServerFn(handleGetSessions)
+	const handleSessionsFn = useServerFn(handleSessions)
 
 	return useQuery(
 		queryOptions({
 			queryKey: ['sessions'],
-			queryFn: () => handleGetSessionsFn(),
+			queryFn: () => handleSessionsFn(),
 			/**
 			 * Locale-dependent display text is derived as query data (select),
 			 * not formatted during render

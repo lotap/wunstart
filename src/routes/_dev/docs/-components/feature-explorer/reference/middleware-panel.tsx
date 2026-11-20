@@ -24,6 +24,11 @@ const middlewareLayers = [
 		label: 'Function',
 		items: [
 			{
+				name: 'serverFnNoStore',
+				description:
+					'Sets Cache-Control: no-store on every server-function response. An endpoint that is genuinely public and cacheable overrides it explicitly and owns the full policy, including Vary; cookies alone do not make a response private.',
+			},
+			{
 				name: 'createRateLimit(150)',
 				description:
 					'In-memory per-IP limit: 150 requests per minute. Auth functions add a tighter 5-per-minute limit, fallback refresh attempts use a separate 30-per-minute refresh bucket, and sign-out uses its own 30-per-minute lane; the scoped buckets do not spend the global score.',

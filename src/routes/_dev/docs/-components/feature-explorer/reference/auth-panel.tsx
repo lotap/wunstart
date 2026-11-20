@@ -392,16 +392,16 @@ export function AuthPanel() {
 					<PanelRow label="stale session">
 						The settings session list covers every live Session for the User, so a result without
 						the current Session makes the sessions query clear both auth cookies and return an empty
-						list; the page then refreshes the router and the guard redirects to sign-in. It is a GET
-						with a logout side effect — never load or prefetch it from a route loader. Auth
-						transitions also clear the client cache (<InlineCode>clearIdentityCache</InlineCode>)
-						and notify other open tabs, so another tab does not keep the previous user’s sessions,
-						profile, or sudo-gated email. Any protected action that already ran its live-session
-						check clears the same cookies when it fails, without an extra read;{' '}
-						<InlineCode>useDeadSessionRecovery</InlineCode> then clears the identity cache and
-						refreshes the router, so the page does not keep rendering the dead identity. The
-						reverify check blocks an evicted device from minting a replacement token, so the access
-						token cannot outlive its Session by more than the remaining 15 minutes.
+						list; the page then refreshes the router and the guard redirects to sign-in. It is a
+						POST with a logout side effect — never load or prefetch it from a route loader or a
+						query prefetch. Auth transitions also clear the client cache (
+						<InlineCode>clearIdentityCache</InlineCode>) and notify other open tabs, so another tab
+						does not keep the previous user’s sessions, profile, or sudo-gated email. Any protected
+						action that already ran its live-session check clears the same cookies when it fails,
+						without an extra read; <InlineCode>useDeadSessionRecovery</InlineCode> then clears the
+						identity cache and refreshes the router, so the page does not keep rendering the dead
+						identity. The reverify check blocks an evicted device from minting a replacement token,
+						so the access token cannot outlive its Session by more than the remaining 15 minutes.
 					</PanelRow>
 					<PanelRow label="liveness check">
 						Session liveness is one prepared primary-key lookup per guarded action, never per render
