@@ -1,5 +1,6 @@
 import {RuleTester} from 'oxlint/plugins-dev'
 
+import {noCatchArchiveCountMismatchInTxRule} from './no-catch-archive-count-mismatch-in-tx.ts'
 import {noFailedCredentialInDenialRule} from './no-failed-credential-in-denial.ts'
 import {noPgTableDirectRule} from './no-pgtable-direct.ts'
 import {noZodValibotRule} from './no-zod-valibot.ts'
@@ -120,6 +121,35 @@ tester.run('wunshot/no-failed-credential-in-denial', noFailedCredentialInDenialR
 		{
 			code: "rateLimitFailure({rateAllowance: 1, 'failedCredential': email});",
 			errors: [{messageId: 'failedCredential'}],
+		},
+	],
+})
+
+tester.run('wunshot/no-catch-archive-count-mismatch-in-tx', noCatchArchiveCountMismatchInTxRule, {
+	valid: [
+		// No transaction: the archive call owns it, so catching the mismatch commits nothing.
+		"childArchive({id}, {}).pipe(Effect.catchTag('ArchiveCountMismatchError', () => Effect.void));",
+		"db.transaction((tx) => childArchive({id}, {tx}).pipe(Effect.catchTag('ArchiveNotFoundError', () => Effect.void)));",
+		'db.transaction((tx) => childArchive({id}, {tx}).pipe(Effect.catchTags({ArchiveNotFoundError: () => Effect.void})));',
+		// A transaction bound under another name is outside the rule's recognition (review backstop).
+		"db.transaction((transaction) => childArchive({id}, {transaction}).pipe(Effect.catchTag('ArchiveCountMismatchError', () => Effect.void)));",
+	],
+	invalid: [
+		{
+			code: "cascades: (tx, id) => [childArchive({id}, {tx}).pipe(Effect.catchTag('ArchiveCountMismatchError', () => Effect.void))]",
+			errors: [{messageId: 'archiveMismatchInTx'}],
+		},
+		{
+			code: 'db.transaction((tx) => Effect.gen(function* () { yield* childArchive({}, {tx}).pipe(Effect.catchTags({ArchiveNotFoundError: () => Effect.void, ArchiveCountMismatchError: () => Effect.void})) }))',
+			errors: [{messageId: 'archiveMismatchInTx'}],
+		},
+		{
+			code: "const run = function (_tx) { return Effect.catchTag('ArchiveCountMismatchError', () => Effect.void) }",
+			errors: [{messageId: 'archiveMismatchInTx'}],
+		},
+		{
+			code: "const run = (tx) => () => Effect.catchTags({'ArchiveCountMismatchError': () => Effect.void})",
+			errors: [{messageId: 'archiveMismatchInTx'}],
 		},
 	],
 })

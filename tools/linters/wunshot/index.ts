@@ -1,5 +1,6 @@
 import {eslintCompatPlugin} from '@oxlint/plugins'
 
+import {noCatchArchiveCountMismatchInTxRule} from './rules/no-catch-archive-count-mismatch-in-tx.ts'
 import {noFailedCredentialInDenialRule} from './rules/no-failed-credential-in-denial.ts'
 import {noPgTableDirectRule} from './rules/no-pgtable-direct.ts'
 import {noZodValibotRule} from './rules/no-zod-valibot.ts'
@@ -16,6 +17,7 @@ const wunshotPlugin = eslintCompatPlugin({
 		'no-pgtable-direct': noPgTableDirectRule,
 		'no-zod-valibot': noZodValibotRule,
 		'no-failed-credential-in-denial': noFailedCredentialInDenialRule,
+		'no-catch-archive-count-mismatch-in-tx': noCatchArchiveCountMismatchInTxRule,
 	},
 })
 

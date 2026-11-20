@@ -79,6 +79,7 @@ const config = defineConfig({
 		'wunshot/no-pgtable-direct': 'error',
 		'wunshot/no-zod-valibot': 'error',
 		'wunshot/no-failed-credential-in-denial': 'error',
+		'wunshot/no-catch-archive-count-mismatch-in-tx': 'error',
 		'wunstart/no-static-workers-import-in-middleware': 'error',
 		'wunstart/no-single-session-revoke': 'error',
 		'wunstart/email-layer-allowlist': 'error',
