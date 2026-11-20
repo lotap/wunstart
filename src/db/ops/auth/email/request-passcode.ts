@@ -329,7 +329,14 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 
 		return {
 			...data,
-			/** Six sends per 10 minutes per IP/anon/user, enforced by the ban pipeline */
+			/**
+			 * Six sends per 10 minutes per IP and identity, enforced by the ban
+			 * pipeline: the seventh pre-check denies and creates the bans. An Anon
+			 * send weighs on IP + Anon; a session send weighs on IP + User, so a
+			 * shared NAT can lose sign-in and refresh, and the account can lose
+			 * refresh until the ban lifts. The per-IP middleware (5/min) is burst
+			 * defense; this durable cap is the only per-account email-send bound.
+			 */
 			logging: {anonId: registeredAnonId, weight: allowRatePerWindow(6)},
 		}
 	}).pipe(
