@@ -35,7 +35,7 @@ export function usePasscodeRequestMutation({
 	return {mutatePasscodeRequest, passcodeRequestIsPending}
 }
 
-/** Shared email-capture state for the sign-in and sign-up forms */
+/** Email-capture and passcode-request state for the auth flow. */
 export function useAuthFormEmailState({
 	serverFn,
 	email,

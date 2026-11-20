@@ -11,9 +11,8 @@ import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 import {SETTINGS_SHORTCUTS} from './_settings-shortcuts.ts'
 
 /**
- * The signed-in account block in the drawer: a “Signed in as” label above the
- * profile email, then the settings shortcuts as icon rows. The desktop dropdown
- * shares the shortcut data but keeps its own layout.
+ * Signed-in account block: a “Signed in as” label above the profile email,
+ * then the settings shortcuts as icon rows.
  */
 export function AccountLinks({onNavigate}: {onNavigate: () => void}) {
 	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
@@ -45,7 +44,7 @@ export function AccountLinks({onNavigate}: {onNavigate: () => void}) {
 	)
 }
 
-/** The signed-in menu’s anchored action, in the slot the auth pair occupies. */
+/** The signed-in menu’s anchored sign-out action. */
 export function AccountSignOut({onNavigate}: {onNavigate: () => void}) {
 	const signOut = useSignOut()
 

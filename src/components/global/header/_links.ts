@@ -15,6 +15,6 @@ export const ANON_LINKS: readonly HeaderLink[] = [
 /** Add a route here to put it in the signed-in header and menu. */
 export const USER_LINKS: readonly HeaderLink[] = []
 
-/** The auth pair, shared by the bar and the drawer. */
+/** The signed-out auth pair. */
 export const SIGN_IN_LINK: HeaderLink = {to: '/sign-in', label: 'Sign in'}
 export const SIGN_UP_LINK: HeaderLink = {to: '/sign-up', label: 'Sign up'}

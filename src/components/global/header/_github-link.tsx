@@ -5,7 +5,7 @@ import {ArrowUpRight} from 'lucide-react'
 import {buttonVariants} from '#/components/ui/button.tsx'
 import {Tooltip, TooltipContent, TooltipTrigger} from '#/components/ui/tooltip.tsx'
 
-/** Desktop action: the project’s repository in the signed-out utility cluster. */
+/** Icon-only repository action. */
 export function GitHubIconLink({href}: {href: string}) {
 	return (
 		<Tooltip>
@@ -33,7 +33,7 @@ export function GitHubIconLink({href}: {href: string}) {
 	)
 }
 
-/** Drawer row: the word plus an external-link mark in the secondary group. */
+/** Repository row with the word and an external-link mark. */
 export function GitHubMenuRow({href, onNavigate}: {href: string; onNavigate: () => void}) {
 	return (
 		<a

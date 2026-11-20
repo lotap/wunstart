@@ -4,9 +4,9 @@ import {cn} from 'cn'
 import type {HeaderLink} from './_links.ts'
 
 /**
- * Header link voice. Change this one component to restyle both the desktop list
- * and the drawer; swap `text-base` for `font-mono text-xs tracking-[0.12em] uppercase`
- * to get the mono-caps variant.
+ * Header link voice. Restyle it here and every header link follows; swap
+ * `text-base` for `font-mono text-xs tracking-[0.12em] uppercase` to get the
+ * mono-caps variant.
  */
 export function NavLink({
 	link,

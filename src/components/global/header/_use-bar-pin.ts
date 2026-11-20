@@ -3,9 +3,10 @@ import {type RefObject, useRef} from 'react'
 import {useIsomorphicLayoutEffect} from '#/hooks/use-isomorphic-layout-effect.ts'
 
 /**
- * Height of the pinned bar, so the landing section dock can sit below it. While
- * the bar is out of flow this tracks its visible bottom, so the dock scrolls
- * with the bar instead of jumping back to the viewport edge.
+ * The bar’s visible height in pixels, published on the root for fixed or
+ * sticky chrome that has to sit below it. While the bar is out of flow the
+ * value tracks its visible bottom (0 once it is fully out), so a consumer
+ * follows the bar instead of jumping back to the viewport edge.
  */
 const DOCK_VAR = '--header-dock'
 
@@ -31,7 +32,8 @@ type BarPinOptions = {
  * Keep the bar in flow until it scrolls out, then pin it to the viewport top
  * when the user scrolls back up. A released bar re-enters only once it is
  * fully out or fully back in view, so a half-visible bar never jumps while the
- * page is still scrolling through it.
+ * page is still scrolling through it. Publishes `--header-dock` and
+ * `--header-dock-transition` for chrome that sits below the bar.
  */
 export function useBarPin({barRef, slotRef}: BarPinOptions) {
 	const lastScrollY = useRef(0)
@@ -49,7 +51,7 @@ export function useBarPin({barRef, slotRef}: BarPinOptions) {
 		let dockMotion = Number.NaN
 
 		/**
-		 * Publish how much of the bar still covers the viewport top. The dock
+		 * Publish how much of the bar still covers the viewport top. A consumer
 		 * reads it as its own top offset, so it tracks the bar while it scrolls
 		 * away and only transitions when the bar animates in.
 		 */

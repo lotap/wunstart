@@ -1,7 +1,7 @@
 /** Mailpit inbox URL for this worktree, when one is configured. */
 export const mailpitUrl = import.meta.env.MAILPIT_URL ?? null
 
-/** Local service URLs and commands shared by the docs panels. */
+/** Local service URLs and commands. */
 export const localServices = {
 	studioUrl: 'https://local.drizzle.studio',
 	studioCommand: 'bun run db:studio',
