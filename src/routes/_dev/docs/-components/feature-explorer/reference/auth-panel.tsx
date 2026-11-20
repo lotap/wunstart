@@ -436,7 +436,8 @@ export function AuthPanel() {
 					<PanelRow label="passcode limits">
 						No per-email cooldown — an attacker could exhaust it and lock the owner out. Per-IP
 						limits and weighted bans are the ceiling; six sends per IP in ten minutes can ban a
-						shared NAT, which is the accepted cost of bounding cookie-dropping.
+						shared NAT, and on a signed-in send the account itself, which is the accepted cost of
+						bounding cookie-dropping.
 					</PanelRow>
 				</PanelList>
 			</PanelSection>
