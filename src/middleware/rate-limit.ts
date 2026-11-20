@@ -156,9 +156,9 @@ export function addRateLimitEvent({
 
 	if (!store.has(key) && store.size >= MAX_STORE_ENTRIES) {
 		/**
-		 * O(1) FIFO eviction. The full prune stays on the amortized cleanup
-		 * path above; sweeping 10k keys here would let an attacker at capacity
-		 * trigger an O(store × events) scan on every new key.
+		 * O(1) least-recently-used eviction. The full prune stays on the amortized
+		 * cleanup path above; sweeping 10k keys here would let an attacker at
+		 * capacity trigger an O(store × events) scan on every new key.
 		 */
 		const oldestKey = store.keys().next().value
 
@@ -169,9 +169,20 @@ export function addRateLimitEvent({
 
 	const previousWeight = events.reduce((sum, event) => sum + event.weight, 0)
 
-	if (previousWeight > THRESHOLD) return rejectRateLimited()
+	if (previousWeight > THRESHOLD) {
+		/** Re-insert so an active blocked bucket cannot age out and reset its score */
+		if (store.has(key)) {
+			store.delete(key)
+			store.set(key, events)
+		}
+
+		return rejectRateLimited()
+	}
 
 	events.unshift({weight, timestamp: now})
+
+	/** Re-insert on access so Map order is least-recently-used, not insertion order */
+	store.delete(key)
 	store.set(key, events)
 
 	if (previousWeight + weight > THRESHOLD) rejectRateLimited()
