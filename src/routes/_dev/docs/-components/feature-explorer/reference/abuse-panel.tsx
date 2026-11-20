@@ -3,9 +3,12 @@ import {PanelReferences} from '../../doc-links.tsx'
 import {InlineCode, PanelHeader, PanelList, PanelRow, PanelSection, Prose} from '../../doc-ui.tsx'
 
 const guardrailsChart = `flowchart LR
-  request(["Server fn request"]) -->|"150/min global · 5/min auth"| mw["rateLimit · in-memory IP"]
+  request(["Server fn request"]) -->|"150/min global · 5/min auth"| mw["rateLimit · per-IP score"]
   mw -->|"over limit"| denied["429"]
-  mw -->|"server fn"| op["runOp · createOpsFn"]
+  mw -->|"server fn"| auth["verifyAuth"]
+  auth -->|"fallback refresh"| refresh["30/min refresh · refresh:IP"]
+  refresh -->|"over limit"| denied
+  auth -->|"server fn"| op["runOp · createOpsFn"]
   op -->|"credential ops"| check["checkCurrentBansAndExcessiveActivities"]
   check --> bans[("bans")]
   check --> activities[("activities")]
@@ -59,9 +62,10 @@ export function AbusePanel() {
 				<Prose>
 					<InlineCode>src/start.ts</InlineCode> installs{' '}
 					<InlineCode>createRateLimit(150)</InlineCode> on every server function. Auth server
-					functions add the tighter <InlineCode>rateLimit</InlineCode>. Ops log their outcome
-					through <InlineCode>createOpsFn</InlineCode>, and credential ops pre-check bans before
-					doing any work.
+					functions add the tighter <InlineCode>rateLimit</InlineCode>; fallback refresh attempts
+					consume a separate <InlineCode>refresh</InlineCode> bucket before the refresh op runs. Ops
+					log their outcome through <InlineCode>createOpsFn</InlineCode>, and credential ops
+					pre-check bans before doing any work.
 				</Prose>
 			</PanelSection>
 
@@ -70,7 +74,8 @@ export function AbusePanel() {
 					<InlineCode>createRateLimit(max)</InlineCode> admits <InlineCode>max</InlineCode> requests
 					per IP in a 60-second window. Each request adds{' '}
 					<InlineCode>ceil(12,600 / max)</InlineCode> to the IP’s score; the request that pushes the
-					score above 12,600 gets a 429.
+					score above 12,600 gets a 429. The scoped refresh bucket uses the same formula at 30/min,
+					so each attempt weighs 420 in its own key.
 				</Prose>
 				<PanelList>
 					<PanelRow label="createRateLimit(150)">
@@ -79,7 +84,14 @@ export function AbusePanel() {
 					</PanelRow>
 					<PanelRow label="rateLimit">
 						The auth limiter: sized for 5 requests per minute per IP on its own. Attach it to
-						sign-up, sign-in, and passcode functions.
+						sign-up, sign-in, and passcode functions. It shares the global key, so a request that
+						passes both limits consumes both weights from one budget.
+					</PanelRow>
+					<PanelRow label="refresh bucket">
+						30 fallback refresh attempts per minute per IP. Keyed{' '}
+						<InlineCode>refresh:&lt;ip&gt;</InlineCode> so it does not spend the global/auth score.
+						Checked in <InlineCode>verifyAuth</InlineCode> before the refresh op; a normal browser
+						refreshes about once per 15 minutes.
 					</PanelRow>
 					<PanelRow label="storage">
 						An in-memory <InlineCode>Map</InlineCode> in the Worker. It is per isolate, not shared
@@ -87,8 +99,9 @@ export function AbusePanel() {
 						limit.
 					</PanelRow>
 					<PanelRow label="stacking">
-						Every limiter instance feeds the same per-IP score, so a request that passes through
-						both the global and auth limiter consumes both weights from one budget.
+						The global and auth limiters feed the same per-IP score, so a request that passes both
+						consumes both weights. The refresh bucket has its own scoped key and does not spend that
+						budget.
 					</PanelRow>
 				</PanelList>
 				<Prose>

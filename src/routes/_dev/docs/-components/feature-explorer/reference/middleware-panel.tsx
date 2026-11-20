@@ -26,7 +26,7 @@ const middlewareLayers = [
 			{
 				name: 'createRateLimit(150)',
 				description:
-					'In-memory per-IP limit: 150 requests per minute. Auth functions add a tighter 5-per-minute limit.',
+					'In-memory per-IP limit: 150 requests per minute. Auth functions add a tighter 5-per-minute limit, and fallback refresh attempts use a separate 30-per-minute refresh bucket that does not spend the global score.',
 			},
 			{
 				name: 'verifyAnon',
