@@ -27,11 +27,20 @@ export const verifyLiveSession = Effect.fn('verifyLiveSession')(function* ({
 }) {
 	const resolved = yield* decodeRefreshSession({token: refreshToken})
 
+	/**
+	 * A refresh JWS that does not verify is not evidence of abuse: a rotated
+	 * secret set and a corrupted cookie produce the same failure, and the access
+	 * token already proves who is asking. Attribute it to the user, but charge no
+	 * ban weight: the action is rejected either way, and three retries must not
+	 * ban the account over a cookie that cannot be used (same rule as the
+	 * undecodable grace token in the refresh op).
+	 */
 	if (resolved.status === 'invalid')
 		return yield* opsFailure({
 			failureCause: 'INVALID_JWS',
+			userId,
 			meta: {operation: resolved.operation},
-			rateAllowance: 3,
+			rateAllowance: Infinity,
 			message: SESSION_EXPIRED_MESSAGE,
 		})
 
