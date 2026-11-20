@@ -56,7 +56,11 @@ export function LocalDevPanel() {
 	}
 
 	return (
-		<section id="local-development" aria-label="Local development" className="w-full max-w-5xl">
+		<section
+			id="local-development"
+			aria-label="Local development"
+			className="w-full max-w-5xl scroll-mt-(--header-dock,0px)"
+		>
 			<ul className="grid gap-px overflow-hidden rounded-xl border bg-border md:grid-cols-2 lg:grid-cols-4">
 				<ShortcutCard>
 					<ShortcutHeader title="Email inbox">
@@ -176,7 +180,10 @@ export function LocalDevPanel() {
 			</ul>
 
 			{terminalOpen && (
-				<div id="terminal-help" className="mt-4 rounded-xl border bg-muted/20 p-5 md:p-6">
+				<div
+					id="terminal-help"
+					className="mt-4 scroll-mt-(--header-dock,0px) rounded-xl border bg-muted/20 p-5 md:p-6"
+				>
 					<div className="flex items-start justify-between gap-4">
 						<div className="flex flex-col gap-3">
 							<div className="flex flex-col gap-2">

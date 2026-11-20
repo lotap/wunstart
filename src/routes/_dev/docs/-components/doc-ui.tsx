@@ -118,7 +118,7 @@ export function PanelSection({
 }) {
 	return (
 		<section aria-labelledby={id} className={cn('mt-10', className)}>
-			<h5 id={id} className="font-heading text-2xl font-medium">
+			<h5 id={id} className="scroll-mt-(--header-dock,0px) font-heading text-2xl font-medium">
 				{title}
 			</h5>
 			{children && <div className="mt-4 flex flex-col gap-4">{children}</div>}

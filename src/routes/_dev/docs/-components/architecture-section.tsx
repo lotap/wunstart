@@ -5,7 +5,7 @@ export function ArchitectureSection() {
 		<section
 			id="architectural-overview"
 			aria-labelledby="architectural-overview-title"
-			className="w-full max-w-5xl"
+			className="w-full max-w-5xl scroll-mt-(--header-dock,0px)"
 		>
 			<header className="flex flex-col gap-3">
 				<h3

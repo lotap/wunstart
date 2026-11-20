@@ -1,9 +1,11 @@
 import {useRouter} from '@tanstack/react-router'
-import {cn} from 'cn'
+import {cva} from 'class-variance-authority'
 import {ArrowDown} from 'lucide-react'
 import type {ComponentType} from 'react'
-import {useEffect, useRef} from 'react'
+import {useRef} from 'react'
 
+import {useExplorerScroll} from '../../-hooks/use-explorer-scroll.ts'
+import {scrollBehavior, scrollToTopEdge} from '../../-utils/scroll.ts'
 import {PanelNavigationProvider} from '../doc-links.tsx'
 import {MicroLabel} from '../doc-ui.tsx'
 import {AbuseProtectionFeature} from './features/abuse-protection-feature.tsx'
@@ -120,55 +122,9 @@ function resolveSelection(value: string | undefined): PanelSelection {
 }
 
 function scrollToSection(id: string) {
-	document.getElementById(id)?.scrollIntoView({behavior: 'smooth', block: 'start'})
-}
+	const target = document.getElementById(id)
 
-/**
- * Scroll the explorer to the top edge. An upward scroll pins the site bar, so
- * the target reserves the bar’s height before it appears.
- */
-function scrollToExplorer(section: HTMLElement, behavior: ScrollBehavior) {
-	const scrollY = window.scrollY
-	const inset = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0
-	const sectionTop = section.getBoundingClientRect().top + scrollY - inset
-	const bar = document.querySelector<HTMLElement>('[data-header-bar]')
-	const barHeight = bar?.offsetHeight ?? 0
-	const pinned = bar ? getComputedStyle(bar).position === 'fixed' : false
-	let target = sectionTop - (pinned ? barHeight : 0)
-
-	if (target > scrollY && pinned) {
-		// A downward scroll releases the bar, so the section can use the edge.
-		target = sectionTop
-	} else if (target < scrollY && !pinned) {
-		// The upward scroll pins the bar before smooth scrolling reaches the target.
-		target = sectionTop - barHeight
-	}
-
-	window.scrollTo({top: Math.max(target, 0), behavior})
-}
-
-/**
- * The docs page owns its scroll because `/docs` opts out of router scroll
- * restoration. On arrival, a hash or panel is a deep link; otherwise reset the
- * offset a client navigation kept from the previous page.
- */
-function scrollToDocsTarget(section: HTMLElement | null, behavior: ScrollBehavior) {
-	const hash = window.location.hash.slice(1)
-	const hashTarget = hash ? document.getElementById(hash) : null
-
-	if (hashTarget) {
-		hashTarget.scrollIntoView({behavior, block: 'start'})
-
-		return
-	}
-
-	if (section && new URLSearchParams(window.location.search).has('panel')) {
-		scrollToExplorer(section, behavior)
-
-		return
-	}
-
-	window.scrollTo({top: 0, behavior})
+	if (target) scrollToTopEdge(target, scrollBehavior())
 }
 
 function SectionJump({label, target}: {label: string; target: string}) {
@@ -183,6 +139,19 @@ function SectionJump({label, target}: {label: string; target: string}) {
 		</button>
 	)
 }
+
+const sidebarTabVariants = cva(
+	'rounded-md px-2.5 py-1.5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:w-full md:px-3 md:text-left',
+	{
+		variants: {
+			active: {
+				true: 'bg-foreground text-background',
+				false: 'text-muted-foreground hover:bg-muted hover:text-foreground',
+			},
+		},
+		defaultVariants: {active: false},
+	},
+)
 
 function SidebarTab({
 	active,
@@ -211,12 +180,7 @@ function SidebarTab({
 			aria-controls={controls}
 			tabIndex={active || tabbable ? 0 : -1}
 			onClick={onClick}
-			className={cn(
-				'rounded-md px-2.5 py-1.5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:w-full md:px-3 md:text-left',
-				active
-					? 'bg-foreground text-background'
-					: 'text-muted-foreground hover:bg-muted hover:text-foreground',
-			)}
+			className={sidebarTabVariants({active})}
 		>
 			{label}
 		</button>
@@ -352,25 +316,8 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 
 	const sectionRef = useRef<HTMLElement>(null)
 	const selectionKey = `${selection.group}.${selection.key}`
-	const previousSelection = useRef(selectionKey)
 
-	useEffect(() => {
-		scrollToDocsTarget(sectionRef.current, 'instant')
-	}, [])
-
-	// Scroll after the panel commit, not in the click handler: swapping panel
-	// content cancels an in-flight smooth scroll.
-	useEffect(() => {
-		if (previousSelection.current === selectionKey) return
-
-		previousSelection.current = selectionKey
-
-		const behavior: ScrollBehavior = new URLSearchParams(window.location.search).has('panel')
-			? 'smooth'
-			: 'instant'
-
-		scrollToDocsTarget(sectionRef.current, behavior)
-	}, [selectionKey])
+	useExplorerScroll(sectionRef, selectionKey)
 
 	function selectPanel(group: PanelSelection['group'], key: string) {
 		void router.navigate({
