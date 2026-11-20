@@ -124,7 +124,7 @@ function SessionsList({query}: {query: SessionsQuery}) {
 	const current = sessions.find((session) => session.isCurrent)
 	const others = sessions.filter((session) => !session.isCurrent)
 
-	/** Every session is gone (e.g. a remote sign-out-all): the guard is about to redirect */
+	/** No live Session for this device (e.g. a remote sign-out-all): the guard is about to redirect */
 	if (!sessions.length)
 		return <p className="text-sm text-muted-foreground">Your session has ended.</p>
 
@@ -167,10 +167,11 @@ export function SessionsSection() {
 	const sessionsQuery = useSessionsQuery()
 
 	/**
-	 * Stale device: `handleGetSessions` cleared the dead cookies when it found no
-	 * live sessions. Hide the action while the guard redirects to sign-in. Only a
-	 * response that completed after this mount counts: a cached empty list survives
-	 * a later sign-in and would otherwise redirect on stale data.
+	 * Stale device: an empty result means the server already cleared the dead auth
+	 * cookies because this device had no live Session. Hide the action while the
+	 * guard redirects to sign-in. Only a response that completed after this mount
+	 * counts: a cached empty list survives a later sign-in and would otherwise
+	 * redirect on stale data.
 	 */
 	const hasNoSessions =
 		sessionsQuery.isFetchedAfterMount &&
