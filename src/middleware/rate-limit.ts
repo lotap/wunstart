@@ -91,11 +91,23 @@ const rejectRateLimited = createServerOnlyFn(() => {
  * its own event array or slide its window forward. This must only be called
  * within a request context (middleware or server function).
  *
+ * `scope` namespaces the key so a tighter lane can count a subset of requests
+ * without spending the global per-IP budget.
+ *
  * @throws {KnownServerError} with HTTP 429 when threshold is breached.
  */
-export function addRateLimitEvent({ipAddress, weight}: {ipAddress: string; weight: number}) {
+export function addRateLimitEvent({
+	ipAddress,
+	weight,
+	scope,
+}: {
+	ipAddress: string
+	weight: number
+	scope?: string
+}) {
 	const now = Date.now()
-	const key = toRateLimitKey(ipAddress)
+	const normalizedIp = toRateLimitKey(ipAddress)
+	const key = scope ? `${scope}:${normalizedIp}` : normalizedIp
 
 	if (!store.has(key) && store.size >= MAX_STORE_ENTRIES) {
 		/**

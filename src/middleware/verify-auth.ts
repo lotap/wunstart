@@ -19,6 +19,7 @@ import {
 	setAuthCookies,
 } from './_set-auth-cookies.ts'
 import {getRequestInfo} from './get-request-info.ts'
+import {addRateLimitEvent, allowPerWindow} from './rate-limit.ts'
 import {KnownServerError} from './sanitize-errors.ts'
 
 /**
@@ -36,6 +37,13 @@ export type AuthContext = {
 		| DegradedAuth
 		| null
 }
+
+/**
+ * Fallback refresh attempts allowed per IP per minute. A browser refreshes about
+ * once per 15 minutes, so this leaves headroom for a shared NAT while rejecting
+ * a dead-pair loop before it runs the refresh op and writes an activity.
+ */
+const REFRESH_ATTEMPTS_PER_MINUTE = 30
 
 export const verifyAuth = createMiddleware()
 	.middleware([getRequestInfo])
@@ -77,6 +85,19 @@ export const verifyAuth = createMiddleware()
 		}
 
 		if (refreshToken) {
+			/**
+			 * A failed access check falls back to the refresh cookie. Count the
+			 * attempt in its own per-IP bucket so a dead or forged pair cannot turn
+			 * a request stream into an unbounded run of refresh ops and activity
+			 * rows. The global 150/min function limit remains the outer bound. Both
+			 * are in-memory per isolate; production still needs an edge rate limit.
+			 */
+			addRateLimitEvent({
+				ipAddress,
+				weight: allowPerWindow(REFRESH_ATTEMPTS_PER_MINUTE),
+				scope: 'refresh',
+			})
+
 			/** Dynamically import refresh op because it relies on cf injected values for hashing */
 			const {refresh} = await import('#/db/ops/auth/refresh')
 
