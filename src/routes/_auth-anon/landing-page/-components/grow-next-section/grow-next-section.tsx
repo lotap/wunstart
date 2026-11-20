@@ -39,6 +39,7 @@ export function GrowNextSection({onManualInstall}: {onManualInstall: () => void}
 	const promptRef = useRef<HTMLDivElement>(null)
 	const navRef = useRef<HTMLElement>(null)
 	const navSlotRef = useRef<HTMLDivElement>(null)
+	const navDockRef = useRef<HTMLDivElement>(null)
 	const sublineRef = useRef<HTMLParagraphElement>(null)
 	const sublineWordRefs = useRef<Array<HTMLSpanElement | null>>([])
 	const boxesBlockRef = useRef<HTMLDivElement>(null)
@@ -111,6 +112,7 @@ export function GrowNextSection({onManualInstall}: {onManualInstall: () => void}
 		promptRef,
 		navRef,
 		navSlotRef,
+		navDockRef,
 		sublineRef,
 		sublineWordRefs,
 		boxesBlockRef,
@@ -199,7 +201,7 @@ export function GrowNextSection({onManualInstall}: {onManualInstall: () => void}
 								}
 							/>
 						</div>
-						<HeroSectionNav navRef={navRef} slotRef={navSlotRef} />
+						<HeroSectionNav navRef={navRef} slotRef={navSlotRef} dockRef={navDockRef} />
 					</div>
 				</div>
 			</div>

@@ -100,6 +100,7 @@ type GrowNextScrollOptions = {
 	promptRef: RefObject<HTMLDivElement | null>
 	navRef: RefObject<HTMLElement | null>
 	navSlotRef: RefObject<HTMLDivElement | null>
+	navDockRef: RefObject<HTMLDivElement | null>
 	sublineRef: RefObject<HTMLParagraphElement | null>
 	sublineWordRefs: RefObject<Array<HTMLSpanElement | null>>
 	boxesBlockRef: RefObject<HTMLDivElement | null>
@@ -125,6 +126,7 @@ export function useGrowNextScroll({
 	promptRef,
 	navRef,
 	navSlotRef,
+	navDockRef,
 	sublineRef,
 	sublineWordRefs,
 	boxesBlockRef,
@@ -159,6 +161,10 @@ export function useGrowNextScroll({
 		let currentIndex = -1
 		let lastNavTop = Number.NaN
 		let navTimeline: Animation | null = null
+
+		/** Scroll range where the nav holds at its docked position. */
+		let navDockStart = Number.POSITIVE_INFINITY
+		let navDockEnd = Number.POSITIVE_INFINITY
 
 		type LayoutMetrics = {
 			blockTop: number
@@ -299,7 +305,12 @@ export function useGrowNextScroll({
 				transform: `translate3d(0, ${top}px, 0)`,
 			})
 
-			nav.dataset['ready'] = 'true'
+			const dock = navDockRef.current
+
+			if (dock) dock.dataset['ready'] = 'true'
+
+			navDockStart = releaseEnd
+			navDockEnd = navExitStart ?? Number.POSITIVE_INFINITY
 			navTimeline?.cancel()
 
 			const keyframes = [
@@ -361,6 +372,14 @@ export function useGrowNextScroll({
 		const updateScrollStyles = (rect: DOMRect, viewport: number) => {
 			if (!layout) return
 
+			const dock = navDockRef.current
+
+			if (dock) {
+				const docked = window.scrollY >= navDockStart && window.scrollY < navDockEnd
+
+				if (dock.dataset['docked'] !== String(docked)) dock.dataset['docked'] = String(docked)
+			}
+
 			const subline = sublineRef.current
 			const sublineRect = subline?.getBoundingClientRect()
 
@@ -405,7 +424,16 @@ export function useGrowNextScroll({
 				const navTop = releaseOffset > 0 && holdTop !== null ? holdTop - releaseOffset : heldTop
 
 				/** Tracked with a composited transform so iOS momentum scroll does not jitter. */
-				if (nav.dataset['ready'] !== 'true') nav.dataset['ready'] = 'true'
+				if (dock && dock.dataset['ready'] !== 'true') dock.dataset['ready'] = 'true'
+
+				if (!navTimeline) {
+					/** Same dock edge as the timeline’s `releaseEnd`, in scroll coordinates. */
+					navDockStart =
+						releaseStart === null
+							? Number.POSITIVE_INFINITY
+							: window.scrollY + firstCardTopPx - releaseStart + releaseTravel
+					navDockEnd = Number.POSITIVE_INFINITY
+				}
 
 				/** The scroll-driven animation handles this path where it is supported. */
 				if (!navTimeline && navTop !== lastNavTop) {
@@ -664,6 +692,7 @@ export function useGrowNextScroll({
 		headlineTailRef,
 		navRef,
 		navSlotRef,
+		navDockRef,
 		onActiveIndexChange,
 		reduceMotion,
 		scrimRef,

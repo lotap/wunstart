@@ -30,6 +30,10 @@ const headerFiles = [
 		job: 'Layout, page links, signed-out repo action, theme, auth, and the drawer trigger.',
 	},
 	{
+		name: 'src/components/global/header/_use-bar-pin.ts',
+		job: 'Pins the bar to the viewport top when the page scrolls back up and publishes its visible height as --header-dock for the landing section dock.',
+	},
+	{
 		name: 'src/components/global/header/_links.ts',
 		job: 'The signed-out and signed-in link arrays; add routes here.',
 	},
@@ -79,6 +83,10 @@ export function HeaderPanel() {
 						</PanelRow>
 					))}
 				</PanelList>
+				<Prose>
+					The bar leaves the flow while pinned, so the <InlineCode>header</InlineCode> element
+					reserves its height. Change both height class lists together.
+				</Prose>
 			</PanelSection>
 
 			<PanelSection id="header-links" title="Set the links">

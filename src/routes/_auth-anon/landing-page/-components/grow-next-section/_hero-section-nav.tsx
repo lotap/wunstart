@@ -66,13 +66,15 @@ function getTriggerLabel(menuOpen: boolean, activeLabel: string | undefined) {
 	return `Open section navigation. Current section: ${activeLabel}`
 }
 
-/** Section navigation that starts inside the hero and docks to the viewport top. */
+/** Section navigation that starts inside the hero and docks to the viewport top, offset below the site bar while it is pinned. */
 export function HeroSectionNav({
 	navRef,
 	slotRef,
+	dockRef,
 }: {
 	navRef: RefObject<HTMLElement | null>
 	slotRef: RefObject<HTMLDivElement | null>
+	dockRef: RefObject<HTMLDivElement | null>
 }) {
 	const activeSection = useActiveSection(HERO_SECTION_IDS)
 	const reduceMotion = useReducedMotion()
@@ -136,93 +138,98 @@ export function HeroSectionNav({
 			ref={slotRef}
 			className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center px-4 [@media(max-height:700px)]:-bottom-7"
 		>
-			<nav
-				ref={navRef}
-				aria-label="Landing page sections"
-				className="pointer-events-auto flex w-72 max-w-full flex-col items-stretch gap-0.5 rounded-3xl bg-background p-1 shadow-sm ring-1 ring-foreground/10 transition-colors data-[ready=true]:fixed data-[ready=true]:top-0 data-[ready=true]:left-1/2 data-[ready=true]:z-40 data-[ready=true]:-translate-x-1/2 lg:w-auto lg:flex-row lg:items-center lg:gap-1 lg:rounded-full lg:p-1.5"
+			<div
+				ref={dockRef}
+				className="pointer-events-none data-[docked=true]:translate-y-(--header-dock,0px) data-[ready=true]:fixed data-[ready=true]:inset-x-0 data-[ready=true]:top-0 data-[ready=true]:z-40 data-[ready=true]:flex data-[ready=true]:justify-center data-[ready=true]:px-4 data-[ready=true]:transition-transform data-[ready=true]:duration-(--header-dock-transition,0ms) data-[ready=true]:ease-out"
 			>
-				<div className="flex w-full items-center gap-0.5 lg:w-auto">
-					<Tooltip>
-						<TooltipTrigger
-							delay={300}
-							render={
-								<button
-									type="button"
-									aria-label="Scroll to top"
-									onClick={scrollToTop}
-									className="hidden size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none lg:flex lg:size-9"
-								>
-									<ArrowUp className="size-4" aria-hidden="true" />
-								</button>
-							}
-						/>
-						<TooltipContent side="bottom">Scroll to top</TooltipContent>
-					</Tooltip>
-
-					<button
-						ref={triggerRef}
-						type="button"
-						aria-expanded={menuOpen}
-						aria-controls="hero-section-links"
-						aria-label={triggerLabel}
-						onClick={() => setMenuOpen((open) => !open)}
-						className="flex h-9 flex-1 items-center justify-between gap-2 rounded-full px-3 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none lg:hidden dark:font-medium"
-					>
-						<span className="truncate">{activeName}</span>
-						<ChevronDown
-							aria-hidden="true"
-							className={cn('size-4 shrink-0 transition-transform', menuOpen && 'rotate-180')}
-						/>
-					</button>
-
-					{emphasisLink ? (
-						<a
-							href={emphasisLink.href}
-							aria-current={activeSection === emphasisLink.href.slice(1) ? 'location' : undefined}
-							onClick={handleStartPanelClick}
-							className={emphasisPillVariants({
-								active: activeSection === emphasisLink.href.slice(1),
-							})}
-						>
-							{emphasisLink.label}
-						</a>
-					) : null}
-				</div>
-
-				<div
-					ref={menuRef}
-					id="hero-section-links"
-					className={menuVariants({open: menuOpen, direction: menuDirection})}
+				<nav
+					ref={navRef}
+					aria-label="Landing page sections"
+					className="pointer-events-auto relative flex w-72 max-w-full flex-col items-stretch gap-0.5 rounded-3xl bg-background p-1 shadow-sm ring-1 ring-foreground/10 transition-colors lg:w-auto lg:flex-row lg:items-center lg:gap-1 lg:rounded-full lg:p-1.5"
 				>
-					<button
-						type="button"
-						onClick={scrollToTop}
-						className="flex h-9 w-full items-center justify-start gap-2 rounded-full px-3 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none lg:hidden dark:font-medium"
-					>
-						<ArrowUp className="size-4" aria-hidden="true" />
-						Back to top
-					</button>
+					<div className="flex w-full items-center gap-0.5 lg:w-auto">
+						<Tooltip>
+							<TooltipTrigger
+								delay={300}
+								render={
+									<button
+										type="button"
+										aria-label="Scroll to top"
+										onClick={scrollToTop}
+										className="hidden size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none lg:flex lg:size-9"
+									>
+										<ArrowUp className="size-4" aria-hidden="true" />
+									</button>
+								}
+							/>
+							<TooltipContent side="bottom">Scroll to top</TooltipContent>
+						</Tooltip>
 
-					{HERO_SECTION_LINKS.map((link) => {
-						const isActive = activeSection === link.href.slice(1)
+						<button
+							ref={triggerRef}
+							type="button"
+							aria-expanded={menuOpen}
+							aria-controls="hero-section-links"
+							aria-label={triggerLabel}
+							onClick={() => setMenuOpen((open) => !open)}
+							className="flex h-9 flex-1 items-center justify-between gap-2 rounded-full px-3 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none lg:hidden dark:font-medium"
+						>
+							<span className="truncate">{activeName}</span>
+							<ChevronDown
+								aria-hidden="true"
+								className={cn('size-4 shrink-0 transition-transform', menuOpen && 'rotate-180')}
+							/>
+						</button>
 
-						return (
+						{emphasisLink ? (
 							<a
-								key={link.href}
-								href={link.href}
-								aria-current={isActive ? 'location' : undefined}
-								onClick={link.emphasis ? handleStartPanelClick : () => setMenuOpen(false)}
-								className={sectionLinkVariants({
-									emphasis: Boolean(link.emphasis),
-									active: isActive,
+								href={emphasisLink.href}
+								aria-current={activeSection === emphasisLink.href.slice(1) ? 'location' : undefined}
+								onClick={handleStartPanelClick}
+								className={emphasisPillVariants({
+									active: activeSection === emphasisLink.href.slice(1),
 								})}
 							>
-								{link.label}
+								{emphasisLink.label}
 							</a>
-						)
-					})}
-				</div>
-			</nav>
+						) : null}
+					</div>
+
+					<div
+						ref={menuRef}
+						id="hero-section-links"
+						className={menuVariants({open: menuOpen, direction: menuDirection})}
+					>
+						<button
+							type="button"
+							onClick={scrollToTop}
+							className="flex h-9 w-full items-center justify-start gap-2 rounded-full px-3 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none lg:hidden dark:font-medium"
+						>
+							<ArrowUp className="size-4" aria-hidden="true" />
+							Back to top
+						</button>
+
+						{HERO_SECTION_LINKS.map((link) => {
+							const isActive = activeSection === link.href.slice(1)
+
+							return (
+								<a
+									key={link.href}
+									href={link.href}
+									aria-current={isActive ? 'location' : undefined}
+									onClick={link.emphasis ? handleStartPanelClick : () => setMenuOpen(false)}
+									className={sectionLinkVariants({
+										emphasis: Boolean(link.emphasis),
+										active: isActive,
+									})}
+								>
+									{link.label}
+								</a>
+							)
+						})}
+					</div>
+				</nav>
+			</div>
 		</div>
 	)
 }
