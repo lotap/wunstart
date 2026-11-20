@@ -52,7 +52,7 @@ export function CodeBlock({
 			{language ? (
 				<HighlightedCode code={code} language={language} />
 			) : (
-				<CodeBlockContent className="text-xs leading-relaxed text-muted-foreground">
+				<CodeBlockContent className="text-sm leading-relaxed text-muted-foreground">
 					{code}
 				</CodeBlockContent>
 			)}
@@ -64,7 +64,7 @@ function HighlightedCode({code, language}: {code: string; language: string}) {
 	const lines = useHighlightedCode(code, language)
 
 	return (
-		<CodeBlockContent className="text-xs leading-relaxed text-muted-foreground">
+		<CodeBlockContent className="text-sm leading-relaxed text-muted-foreground">
 			{lines.map((line, index) => (
 				// oxlint-disable-next-line react/no-array-index-key react-doctor/no-array-index-as-key -- highlighted lines have no stable id
 				<CodeBlockLine key={index}>{line}</CodeBlockLine>
@@ -95,7 +95,7 @@ export function PromptBlock({
 }) {
 	return (
 		<CodeBlockShell label={title} value={prompt} copyLabel="Copy prompt" copyable={copyable}>
-			<CodeBlockContent wrap className="text-sm leading-relaxed text-muted-foreground">
+			<CodeBlockContent wrap className="text-base leading-relaxed text-muted-foreground">
 				{prompt}
 			</CodeBlockContent>
 		</CodeBlockShell>

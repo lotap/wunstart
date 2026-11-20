@@ -24,7 +24,7 @@ export type FeatureFlow = {
 
 function CodeChip({children}: {children: React.ReactNode}) {
 	return (
-		<code className="rounded-sm bg-muted/60 px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
+		<code className="rounded-sm bg-muted/60 px-1.5 py-0.5 font-mono text-sm text-muted-foreground">
 			{children}
 		</code>
 	)
@@ -47,7 +47,7 @@ function FlowNotes({flow}: {flow: FeatureFlow}) {
 	return (
 		<>
 			{flow.notes?.map((note) => (
-				<p key={note} className="mt-2 text-sm leading-relaxed text-muted-foreground">
+				<p key={note} className="mt-3 text-base leading-relaxed text-muted-foreground">
 					{note}
 				</p>
 			))}
@@ -57,9 +57,9 @@ function FlowNotes({flow}: {flow: FeatureFlow}) {
 					href={mailpitUrl}
 					target="_blank"
 					rel="noreferrer"
-					className="mt-2 inline-flex w-fit items-center gap-1 text-sm text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+					className="mt-3 inline-flex w-fit items-center gap-1 text-base text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
 				>
-					Open Mailpit <ArrowUpRight className="size-3.5" />
+					Open Mailpit <ArrowUpRight className="size-4" />
 				</a>
 			)}
 		</>
@@ -75,8 +75,8 @@ function Flow({flow, idPrefix}: {flow: FeatureFlow; idPrefix: string}) {
 	].filter((entry) => entry.values.length > 0)
 
 	return (
-		<li className="border-t py-5 first:border-t-0 first:pt-0">
-			<p className="text-base font-medium">{flow.name}</p>
+		<li className="border-t py-6 first:border-t-0 first:pt-0">
+			<p className="text-lg font-medium">{flow.name}</p>
 
 			<FlowNotes flow={flow} />
 
@@ -90,7 +90,7 @@ function Flow({flow, idPrefix}: {flow: FeatureFlow; idPrefix: string}) {
 
 			{flow.charts.length > 0 && (
 				<details className="group mt-5">
-					<summary className="-ml-2.5 inline-flex h-7 w-fit shrink-0 cursor-pointer list-none items-center justify-center gap-1 rounded-md px-2.5 text-[0.8rem] font-medium whitespace-nowrap text-muted-foreground transition-all outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:hover:bg-accent/50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&::-webkit-details-marker]:hidden">
+					<summary className="-ml-2.5 inline-flex h-8 w-fit shrink-0 cursor-pointer list-none items-center justify-center gap-1 rounded-md px-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-all outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:hover:bg-accent/50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&::-webkit-details-marker]:hidden">
 						<span className="group-open:hidden">View detailed flow</span>
 						<span className="hidden group-open:inline">Hide detailed flow</span>
 						<ChevronDown className="size-3.5 transition-transform duration-200 group-open:rotate-180" />
@@ -123,7 +123,7 @@ function Flow({flow, idPrefix}: {flow: FeatureFlow; idPrefix: string}) {
 /** Opt-in structured flow list for feature and reference panels. */
 export function FeatureFlows({flows, idPrefix}: {flows: FeatureFlow[]; idPrefix: string}) {
 	return (
-		<div className="rounded-xl border p-4 sm:p-5">
+		<div className="rounded-xl border p-5 sm:p-6">
 			<ol className="flex flex-col">
 				{flows.map((flow) => (
 					<Flow key={flow.key} flow={flow} idPrefix={idPrefix} />
@@ -148,7 +148,7 @@ export function FeatureActions({actions}: {actions: FeatureAction[]}) {
 					>
 						<span className="flex min-w-0 flex-col">
 							<span className="text-base font-medium group-hover:underline">{action.label}</span>
-							<span className="text-sm text-muted-foreground">{action.description}</span>
+							<span className="text-base text-muted-foreground">{action.description}</span>
 						</span>
 						<ArrowUpRight className="mt-0.5 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
 					</a>
@@ -189,7 +189,9 @@ export function PlannedFeatureShell({
 	return (
 		<>
 			<PanelHeader title={title} description={summary} />
-			<p className="mt-6 max-w-2xl text-sm text-muted-foreground">Coming soon. {placeholder}</p>
+			<p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground">
+				Coming soon. {placeholder}
+			</p>
 		</>
 	)
 }

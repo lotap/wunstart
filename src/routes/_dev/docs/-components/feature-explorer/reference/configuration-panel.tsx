@@ -94,7 +94,7 @@ export function ConfigurationPanel() {
 						<dt>
 							<code className="font-mono text-sm text-foreground">.env.development</code>
 						</dt>
-						<dd className="text-sm leading-relaxed text-muted-foreground">
+						<dd className="text-base leading-relaxed text-muted-foreground">
 							Committed defaults shared by every checkout: <InlineCode>DATABASE_URL</InlineCode>,
 							JWT secrets, the local Hyperdrive URL, and the cookie domain.
 						</dd>
@@ -103,7 +103,7 @@ export function ConfigurationPanel() {
 						<dt>
 							<code className="font-mono text-sm text-foreground">.env.local</code>
 						</dt>
-						<dd className="text-sm leading-relaxed text-muted-foreground">
+						<dd className="text-base leading-relaxed text-muted-foreground">
 							Gitignored per-checkout values written by <InlineCode>branch-env</InlineCode>:{' '}
 							<InlineCode>DATABASE_URL</InlineCode>, <InlineCode>DEV_PORT</InlineCode>,{' '}
 							<InlineCode>AGENT_DEV_PORT</InlineCode>, and <InlineCode>MAILPIT_URL</InlineCode>. Add

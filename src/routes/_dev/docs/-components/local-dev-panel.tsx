@@ -79,7 +79,7 @@ export function LocalDevPanel() {
 								href={mailpitUrl}
 								target="_blank"
 								rel="noreferrer"
-								className={cn(buttonVariants({size: 'lg'}), 'h-10 w-full')}
+								className={cn(buttonVariants({size: 'lg'}), 'w-full')}
 							>
 								Open Mailpit
 							</a>
@@ -114,7 +114,7 @@ export function LocalDevPanel() {
 							href={localServices.studioUrl}
 							target="_blank"
 							rel="noreferrer"
-							className={cn(buttonVariants({size: 'lg'}), 'h-10 w-full')}
+							className={cn(buttonVariants({size: 'lg'}), 'w-full')}
 						>
 							Open Drizzle Studio
 						</a>
@@ -146,7 +146,7 @@ export function LocalDevPanel() {
 							href={localServices.reactEmailUrl}
 							target="_blank"
 							rel="noreferrer"
-							className={cn(buttonVariants({size: 'lg'}), 'h-10 w-full')}
+							className={cn(buttonVariants({size: 'lg'}), 'w-full')}
 						>
 							Open React Email
 						</a>
@@ -168,7 +168,7 @@ export function LocalDevPanel() {
 						</p>
 					</ShortcutHeader>
 					<ShortcutAction>
-						<Button size="lg" className="h-10 w-full" onClick={openTanStackDevtools}>
+						<Button size="lg" className="w-full" onClick={openTanStackDevtools}>
 							Open devtools
 						</Button>
 					</ShortcutAction>

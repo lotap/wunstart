@@ -128,7 +128,7 @@ export function RequestFlowPanel() {
 				description="How the screen hands a request to the server and where it lands in Postgres."
 			/>
 
-			<div className="mt-8 flex flex-col gap-5">
+			<div className="mt-10 flex flex-col gap-6">
 				{flowGroups.map((group, groupIndex) => {
 					const headingId = `flow-group-${groupIndex}`
 
@@ -138,11 +138,11 @@ export function RequestFlowPanel() {
 							aria-labelledby={headingId}
 							className="overflow-hidden rounded-xl border bg-muted/20"
 						>
-							<header className="flex flex-col gap-1 bg-muted/30 px-5 py-4">
-								<h5 id={headingId} className="text-base font-medium">
+							<header className="flex flex-col gap-1 bg-muted/30 px-5 py-5">
+								<h5 id={headingId} className="text-lg font-medium">
 									{group.label}
 								</h5>
-								<p className="text-sm text-muted-foreground">{group.description}</p>
+								<p className="text-base text-muted-foreground">{group.description}</p>
 							</header>
 
 							<ol>
@@ -153,12 +153,12 @@ export function RequestFlowPanel() {
 												{String(index + 1).padStart(2, '0')}
 											</span>
 											<div className="flex flex-col gap-0.5">
-												<span className="text-sm font-medium">{layer.name}</span>
+												<span className="text-base font-medium">{layer.name}</span>
 												<code className="font-mono text-xs text-muted-foreground">
 													{layer.where}
 												</code>
 											</div>
-											<p className="text-sm leading-relaxed text-muted-foreground">{layer.job}</p>
+											<p className="text-base leading-relaxed text-muted-foreground">{layer.job}</p>
 										</div>
 
 										{layer.children && (
@@ -169,12 +169,12 @@ export function RequestFlowPanel() {
 														className="grid gap-1 border-t border-border/70 py-3 sm:grid-cols-[13rem_1fr] sm:gap-3"
 													>
 														<div className="flex flex-col gap-0.5">
-															<span className="text-sm font-medium">{child.name}</span>
+															<span className="text-base font-medium">{child.name}</span>
 															<code className="font-mono text-xs text-muted-foreground">
 																{child.where}
 															</code>
 														</div>
-														<p className="text-sm leading-relaxed text-muted-foreground">
+														<p className="text-base leading-relaxed text-muted-foreground">
 															{child.job}
 														</p>
 													</li>
@@ -189,7 +189,7 @@ export function RequestFlowPanel() {
 				})}
 			</div>
 
-			<p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+			<p className="mt-4 text-base leading-relaxed text-muted-foreground">
 				Server functions are the only client-to-server boundary. Ops are the only place business
 				logic meets the database.
 			</p>

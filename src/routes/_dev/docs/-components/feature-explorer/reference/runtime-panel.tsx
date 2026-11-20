@@ -70,7 +70,7 @@ export function RuntimePanel() {
 							<dt>
 								<code className="font-mono text-sm text-foreground">{binding.name}</code>
 							</dt>
-							<dd className="text-sm leading-relaxed text-muted-foreground">
+							<dd className="text-base leading-relaxed text-muted-foreground">
 								{binding.description}
 							</dd>
 						</div>

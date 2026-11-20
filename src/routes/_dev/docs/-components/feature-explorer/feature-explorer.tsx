@@ -200,7 +200,7 @@ function SidebarTab({
 }
 
 function SectionGroupLabel({children}: {children: React.ReactNode}) {
-	return <MicroLabel className="px-2.5 md:px-3">{children}</MicroLabel>
+	return <MicroLabel className="px-2.5 text-foreground md:px-3">{children}</MicroLabel>
 }
 
 function handleTabKeyDown(
@@ -306,7 +306,7 @@ function PanelTabPanel({
 			id={`${group}-panel-${panel.key}`}
 			aria-labelledby={`${group}-tab-${panel.key}`}
 			hidden={!active}
-			className="mt-6 min-h-[calc(100svh-2rem)] rounded-xl border bg-muted/20 p-4 md:mt-0 md:p-6"
+			className="mt-6 min-h-[calc(100svh-2rem)] rounded-xl border bg-muted/20 p-5 md:mt-0 md:p-8"
 		>
 			{active && <Panel />}
 		</div>

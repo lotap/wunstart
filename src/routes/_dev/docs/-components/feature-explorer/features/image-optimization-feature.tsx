@@ -110,9 +110,9 @@ export function ImageOptimizationFeature() {
 				</Prose>
 			</PanelSection>
 
-			<div className="mt-8 border-t pt-5">
-				<p className="text-sm font-medium">Full reference</p>
-				<p className="mt-1 text-sm text-muted-foreground">
+			<div className="mt-10 border-t pt-6">
+				<p className="text-base font-medium">Full reference</p>
+				<p className="mt-2 text-base leading-relaxed text-muted-foreground">
 					See the <PanelLink panel="static-images">Static images reference</PanelLink> for the full{' '}
 					<InlineCode>StaticImage</InlineCode> component and pipeline.
 				</p>

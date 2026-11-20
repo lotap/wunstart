@@ -43,7 +43,7 @@ export function RouteGuardsPanel() {
 				))}
 			</PanelList>
 
-			<p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+			<p className="mt-4 text-base leading-relaxed text-muted-foreground">
 				Moving a route across groups changes who can reach it, so treat it as a security change.
 				Each group’s <InlineCode>route.tsx</InlineCode> documents the implied protection.
 			</p>
