@@ -41,13 +41,15 @@ const findSqlError = (drizzleError: EffectDrizzleQueryError) => {
 }
 
 /**
- * The underlying Postgres server message from a drizzle error, if any.
+ * The driver's top-level message for a drizzle query failure, if any.
  *
- * Unlike `EffectDrizzleQueryError.message`, a getter that embeds the bound
- * query parameters, this is the server's own error text, which never contains
- * bound parameter values. Data-exception messages (22xxx) can still echo
- * literal input values (e.g. `invalid input syntax for type uuid: "abc"`), so
- * treat the message as untrusted when persisting it.
+ * `SqlError.message` resolves to its reason's message: a driver-generated
+ * summary such as `PgConnection: Query failed`, another connection-level
+ * literal, or the reason tag when the reason carries no message. The server's
+ * own text lives on the reason's `cause.message` and is not returned here;
+ * that text never contains bound parameter values, but data-exception messages
+ * (22xxx) can echo literal input values (e.g. `invalid input syntax for type
+ * uuid: "abc"`), so treat any server text as untrusted when persisting it.
  */
 export const extractPgErrorMessage = (drizzleError: EffectDrizzleQueryError) =>
 	// @effect-diagnostics-next-line unstableApiUsage:off
