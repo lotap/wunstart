@@ -28,17 +28,19 @@ export default function ThemeToggle({
 		setTheme(nextMode)
 	}
 
+	const next = toggleResolved(resolved)
+
 	const button = (
 		<Button
 			variant="ghost"
 			onClick={toggleMode}
 			size={label ? 'default' : size}
-			aria-label={`Switch to: ${toggleResolved(resolved)} Mode`}
+			aria-label={label ? `${label}: switch to ${next} mode` : `Switch to ${next} mode`}
 			className={cn(label && 'gap-2 text-muted-foreground', className)}
 		>
 			{label && <span>{label}</span>}
-			{resolved === 'dark' && <Moon />}
-			{resolved === 'light' && <Sun />}
+			{resolved === 'dark' && <Moon aria-hidden="true" />}
+			{resolved === 'light' && <Sun aria-hidden="true" />}
 		</Button>
 	)
 
@@ -49,7 +51,7 @@ export default function ThemeToggle({
 			<TooltipTrigger render={button} />
 			<TooltipContent>
 				<p>
-					Switch to: <strong className="capitalize">{toggleResolved(resolved)} Mode</strong>
+					Switch to <strong className="dark:font-semibold">{next} mode</strong>
 				</p>
 			</TooltipContent>
 		</Tooltip>
