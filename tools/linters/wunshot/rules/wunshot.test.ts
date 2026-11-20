@@ -133,6 +133,8 @@ tester.run('wunshot/no-catch-archive-count-mismatch-in-tx', noCatchArchiveCountM
 		'db.transaction((tx) => childArchive({id}, {tx}).pipe(Effect.catchTags({ArchiveNotFoundError: () => Effect.void})));',
 		// A transaction bound under another name is outside the rule's recognition (review backstop).
 		"db.transaction((transaction) => childArchive({id}, {transaction}).pipe(Effect.catchTag('ArchiveCountMismatchError', () => Effect.void)));",
+		// An options object without a transaction binding is not a transaction body.
+		"const run = ({input}) => childArchive(input, {}).pipe(Effect.catchTag('ArchiveCountMismatchError', () => Effect.void));",
 	],
 	invalid: [
 		{
@@ -149,6 +151,15 @@ tester.run('wunshot/no-catch-archive-count-mismatch-in-tx', noCatchArchiveCountM
 		},
 		{
 			code: "const run = (tx) => () => Effect.catchTags({'ArchiveCountMismatchError': () => Effect.void})",
+			errors: [{messageId: 'archiveMismatchInTx'}],
+		},
+		{
+			// The archive machinery takes the caller's transaction in its options bag.
+			code: "const archiveFn = Effect.fn(function* (input, {tx} = {}) { yield* childArchive(input, {tx}).pipe(Effect.catchTag('ArchiveCountMismatchError', () => Effect.void)) })",
+			errors: [{messageId: 'archiveMismatchInTx'}],
+		},
+		{
+			code: 'const archiveFn = (input, {tx: transaction}) => childArchive(input, {transaction}).pipe(Effect.catchTags({ArchiveCountMismatchError: () => Effect.void}))',
 			errors: [{messageId: 'archiveMismatchInTx'}],
 		},
 	],

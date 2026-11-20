@@ -14,11 +14,32 @@ function isFunctionNode(node: ESTree.Node): node is FunctionNode {
 	)
 }
 
-/** True when the function's first parameter is the caller's transaction. */
-function receivesTransaction(node: FunctionNode): boolean {
-	const [first] = node.params
+/** True when the property key names the transaction. */
+function isTransactionKey(key: ESTree.PropertyKey): boolean {
+	if (key.type === 'Identifier') return TX_PARAM_NAMES.has(key.name)
 
-	return first?.type === 'Identifier' && TX_PARAM_NAMES.has(first.name)
+	if (key.type !== 'Literal') return false
+
+	return TX_PARAM_NAMES.has(String(key.value))
+}
+
+/**
+ * True when a parameter binds the caller's transaction, either positionally
+ * (`tx`) or destructured from an options object (`{tx}`, as `runArchival`
+ * takes it).
+ */
+function bindsTransaction(param: ESTree.ParamPattern): boolean {
+	if (param.type === 'Identifier') return TX_PARAM_NAMES.has(param.name)
+
+	if (param.type === 'AssignmentPattern') return bindsTransaction(param.left)
+
+	if (param.type === 'ObjectPattern')
+		return param.properties.some(
+			(property) =>
+				property.type === 'Property' && !property.computed && isTransactionKey(property.key),
+		)
+
+	return false
 }
 
 /** True when any enclosing function receives a transaction, so the code runs inside it. */
@@ -26,7 +47,7 @@ function insideTransaction(node: ESTree.Node): boolean {
 	let current = node.parent
 
 	while (current) {
-		if (isFunctionNode(current) && receivesTransaction(current)) return true
+		if (isFunctionNode(current) && current.params.some(bindsTransaction)) return true
 		current = current.parent
 	}
 
@@ -61,11 +82,11 @@ function calleeName(callee: ESTree.Expression): string | null {
  * retry with `retryTransientOrArchiveRace`; catching is only safe outside an
  * archive call that owns its transaction.
  *
- * Ownership is recognized by a function whose first parameter is `tx` or `_tx`
- * — the cascade callback or the `db.transaction(...)` body, which is how this
- * repo passes an outer transaction. A transaction bound under another name, an
- * aliased `catchTag`, and a pre-built options object bypass the rule (review is
- * the backstop).
+ * Ownership is recognized by a `tx`/`_tx` parameter: positional, or destructured
+ * from an options object. That covers cascade callbacks, `db.transaction(...)`
+ * bodies, and the archive machinery that raises the error. A transaction bound
+ * under another name or read from a variable, and an aliased `catchTag`, bypass
+ * the rule (review is the backstop).
  */
 export const noCatchArchiveCountMismatchInTxRule = defineRule({
 	meta: {
