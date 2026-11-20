@@ -55,6 +55,17 @@ export const generateSaltedKey = Effect.fn('generateSaltedKey')(function* (
 })
 
 /**
+ * The token header names a `kid` that is absent from the current secret map.
+ * A genuine rotated-out token and a forged header are indistinguishable, so
+ * callers treat this as a rotation state; the verifier cannot choose a key to
+ * test. The request caps bound repeated attempts.
+ */
+export class UnknownKidError extends Schema.TaggedError<
+	UnknownKidError,
+	{readonly brand: unique symbol}
+>()('UnknownKidError', {kid: Schema.String}) {}
+
+/**
  * Generates the decryption key by using the provided `kid` and `s` headers of a given JWT.
  * The `s` header is a custom one used for managing a unique salt per token.
  * Looks up the corresponding secret from the given secretsMap and uses HKDF to derive the key.
@@ -77,7 +88,7 @@ export function getKeyFromSecretsMap(
 
 		const secret = secretsMap.get(kid)
 
-		if (!secret) throw new Error('Unknown `kid` claim')
+		if (!secret) throw new UnknownKidError({kid})
 
 		return Effect.runPromise(deriveHashKey({secret: Redacted.value(secret), salt: s, purpose}))
 	}
@@ -95,6 +106,9 @@ export class JwtHandlerError extends Schema.TaggedError<
 /** Determine if passed JwtHandlerError is a JwtKeyDerivationError */
 export const isJwtKeyDerivationError = (error: JwtHandlerError) =>
 	Schema.is(JwtKeyDerivationError)(error.cause)
+
+/** Determine if passed JwtHandlerError is an unknown-kid header failure */
+export const isUnknownKidError = (error: JwtHandlerError) => Schema.is(UnknownKidError)(error.cause)
 
 /**
  * True when jose rejected an otherwise authenticated token only because its

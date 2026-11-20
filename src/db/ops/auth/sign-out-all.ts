@@ -7,7 +7,7 @@ import {opsFailure} from '#/db/ops/ops-error.ts'
 import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
-import {decodeRefreshSession} from './_refresh-session.ts'
+import {decodeRefreshSession, invalidRefreshFailureCause} from './_refresh-session.ts'
 import {verifyRefreshNonce} from './_verify-refresh-nonce.ts'
 
 /**
@@ -46,7 +46,7 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 	 */
 	if (resolved.status === 'invalid')
 		return yield* opsFailure({
-			failureCause: resolved.expired ? 'EXPIRED_JWS' : 'INVALID_JWS',
+			failureCause: invalidRefreshFailureCause(resolved.reason),
 			userId,
 			meta: {operation: resolved.operation},
 			rateAllowance: Infinity,
@@ -94,12 +94,13 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 
 	if (nonceCheck !== 'match')
 		return yield* opsFailure({
-			failureCause: 'WRONG_NONCE',
+			failureCause: nonceCheck === 'grace-unknown-kid' ? 'UNKNOWN_KID' : 'WRONG_NONCE',
 			/**
-			 * An undecodable grace token is config/corruption, not user abuse:
-			 * same weight-0 rule as refresh. A nonce mismatch stays charged.
+			 * An unknown grace kid is treated as a rotated-out secret; an unreadable
+			 * grace token is config/corruption. Both are weight 0, same rule as
+			 * refresh. A nonce mismatch stays charged.
 			 */
-			rateAllowance: nonceCheck === 'grace-unreadable' ? Infinity : 3,
+			rateAllowance: nonceCheck === 'mismatch' ? 3 : Infinity,
 			userId,
 			message: SESSION_EXPIRED_MESSAGE,
 		})

@@ -1,6 +1,7 @@
 import {Effect} from 'effect'
 
 import {verifyTarget} from '#/db/ops/auth/_hashing.ts'
+import {isUnknownKidError} from '#/db/ops/auth/_jwt-utils.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 
 import {extractRefreshGraceToken, noncesMatch} from './_refresh-grace-token.ts'
@@ -14,9 +15,11 @@ type SessionNonceRow = {
 
 /**
  * Result of a presented refresh nonce check.
- * `grace-unreadable` is a rotated/removed secret set or a corrupt row, not abuse.
+ * `grace-unreadable` is a corrupt row, or a token whose known `kid` will not
+ * decrypt or parse. `grace-unknown-kid` is a header naming a `kid` dropped from
+ * the secret map. Both are weight 0 either way.
  */
-export type RefreshNonceCheck = 'match' | 'mismatch' | 'grace-unreadable'
+export type RefreshNonceCheck = 'match' | 'mismatch' | 'grace-unreadable' | 'grace-unknown-kid'
 
 /**
  * Verify a presented refresh nonce against a live session row.
@@ -48,20 +51,26 @@ export const verifyRefreshNonce = Effect.fn('verifyRefreshNonce')(function* ({
 
 	if (generation === session.refreshGeneration - 1 && session.graceToken) {
 		const graceTokenData = yield* extractRefreshGraceToken(session.graceToken).pipe(
+			Effect.map((data) => ({ok: true, data}) as const),
 			Effect.tapError((error) =>
 				Effect.logWarning(
 					'Grace token could not be decoded; treating its nonce as unverifiable',
 					error.operation,
 				),
 			),
-			Effect.catchTag('JwtHandlerError', () => Effect.succeed(null)),
+			Effect.catchTag('JwtHandlerError', (error) =>
+				Effect.succeed({
+					ok: false,
+					reason: isUnknownKidError(error) ? 'grace-unknown-kid' : 'grace-unreadable',
+				} as const),
+			),
 		)
 
-		if (!graceTokenData) return 'grace-unreadable'
+		if (!graceTokenData.ok) return graceTokenData.reason
 
-		if (graceTokenData.generation !== session.refreshGeneration) return 'mismatch'
+		if (graceTokenData.data.generation !== session.refreshGeneration) return 'mismatch'
 
-		return noncesMatch(graceTokenData.previousNonce, nonce) ? 'match' : 'mismatch'
+		return noncesMatch(graceTokenData.data.previousNonce, nonce) ? 'match' : 'mismatch'
 	}
 
 	return 'mismatch'

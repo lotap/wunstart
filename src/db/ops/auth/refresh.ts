@@ -12,12 +12,13 @@ import {renderSessionEndedNotification} from '#/email/templates/session-ended-no
 import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {generateAccessToken} from './_access-token.ts'
+import {isUnknownKidError} from './_jwt-utils.ts'
 import {
 	generateRefreshGraceToken,
 	extractRefreshGraceToken,
 	noncesMatch,
 } from './_refresh-grace-token.ts'
-import {decodeRefreshSession} from './_refresh-session.ts'
+import {decodeRefreshSession, invalidRefreshFailureCause} from './_refresh-session.ts'
 import {generateRefreshToken, type RefreshTokenPayloadCustomClaims} from './_refresh-token.ts'
 import {formatUserAgent} from './_user-agent.ts'
 import {authTokenFailure} from './token-error.ts'
@@ -283,15 +284,16 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 
 	const graceTokenData = yield* extractRefreshGraceToken(graceToken).pipe(
 		/**
-		 * A grace token we cannot decrypt means the secret set rotated or the row
-		 * is corrupt. Treat it as an invalid token (cookies clear, user can sign
-		 * in again) instead of an infrastructure failure: an INTERNAL_ERROR here
-		 * becomes a degraded 503 that blocks every server fn, including sign-in,
-		 * on every retry. Weight 0 because the cause is not user abuse.
+		 * An unknown grace `kid` is treated as a rotated-out secret; an unreadable
+		 * token is config/corruption. Both are weight 0 and are treated as an
+		 * invalid token (cookies clear, user can sign in again) instead of an
+		 * infrastructure failure: an INTERNAL_ERROR here becomes a degraded 503
+		 * that blocks every server fn, including sign-in, on every retry. A nonce
+		 * mismatch stays charged.
 		 */
 		Effect.catchTag('JwtHandlerError', (error) =>
 			authTokenFailure({
-				failureCause: 'WRONG_NONCE',
+				failureCause: isUnknownKidError(error) ? 'UNKNOWN_KID' : 'WRONG_NONCE',
 				rateAllowance: Infinity,
 				meta: {operation: error.operation},
 				message: SESSION_EXPIRED_MESSAGE,
@@ -467,18 +469,18 @@ const _refresh = Effect.fn('refresh')(function* ({
 	const resolved = yield* decodeRefreshSession({token})
 
 	/**
-	 * An expired JWS held a valid signature, so the caller presented a genuine
-	 * token past its life — the ordinary end of a Session. Log it at weight 0 and
-	 * let the auth middleware clear the cookies. An unverifiable JWS is different:
-	 * the token never proved anything, so it stays charged as a failed credential
-	 * presentation, and the weight’s effect is the IP ban that blocks that
-	 * address’s other flows.
+	 * An expired JWS held a valid signature, and an unknown `kid` is treated as
+	 * the state after a rotation drops an old key; both log at weight 0 and the
+	 * auth middleware clears the cookies. A token with a known `kid` that fails
+	 * verification is different: it never proved anything, so it stays charged as
+	 * a failed credential presentation, and the weight’s effect is the IP ban that
+	 * blocks that address’s other flows.
 	 */
 	if (resolved.status === 'invalid')
 		return yield* authTokenFailure({
-			failureCause: resolved.expired ? 'EXPIRED_JWS' : 'INVALID_JWS',
+			failureCause: invalidRefreshFailureCause(resolved.reason),
 			meta: {operation: resolved.operation},
-			rateAllowance: resolved.expired ? Infinity : 4,
+			rateAllowance: resolved.reason === 'invalid' ? 4 : Infinity,
 			message: SESSION_EXPIRED_MESSAGE,
 		})
 

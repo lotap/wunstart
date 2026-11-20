@@ -334,8 +334,11 @@ export function AuthPanel() {
 					<PanelRow label="rollout">
 						Changing a token’s derivation — HKDF purpose, secret set, or payload shape — invalidates
 						every token minted before the deploy. Users sign out, Anon identities reset, and grace
-						replays fail. Deploy atomically; during a rolling deploy old and new versions reject
-						each other’s tokens. Unused Session rows expire on their normal 30-day schedule.
+						replays fail. A token whose <InlineCode>kid</InlineCode> is no longer in the secret map
+						is treated as a rotation state at weight 0, not a failed credential, so returning
+						clients are not IP-banned. Deploy atomically; during a rolling deploy old and new
+						versions reject each other’s tokens. Unused Session rows expire on their normal 30-day
+						schedule.
 					</PanelRow>
 				</PanelList>
 				<Prose>

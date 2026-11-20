@@ -1,4 +1,4 @@
-import {Effect} from 'effect'
+import {Effect, Match} from 'effect'
 
 import * as sessionsQueries from '#/db/models/sessions/queries.ts'
 import type {activeTable} from '#/db/models/sessions/schemas.ts'
@@ -7,11 +7,15 @@ import {
 	hkdfFailure,
 	isJwtExpiredError,
 	isJwtKeyDerivationError,
+	isUnknownKidError,
 	type JwtHandlerError,
 } from './_jwt-utils.ts'
 import {extractRefreshTokenPayload} from './_refresh-token.ts'
 
 type SessionRow = (typeof activeTable)['$inferSelect']
+
+/** Why a verified refresh JWS cannot resolve a live session. */
+export type RefreshSessionInvalidReason = 'invalid' | 'expired' | 'unknown-kid'
 
 /**
  * What a refresh token resolves to: a live session, or why it cannot be used.
@@ -27,9 +31,22 @@ export type RefreshSessionResolution =
 	| {
 			readonly status: 'invalid'
 			readonly operation: JwtHandlerError['operation']
-			readonly expired: boolean
+			readonly reason: RefreshSessionInvalidReason
 	  }
 	| {readonly status: 'missing'; readonly sessionId: string}
+
+/**
+ * Audit cause for an invalid refresh resolution. An expired token is a genuine
+ * credential past its life; an unknown `kid` is treated as a rotation state
+ * because a forged header is indistinguishable. Only `invalid` is a failed
+ * credential presentation.
+ */
+export const invalidRefreshFailureCause = (reason: RefreshSessionInvalidReason) =>
+	Match.value(reason).pipe(
+		Match.when('expired', () => 'EXPIRED_JWS'),
+		Match.when('unknown-kid', () => 'UNKNOWN_KID'),
+		Match.orElse(() => 'INVALID_JWS'),
+	)
 
 /**
  * Read the refresh token and load the session it names.
@@ -42,14 +59,16 @@ export type RefreshSessionResolution =
  * calls this first.
  *
  * Returns `invalid` when the token cannot be verified, `missing` when the row is
- * gone, expired, or revoked, and `ok` with the session otherwise. `expired` on
- * an invalid resolution distinguishes a genuine token past its `exp` claim from
- * one that never verified, so callers can weight the ordinary end of a Session
- * separately from a failed credential presentation. It does not compare the
- * nonce (pair it with `verifyRefreshNonce` when possession of the current token
- * matters) and it changes nothing. Callers choose the error class, weight, and
- * message for each failure, since the same dead session is routine for a
- * sign-out and suspicious elsewhere.
+ * gone, expired, or revoked, and `ok` with the session otherwise. `reason` on an
+ * invalid resolution separates a genuine token past its `exp` claim, a token
+ * whose `kid` is no longer in the secret map (treated as a rotation state), and
+ * one with a known `kid` that never verified, so callers can weight the
+ * deployment and end-of-session states separately from a failed credential
+ * presentation. It does not compare the nonce (pair it with
+ * `verifyRefreshNonce` when possession of the current token matters) and it
+ * changes nothing. Callers choose the error class, weight, and message for each
+ * failure, since the same dead session is routine for a sign-out and suspicious
+ * elsewhere.
  */
 export const decodeRefreshSession = Effect.fn('decodeRefreshSession')(function* ({
 	token,
@@ -64,7 +83,11 @@ export const decodeRefreshSession = Effect.fn('decodeRefreshSession')(function* 
 				: Effect.succeed({
 						ok: false,
 						operation: error.operation,
-						expired: isJwtExpiredError(error),
+						reason: isJwtExpiredError(error)
+							? 'expired'
+							: isUnknownKidError(error)
+								? 'unknown-kid'
+								: 'invalid',
 					} as const),
 		),
 	)
@@ -73,7 +96,7 @@ export const decodeRefreshSession = Effect.fn('decodeRefreshSession')(function* 
 		return {
 			status: 'invalid',
 			operation: decoded.operation,
-			expired: decoded.expired,
+			reason: decoded.reason,
 		} as const
 
 	const {generation, nonce, sessionId} = decoded.payload

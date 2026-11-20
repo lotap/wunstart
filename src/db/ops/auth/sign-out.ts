@@ -6,7 +6,7 @@ import {createOpsFailure, OpsErrorSchema} from '#/db/ops/ops-error.ts'
 import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
-import {decodeRefreshSession} from './_refresh-session.ts'
+import {decodeRefreshSession, invalidRefreshFailureCause} from './_refresh-session.ts'
 import {verifyRefreshNonce} from './_verify-refresh-nonce.ts'
 
 /**
@@ -52,7 +52,7 @@ const _signOut = Effect.fn('signOut')(function* ({
 	 */
 	if (resolved.status === 'invalid')
 		return yield* terminalSignOutFailure({
-			failureCause: resolved.expired ? 'EXPIRED_JWS' : 'INVALID_JWS',
+			failureCause: invalidRefreshFailureCause(resolved.reason),
 			meta: {operation: resolved.operation},
 			rateAllowance: Infinity,
 			message: SESSION_EXPIRED_MESSAGE,
@@ -76,7 +76,7 @@ const _signOut = Effect.fn('signOut')(function* ({
 	/** If the refresh token doesn't match, throw an associated error */
 	if (nonceCheck !== 'match')
 		return yield* terminalSignOutFailure({
-			failureCause: 'WRONG_NONCE',
+			failureCause: nonceCheck === 'grace-unknown-kid' ? 'UNKNOWN_KID' : 'WRONG_NONCE',
 			/** Same terminal-state handling: no ban weight for a sign-out the handler completes locally */
 			rateAllowance: Infinity,
 			userId,
