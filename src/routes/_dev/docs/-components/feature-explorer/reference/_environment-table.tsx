@@ -234,11 +234,11 @@ function EnvironmentVariableName({name}: {name: string}) {
 
 export function EnvironmentTable() {
 	return (
-		<div className="overflow-hidden rounded-xl border bg-muted/20">
+		<div className="overflow-hidden rounded-xl border">
 			<table className="w-full table-fixed text-left">
 				<caption className="sr-only">Environment variables</caption>
 				<thead>
-					<tr className="bg-muted/30">
+					<tr className="border-b">
 						<PanelTableHeader scope="col" className="w-2/5 px-5 py-4">
 							Variable
 						</PanelTableHeader>
@@ -249,7 +249,7 @@ export function EnvironmentTable() {
 				</thead>
 				{environmentGroups.map((group) => (
 					<tbody key={group.name}>
-						<tr className="border-t bg-muted/20">
+						<tr className="border-t">
 							<PanelTableHeader colSpan={2} scope="colgroup" className="px-5 py-3">
 								{group.name}
 							</PanelTableHeader>

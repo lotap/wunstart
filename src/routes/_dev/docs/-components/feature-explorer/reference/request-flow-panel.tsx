@@ -136,9 +136,9 @@ export function RequestFlowPanel() {
 						<section
 							key={group.label}
 							aria-labelledby={headingId}
-							className="overflow-hidden rounded-xl border bg-muted/20"
+							className="overflow-hidden rounded-xl border"
 						>
-							<header className="flex flex-col gap-1 bg-muted/30 px-5 py-5">
+							<header className="flex flex-col gap-1 border-b px-5 py-5">
 								<h5 id={headingId} className="text-lg font-medium">
 									{group.label}
 								</h5>

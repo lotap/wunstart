@@ -1,14 +1,18 @@
+import {cn} from 'cn'
+import {ChevronDown} from 'lucide-react'
+import {useId, useState} from 'react'
+
 import {CopyButton} from '#/components/global/copy-button.tsx'
+import {Button} from '#/components/ui/button.tsx'
 import {
 	CodeBlock as CodeBlockRoot,
-	CodeBlockActions,
 	CodeBlockContent,
 	CodeBlockHeader,
 	CodeBlockLine,
 } from '#/components/ui/code-block.tsx'
 import {useHighlightedCode} from '#/hooks/use-highlighted-code.ts'
 
-import {MicroLabel} from './doc-ui.tsx'
+import {InlineCode, MicroLabel} from './doc-ui.tsx'
 
 function CodeBlockShell({
 	copyLabel,
@@ -24,13 +28,13 @@ function CodeBlockShell({
 	children: React.ReactNode
 }) {
 	return (
-		<CodeBlockRoot className="bg-background/70">
-			<CodeBlockHeader className="border-b pb-2">
+		<CodeBlockRoot>
+			<CodeBlockHeader>
 				<MicroLabel>{label}</MicroLabel>
 				{copyable && (
-					<CodeBlockActions>
+					<div className="ms-auto">
 						<CopyButton text={value} label={label} copyLabel={copyLabel} />
-					</CodeBlockActions>
+					</div>
 				)}
 			</CodeBlockHeader>
 			{children}
@@ -52,9 +56,7 @@ export function CodeBlock({
 			{language ? (
 				<HighlightedCode code={code} language={language} />
 			) : (
-				<CodeBlockContent className="text-sm leading-relaxed text-muted-foreground">
-					{code}
-				</CodeBlockContent>
+				<CodeBlockContent>{code}</CodeBlockContent>
 			)}
 		</CodeBlockShell>
 	)
@@ -64,7 +66,7 @@ function HighlightedCode({code, language}: {code: string; language: string}) {
 	const lines = useHighlightedCode(code, language)
 
 	return (
-		<CodeBlockContent className="text-sm leading-relaxed text-muted-foreground">
+		<CodeBlockContent>
 			{lines.map((line, index) => (
 				// oxlint-disable-next-line react/no-array-index-key react-doctor/no-array-index-as-key -- highlighted lines have no stable id
 				<CodeBlockLine key={index}>{line}</CodeBlockLine>
@@ -75,7 +77,7 @@ function HighlightedCode({code, language}: {code: string; language: string}) {
 
 export function CommandBlock({command, label}: {command: string; label: string}) {
 	return (
-		<div className="overflow-hidden rounded-lg border bg-background/70">
+		<div className="overflow-hidden rounded-lg border border-input dark:bg-input/30">
 			<div className="flex items-center justify-between gap-2 px-3 py-2">
 				<code className="truncate font-mono text-xs text-foreground">{command}</code>
 				<CopyButton text={command} label={label} copyLabel="Copy command" />
@@ -95,9 +97,63 @@ export function PromptBlock({
 }) {
 	return (
 		<CodeBlockShell label={title} value={prompt} copyLabel="Copy prompt" copyable={copyable}>
-			<CodeBlockContent wrap className="text-base leading-relaxed text-muted-foreground">
-				{prompt}
-			</CodeBlockContent>
+			<CodeBlockContent wrap>{prompt}</CodeBlockContent>
 		</CodeBlockShell>
+	)
+}
+
+/** Render Markdown-style inline code in a prompt as inline chips. */
+function renderPromptText(prompt: string) {
+	return prompt.split(/(`[^`]+`)/g).map((part, index) => {
+		const isCode = part.startsWith('`') && part.endsWith('`')
+
+		return (
+			// oxlint-disable-next-line react/no-array-index-key react-doctor/no-array-index-as-key -- prompt segments have no stable ids
+			<span key={index}>{isCode ? <InlineCode>{part.slice(1, -1)}</InlineCode> : part}</span>
+		)
+	})
+}
+
+/**
+ * Long agent prompt as a prose panel. The body stays collapsed until the
+ * reader asks for the full text; the header keeps the copy action visible.
+ */
+export function AgentPrompt({prompt, title}: {prompt: string; title: string}) {
+	const [expanded, setExpanded] = useState(false)
+	const bodyId = useId()
+
+	return (
+		<div>
+			<CodeBlockShell label={title} value={prompt} copyLabel="Copy prompt">
+				<div className="px-3 pt-2 pb-5">
+					<div
+						id={bodyId}
+						className={cn(
+							'font-mono text-sm leading-relaxed whitespace-pre-wrap text-foreground',
+							!expanded && 'line-clamp-4',
+						)}
+					>
+						{renderPromptText(prompt)}
+					</div>
+				</div>
+			</CodeBlockShell>
+			<div className="relative z-10 -mt-3 flex justify-center">
+				<Button
+					type="button"
+					variant="secondary"
+					size="xs"
+					aria-expanded={expanded}
+					aria-controls={bodyId}
+					onClick={() => setExpanded((value) => !value)}
+					className="border border-border px-3 aria-expanded:hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)]"
+				>
+					{expanded ? 'Show less' : 'Show full prompt'}
+					<ChevronDown
+						className={cn('size-3.5 transition-transform', expanded && 'rotate-180')}
+						aria-hidden="true"
+					/>
+				</Button>
+			</div>
+		</div>
 	)
 }

@@ -186,14 +186,14 @@ export function AgentsOverviewPanel() {
 					</p>
 				</div>
 
-				<div className="mt-6 overflow-hidden rounded-xl border bg-muted/20">
+				<div className="mt-6 overflow-hidden rounded-xl border">
 					{skillGroups.map((group) => (
 						<section
 							key={group.title}
 							aria-label={group.title}
 							className="border-t first:border-t-0"
 						>
-							<header className="flex flex-col gap-1 bg-muted/30 px-5 py-5">
+							<header className="flex flex-col gap-1 border-b px-5 py-5">
 								<div className="flex items-baseline justify-between gap-3">
 									<h6 className="text-base font-medium">{group.title}</h6>
 									<span className="font-mono text-xs text-muted-foreground">
@@ -277,7 +277,7 @@ export function AgentsOverviewPanel() {
 					them.
 				</Prose>
 
-				<div className="rounded-xl border bg-muted/20 p-5">
+				<div className="rounded-xl border p-5">
 					<p className="text-base font-medium">Owned vs. managed</p>
 					<p className="mt-2 max-w-3xl text-base leading-relaxed text-muted-foreground">
 						Edit <InlineCode>wunstart</InlineCode> and <InlineCode>wunshot</InlineCode> here. Every
@@ -291,7 +291,7 @@ export function AgentsOverviewPanel() {
 				<Prose>External skill sources. None are installed by default.</Prose>
 				<ul className="grid gap-3 sm:grid-cols-2">
 					{recommendedSkills.map((skill) => (
-						<li key={skill.name} className="flex flex-col gap-2 rounded-xl border bg-muted/20 p-5">
+						<li key={skill.name} className="flex flex-col gap-2 rounded-xl border p-5">
 							<ExternalDocLink href={skill.href}>
 								<code className="font-mono text-sm">{skill.name}</code>
 							</ExternalDocLink>
@@ -309,7 +309,7 @@ export function AgentsOverviewPanel() {
 				</Prose>
 				<ul className="grid gap-3 sm:grid-cols-2">
 					{recommendedMcpServers.map((server) => (
-						<li key={server.name} className="flex flex-col gap-2 rounded-xl border bg-muted/20 p-5">
+						<li key={server.name} className="flex flex-col gap-2 rounded-xl border p-5">
 							<ExternalDocLink href={server.href}>
 								<code className="font-mono text-sm">{server.name}</code>
 							</ExternalDocLink>

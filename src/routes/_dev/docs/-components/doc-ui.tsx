@@ -1,6 +1,8 @@
 import {mergeProps} from '@base-ui/react/merge-props'
 import {useRender} from '@base-ui/react/use-render'
+import {cva} from 'class-variance-authority'
 import {cn} from 'cn'
+import {Info, TriangleAlert} from 'lucide-react'
 
 /** Small uppercase label used above code, tables, and sidebar groups. */
 export function MicroLabel({className, children, ...props}: React.ComponentProps<'p'>) {
@@ -104,6 +106,57 @@ export function Prose({children}: {children: React.ReactNode}) {
 	return <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">{children}</p>
 }
 
+const docNoteVariants = cva(
+	'max-w-3xl rounded-lg border bg-card p-4 text-sm leading-relaxed text-muted-foreground',
+	{
+		variants: {
+			variant: {
+				info: '',
+				warning: 'border-destructive/25',
+			},
+		},
+		defaultVariants: {variant: 'info'},
+	},
+)
+
+const docNoteIcons = {info: Info, warning: TriangleAlert} as const
+
+type DocNoteVariant = keyof typeof docNoteIcons
+
+/** Icon-led callout for a caveat or exception inside a docs section. */
+export function DocNote({
+	variant = 'info',
+	title,
+	children,
+}: {
+	variant?: DocNoteVariant
+	title: string
+	children: React.ReactNode
+}) {
+	const Icon = docNoteIcons[variant]
+
+	return (
+		<aside
+			data-variant={variant}
+			aria-label={title}
+			className={cn('group', docNoteVariants({variant}))}
+		>
+			<div className="flex items-start gap-3">
+				<Icon
+					className="mt-0.5 size-4 shrink-0 group-data-[variant=warning]:text-destructive"
+					aria-hidden="true"
+				/>
+				<div className="flex flex-col gap-1">
+					<p className="font-medium text-foreground group-data-[variant=warning]:text-destructive">
+						{title}
+					</p>
+					<div>{children}</div>
+				</div>
+			</div>
+		</aside>
+	)
+}
+
 /** Titled block inside a side panel. Callers compose the content as children. */
 export function PanelSection({
 	id,
@@ -117,8 +170,8 @@ export function PanelSection({
 	children?: React.ReactNode
 }) {
 	return (
-		<section aria-labelledby={id} className={cn('mt-10', className)}>
-			<h5 id={id} className="scroll-mt-(--header-dock,0px) font-heading text-2xl font-medium">
+		<section aria-labelledby={id} className={cn('mt-12', className)}>
+			<h5 id={id} className="scroll-mt-(--header-dock,0px) font-heading text-3xl font-medium">
 				{title}
 			</h5>
 			{children && <div className="mt-4 flex flex-col gap-4">{children}</div>}
@@ -128,9 +181,7 @@ export function PanelSection({
 
 /** Bordered list used for reference rows. */
 export function PanelList({children, className}: {children: React.ReactNode; className?: string}) {
-	return (
-		<ul className={cn('overflow-hidden rounded-xl border bg-muted/20', className)}>{children}</ul>
-	)
+	return <ul className={cn('overflow-hidden rounded-xl border', className)}>{children}</ul>
 }
 
 const rowWidths = {

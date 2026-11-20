@@ -119,7 +119,7 @@ export function StaticImagesPanel() {
 					<figcaption className="text-sm font-medium text-muted-foreground">
 						Build-time transform
 					</figcaption>
-					<div className="mt-2 rounded-xl border bg-muted/20 p-4">
+					<div className="mt-2 rounded-xl border p-4">
 						<DocDiagram
 							source={buildPipelineChart}
 							label="Static image build pipeline"
@@ -238,7 +238,7 @@ export function StaticImagesPanel() {
 				</Prose>
 				<figure>
 					<figcaption className="text-sm font-medium text-muted-foreground">Delivery</figcaption>
-					<div className="mt-2 rounded-xl border bg-muted/20 p-4">
+					<div className="mt-2 rounded-xl border p-4">
 						<DocDiagram
 							source={deliveryPipelineChart}
 							label="Static image delivery"

@@ -24,7 +24,7 @@ export type FeatureFlow = {
 
 function CodeChip({children}: {children: React.ReactNode}) {
 	return (
-		<code className="rounded-sm bg-muted/60 px-1.5 py-0.5 font-mono text-sm text-muted-foreground">
+		<code className="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-sm text-muted-foreground">
 			{children}
 		</code>
 	)

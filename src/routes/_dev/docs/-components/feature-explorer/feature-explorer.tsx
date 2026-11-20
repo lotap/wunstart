@@ -294,7 +294,7 @@ function PanelTabPanel({
 			id={`${group}-panel-${panel.key}`}
 			aria-labelledby={`${group}-tab-${panel.key}`}
 			hidden={!active}
-			className="mt-6 min-h-[calc(100svh-2rem)] rounded-xl border bg-muted/20 p-5 md:mt-0 md:p-8"
+			className="mt-6 min-h-[calc(100svh-2rem)] rounded-xl bg-card p-5 ring-1 ring-foreground/10 md:mt-0 md:p-8"
 		>
 			{active && <Panel />}
 		</div>
@@ -365,7 +365,7 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 			<section ref={sectionRef} className="w-full max-w-5xl">
 				<div className="flex flex-col md:flex-row md:items-start md:gap-6">
 					<div
-						className="font-mono text-xs md:sticky md:w-60 md:shrink-0 md:pt-4 md:transition-[top] md:duration-(--header-dock-transition,0ms) md:ease-out"
+						className="scrollbar-thin font-mono text-xs md:sticky md:max-h-[calc(100svh-2rem-var(--header-dock,0px))] md:w-60 md:shrink-0 md:overflow-y-auto md:overscroll-contain md:pt-4 md:text-sm md:transition-[top] md:duration-(--header-dock-transition,0ms) md:ease-out"
 						style={{top: 'calc(1rem + var(--header-dock, 0px))'}}
 					>
 						<SidePanelGroup

@@ -90,7 +90,7 @@ export function ConfigurationPanel() {
 					<InlineCode>DATABASE_URL</InlineCode> first because production has no files.
 				</Prose>
 				<dl className="grid gap-4 md:grid-cols-2">
-					<div className="flex flex-col gap-2 rounded-xl border bg-muted/20 p-5">
+					<div className="flex flex-col gap-2 rounded-xl border p-5">
 						<dt>
 							<code className="font-mono text-sm text-foreground">.env.development</code>
 						</dt>
@@ -99,7 +99,7 @@ export function ConfigurationPanel() {
 							JWT secrets, the local Hyperdrive URL, and the cookie domain.
 						</dd>
 					</div>
-					<div className="flex flex-col gap-2 rounded-xl border bg-muted/20 p-5">
+					<div className="flex flex-col gap-2 rounded-xl border p-5">
 						<dt>
 							<code className="font-mono text-sm text-foreground">.env.local</code>
 						</dt>

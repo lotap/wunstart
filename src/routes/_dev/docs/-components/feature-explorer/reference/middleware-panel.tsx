@@ -107,9 +107,9 @@ export function MiddlewarePanel() {
 						<section
 							key={layer.label}
 							aria-label={`${layer.label} middleware`}
-							className="overflow-hidden rounded-xl border bg-muted/20"
+							className="overflow-hidden rounded-xl border"
 						>
-							<header className="bg-muted/30 px-5 py-4">
+							<header className="border-b px-5 py-4">
 								<h6 className="text-base font-medium">{layer.label} middleware</h6>
 							</header>
 							<ul>

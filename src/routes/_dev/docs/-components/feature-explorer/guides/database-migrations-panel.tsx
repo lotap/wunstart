@@ -47,7 +47,7 @@ export function DatabaseMigrationsPanel() {
 				description="Schema changes go through generated migrations. The active table and its archive twin change together."
 			/>
 
-			<div className="mt-10 grid gap-6 rounded-xl border bg-muted/20 p-6 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+			<div className="mt-10 grid gap-6 rounded-xl border p-6 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
 				<ol className="flex flex-col gap-4">
 					{steps.map((step, index) => (
 						<li key={step.id} className="flex gap-3">
