@@ -7,6 +7,7 @@ import {useEffect, useState} from 'react'
 import {Button} from '#/components/ui/button.tsx'
 import {toast} from '#/components/ui/toast.tsx'
 
+import {useDeadSessionRecovery} from './_hooks.ts'
 import type {PasscodeRequestQueryOptions} from './_utils.ts'
 
 const resetPasscodeIconVariants = cva('', {
@@ -36,6 +37,8 @@ export function ResetEmailVerificationButton({
 	onRequestNewCode?: () => void
 }) {
 	const {data: passcodeRequestData} = useQuery(queryOptions)
+
+	const recoverDeadSession = useDeadSessionRecovery()
 
 	const expiresAt = passcodeRequestData?.expiresAt ?? DateTime.nowUnsafe()
 
@@ -79,6 +82,8 @@ export function ResetEmailVerificationButton({
 					await mutateAsync()
 					toast.add({title: `New code sent to ${email}`, type: 'success', timeout: 2500})
 				} catch (error) {
+					recoverDeadSession(error)
+
 					toast.add({
 						type: 'error',
 						title:
