@@ -39,12 +39,17 @@ const getSessionRow = Effect.fn('getSessionRow')(function* (sessionId: string) {
 	/** Find the session by id */
 	const [rowData] = yield* sessionsQueries.selectFromUnexpiredUnrevoked({id: sessionId})
 
-	/** If the session is not found, throw an associated error */
+	/**
+	 * The token verified before rotation began, so the caller held a genuine
+	 * credential; the row was archived, revoked, or expired between the two
+	 * reads. Charge no ban weight: this is the dead-session state, and a
+	 * concurrent revoke must not ban the IP.
+	 */
 	if (!rowData)
 		return yield* authTokenFailure({
 			failureCause: 'SESSION_NOT_FOUND',
 			meta: {sessionId},
-			rateAllowance: 4,
+			rateAllowance: Infinity,
 			message: SESSION_EXPIRED_MESSAGE,
 		})
 

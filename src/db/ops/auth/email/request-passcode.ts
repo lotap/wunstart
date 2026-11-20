@@ -251,13 +251,21 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 			),
 		)
 
+		/**
+		 * A refused resend is a self-throttle, not a failed credential: the row is
+		 * younger than the one-minute reset window, nothing was mailed, and the
+		 * message tells the caller to wait. Charge no ban weight — six clicks in a
+		 * stale tab must not ban the account — and leave request-rate limiting to
+		 * the per-IP middleware. The insert above is the authoritative throttle, so
+		 * a concurrent re-request still hashes and lands here.
+		 */
 		if (!data)
 			return yield* opsFailure({
 				anonId: registeredAnonId,
 				userId,
 				failedCredential: derivedEmail,
 				failureCause: 'TOO_SOON_SINCE_LAST_RESET',
-				rateAllowance: 6,
+				rateAllowance: Infinity,
 				message: 'A new code isn’t ready for that address yet. Give it a moment and try again.',
 			})
 

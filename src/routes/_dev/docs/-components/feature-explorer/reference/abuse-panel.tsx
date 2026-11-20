@@ -111,10 +111,11 @@ export function AbusePanel() {
 					</PanelRow>
 					<PanelRow label="passcode sends">
 						Each successful passcode request weighs 2,100 instead, so six sends per IP in ten
-						minutes reach the threshold. The weight applies to the IP, Anon, and User scopes
-						together, so a shared NAT can be banned for about twenty minutes; on a signed-in send it
-						can also ban the account, which refuses its refresh until the ban lifts while the IP ban
-						blocks signing in again from that address. Retries extend it.
+						minutes reach the threshold. A refused resend mails nothing and carries no weight. The
+						weight applies to the IP, Anon, and User scopes together, so a shared NAT can be banned
+						for about twenty minutes; on a signed-in send it can also ban the account, which refuses
+						its refresh until the ban lifts while the IP ban blocks signing in again from that
+						address. Retries extend it.
 					</PanelRow>
 					<PanelRow label="credential failure">
 						The op’s <InlineCode>rateAllowance</InlineCode> sets the weight: 4 allows about four

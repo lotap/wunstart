@@ -57,11 +57,13 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 	 * Revoked/expired is a terminal state a user reaches by signing out
 	 * elsewhere, not an attack signal. Surface the failure, but charge no
 	 * ban weight: a few stale devices behind one IP must not lock it out.
-	 * The liveness check alone stops the post-eviction watcher loop.
+	 * The access token already proved `userId`, so keep that attribution;
+	 * the liveness check alone stops the post-eviction watcher loop.
 	 */
 	if (resolved.status === 'missing')
 		return yield* opsFailure({
 			failureCause: 'SESSION_NOT_FOUND',
+			userId,
 			meta: {sessionId: resolved.sessionId},
 			rateAllowance: Infinity,
 			message: SESSION_EXPIRED_MESSAGE,
@@ -75,12 +77,16 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 	 * The access token proved `userId`; bind the refresh session to it so mixed
 	 * cookies fail closed instead of archiving another user’s sessions. Compare
 	 * before the nonce check: a mismatched token does not need a hasher round-trip.
+	 * Charge no ban weight: the mismatch authorizes nothing, and the access-token
+	 * user is not the party who supplied the foreign cookie — cookie tossing from
+	 * a sibling host produces the same state, so it must not ban their account.
 	 */
 	if (sessionUserId !== userId)
 		return yield* opsFailure({
 			failureCause: 'SESSION_NOT_FOUND',
 			userId,
-			rateAllowance: 3,
+			meta: {sessionId: session.id},
+			rateAllowance: Infinity,
 			message: SESSION_EXPIRED_MESSAGE,
 		})
 

@@ -63,14 +63,19 @@ export const verifyLiveSession = Effect.fn('verifyLiveSession')(function* ({
 	const {session} = resolved
 
 	/**
-	 * Keep this comparison in JS: filtering by `userId` in the query would
-	 * silently turn a charged mismatch into a weight-0 missing session.
+	 * A session owned by another user cannot vouch for this access token's
+	 * session, so the pair is mixed or corrupted and the action fails closed.
+	 * Charge no ban weight: the mismatch authorizes nothing, and the access-token
+	 * user is not the party who supplied the foreign cookie — cookie tossing from
+	 * a sibling host produces the same state, so a cookie they cannot control
+	 * must not ban their account.
 	 */
 	if (session.userId !== userId)
 		return yield* opsFailure({
 			failureCause: 'SESSION_NOT_FOUND',
 			userId,
-			rateAllowance: 3,
+			meta: {sessionId: session.id},
+			rateAllowance: Infinity,
 			message: SESSION_EXPIRED_MESSAGE,
 		})
 })
