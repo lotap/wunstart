@@ -25,7 +25,7 @@ import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 import {handlePasswordChange} from '#/server-fns/handle-password-change.ts'
 
-import {userProfileQueryOptions} from './_utils.ts'
+import {userProfileQueryOptions} from './user-profile.ts'
 
 const ReverifyDrawer = lazy(() =>
 	import('./_reverify-drawer.tsx').then((m) => ({default: m.ReverifyDrawer})),

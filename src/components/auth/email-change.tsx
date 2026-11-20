@@ -30,7 +30,8 @@ import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 
 import {usePasscodeRequestMutation} from './_hooks.ts'
 import {PasscodeForm} from './_passcode-form.tsx'
-import {passcodeRequestQueryOptions, userProfileQueryOptions} from './_utils.ts'
+import {passcodeRequestQueryOptions} from './_utils.ts'
+import {userProfileQueryOptions} from './user-profile.ts'
 
 const ReverifyDrawer = lazy(() =>
 	import('./_reverify-drawer.tsx').then((m) => ({default: m.ReverifyDrawer})),

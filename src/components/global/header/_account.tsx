@@ -2,7 +2,7 @@ import {useQuery} from '@tanstack/react-query'
 import {Link} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 
-import {userProfileQueryOptions} from '#/components/auth/_utils.ts'
+import {userProfileQueryOptions} from '#/components/auth/user-profile.ts'
 import {Button} from '#/components/ui/button.tsx'
 import {Skeleton} from '#/components/ui/skeleton.tsx'
 import {useSignOut} from '#/hooks/use-sign-out.ts'

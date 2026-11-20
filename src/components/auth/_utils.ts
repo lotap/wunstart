@@ -1,11 +1,8 @@
 import {queryOptions} from '@tanstack/react-query'
-import type {useServerFn} from '@tanstack/react-start'
 import {Result, Schema} from 'effect'
 
-import type {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
-
 export const LocalStorageEmailSchema = Schema.Struct({
-	email: Schema.String, // Does not use Email schema because it should incomplete addresses
+	email: Schema.String, // Allows incomplete addresses; the email schema is stricter
 	expiresAt: Schema.DateTimeUtcFromString,
 })
 
@@ -39,14 +36,3 @@ export const passcodeRequestQueryOptions = ({
 	})
 
 export type PasscodeRequestQueryOptions = ReturnType<typeof passcodeRequestQueryOptions>
-
-export const userProfileQueryOptions = ({
-	serverFn,
-}: {
-	serverFn: ReturnType<typeof useServerFn<typeof handleGetUserProfile>>
-}) =>
-	queryOptions({
-		queryKey: ['userProfile'],
-		queryFn: () => serverFn(),
-		staleTime: Infinity,
-	})

@@ -29,7 +29,8 @@ import {handlePasswordReverify} from '#/server-fns/handle-password-reverify.ts'
 
 import {usePasscodeRequestMutation} from './_hooks.ts'
 import {PasscodeForm} from './_passcode-form.tsx'
-import {passcodeRequestQueryOptions, userProfileQueryOptions} from './_utils.ts'
+import {passcodeRequestQueryOptions} from './_utils.ts'
+import {userProfileQueryOptions} from './user-profile.ts'
 
 /**
  * Reverification via email passcode.
