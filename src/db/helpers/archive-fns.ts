@@ -16,8 +16,9 @@ export class ArchiveNotFoundError extends Schema.TaggedError<
 
 /**
  * Thrown when the archive's delete removed fewer rows than its select found
- * (a concurrent writer archived a row between the two statements). The whole
- * archive transaction rolls back, so nothing partial is ever committed
+ * (a concurrent writer archived a row between the select and the delete).
+ * Leave it uncaught so the archive transaction rolls back; catching it would
+ * commit the duplicate archive insert.
  */
 export class ArchiveCountMismatchError extends Schema.TaggedError<
 	ArchiveCountMismatchError,

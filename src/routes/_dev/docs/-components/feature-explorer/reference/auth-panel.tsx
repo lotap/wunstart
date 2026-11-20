@@ -385,19 +385,19 @@ export function AuthPanel() {
 						refreshes the router and the guard redirects to sign-in. Auth transitions also clear the
 						client cache (<InlineCode>clearIdentityCache</InlineCode>) and notify other open tabs,
 						so another tab does not keep the previous user’s sessions, profile, or sudo-gated email.
-						Sudo-gated mutations, user-keyed passcode requests, and both reverify ops that already
-						ran their live-session check clear the same cookies when it fails, without an extra
-						read; <InlineCode>useDeadSessionRecovery</InlineCode> then clears the identity cache and
-						refreshes the router, so the page does not keep rendering the dead identity. The
-						reverify check blocks an evicted device from minting a replacement token, so the access
-						token cannot outlive its Session by more than the remaining 15 minutes.
+						Any protected action that already ran its live-session check clears the same cookies
+						when it fails, without an extra read; <InlineCode>useDeadSessionRecovery</InlineCode>{' '}
+						then clears the identity cache and refreshes the router, so the page does not keep
+						rendering the dead identity. The reverify check blocks an evicted device from minting a
+						replacement token, so the access token cannot outlive its Session by more than the
+						remaining 15 minutes.
 					</PanelRow>
 					<PanelRow label="liveness check">
 						Session liveness is one prepared primary-key lookup per guarded action, never per render
-						or per row. The production Hyperdrive config must be cache-disabled: query caching is on
-						by default (60s + 15s stale) and writes do not invalidate it. Liveness queries contain
-						<InlineCode>now()</InlineCode> and are uncacheable anyway; user and Anon reads are the
-						ones that would serve stale rows.
+						or per row. The production Hyperdrive config must be cache-disabled: writes do not
+						invalidate cached reads, so caching cannot be left to its default. Liveness queries
+						contain <InlineCode>now()</InlineCode> and are uncacheable by accident; never rely on
+						that for freshness.
 					</PanelRow>
 					<PanelRow label="remove account">
 						Requires sudo. Archives the User; sessions and email verifications archive with it, and

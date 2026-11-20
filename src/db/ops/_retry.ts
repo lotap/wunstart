@@ -40,7 +40,8 @@ export const retryTransientDb = retryOn(isTransientPgError)
  * duplicate. Let it roll the transaction back and retry; the next attempt sees
  * no active row and can return the winner’s archive row.
  *
- * Used by the sign-in/sign-up transactions that retire a registered Anon.
+ * Use for any transaction that can retire a row another writer may archive
+ * (the sign-in/sign-up flows that retire an Anon, for example).
  */
 export const retryTransientOrArchiveRace = retryOn(
 	(error) => isTransientPgError(error) || Schema.is(ArchiveCountMismatchError)(error),

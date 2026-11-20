@@ -36,8 +36,8 @@ export type RefreshSessionResolution =
  * gone, expired, or revoked, and `ok` with the session otherwise. It does not
  * compare the nonce (pair it with `verifyRefreshNonce` when possession of the
  * current token matters) and it changes nothing. Callers choose the error class,
- * weight, and message for the two failures, since the same dead session is
- * routine for a sign-out and suspicious elsewhere.
+ * weight, and message for each failure, since the same dead session is routine
+ * for a sign-out and suspicious elsewhere.
  */
 export const decodeRefreshSession = Effect.fn('decodeRefreshSession')(function* ({
 	token,

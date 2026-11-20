@@ -9,11 +9,12 @@ import {decodeRefreshSession} from './_refresh-session.ts'
  * Reject an authenticated action whose refresh-token session is no longer live.
  *
  * The access token proves userId + sudo, but it remains valid for up to 15
- * minutes after `signOutAll` archives the session row. Sudo-gated mutations,
- * user-keyed passcode requests, and the two reverify ops call this before
- * acting or minting a replacement token. The refresh token is signed and
- * carries the sessionId; a plain PK lookup is enough here.
- * `decodeRefreshSession` verifies the refresh JWS signature itself
+ * minutes after `signOutAll` archives the session row. Any action that mutates
+ * account state, sends account email, or mints a replacement token calls this
+ * before acting; `signOutAll` does the equivalent check alongside its nonce
+ * work. The refresh token is signed and carries the sessionId; a plain PK
+ * lookup is enough here. `decodeRefreshSession` verifies the refresh JWS
+ * signature itself
  * (`verifyAuth` only verifies the access token); only the nonce hash is skipped:
  * that costs an Argon2 DO round-trip, and no path here rotates the session.
  */

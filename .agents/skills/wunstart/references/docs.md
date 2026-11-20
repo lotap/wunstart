@@ -43,6 +43,7 @@ When a feature has real depth, write the reference panel alongside the tab. The 
 - Keep each panel’s prose, examples, diagrams, and data with the panel component — in the panel file or a private child beside it. Do not create a shared docs content module. The explorer may list panels for navigation; the list must not hold their content.
 - One diagram per concept. Split a diagram that exceeds roughly six nodes or needs horizontal scrolling, and place each piece next to the explanation it supports.
 - Verify behavior before documenting a limitation. Say what actually happens (“it is flattened to a still frame”), not an absolute the code does not enforce.
+- Prefer the durable rule over the current snapshot: state the invariant and why, and link to the source of truth instead of restating a list of files, ops, env keys, or consumers. Name a path only when it is the interface the reader must use.
 - Do not ship a control or disclosure with nothing behind it.
 - A feature summary states the capability or payoff, not the how-to.
 - Use examples as proof or a concrete use case, not project-internal trivia.
