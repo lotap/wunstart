@@ -7,16 +7,19 @@ const ARGON2_HASH_REGEX =
 export const Argon2Hash = Schema.String.check(Schema.isPattern(ARGON2_HASH_REGEX))
 
 /**
- * IPv4/IPv6 syntax Postgres `inet` accepts.
+ * The IPv4/IPv6 subset of Postgres `inet` syntax this app accepts.
  *
  * These values are written to `inet` columns and used as ban/rate-limit keys,
- * so the validator must not accept a value the database rejects. The Valibot
- * regex this derives from allowed a link-local zone (`fe80::1%eth0`) and
- * embedded IPv4 with a leading zero (`::ffff:1.2.3.04`); both are valid in other
- * contexts but fail `inet` parsing, turning a header value into a 500. Rejecting
- * them here lets `getRequestInfo` fall back to the invalid-IP sentinel. Pure
- * IPv4 stays deliberately stricter than `inet` on leading zeros: such requests
- * are treated as unknown rather than normalized.
+ * so the validator must not accept a value the database rejects. The reverse is
+ * allowed because rejection is fail-safe: `getRequestInfo` falls back to the
+ * invalid-IP sentinel. The Valibot regex this derives from allowed a link-local
+ * zone (`fe80::1%eth0`) and embedded IPv4 with a leading zero
+ * (`::ffff:1.2.3.04`); both are valid in other contexts but fail `inet` parsing,
+ * turning a header value into a 500. This regex also rejects two `inet`-valid
+ * forms, treating them as unknown rather than normalizing: pure IPv4 with
+ * leading zeros, and dotted-tail IPv6 with only 5–6 explicit leading hextets
+ * (`1:2:3:4:5::1.2.3.4`, `1:2:3:4:5:6:1.2.3.4`). The latter fall outside the
+ * subset this regex covers.
  *
  * Derived from: https://github.com/open-circle/valibot/blob/main/library/src/regex.ts
  */
