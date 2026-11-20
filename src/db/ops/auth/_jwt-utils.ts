@@ -15,7 +15,15 @@ class JwtKeyDerivationError extends Schema.TaggedError<
 	{readonly brand: unique symbol}
 >()('JwtKeyDerivationError', {cause: Schema.Defect()}) {}
 
-/** Purpose tag for HKDF domain separation, one per token type. */
+/**
+ * Purpose tag for HKDF domain separation, one per token type.
+ *
+ * Changing the tag (or another derived-key input or payload shape) re-keys every
+ * token minted before the deploy while its `kid` still resolves, so those
+ * failures are charged as invalid credentials. Ship the change with a new `kid`
+ * and drop the old one; the auth contract's token-secrets section owns the
+ * rollout rule.
+ */
 export type TokenPurpose = 'access' | 'refresh' | 'refresh-grace' | 'anon'
 
 /**
