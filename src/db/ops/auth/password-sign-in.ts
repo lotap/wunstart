@@ -93,7 +93,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 		})
 
 	/** Attempt to find the user for the given credentials */
-	const [user] = yield* sessionsUsersQueries.selectUserWithIpAddressesByEmail({email})
+	const [user] = yield* sessionsUsersQueries.selectUserByEmailWithKnownIp({email, ipAddress})
 
 	/**
 	 * If the credential has bans or excessive activities AND this is not a known IP
@@ -105,7 +105,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 	if (
 		currentBansAndExcessiveActivities.filter((element) => element.scope === 'FAILED_CREDENTIAL')
 			.length &&
-		(!user || !isClientIpAddress(ipAddress) || !user.ipAddresses.includes(ipAddress))
+		(!user || !isClientIpAddress(ipAddress) || !user.hasKnownIp)
 	)
 		return yield* rateLimitFailure({
 			message: genericFailureOutputMessage,

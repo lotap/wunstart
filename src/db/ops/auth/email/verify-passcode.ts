@@ -65,7 +65,7 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 		})
 
 	/** Look up the user. Absence selects the creation branch instead of failing */
-	const [user] = yield* sessionsUsersQueries.selectUserWithIpAddressesByEmail({email})
+	const [user] = yield* sessionsUsersQueries.selectUserByEmailWithKnownIp({email, ipAddress})
 
 	if (user) {
 		/**
@@ -77,7 +77,7 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 		if (
 			currentBansAndExcessiveActivities.filter((element) => element.scope === 'FAILED_CREDENTIAL')
 				.length &&
-			(!isClientIpAddress(ipAddress) || !user.ipAddresses.includes(ipAddress))
+			(!isClientIpAddress(ipAddress) || !user.hasKnownIp)
 		)
 			return yield* rateLimitFailure({
 				message: genericFailureOutputMessage,
@@ -136,8 +136,9 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 			 * already-verified code instead of failing.
 			 */
 			Effect.gen(function* () {
-				const [racedUser] = yield* sessionsUsersQueries.selectUserWithIpAddressesByEmail({
+				const [racedUser] = yield* sessionsUsersQueries.selectUserByEmailWithKnownIp({
 					email,
+					ipAddress,
 				})
 
 				if (!racedUser) return yield* error

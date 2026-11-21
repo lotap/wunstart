@@ -24,7 +24,6 @@ export const signInWithVerifiedCode = Effect.fn('emailVerifyPasscode.signIn')(fu
 	verification: Effect.Success<ReturnType<typeof verify>>
 	user: {
 		id: string
-		ipAddresses: string[]
 		email: string
 	}
 	ctx: VerifyPasscodeContext
