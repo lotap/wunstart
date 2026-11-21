@@ -38,6 +38,10 @@ function StatusPages() {
 
 			<ul className="mt-10 divide-y divide-border border-y border-border">
 				<li>
+					{/*
+					 * Unmatched path: Link has no route to resolve, and only a full
+					 * document request gets the server’s 404 response
+					 */}
 					<a
 						href="/does-not-exist"
 						className="flex flex-col gap-1 py-5 transition-colors hover:text-foreground sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
