@@ -4,6 +4,7 @@ import {Schema} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
+import {getUserEmail} from '#/db/ops/auth/get-user-email.ts'
 import {passwordChange} from '#/db/ops/auth/password-change.ts'
 import {emailLayer} from '#/email/layer.ts'
 import {checkPasswordStrength} from '#/isomorphic/password-strength.ts'
@@ -36,11 +37,18 @@ export const handlePasswordChange = createServerFn({method: 'POST'})
 			},
 		}) => {
 			/**
-			 * The schema only enforces length/encoding limits, so the strength
-			 * check happens here where the lazy-loaded zxcvbn dictionaries are
-			 * only fetched for actual password submissions
+			 * The client check is live feedback; this one is authoritative. It
+			 * includes the real email (the profile endpoint only exposes the
+			 * masked form), so the server is at least as strict. See
+			 * checkPasswordStrength for the shared server-side rule.
 			 */
-			const {isStrong, message} = await checkPasswordStrength(data.password)
+			const {email} = await runOp({
+				op: getUserEmail,
+				data: {userId, sudoExpiresAt, ipAddress},
+				layers: [authLayer, dbLayer],
+			})
+
+			const {isStrong, message} = await checkPasswordStrength(data.password, [email])
 
 			if (!isStrong) throw new KnownServerError({message})
 

@@ -25,14 +25,12 @@ const errorTextVariants = cva('text-center', {
 export function PasswordField({
 	field,
 	isDisabled = false,
-	showStrength = false,
 	strength,
 	autoComplete = 'current-password',
 }: {
 	field: FieldWithValue<string>
 	isDisabled?: boolean
-	showStrength?: boolean
-	/** Latest settled score from {@link usePasswordStrength}; pass alongside showStrength */
+	/** Latest settled score; pass to render the meter, omit to hide it */
 	strength?: PasswordStrength | null
 	autoComplete?: 'current-password' | 'new-password'
 }) {
@@ -76,7 +74,7 @@ export function PasswordField({
 				</InputGroupAddon>
 			</InputGroup>
 
-			{showStrength && <PasswordStrengthMeter strength={strength ?? null} />}
+			{strength !== undefined && <PasswordStrengthMeter strength={strength} />}
 
 			{isInvalid && (
 				<FieldError

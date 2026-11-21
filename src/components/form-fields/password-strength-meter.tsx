@@ -39,8 +39,8 @@ function StrengthBadge({
 }
 
 /**
- * Live strength indicator for a password input, fed by
- * {@link usePasswordStrength} so it always agrees with the submit gate
+ * Live strength indicator for a password input, fed by the form’s debounced
+ * strength result so it always agrees with the submit gate
  */
 export default function PasswordStrengthMeter({strength}: {strength: PasswordStrength | null}) {
 	const meta = strength ? strengthMeta[strength.score] : null

@@ -26,7 +26,7 @@ import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 import {handlePasswordChange} from '#/server-fns/handle-password-change.ts'
 
-import {usePasswordStrength} from './_hooks.ts'
+import {type PasswordStrengthContext, usePasswordStrength} from './_hooks.ts'
 import {userProfileQueryOptions} from './user-profile.ts'
 
 const ReverifyDrawer = lazy(() =>
@@ -50,7 +50,16 @@ export function ChangePasswordForm({
 
 	const {data: profile} = useQuery(userProfileQueryOptions({serverFn: handleGetUserProfileFn}))
 
-	const strengthUserInputs = profile?.email ? [profile.email] : []
+	/**
+	 * Client-side identity context for zxcvbn. The profile email is masked, so
+	 * this is best-effort only; the server check is authoritative. Add new
+	 * non-sensitive profile identity fields here and to `PasswordStrengthContext`
+	 */
+	const strengthContext = {email: profile?.email} satisfies PasswordStrengthContext
+
+	const strengthUserInputs = Object.values(strengthContext).filter(
+		(value): value is string => value !== undefined,
+	)
 
 	/**
 	 * The zxcvbn dictionaries load lazily on first check, so warm them up while
@@ -84,7 +93,7 @@ export function ChangePasswordForm({
 	const password = useSelector(form.atom, (state) => state.values.password)
 
 	/** One settled zxcvbn result drives both the submit gate and the meter, so they cannot disagree */
-	const strength = usePasswordStrength(password, strengthUserInputs)
+	const strength = usePasswordStrength(password, strengthContext)
 
 	/**
 	 * Always set the initial value to false so it renders closed
@@ -143,8 +152,9 @@ export function ChangePasswordForm({
 							validators={[
 								validateAfterFirstSubmit(async ({value}: {value: string}) => {
 									/**
-									 * Async because the zxcvbn dictionaries lazy-load; the
-									 * password is also checked against the user's own email
+									 * Async because the zxcvbn dictionaries lazy-load. The
+									 * client context is the masked profile email; the server
+									 * checks the real address
 									 */
 									const {isStrong, message} = await checkPasswordStrength(value, strengthUserInputs)
 
@@ -154,9 +164,7 @@ export function ChangePasswordForm({
 								}),
 							]}
 						>
-							{(field) => (
-								<field.PasswordField showStrength strength={strength} autoComplete="new-password" />
-							)}
+							{(field) => <field.PasswordField strength={strength} autoComplete="new-password" />}
 						</form.Field>
 
 						{showSignOutAllSessions && (

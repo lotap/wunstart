@@ -100,8 +100,14 @@ export function useLocalStorageAuthFormState({key}: {key: string}) {
 	return {step, setStep, isPending, remove}
 }
 
-/** Stable identity for the default so the effect below never re-runs on render */
-const NO_USER_INPUTS: Array<string> = []
+/**
+ * Non-sensitive profile identifiers used to penalize a password that contains
+ * them. Add a field here and to the effect below; see `checkPasswordStrength`
+ * for the server-side strictness rule.
+ */
+export type PasswordStrengthContext = {
+	email?: string
+}
 
 /**
  * Live zxcvbn strength for a password value, debounced so the dictionaries
@@ -109,7 +115,7 @@ const NO_USER_INPUTS: Array<string> = []
  * previous one during the debounce window — or null while the value is empty
  * or no check has landed yet
  */
-export function usePasswordStrength(value: string, userInputs: Array<string> = NO_USER_INPUTS) {
+export function usePasswordStrength(value: string, {email}: PasswordStrengthContext = {}) {
 	const [strength, setStrength] = useState<PasswordStrength | null>(null)
 
 	useEffect(() => {
@@ -119,16 +125,17 @@ export function usePasswordStrength(value: string, userInputs: Array<string> = N
 
 		/** Debounced so zxcvbn does not run on every keystroke while typing */
 		const timeout = setTimeout(() => {
-			checkPasswordStrength(value, userInputs)
+			checkPasswordStrength(value, email ? [email] : [])
 				.then((result) => {
 					if (!isStale) setStrength(result)
 				})
 				.catch(() => {
 					/**
-					 * Strength gates the submit button, so a failed check keeps it
-					 * disabled; the next keystroke retries, and the server re-check
-					 * stays authoritative
+					 * Strength gates the submit button, so a failed check clears the
+					 * score and keeps it disabled; the next keystroke retries, and the
+					 * server re-check stays authoritative
 					 */
+					if (!isStale) setStrength(null)
 				})
 		}, 200)
 
@@ -136,7 +143,7 @@ export function usePasswordStrength(value: string, userInputs: Array<string> = N
 			isStale = true
 			clearTimeout(timeout)
 		}
-	}, [value, userInputs])
+	}, [value, email])
 
 	return value ? strength : null
 }
