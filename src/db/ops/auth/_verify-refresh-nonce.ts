@@ -20,9 +20,9 @@ type SessionNonceRow = {
  * The current generation is checked against the Argon2 hash. One generation
  * behind is checked against the previous nonce sealed in the grace token.
  * Unlike refresh's replay the grace window itself is not re-checked: this path
- * mints nothing, the session must still be live, and a slightly stale cookie
- * must still be able to end its session. Rejecting it would leave the live row
- * unarchived until it expires.
+ * mints nothing, the session must still be live, and a previous-generation
+ * cookie must still be able to end its session at any age. Rejecting it would
+ * leave the live row unarchived until it expires.
  *
  * An HKDF failure while opening the grace token is infrastructure, not a token
  * verdict, so it fails the effect instead of returning a weight-0 check result.
