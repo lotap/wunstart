@@ -26,7 +26,9 @@ import {clearIdentityCache} from './identity-cache.ts'
  * usable identity: `verifyAuth` keeps the cookie pair when a ban or rate limit
  * refused the refresh, so the session behind it may still be alive. Surfacing
  * that error in place leaves the retained pair to restore the identity once the
- * refusal lifts. Every other error passes through.
+ * refusal lifts. Paths that keep the pair on failure — `signOutAll`, a refused
+ * refresh — use different copy for the same reason. Every other error passes
+ * through.
  */
 export function useDeadSessionRecovery() {
 	const queryClient = useQueryClient()

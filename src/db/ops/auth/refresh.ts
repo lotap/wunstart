@@ -9,7 +9,7 @@ import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 import {EmailRenderError, EmailService} from '#/email/service.ts'
 import {renderSessionEndedNotification} from '#/email/templates/session-ended-notification.tsx'
-import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
+import {SESSION_EXPIRED_MESSAGE, SESSION_REFUSED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {generateAccessToken} from './_access-token.ts'
 import {hkdfFailure, jwtFailureVerdict} from './_jwt-utils.ts'
@@ -512,10 +512,12 @@ const _refresh = Effect.fn('refresh')(function* ({
 
 	/**
 	 * If active bans or excessive activities are found
-	 * log the activity as a rate limit failure and return a generic error
+	 * log the activity as a rate limit failure and return a generic error.
+	 * Use non-recognition copy: the pair is kept, so `SESSION_EXPIRED_MESSAGE`
+	 * would let a recovery hook evict a session that may still be live
 	 */
 	if (currentBansAndExcessiveActivities.length)
-		return yield* rateLimitFailure({message: SESSION_EXPIRED_MESSAGE, userId: session.userId})
+		return yield* rateLimitFailure({message: SESSION_REFUSED_MESSAGE, userId: session.userId})
 
 	return yield* resolveSession({
 		tokenData,

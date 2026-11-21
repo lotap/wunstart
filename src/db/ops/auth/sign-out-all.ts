@@ -4,7 +4,7 @@ import {ArchiveCountMismatchError} from '#/db/helpers/archive-fns.ts'
 import {archiveByUser} from '#/db/models/sessions/cascades.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
-import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
+import {SIGN_OUT_ALL_FAILED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
 import {decodeRefreshSession} from './_refresh-session.ts'
@@ -51,7 +51,7 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 			userId,
 			meta: {operation: resolved.operation},
 			rateAllowance: Infinity,
-			message: SESSION_EXPIRED_MESSAGE,
+			message: SIGN_OUT_ALL_FAILED_MESSAGE,
 		})
 
 	/**
@@ -67,7 +67,7 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 			userId,
 			meta: {sessionId: resolved.sessionId},
 			rateAllowance: Infinity,
-			message: SESSION_EXPIRED_MESSAGE,
+			message: SIGN_OUT_ALL_FAILED_MESSAGE,
 		})
 
 	const {generation, nonce, session} = resolved
@@ -88,7 +88,7 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 			userId,
 			meta: {sessionId: session.id},
 			rateAllowance: Infinity,
-			message: SESSION_EXPIRED_MESSAGE,
+			message: SIGN_OUT_ALL_FAILED_MESSAGE,
 		})
 
 	const nonceCheck = yield* verifyRefreshNonce({session, generation, nonce})
@@ -105,7 +105,7 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 			 */
 			rateAllowance: Infinity,
 			userId,
-			message: SESSION_EXPIRED_MESSAGE,
+			message: SIGN_OUT_ALL_FAILED_MESSAGE,
 		})
 
 	/**
