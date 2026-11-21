@@ -48,7 +48,7 @@ Each domain lives in `db/models/<domain>/`:
 
 Ops live in `db/ops/<domain>/` — see `references/ops-contract.md`.
 
-Export contract: `tableName`, `activeTable`, `archiveTable` (+ internal `baseCols`, never exported); no barrel files under `models/` or `ops/`; `.ts` extensions on relative imports. First reads: `models/email-verifications/` (FKs, unique indexes, archive mirrors in one small module), `ops/auth/remove-user.ts` (sudo check, pre-check, cascade orchestration in one op).
+Export contract: `tableName`, `activeTable`, `archiveTable` (+ internal `baseCols`, never exported); no barrel files or forwarding re-exports under `models/` or `ops/` — every symbol has one home, and a move updates its consumers; linted by `wunshot/no-reexport`; `.ts` extensions on relative imports. First reads: `models/email-verifications/` (FKs, unique indexes, archive mirrors in one small module), `ops/auth/remove-user.ts` (sudo check, pre-check, cascade orchestration in one op).
 
 Import rules (model files stay self-contained):
 
