@@ -1,10 +1,11 @@
 import {Effect} from 'effect'
 
 import {verifyTarget} from '#/db/ops/auth/_hashing.ts'
-import {hkdfFailure, isJwtKeyDerivationError, isUnknownKidError} from '#/db/ops/auth/_jwt-utils.ts'
+import {hkdfFailure, jwtFailureVerdict} from '#/db/ops/auth/_jwt-utils.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 
 import {extractRefreshGraceToken, noncesMatch} from './_refresh-grace-token.ts'
+import {GRACE_NONCE_CHECK_FAILURES} from './grace-token-policies.ts'
 
 type SessionNonceRow = {
 	userId: string
@@ -58,14 +59,16 @@ export const verifyRefreshNonce = Effect.fn('verifyRefreshNonce')(function* ({
 			Effect.tapError((error) =>
 				Effect.logWarning('Grace token could not be decoded', error.operation),
 			),
-			Effect.catchTag('JwtHandlerError', (error) =>
-				isJwtKeyDerivationError(error)
-					? Effect.fail(hkdfFailure(error))
-					: Effect.succeed({
-							ok: false,
-							reason: isUnknownKidError(error) ? 'grace-unknown-kid' : 'grace-unreadable',
-						} as const),
-			),
+			Effect.catchTag('JwtHandlerError', (error) => {
+				const verdict = jwtFailureVerdict(error)
+
+				if (verdict === 'hkdf') return Effect.fail(hkdfFailure(error))
+
+				return Effect.succeed({
+					ok: false,
+					reason: GRACE_NONCE_CHECK_FAILURES[verdict],
+				} as const)
+			}),
 		)
 
 		if (!graceTokenData.ok) return graceTokenData.reason

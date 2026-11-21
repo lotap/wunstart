@@ -7,8 +7,9 @@ import {opsFailure} from '#/db/ops/ops-error.ts'
 import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
-import {decodeRefreshSession, invalidRefreshFailureCause} from './_refresh-session.ts'
+import {decodeRefreshSession} from './_refresh-session.ts'
 import {verifyRefreshNonce} from './_verify-refresh-nonce.ts'
+import {REFRESH_FAILURE_CAUSES} from './refresh-token-policies.ts'
 
 /**
  * Remove all sessions for a user based on the given refresh token. Used to sign-out on all devices.
@@ -46,7 +47,7 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 	 */
 	if (resolved.status === 'invalid')
 		return yield* opsFailure({
-			failureCause: invalidRefreshFailureCause(resolved.reason),
+			failureCause: REFRESH_FAILURE_CAUSES[resolved.reason],
 			userId,
 			meta: {operation: resolved.operation},
 			rateAllowance: Infinity,

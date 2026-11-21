@@ -4,7 +4,7 @@ import * as sessionsQueries from '#/db/models/sessions/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {formatLocation} from '#/email/format-location.ts'
 
-import {hkdfFailure, isJwtKeyDerivationError} from './_jwt-utils.ts'
+import {hkdfFailure, jwtFailureVerdict} from './_jwt-utils.ts'
 import {extractRefreshTokenPayload} from './_refresh-token.ts'
 import {formatUserAgent} from './_user-agent.ts'
 
@@ -24,7 +24,7 @@ const _listSessions = Effect.fn('listSessions')(function* ({
 		 * token, so it stays a failure and the cookies are kept.
 		 */
 		Effect.catchTag('JwtHandlerError', (error) =>
-			isJwtKeyDerivationError(error) ? Effect.fail(hkdfFailure(error)) : Effect.succeed(null),
+			jwtFailureVerdict(error) === 'hkdf' ? Effect.fail(hkdfFailure(error)) : Effect.succeed(null),
 		),
 	)
 

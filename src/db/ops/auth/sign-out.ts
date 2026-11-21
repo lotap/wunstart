@@ -6,8 +6,9 @@ import {createOpsFailure, OpsErrorSchema} from '#/db/ops/ops-error.ts'
 import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {generateAnonToken} from './_anon-token.ts'
-import {decodeRefreshSession, invalidRefreshFailureCause} from './_refresh-session.ts'
+import {decodeRefreshSession} from './_refresh-session.ts'
 import {verifyRefreshNonce} from './_verify-refresh-nonce.ts'
+import {REFRESH_FAILURE_CAUSES} from './refresh-token-policies.ts'
 
 /**
  * The local sign-out is already complete: the refresh pair is unusable, or its
@@ -52,7 +53,7 @@ const _signOut = Effect.fn('signOut')(function* ({
 	 */
 	if (resolved.status === 'invalid')
 		return yield* terminalSignOutFailure({
-			failureCause: invalidRefreshFailureCause(resolved.reason),
+			failureCause: REFRESH_FAILURE_CAUSES[resolved.reason],
 			meta: {operation: resolved.operation},
 			rateAllowance: Infinity,
 			message: SESSION_EXPIRED_MESSAGE,

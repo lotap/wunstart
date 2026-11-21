@@ -4,52 +4,20 @@ import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {extractAccessTokenPayload} from './_access-token.ts'
-import {
-	hkdfFailure,
-	isJwtExpiredError,
-	isJwtKeyDerivationError,
-	isUnknownKidError,
-} from './_jwt-utils.ts'
+import {hkdfFailure, jwtFailureVerdict} from './_jwt-utils.ts'
+import {ACCESS_TOKEN_FAILURES} from './access-token-policies.ts'
 import {authTokenFailure} from './token-error.ts'
 
 const _verifyAccess = Effect.fn('verifyAccess')(function* ({token}: {token: string}) {
 	const {exp: _exp, ...filteredPayload} = yield* extractAccessTokenPayload(token).pipe(
 		Effect.mapError((error) => {
-			if (isJwtKeyDerivationError(error)) return hkdfFailure(error)
+			const verdict = jwtFailureVerdict(error)
 
-			/**
-			 * An unknown `kid` is treated as the state after a rotation drops an old
-			 * key; a forged header is indistinguishable, and the request caps bound
-			 * the loop. Charge no ban weight; the refresh cookie is the remaining
-			 * proof.
-			 */
-			if (isUnknownKidError(error))
-				return authTokenFailure({
-					failureCause: 'UNKNOWN_KID',
-					meta: {operation: error.operation},
-					rateAllowance: Infinity,
-					message: SESSION_EXPIRED_MESSAGE,
-				})
-
-			/**
-			 * A token past its 15-minute life is genuine, and `verifyAuth` falls
-			 * through to the refresh cookie. Charge no ban weight: a slow client
-			 * clock or a request in flight across the expiry boundary must not
-			 * accumulate toward an IP ban. An invalid JWE with a known `kid` stays
-			 * charged.
-			 */
-			if (isJwtExpiredError(error))
-				return authTokenFailure({
-					failureCause: 'EXPIRED_JWE',
-					meta: {operation: error.operation},
-					rateAllowance: Infinity,
-					message: SESSION_EXPIRED_MESSAGE,
-				})
+			if (verdict === 'hkdf') return hkdfFailure(error)
 
 			return authTokenFailure({
-				failureCause: 'INVALID_JWE',
+				...ACCESS_TOKEN_FAILURES[verdict],
 				meta: {operation: error.operation},
-				rateAllowance: 3,
 				message: SESSION_EXPIRED_MESSAGE,
 			})
 		}),

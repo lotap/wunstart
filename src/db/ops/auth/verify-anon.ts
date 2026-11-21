@@ -3,34 +3,24 @@ import {Effect} from 'effect'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 
 import {extractAnonTokenPayload} from './_anon-token.ts'
-import {hkdfFailure, isJwtKeyDerivationError, isUnknownKidError} from './_jwt-utils.ts'
+import {hkdfFailure, jwtFailureVerdict} from './_jwt-utils.ts'
+import {ANON_TOKEN_FAILURES} from './anon-token-policies.ts'
 import {authTokenFailure} from './token-error.ts'
+
+const ANON_VERIFICATION_FAILED_MESSAGE =
+	'We couldn’t verify your session. Refresh the page and try again.'
 
 const _verifyAnon = Effect.fn('verifyAnon')(function* ({token}: {token: string}) {
 	return yield* extractAnonTokenPayload(token).pipe(
 		Effect.mapError((error) => {
-			if (isJwtKeyDerivationError(error)) return hkdfFailure(error)
+			const verdict = jwtFailureVerdict(error)
 
-			/**
-			 * An unknown `kid` is treated as a rotated-out secret; a forged header is
-			 * indistinguishable, so the request caps are the brake. The caller issues
-			 * a fresh Anon. A token with a known `kid` that fails verification stays
-			 * charged.
-			 */
-			if (isUnknownKidError(error))
-				return authTokenFailure({
-					failureCause: 'UNKNOWN_KID',
-					meta: {operation: error.operation},
-					rateAllowance: Infinity,
-					message: 'We couldn’t verify your session. Refresh the page and try again.',
-				})
+			if (verdict === 'hkdf') return hkdfFailure(error)
 
 			return authTokenFailure({
-				failureCause: 'INVALID_JWS',
+				...ANON_TOKEN_FAILURES[verdict],
 				meta: {operation: error.operation},
-				// Only matters if logFailure is true
-				rateAllowance: 3,
-				message: 'We couldn’t verify your session. Refresh the page and try again.',
+				message: ANON_VERIFICATION_FAILED_MESSAGE,
 			})
 		}),
 	)

@@ -1,21 +1,13 @@
-import {Effect, Match} from 'effect'
+import {Effect} from 'effect'
 
 import * as sessionsQueries from '#/db/models/sessions/queries.ts'
 import type {activeTable} from '#/db/models/sessions/schemas.ts'
 
-import {
-	hkdfFailure,
-	isJwtExpiredError,
-	isJwtKeyDerivationError,
-	isUnknownKidError,
-	type JwtHandlerError,
-} from './_jwt-utils.ts'
+import {hkdfFailure, jwtFailureVerdict, type JwtHandlerError} from './_jwt-utils.ts'
 import {extractRefreshTokenPayload} from './_refresh-token.ts'
+import type {RefreshSessionInvalidReason} from './refresh-token-policies.ts'
 
 type SessionRow = (typeof activeTable)['$inferSelect']
-
-/** Why a verified refresh JWS cannot resolve a live session. */
-export type RefreshSessionInvalidReason = 'invalid' | 'expired' | 'unknown-kid'
 
 /**
  * What a refresh token resolves to: a live session, or why it cannot be used.
@@ -34,19 +26,6 @@ export type RefreshSessionResolution =
 			readonly reason: RefreshSessionInvalidReason
 	  }
 	| {readonly status: 'missing'; readonly sessionId: string}
-
-/**
- * Audit cause for an invalid refresh resolution. An expired token is a genuine
- * credential past its life; an unknown `kid` is treated as a rotation state
- * because a forged header is indistinguishable. Only `invalid` is a failed
- * credential presentation.
- */
-export const invalidRefreshFailureCause = (reason: RefreshSessionInvalidReason) =>
-	Match.value(reason).pipe(
-		Match.when('expired', () => 'EXPIRED_JWS'),
-		Match.when('unknown-kid', () => 'UNKNOWN_KID'),
-		Match.orElse(() => 'INVALID_JWS'),
-	)
 
 /**
  * Read the refresh token and load the session it names.
@@ -77,19 +56,17 @@ export const decodeRefreshSession = Effect.fn('decodeRefreshSession')(function* 
 }) {
 	const decoded = yield* extractRefreshTokenPayload(token).pipe(
 		Effect.map((payload) => ({ok: true, payload}) as const),
-		Effect.catchTag('JwtHandlerError', (error) =>
-			isJwtKeyDerivationError(error)
-				? Effect.fail(hkdfFailure(error))
-				: Effect.succeed({
-						ok: false,
-						operation: error.operation,
-						reason: isJwtExpiredError(error)
-							? 'expired'
-							: isUnknownKidError(error)
-								? 'unknown-kid'
-								: 'invalid',
-					} as const),
-		),
+		Effect.catchTag('JwtHandlerError', (error) => {
+			const verdict = jwtFailureVerdict(error)
+
+			if (verdict === 'hkdf') return Effect.fail(hkdfFailure(error))
+
+			return Effect.succeed({
+				ok: false,
+				operation: error.operation,
+				reason: verdict,
+			} as const)
+		}),
 	)
 
 	if (!decoded.ok)

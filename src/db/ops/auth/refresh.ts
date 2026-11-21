@@ -12,15 +12,17 @@ import {renderSessionEndedNotification} from '#/email/templates/session-ended-no
 import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {generateAccessToken} from './_access-token.ts'
-import {hkdfFailure, isJwtKeyDerivationError, isUnknownKidError} from './_jwt-utils.ts'
+import {hkdfFailure, jwtFailureVerdict} from './_jwt-utils.ts'
 import {
 	generateRefreshGraceToken,
 	extractRefreshGraceToken,
 	noncesMatch,
 } from './_refresh-grace-token.ts'
-import {decodeRefreshSession, invalidRefreshFailureCause} from './_refresh-session.ts'
+import {decodeRefreshSession} from './_refresh-session.ts'
 import {generateRefreshToken, type RefreshTokenPayloadCustomClaims} from './_refresh-token.ts'
 import {formatUserAgent} from './_user-agent.ts'
+import {GRACE_REPLAY_FAILURES} from './grace-token-policies.ts'
+import {REFRESH_TOKEN_FAILURES} from './refresh-token-policies.ts'
 import {authTokenFailure} from './token-error.ts'
 
 /** Unexpected internal session state that prevents safe refresh resolution. Wrapped as INTERNAL_ERROR by createOpsFn */
@@ -293,18 +295,19 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 		 * server fn, including sign-in, on every retry. A nonce mismatch stays
 		 * charged.
 		 */
-		Effect.catchTag('JwtHandlerError', (error) =>
-			Effect.fail(
-				isJwtKeyDerivationError(error)
+		Effect.catchTag('JwtHandlerError', (error) => {
+			const verdict = jwtFailureVerdict(error)
+
+			return Effect.fail(
+				verdict === 'hkdf'
 					? hkdfFailure(error)
 					: authTokenFailure({
-							failureCause: isUnknownKidError(error) ? 'UNKNOWN_KID' : 'WRONG_NONCE',
-							rateAllowance: Infinity,
+							...GRACE_REPLAY_FAILURES[verdict],
 							meta: {operation: error.operation},
 							message: SESSION_EXPIRED_MESSAGE,
 						}),
-			),
-		),
+			)
+		}),
 	)
 
 	if (graceTokenData.generation !== refreshGeneration)
@@ -484,9 +487,8 @@ const _refresh = Effect.fn('refresh')(function* ({
 	 */
 	if (resolved.status === 'invalid')
 		return yield* authTokenFailure({
-			failureCause: invalidRefreshFailureCause(resolved.reason),
+			...REFRESH_TOKEN_FAILURES[resolved.reason],
 			meta: {operation: resolved.operation},
-			rateAllowance: resolved.reason === 'invalid' ? 4 : Infinity,
 			message: SESSION_EXPIRED_MESSAGE,
 		})
 

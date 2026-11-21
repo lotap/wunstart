@@ -128,6 +128,31 @@ export const isJwtExpiredError = (error: JwtHandlerError) =>
 	error.cause instanceof errors.JWTExpired
 
 /**
+ * Classify a token failure once so every token path applies the same precedence.
+ * `hkdf` is an infrastructure fault, not a verdict about the presented token;
+ * callers must fail it before applying token policy. This is a classification
+ * input, not the activity `failureCause`; each op maps it to its own audit text.
+ */
+export type JwtFailureVerdict = 'expired' | 'invalid' | 'unknown-kid' | 'hkdf'
+
+/** Ordered classification for a `JwtHandlerError`; only `invalid` is a failed credential presentation. */
+export const jwtFailureVerdict = (error: JwtHandlerError): JwtFailureVerdict => {
+	if (isJwtKeyDerivationError(error)) return 'hkdf'
+
+	if (isJwtExpiredError(error)) return 'expired'
+
+	if (isUnknownKidError(error)) return 'unknown-kid'
+
+	return 'invalid'
+}
+
+/** Cause and allowance for one token verdict. Weight is derived by `createOpsFailure`. */
+export type TokenFailurePolicy = {
+	readonly failureCause: string
+	readonly rateAllowance: number
+}
+
+/**
  * Ops failure for HKDF infra errors. Weight 0 so it never feeds ban thresholds.
  *
  * Uses generic `opsFailure` (not `createOpsFailure`) because no caller discriminates

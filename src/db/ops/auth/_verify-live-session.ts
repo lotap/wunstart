@@ -2,7 +2,8 @@ import {Effect} from 'effect'
 
 import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
-import {decodeRefreshSession, invalidRefreshFailureCause} from './_refresh-session.ts'
+import {decodeRefreshSession} from './_refresh-session.ts'
+import {REFRESH_FAILURE_CAUSES} from './refresh-token-policies.ts'
 import {deadSessionFailure} from './token-error.ts'
 
 /**
@@ -37,7 +38,7 @@ export const verifyLiveSession = Effect.fn('verifyLiveSession')(function* ({
 	 */
 	if (resolved.status === 'invalid')
 		return yield* deadSessionFailure({
-			failureCause: invalidRefreshFailureCause(resolved.reason),
+			failureCause: REFRESH_FAILURE_CAUSES[resolved.reason],
 			userId,
 			meta: {operation: resolved.operation},
 			rateAllowance: Infinity,
