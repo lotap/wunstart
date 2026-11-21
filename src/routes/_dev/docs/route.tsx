@@ -18,9 +18,6 @@ const DocsPage = import.meta.env.DEV
 	: undefined
 
 export const Route = createFileRoute('/_dev/docs')({
-	head: () => ({
-		meta: pageMeta('Docs', 'Developer documentation: setup, architecture, and extension guides.'),
-	}),
 	validateSearch: Schema.toStandardSchemaV1(
 		Schema.Struct({
 			/** `<group>.<key>`, e.g. `reference.auth`; resolved by the explorer. */
@@ -28,6 +25,9 @@ export const Route = createFileRoute('/_dev/docs')({
 		}),
 	),
 	component: DocsRoute,
+	head: () => ({
+		meta: pageMeta('Docs', 'Developer documentation: setup, architecture, and extension guides.'),
+	}),
 })
 
 function DocsRoute() {
