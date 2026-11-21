@@ -16,7 +16,7 @@ const captchaPrompt =
 	'Add a Cloudflare Turnstile challenge after three failed credential attempts. Verify the token server-side before the credential op and store only the verification outcome on the Activity.'
 
 const sharedLimiterPrompt =
-	'Replace the in-memory rate-limit store with a shared, atomic Redis-compatible service such as Redis, Valkey, or Upstash. Keep the 60-second weighted window, the 12,600 threshold, the op denial penalty, and the IPv6 /64 keying; read the connection from environment config and fail open when the store is unavailable. Postgres bans remain the durable ceiling; this layer only rejects bursts across instances.'
+	'Replace the in-memory rate-limit store with a shared, atomic Redis-compatible service such as Redis, Valkey, or Upstash. Keep the 60-second weighted window (WINDOW_MS), the 12,600 threshold (EXCESSIVE_ACTIVITIES_THRESHOLD), the op denial penalty, and the IPv6 /64 keying; read the connection from environment config and fail open when the store is unavailable. Postgres bans remain the durable ceiling; this layer only rejects bursts across instances.'
 
 /** Catalog entry for abuse protection. Details live in the Rate limits & bans reference panel. */
 export function AbuseProtectionFeature() {
@@ -32,19 +32,23 @@ export function AbuseProtectionFeature() {
 				</Prose>
 				<PanelList>
 					<PanelRow label="All server functions">
-						150 requests per minute per IP. Installed once in <InlineCode>src/start.ts</InlineCode>.
+						150 requests per minute per IP, set by <InlineCode>createRateLimit(150)</InlineCode> in{' '}
+						<InlineCode>src/start.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="Auth functions">
-						A tighter limiter sized for 5 requests per minute, on top of the global limit. Attach{' '}
-						<InlineCode>rateLimit</InlineCode> to sign-up, sign-in, and passcode functions.
+						Defaults to 5 requests per minute (<InlineCode>rateLimit</InlineCode> in{' '}
+						<InlineCode>src/middleware/rate-limit.ts</InlineCode>), on top of the global limit.
+						Attach <InlineCode>rateLimit</InlineCode> to sign-up, sign-in, and passcode functions.
 					</PanelRow>
 					<PanelRow label="Credential ops">
 						Check the IP, the claimed email, the User, and the Anon for active bans and excessive
 						activity before verifying anything.
 					</PanelRow>
 					<PanelRow label="Failures">
-						Every op logs an Activity. Enough weight in 10 minutes creates a temporary ban, which
-						can extend up to 120 minutes.
+						Every op logs an Activity. Enough weight in 10 minutes (
+						<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode>) creates a temporary ban,
+						which can extend up to 120 minutes (<InlineCode>PENALTY_INTERVAL_MAX_QTY</InlineCode> in{' '}
+						<InlineCode>src/db/models/bans/consts.ts</InlineCode>).
 					</PanelRow>
 				</PanelList>
 			</PanelSection>
@@ -69,14 +73,20 @@ export function AbuseProtectionFeature() {
 				</Prose>
 				<PanelList>
 					<PanelRow label="threshold">
-						12,600 weighted Activities in a 10-minute window per scope.
+						12,600 (<InlineCode>EXCESSIVE_ACTIVITIES_THRESHOLD</InlineCode>) weighted Activities in
+						a 10-minute window (<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode>) per
+						scope.
 					</PanelRow>
 					<PanelRow label="penalty">
-						10 minutes at the threshold, doubling as weight accumulates, capped at 120 minutes.
+						10 minutes at the threshold, doubling as weight accumulates, capped at 120 minutes (
+						<InlineCode>PENALTY_INTERVAL_INITIAL</InlineCode> and{' '}
+						<InlineCode>PENALTY_INTERVAL_MAX_QTY</InlineCode> in{' '}
+						<InlineCode>src/db/models/bans/consts.ts</InlineCode>).
 					</PanelRow>
 					<PanelRow label="weight">
-						84 for a success. Credential failures use the op’s rate allowance, so a wrong password
-						costs far more than a page read. A denial carries the full threshold.
+						84 (<InlineCode>ACTIVITIES_BASELINE_WEIGHT</InlineCode>) for a success. Credential
+						failures use the op’s rate allowance, so a wrong password costs far more than a page
+						read. A denial carries the full threshold.
 					</PanelRow>
 					<PanelRow label="known IP">
 						A failed-credential ban rejects a new IP but lets the account owner sign in from an IP

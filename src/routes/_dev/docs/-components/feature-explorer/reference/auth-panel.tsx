@@ -24,7 +24,7 @@ const verifyPasscodeChart = (formPath: string) => `flowchart LR
   op -->|"lookup / create"| account[("users · sessions")]
   op -->|"verify code"| verifications[("email_verifications")]
   op -->|"verify hash"| hash{{"AuthHasher DO"}}
-  op -->|"wrong / expired"| retry["count attempt · archive at 4"]
+  op -->|"wrong / expired"| retry["count attempt · archive at max attempts"]
   op -->|"burn code"| archive[("email_verifications_archive")]
   op -->|"create session"| sessions[("sessions")]
   op -->|"retire anon"| anons[("anons · anons_archive")]
@@ -134,7 +134,7 @@ const authFlows: FeatureFlow[] = [
 			'Checks rate limits and bans before issuing or verifying a code.',
 			'A registered anon whose row is missing is replaced with a fresh identity and the request retried once.',
 			'New emails create the account and session. Local email lands in Mailpit.',
-			'Failed sends archive the verification row immediately. Wrong codes count up to four attempts before the row is archived.',
+			'Failed sends archive the verification row immediately. Wrong codes count up to the verifier’s attempt limit before the row is archived.',
 			'A sign-up race against an existing email falls back to sign-in with the already-verified code.',
 		],
 		mailpit: true,
@@ -186,7 +186,7 @@ const authFlows: FeatureFlow[] = [
 		],
 		notes: [
 			'Valid access tokens are decrypted and checked with no Postgres round trip.',
-			'Refresh runs only when the access cookie is missing or invalid. The current generation rotates the session nonce and both token cookies, and records a 30-second grace token on the session for retries.',
+			'Refresh runs only when the access cookie is missing or invalid. The current generation rotates the session nonce and both token cookies, and records a short-lived grace token on the session for retries.',
 			'A one-generation-old refresh token replays through the grace token. Older tokens revoke the session and notify the account owner.',
 			'A future-generation refresh token is rejected without revoking the session.',
 			'Definitive token failures clear both cookies. Rate-limit rejections keep them and fall through to an Anon. Infrastructure failures surface as a 503.',
@@ -253,12 +253,15 @@ export function AuthPanel() {
 						passcode sent to that email is verified.
 					</PanelRow>
 					<PanelRow label="Session">
-						One sign-in. The row stores the refresh generation, device metadata, and a 30-day
-						expiry. Revoking the session ends that sign-in.
+						One sign-in. The row stores the refresh generation, device metadata, and a 30-day expiry
+						(the <InlineCode>expiresAt</InlineCode> default in{' '}
+						<InlineCode>src/db/models/sessions/schemas.ts</InlineCode>). Revoking the session ends
+						that sign-in.
 					</PanelRow>
 					<PanelRow label="Anon">
-						A signed eight-week JWS cookie. It stays stateless until the first meaningful action
-						creates an <InlineCode>anons</InlineCode> row.
+						A signed eight-week JWS cookie (<InlineCode>setAnonCookie</InlineCode> in{' '}
+						<InlineCode>src/middleware/_set-anon-cookie.ts</InlineCode>). It stays stateless until
+						the first meaningful action creates an <InlineCode>anons</InlineCode> row.
 					</PanelRow>
 				</PanelList>
 				<Prose>
@@ -280,11 +283,14 @@ export function AuthPanel() {
 				</Prose>
 				<PanelList>
 					<PanelRow label="lifetime">
-						Fifteen minutes. A new request replaces the active row for that email and identity,
-						subject to a short resend cooldown.
+						Fifteen minutes (the <InlineCode>expiresAt</InlineCode> default in{' '}
+						<InlineCode>src/db/models/email-verifications/schemas.ts</InlineCode>). A new request
+						replaces the active row for that email and identity, subject to a short resend cooldown.
 					</PanelRow>
 					<PanelRow label="attempts">
-						Four wrong codes retire the row. The next request mints a fresh one.
+						Four wrong codes retire the row (<InlineCode>MAX_ATTEMPTS</InlineCode> in{' '}
+						<InlineCode>src/db/ops/auth/email/_verify.ts</InlineCode>). The next request mints a
+						fresh one.
 					</PanelRow>
 					<PanelRow label="storage">
 						Only the Argon2id hash is stored. A send failure archives the row immediately, so a
@@ -313,17 +319,21 @@ export function AuthPanel() {
 			<PanelSection id="auth-sessions" title="Sessions and tokens">
 				<PanelList>
 					<PanelRow label="access">
-						JWE, 15 minutes. Carries <InlineCode>userId</InlineCode> and the optional sudo expiry,
-						and is verified by decryption with no Postgres round trip.
+						JWE, 15 minutes (<InlineCode>ACCESS_TOKEN_EXPIRATION_MILLISECONDS</InlineCode> in{' '}
+						<InlineCode>src/db/ops/auth/_access-token.ts</InlineCode>). Carries{' '}
+						<InlineCode>userId</InlineCode> and the optional sudo expiry, and is verified by
+						decryption with no Postgres round trip.
 					</PanelRow>
 					<PanelRow label="refresh">
-						JWS, tied to a 30-day Session. The session stores only the nonce hash; each refresh
-						rotates the nonce, the generation, and both cookies.
+						JWS, tied to a 30-day Session (the <InlineCode>expiresAt</InlineCode> default). The
+						session stores only the nonce hash; each refresh rotates the nonce, the generation, and
+						both cookies.
 					</PanelRow>
 					<PanelRow label="refresh grace">
-						A 30-second encrypted successor nonce. A token one generation behind replays through it;
-						anything older revokes the session and notifies the owner. A future generation is
-						rejected without revoking.
+						A 30-second encrypted successor nonce (<InlineCode>graceExpiresAt</InlineCode> set by
+						the refresh op). A token one generation behind replays through it; anything older
+						revokes the session and notifies the owner. A future generation is rejected without
+						revoking.
 					</PanelRow>
 					<PanelRow label="cookies">
 						<InlineCode>access</InlineCode>, <InlineCode>refresh</InlineCode>, and{' '}
@@ -343,22 +353,25 @@ export function AuthPanel() {
 						secret map is treated as a rotation state at weight 0, not a failed credential, so
 						returning clients are not IP-banned. Deploy atomically; during a rolling deploy old and
 						new versions reject each other’s tokens. Unused Session rows expire on their normal
-						30-day schedule.
+						Session schedule.
 					</PanelRow>
 				</PanelList>
 				<Prose>
 					A definitive invalid refresh token clears both auth cookies and continues as an Anon. A
 					rate-limit rejection keeps them. An infrastructure failure never looks like an invalid
 					token: the request is rejected with 503 before the handler. Middleware & identity owns
-					that decision table.
+					that decision table. Per-token failure weights live in{' '}
+					<PanelLink panel="abuse">Rate limits & bans</PanelLink>; expired, rotated-out, and
+					unreadable states carry none.
 				</Prose>
 			</PanelSection>
 
 			<PanelSection id="auth-sudo" title="Sudo">
 				<Prose>
-					Sudo is a five-minute lease minted into the access token after a fresh password or email
-					check. Email change, password change, and account removal require it; a stale lease fails
-					before any write with a reverify message.
+					Sudo is a five-minute lease (<InlineCode>SUDO_EXPIRATION_WINDOW</InlineCode> in{' '}
+					<InlineCode>src/db/ops/auth/consts.ts</InlineCode>) minted into the access token after a
+					fresh password or email check. Email change, password change, and account removal require
+					it; a stale lease fails before any write with a reverify message.
 				</Prose>
 				<Prose>
 					Sign-in grants the lease because the user just proved the password. Prompting for the same
@@ -401,7 +414,8 @@ export function AuthPanel() {
 						without an extra read; <InlineCode>useDeadSessionRecovery</InlineCode> then clears the
 						identity cache and refreshes the router, so the page does not keep rendering the dead
 						identity. The reverify check blocks an evicted device from minting a replacement token,
-						so the access token cannot outlive its Session by more than the remaining 15 minutes.
+						so the access token cannot outlive its Session by more than the remaining access-token
+						lifetime.
 					</PanelRow>
 					<PanelRow label="liveness check">
 						Session liveness is one prepared primary-key lookup per guarded action, never per render
@@ -424,8 +438,8 @@ export function AuthPanel() {
 				<PanelList>
 					<PanelRow label="tokens">
 						Self-rolled JWE/JWS plus database Sessions instead of an auth provider, so revocation
-						and ban checks run inline. Access tokens are stateless for 15 minutes; refresh rotation
-						is the revocation point.
+						and ban checks run inline. Access tokens are stateless until expiry; refresh rotation is
+						the revocation point.
 					</PanelRow>
 					<PanelRow label="verify first">
 						No User row exists before inbox proof, so unverified email and password PII never lands
@@ -446,7 +460,7 @@ export function AuthPanel() {
 					</PanelRow>
 					<PanelRow label="passcode limits">
 						No per-email cooldown — an attacker could exhaust it and lock the owner out. Per-IP
-						limits and weighted bans are the ceiling; six sends per IP in ten minutes can ban a
+						limits and weighted bans are the ceiling; enough sends in one activity window can ban a
 						shared NAT, and on a signed-in send the account itself, which is the accepted cost of
 						bounding cookie-dropping.
 					</PanelRow>

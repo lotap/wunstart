@@ -31,7 +31,7 @@ const middlewareLayers = [
 			{
 				name: 'createRateLimit(150)',
 				description:
-					'In-memory per-IP limit: 150 requests per minute. Auth functions add a tighter 5-per-minute limit, fallback refresh attempts use a separate 30-per-minute refresh bucket, and sign-out uses its own 30-per-minute lane; the scoped buckets do not spend the global score.',
+					'In-memory per-IP limit. The global lane defaults to 150 requests per minute; auth, fallback refresh, and sign-out add separate lanes, and the scoped buckets do not spend the global score. Sizes live with the middleware; the abuse reference tabulates them.',
 			},
 			{
 				name: 'verifyAnon',
@@ -59,7 +59,8 @@ const identityOutcomes = [
 	},
 	{
 		situation: 'No auth tokens',
-		outcome: 'The Anon token is verified, or a fresh Anon is issued with an 8-week cookie.',
+		outcome:
+			'The Anon token is verified, or a fresh Anon is issued with an 8-week cookie (src/middleware/_set-anon-cookie.ts).',
 	},
 	{
 		situation: 'AuthTokenError',

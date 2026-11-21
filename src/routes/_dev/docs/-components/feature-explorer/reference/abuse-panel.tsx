@@ -1,14 +1,32 @@
+import {
+	ACTIVITIES_BASELINE_WEIGHT,
+	EXCESSIVE_ACTIVITIES_THRESHOLD,
+} from '#/db/models/activities/consts.ts'
+import type {JwtFailureVerdict, TokenFailurePolicy} from '#/db/ops/auth/_jwt-utils.ts'
+import {ACCESS_TOKEN_FAILURES} from '#/db/ops/auth/access-token-policies.ts'
+import {ANON_TOKEN_FAILURES} from '#/db/ops/auth/anon-token-policies.ts'
+import {GRACE_REPLAY_FAILURES} from '#/db/ops/auth/grace-token-policies.ts'
+import {REFRESH_TOKEN_FAILURES} from '#/db/ops/auth/refresh-token-policies.ts'
+
 import {DocDiagram} from '../../doc-diagram.tsx'
 import {PanelReferences} from '../../doc-links.tsx'
-import {InlineCode, PanelHeader, PanelList, PanelRow, PanelSection, Prose} from '../../doc-ui.tsx'
+import {
+	InlineCode,
+	PanelHeader,
+	PanelList,
+	PanelRow,
+	PanelSection,
+	PanelTableHeader,
+	Prose,
+} from '../../doc-ui.tsx'
 
 const guardrailsChart = `flowchart LR
-  request(["Server fn request"]) -->|"150/min global · 5/min auth"| mw["rateLimit · per-IP score"]
+  request(["Server fn request"]) -->|"global limit"| mw["rateLimit · per-IP score"]
   mw -->|"over limit"| denied["429"]
   mw -->|"server fn"| auth["verifyAuth"]
-  auth -->|"fallback refresh"| refresh["30/min refresh · refresh:IP"]
+  auth -->|"fallback refresh"| refresh["refresh lane · refresh:IP"]
   refresh -->|"over limit"| denied
-  auth -->|"sign-out"| sout["30/min sign-out · sign-out:IP"]
+  auth -->|"sign-out"| sout["sign-out lane · sign-out:IP"]
   sout -->|"over limit"| denied
   auth -->|"server fn"| op["runOp · createOpsFn"]
   op -->|"credential ops"| check["checkCurrentBansAndExcessiveActivities"]
@@ -32,6 +50,64 @@ const references = [
 		label: 'Cloudflare rate limiting rules',
 		href: 'https://developers.cloudflare.com/waf/rate-limiting-rules/',
 	},
+]
+
+const threshold = EXCESSIVE_ACTIVITIES_THRESHOLD.toLocaleString('en-US')
+
+type TokenFailureState = Exclude<JwtFailureVerdict, 'hkdf'>
+
+const tokenStateLabels = {
+	'expired': 'expired',
+	'invalid': 'invalid signature',
+	'unknown-kid': 'retired key (unknown kid)',
+} as const satisfies Record<TokenFailureState, string>
+
+const tokenStateOrder = {
+	'invalid': 0,
+	'expired': 1,
+	'unknown-kid': 2,
+} as const satisfies Record<TokenFailureState, number>
+
+const toTokenFailureRows = (
+	policies: Record<TokenFailureState, TokenFailurePolicy>,
+	omitted: readonly TokenFailureState[] = [],
+) => {
+	const omittedStates = new Set(omitted)
+
+	// SAFETY: Object.keys widens to string; the record is keyed by the closed
+	// TokenFailureState union, so every key it yields is a member.
+	const keys = Object.keys(policies) as TokenFailureState[]
+	const states = keys.filter((state) => !omittedStates.has(state))
+
+	const rows = states.map((state) => {
+		const {failureCause, rateAllowance} = policies[state]
+
+		return {
+			state,
+			cause: failureCause,
+			allowance: rateAllowance,
+			weight: Number.isFinite(rateAllowance)
+				? Math.ceil(EXCESSIVE_ACTIVITIES_THRESHOLD / rateAllowance)
+				: 0,
+		}
+	})
+
+	// oxlint-disable-next-line unicorn/no-array-sort -- ES2023 toSorted is outside this project's lib target
+	rows.sort((a, b) => b.weight - a.weight || tokenStateOrder[a.state] - tokenStateOrder[b.state])
+
+	return rows.map(({state, cause, allowance, weight}) => ({
+		state: tokenStateLabels[state],
+		cause,
+		allowance,
+		weight,
+	}))
+}
+
+const tokenFailureGroups = [
+	{label: 'Access JWE', rows: toTokenFailureRows(ACCESS_TOKEN_FAILURES)},
+	{label: 'Refresh JWS · refresh entry', rows: toTokenFailureRows(REFRESH_TOKEN_FAILURES)},
+	{label: 'Refresh grace · replay', rows: toTokenFailureRows(GRACE_REPLAY_FAILURES, ['expired'])},
+	{label: 'Anon JWS', rows: toTokenFailureRows(ANON_TOKEN_FAILURES, ['expired'])},
 ]
 
 /** Topic docs for rate limits, activity weights, and bans. */
@@ -75,33 +151,40 @@ export function AbusePanel() {
 			<PanelSection id="abuse-request-limiter" title="Request limiter">
 				<Prose>
 					<InlineCode>createRateLimit(max)</InlineCode> admits <InlineCode>max</InlineCode> requests
-					per IP in a 60-second window. Each request adds{' '}
-					<InlineCode>ceil(12,600 / max)</InlineCode> to the IP’s score; the request that pushes the
-					score above 12,600 gets a 429. The scoped refresh and sign-out buckets use the same
-					formula at 30/min, so each attempt weighs 420 in its own key.
+					per IP in a 60-second window (<InlineCode>WINDOW_MS</InlineCode> in{' '}
+					<InlineCode>src/middleware/rate-limit.ts</InlineCode>). Each request adds{' '}
+					<InlineCode>ceil({threshold} / max)</InlineCode> to the IP’s score; the request that
+					pushes the score above {threshold} gets a 429. The scoped refresh and sign-out buckets use
+					the same formula in their own keys.
 				</Prose>
 				<PanelList>
 					<PanelRow label="createRateLimit(150)">
-						The global limiter: 150 requests per minute per IP. Installed in{' '}
-						<InlineCode>src/start.ts</InlineCode>.
+						The global limiter: 150 requests per minute per IP, set by{' '}
+						<InlineCode>createRateLimit(150)</InlineCode> in <InlineCode>src/start.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="rateLimit">
-						The auth limiter: sized for 5 requests per minute per IP on its own. Attach it to
-						sign-up, sign-in, and passcode functions. It shares the global key, so a request that
-						passes both limits consumes both weights from one budget.
+						The auth limiter: 5 requests per minute per IP on its own (
+						<InlineCode>rateLimit</InlineCode> in{' '}
+						<InlineCode>src/middleware/rate-limit.ts</InlineCode>). Attach it to sign-up, sign-in,
+						and passcode functions. It shares the global key, so a request that passes both limits
+						consumes both weights from one budget.
 					</PanelRow>
 					<PanelRow label="refresh bucket">
-						30 fallback refresh attempts per minute per IP. Keyed{' '}
+						30 fallback refresh attempts per minute per IP (
+						<InlineCode>REFRESH_ATTEMPTS_PER_MINUTE</InlineCode> in{' '}
+						<InlineCode>src/middleware/verify-auth.ts</InlineCode>). Keyed{' '}
 						<InlineCode>refresh:&lt;ip&gt;</InlineCode> so it does not spend the global/auth score.
 						Checked in <InlineCode>verifyAuth</InlineCode> before the refresh op; a normal browser
-						refreshes about once per 15 minutes.
+						refreshes about once per access-token lifetime.
 					</PanelRow>
 					<PanelRow label="sign-out bucket">
-						30 sign-out requests per minute per IP, keyed{' '}
+						30 sign-out requests per minute per IP (
+						<InlineCode>SIGN_OUT_ATTEMPTS_PER_MINUTE</InlineCode> in{' '}
+						<InlineCode>src/middleware/rate-limit.ts</InlineCode>), keyed{' '}
 						<InlineCode>sign-out:&lt;ip&gt;</InlineCode>. Both sign-out handlers run the refresh
 						nonce check, but sign-out cannot guess a credential and a shared egress can sign out
-						several devices at once, so the lane bounds the Argon2 work without spending the 5/min
-						auth budget. The global limiter remains the outer bound.
+						several devices at once, so the lane bounds the Argon2 work without spending the auth
+						budget. The global limiter remains the outer bound.
 					</PanelRow>
 					<PanelRow label="storage">
 						An in-memory <InlineCode>Map</InlineCode> in the Worker. It is per isolate, not shared
@@ -129,41 +212,110 @@ export function AbusePanel() {
 				</Prose>
 				<PanelList>
 					<PanelRow label="baseline">
-						84 for a successful activity, derived from 12,600 ÷ 150. A successful action alone never
-						approaches the ban threshold.
+						{ACTIVITIES_BASELINE_WEIGHT} for a successful activity, derived from the threshold ÷ the
+						global request limit. A successful action alone never approaches the ban threshold.
 					</PanelRow>
 					<PanelRow label="passcode sends">
-						Each successful passcode request weighs 2,100 instead, so six sends per IP in ten
-						minutes reach the threshold. A refused resend mails nothing and carries no weight. The
-						weight applies to the IP plus the identity on the row: IP + Anon for an Anon send, IP +
-						User for a signed-in send. A shared NAT can be banned for about twenty minutes; a
+						Each successful passcode request spends a sixth of the threshold instead (
+						<InlineCode>allowRatePerWindow(6)</InlineCode> in{' '}
+						<InlineCode>src/db/ops/auth/email/request-passcode.ts</InlineCode>), so six sends per IP
+						in one activity window reach it. A refused resend mails nothing and carries no weight.
+						The weight applies to the IP plus the identity on the row: IP + Anon for an Anon send,
+						IP + User for a signed-in send. A shared NAT can be banned for the resulting penalty; a
 						signed-in send can also ban the account, which refuses its refresh until the ban lifts
 						while the IP ban blocks signing in again from that address. Retries extend it.
 					</PanelRow>
 					<PanelRow label="credential failure">
-						The op’s <InlineCode>rateAllowance</InlineCode> sets the weight: 4 allows about four
-						failures per window, 6 about six. Wrong passwords, unknown emails, and bad codes share
-						one generic message.
+						The op’s <InlineCode>rateAllowance</InlineCode> sets the weight. Password and passcode
+						ops choose it inline; token entries are tabulated under token failure weights. Wrong
+						passwords, unknown emails, and bad codes share one generic message.
 					</PanelRow>
 					<PanelRow label="rate-limit denial">
-						Carries the full 12,600. A denied attempt is enough to keep the subject banned on its
-						own.
+						Carries the full {threshold}. A denied attempt is enough to keep the subject banned on
+						its own.
 					</PanelRow>
 					<PanelRow label="defect">
 						Zero. A server-side defect is not user behavior and must not feed a ban.
 					</PanelRow>
 				</PanelList>
 				<Prose>
-					Activities are append-only. The daily cron archives rows older than 30 days, and{' '}
+					Activities are append-only. The daily cron archives rows older than 30 days (
+					<InlineCode>retentionWindow</InlineCode> in{' '}
+					<InlineCode>src/db/ops/system/archive-old-activities.ts</InlineCode>), and{' '}
 					<InlineCode>archive-old-activities</InlineCode> runs the same path from a VPS.
+				</Prose>
+			</PanelSection>
+
+			<PanelSection id="abuse-token-failures" title="Token failure weights">
+				<Prose>
+					Token entries classify the failure before they charge anything. Only a token with a known{' '}
+					<InlineCode>kid</InlineCode> that fails verification is a failed credential presentation.
+					Expired, rotated-out, and unreadable states log an Activity at weight 0, so a stale cookie
+					cannot ban an address.
+				</Prose>
+				<div className="overflow-hidden rounded-xl border bg-muted/20">
+					<table className="w-full text-left">
+						<caption className="sr-only">Token failure policy</caption>
+						<thead>
+							<tr className="bg-muted/30">
+								<PanelTableHeader scope="col" className="px-5 py-3">
+									State
+								</PanelTableHeader>
+								<PanelTableHeader scope="col" className="px-5 py-3">
+									Activity cause
+								</PanelTableHeader>
+								<PanelTableHeader scope="col" className="px-5 py-3">
+									Weight
+								</PanelTableHeader>
+								<PanelTableHeader scope="col" className="px-5 py-3">
+									Allowance
+								</PanelTableHeader>
+							</tr>
+						</thead>
+						{tokenFailureGroups.map((group) => (
+							<tbody key={group.label}>
+								<tr className="border-t bg-muted/20">
+									<PanelTableHeader colSpan={4} scope="colgroup" className="px-5 py-2">
+										{group.label}
+									</PanelTableHeader>
+								</tr>
+								{group.rows.map((row) => (
+									<tr key={row.state} className="border-t align-top">
+										<th scope="row" className="px-5 py-3 text-left font-normal">
+											{row.state}
+										</th>
+										<td className="px-5 py-3 text-sm">
+											<InlineCode>{row.cause}</InlineCode>
+										</td>
+										<td className="px-5 py-3 text-sm text-muted-foreground tabular-nums">
+											{row.weight.toLocaleString('en-US')}
+										</td>
+										<td className="px-5 py-3 text-sm text-muted-foreground">
+											{row.allowance === Infinity ? 'no charge' : `${row.allowance} per ban window`}
+										</td>
+									</tr>
+								))}
+							</tbody>
+						))}
+					</table>
+				</div>
+				<Prose>
+					Allowance is the number of failures that spend the full {threshold} threshold; weight is{' '}
+					<InlineCode>ceil({threshold} / allowance)</InlineCode>. Anon and grace tokens carry no{' '}
+					<InlineCode>exp</InlineCode> claim, so their expired rows are unreachable today and
+					omitted; the policy maps still define them, so adding expiry cannot fall through silently.
+					Sign-out, sign-out-all, and the live-session check treat an unusable refresh token as
+					terminal and charge zero in every state.
 				</Prose>
 			</PanelSection>
 
 			<PanelSection id="abuse-bans" title="Bans">
 				<Prose>
 					A ban is one temporary block on one scope. Credential ops check the current bans and the
-					last 10 minutes of weighted activity before they do any work. An IP, User, or Anon match
-					rejects immediately; a failed-credential match follows the known-IP rule below.
+					last 10 minutes of weighted activity (
+					<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode>) before they do any work. An
+					IP, User, or Anon match rejects immediately; a failed-credential match follows the
+					known-IP rule below.
 				</Prose>
 				<PanelList>
 					<PanelRow label="IP_ADDRESS">
@@ -181,10 +333,13 @@ export function AbusePanel() {
 					</PanelRow>
 				</PanelList>
 				<Prose>
-					The window is 10 minutes and the threshold is 12,600 per scope. A new ban starts at 10
-					minutes when the total weight is exactly at the threshold, grows with the accumulated
-					weight, and caps at 120 minutes. A later activity extends only bans of its own scope, so a
-					denied request cannot compound an unrelated ban.
+					The window is 10 minutes (<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode>)
+					and the threshold is {threshold} per scope. A new ban starts at 10 minutes when the total
+					weight is exactly at the threshold, grows with the accumulated weight, and caps at 120
+					minutes (<InlineCode>PENALTY_INTERVAL_INITIAL</InlineCode> and{' '}
+					<InlineCode>PENALTY_INTERVAL_MAX_QTY</InlineCode> in{' '}
+					<InlineCode>src/db/models/bans/consts.ts</InlineCode>). A later activity extends only bans
+					of its own scope, so a denied request cannot compound an unrelated ban.
 				</Prose>
 			</PanelSection>
 
