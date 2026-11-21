@@ -4,6 +4,10 @@ import {Schema} from 'effect'
 
 import {isOpsError} from '#/db/ops/ops-error.ts'
 
+/** Boundary copy for a request the app cannot serve at all. */
+export const SERVICE_UNAVAILABLE_MESSAGE =
+	'We hit a temporary snag on our end. Please try again in a moment.'
+
 /** Tagged error for known server errors that should surface to the client */
 export class KnownServerError extends Schema.TaggedError<
 	KnownServerError,

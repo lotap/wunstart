@@ -334,7 +334,8 @@ export function AbusePanel() {
 				</Prose>
 				<PanelList>
 					<PanelRow label="IP_ADDRESS">
-						The request IP. Applies to every op that receives an IP address.
+						The request IP. Applies to every op that receives an IP address; the boundary rejects a
+						request without a resolvable client IP.
 					</PanelRow>
 					<PanelRow label="FAILED_CREDENTIAL">
 						The email an attempt claimed. Only applied when a User exists and the request comes from

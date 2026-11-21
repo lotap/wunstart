@@ -190,9 +190,10 @@ export function MiddlewarePanel() {
 
 			<PanelSection id="middleware-ip" title="Client IP">
 				<Prose>
-					Production runs on Cloudflare, where the edge supplies the client IP. A deployment that
-					can reach the Worker without a trusted proxy must supply its own overwriting header, or
-					every such client shares one rate-limit bucket and one ban scope.
+					The request boundary reads <InlineCode>cf-connecting-ip</InlineCode>, which Cloudflare
+					overwrites, then the runtime socket address. A deployment behind another proxy must supply
+					its own overwriting header; a per-deployment source setting is deferred. Production
+					rejects a request with no valid client IP instead of inventing one.
 				</Prose>
 				<PanelList>
 					<PanelRow label="trusted header">
@@ -201,9 +202,9 @@ export function MiddlewarePanel() {
 						are ignored because a client can forge them behind a naive proxy.
 					</PanelRow>
 					<PanelRow label="fallback">
-						The runtime socket address when one is exposed, otherwise{' '}
-						<InlineCode>192.0.2.1</InlineCode> — RFC 5737 TEST-NET-1, reserved for documentation and
-						never a real client.
+						The runtime socket address when one is exposed. Development falls back to{' '}
+						<InlineCode>127.0.0.1</InlineCode>; production returns 503 rather than storing a
+						placeholder.
 					</PanelRow>
 					<PanelRow label="stored address">
 						The full address is stored and shown in Settings and security emails. IPv6{' '}
@@ -211,8 +212,8 @@ export function MiddlewarePanel() {
 						displayed history stays exact.
 					</PanelRow>
 					<PanelRow label="system ops">
-						<InlineCode>0.0.0.0</InlineCode> marks a system operation with no client. Neither
-						sentinel ever counts as a known IP for the failed-credential bypass.
+						<InlineCode>0.0.0.0</InlineCode> marks a system operation with no client. It never
+						counts as a known IP for the failed-credential bypass and never reaches a user request.
 					</PanelRow>
 				</PanelList>
 			</PanelSection>

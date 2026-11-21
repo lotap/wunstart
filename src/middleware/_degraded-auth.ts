@@ -3,7 +3,7 @@ import {Schema} from 'effect'
 
 import type {GlobalServerFnContext} from '#/start-types.ts'
 
-import {throwKnownServerError} from './sanitize-errors.ts'
+import {SERVICE_UNAVAILABLE_MESSAGE, throwKnownServerError} from './sanitize-errors.ts'
 
 /**
  * The degraded context state: identity verification could not run due to an infrastructure
@@ -16,8 +16,7 @@ export type DegradedAuth = (typeof DegradedAuthSchema)['Type']
 
 const isDegradedAuth = Schema.is(DegradedAuthSchema)
 
-const reject = () =>
-	throwKnownServerError(503, 'We hit a temporary snag on our end. Please try again in a moment.')
+const reject = () => throwKnownServerError(503, SERVICE_UNAVAILABLE_MESSAGE)
 
 /**
  * Global function middleware, registered after `verifyAnon` in `start.ts`. Rejects

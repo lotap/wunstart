@@ -2,8 +2,10 @@ import {createMiddleware} from '@tanstack/react-start'
 import {getRequestHeader, getRequestIP} from '@tanstack/react-start/server'
 import {Result, Schema} from 'effect'
 
-import {INVALID_IP_SENTINEL} from '#/db/helpers/ip-sentinels.ts'
+import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
 import {IpAddress} from '#/db/helpers/validators.ts'
+
+import {SERVICE_UNAVAILABLE_MESSAGE, throwKnownServerError} from './sanitize-errors.ts'
 
 const PERCENT_ENCODED_PATTERN = /%[0-9A-Fa-f]{2}/
 
@@ -41,12 +43,15 @@ const timezoneHeaderValue = () => {
 }
 
 /**
- * Production is Cloudflare Workers: the edge overwrites `cf-connecting-ip`.
- * Do not trust `X-Forwarded-For`/`Forwarded` here; a client can forge them when
- * the origin is reachable directly. Change this only for a deployment whose
- * proxy is verified to overwrite the header.
+ * The current deployment target is Cloudflare Workers, where the edge
+ * overwrites `cf-connecting-ip`. Do not trust `X-Forwarded-For`/`Forwarded`
+ * here; a client can forge them when the origin is reachable directly. A
+ * per-deployment source setting is the portability follow-up.
  */
 const TRUSTED_IP_HEADER = 'cf-connecting-ip' as const
+
+/** Development-only address when the dev runtime exposes no socket address. */
+const DEV_CLIENT_IP = '127.0.0.1'
 
 const decodeIp = Schema.decodeUnknownResult(IpAddress)
 
@@ -62,15 +67,21 @@ const resolveValidIp = (raw: string | undefined) => {
 export const getRequestInfo = createMiddleware().server(({next}) => {
 	/**
 	 * Preserve the full address for user-facing security displays; IPv6 /64
-	 * normalization belongs to the in-memory rate limiter. An address we cannot
-	 * validate falls back to the shared sentinel so it can never reach `inet` columns.
-	 * The sentinel is also one shared IP_ADDRESS ban target: a deployment reachable
-	 * without a trusted client IP must provide one or fail closed elsewhere.
+	 * normalization belongs to the in-memory rate limiter. The address feeds
+	 * rate limits, bans, and the known-IP bypass, so never invent one: a
+	 * production request that cannot resolve a client IP fails closed, while
+	 * development falls back to loopback so the app stays usable.
 	 */
-	const ipAddress =
+	const resolvedIp =
 		resolveValidIp(getRequestHeader(TRUSTED_IP_HEADER)) ??
 		resolveValidIp(getRequestIP({xForwardedFor: false})) ??
-		INVALID_IP_SENTINEL
+		(import.meta.env.DEV ? DEV_CLIENT_IP : null)
+
+	if (!resolvedIp || !isClientIpAddress(resolvedIp)) {
+		throwKnownServerError(503, SERVICE_UNAVAILABLE_MESSAGE)
+	}
+
+	const ipAddress = resolvedIp
 
 	const userAgent = (getRequestHeader('user-agent') ?? 'unknown').trim().slice(0, 512)
 
