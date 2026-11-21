@@ -22,3 +22,10 @@ export const ANON_SESSION_EXPIRED_MESSAGE = 'Your session expired. Refresh the p
 
 /** The verification row is burned, expired, or superseded. */
 export const INVALID_PASSCODE_MESSAGE = 'That code is no longer valid. Request a fresh one.'
+
+/**
+ * An access-token verification failure. `verifyAuth` falls through to the
+ * refresh cookie, so this never reaches the client and is not the
+ * client-recognized session-expired string.
+ */
+export const ACCESS_TOKEN_FAILURE_MESSAGE = 'The access token could not be verified.'

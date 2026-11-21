@@ -1,10 +1,10 @@
 import {Effect} from 'effect'
 
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
-import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 
 import {extractAccessTokenPayload} from './_access-token.ts'
 import {hkdfFailure, jwtFailureVerdict} from './_jwt-utils.ts'
+import {ACCESS_TOKEN_FAILURE_MESSAGE} from './_messages.ts'
 import {ACCESS_TOKEN_FAILURES} from './access-token-policies.ts'
 import {authTokenFailure} from './token-error.ts'
 
@@ -18,7 +18,7 @@ const _verifyAccess = Effect.fn('verifyAccess')(function* ({token}: {token: stri
 			return authTokenFailure({
 				...ACCESS_TOKEN_FAILURES[verdict],
 				meta: {operation: error.operation},
-				message: SESSION_EXPIRED_MESSAGE,
+				message: ACCESS_TOKEN_FAILURE_MESSAGE,
 			})
 		}),
 	)
