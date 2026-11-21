@@ -9,6 +9,8 @@ import {errors, type JWTHeaderParameters} from 'jose'
 
 import {opsFailure} from '#/db/ops/ops-error.ts'
 
+import {AUTH_INTERNAL_FAILURE_MESSAGE} from './_messages.ts'
+
 /** Infrastructure failure while deriving a token key. */
 class JwtKeyDerivationError extends Schema.TaggedError<
 	JwtKeyDerivationError,
@@ -157,5 +159,5 @@ export const hkdfFailure = (error: JwtHandlerError) =>
 		failureCause: 'INTERNAL_ERROR',
 		rateAllowance: Infinity,
 		meta: {operation: error.operation},
-		message: 'Something went wrong. Please try again later.',
+		message: AUTH_INTERNAL_FAILURE_MESSAGE,
 	})

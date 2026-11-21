@@ -10,6 +10,7 @@ import {createOpsFailure, OpsErrorSchema} from '#/db/ops/ops-error.ts'
 import {generateAccessToken} from './_access-token.ts'
 import type {AnonTokenPayloadCustomClaims} from './_anon-token.ts'
 import {createSession} from './_create-session.ts'
+import {EMAIL_ALREADY_REGISTERED_MESSAGE} from './_messages.ts'
 import {retireAnon} from './_retire-anon.ts'
 import {SUDO_EXPIRATION_WINDOW} from './consts.ts'
 
@@ -79,7 +80,7 @@ export const createUser = Effect.fn('createUser')(function* ({
 								failedCredential: email,
 								anonId: anonId,
 								rateAllowance: 5,
-								message: 'That email already has an account. Try signing in instead.',
+								message: EMAIL_ALREADY_REGISTERED_MESSAGE,
 							}),
 						)
 

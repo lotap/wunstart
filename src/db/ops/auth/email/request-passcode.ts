@@ -12,7 +12,11 @@ import {extractPgCode, extractPgError} from '#/db/ops/_extract-pg-error.ts'
 import {retryTransientDb} from '#/db/ops/_retry.ts'
 import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/_anon-token.ts'
 import {hashTarget} from '#/db/ops/auth/_hashing.ts'
-import {ANON_SESSION_EXPIRED_MESSAGE} from '#/db/ops/auth/_messages.ts'
+import {
+	ANON_SESSION_EXPIRED_MESSAGE,
+	PASSCODE_SEND_FAILED_MESSAGE,
+	PASSCODE_TOO_SOON_MESSAGE,
+} from '#/db/ops/auth/_messages.ts'
 import {verifyLiveSession} from '#/db/ops/auth/_verify-live-session.ts'
 import {PASSCODE_SENDS_PER_WINDOW} from '#/db/ops/auth/consts.ts'
 import {
@@ -292,7 +296,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 				failedCredential: derivedEmail,
 				failureCause: 'TOO_SOON_SINCE_LAST_RESET',
 				rateAllowance: Infinity,
-				message: 'A new code isn’t ready for that address yet. Give it a moment and try again.',
+				message: PASSCODE_TOO_SOON_MESSAGE,
 			})
 
 		/**
@@ -329,7 +333,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 						userId,
 						failedCredential: derivedEmail,
 						meta: {transport: error.transport, code: error.code, kind: error.kind},
-						message: 'We couldn’t send your code. Give it another go.',
+						message: PASSCODE_SEND_FAILED_MESSAGE,
 					})
 				}),
 			),

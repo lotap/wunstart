@@ -8,7 +8,11 @@ import {verifyTarget} from '#/db/ops/auth/_hashing.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 
-import {INVALID_PASSCODE_MESSAGE} from '../_messages.ts'
+import {
+	INVALID_PASSCODE_MESSAGE,
+	TOO_MANY_PASSCODE_ATTEMPTS_MESSAGE,
+	WRONG_PASSCODE_MESSAGE,
+} from '../_messages.ts'
 import {PASSCODE_MAX_ATTEMPTS} from '../consts.ts'
 
 const archiveWithPasscode = (input: {id: string; passcodeHash: string}) =>
@@ -81,7 +85,7 @@ export const verify = Effect.fn('emailVerify')(function* (
 			failureCause: 'MAX_ATTEMPTS',
 			meta: {id},
 			rateAllowance: 4,
-			message: 'Too many tries. Request a fresh code to start over.',
+			message: TOO_MANY_PASSCODE_ATTEMPTS_MESSAGE,
 		})
 	}
 
@@ -131,7 +135,7 @@ export const verify = Effect.fn('emailVerify')(function* (
 					failureCause: 'MAX_ATTEMPTS',
 					meta: {id},
 					rateAllowance: 4,
-					message: 'Too many tries. Request a fresh code to start over.',
+					message: TOO_MANY_PASSCODE_ATTEMPTS_MESSAGE,
 				})
 			}
 
@@ -141,7 +145,7 @@ export const verify = Effect.fn('emailVerify')(function* (
 				failureCause: 'WRONG_CODE',
 				meta: {id},
 				rateAllowance: 12,
-				message: 'That code isn’t right. Double-check it and try again.',
+				message: WRONG_PASSCODE_MESSAGE,
 			})
 		}
 

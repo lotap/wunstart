@@ -12,7 +12,11 @@ import {EmailRenderError, EmailService} from '#/email/service.ts'
 import {renderEmailChangeConfirmation} from '#/email/templates/email-change-confirmation.tsx'
 import {EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 
-import {GENERIC_AUTH_FAILURE_MESSAGE, VERIFICATION_EXPIRED_MESSAGE} from './_messages.ts'
+import {
+	EMAIL_UNCHANGED_MESSAGE,
+	GENERIC_AUTH_FAILURE_MESSAGE,
+	VERIFICATION_EXPIRED_MESSAGE,
+} from './_messages.ts'
 import {formatUserAgent} from './_user-agent.ts'
 import {verifyLiveSession} from './_verify-live-session.ts'
 import {burnPasscode} from './email/_burn-passcode.ts'
@@ -83,7 +87,7 @@ const _emailChange = Effect.fn('emailChange')(function* ({
 		return yield* opsFailure({
 			failureCause: 'NOTHING_TO_UPDATE',
 			userId,
-			message: 'That is already your email address.',
+			message: EMAIL_UNCHANGED_MESSAGE,
 		})
 
 	/**
