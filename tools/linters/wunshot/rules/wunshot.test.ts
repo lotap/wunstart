@@ -3,6 +3,7 @@ import {RuleTester} from 'oxlint/plugins-dev'
 import {noCatchArchiveCountMismatchInTxRule} from './no-catch-archive-count-mismatch-in-tx.ts'
 import {noFailedCredentialInDenialRule} from './no-failed-credential-in-denial.ts'
 import {noPgTableDirectRule} from './no-pgtable-direct.ts'
+import {noReexportRule} from './no-reexport.ts'
 import {noZodValibotRule} from './no-zod-valibot.ts'
 
 const tester = new RuleTester({languageOptions: {parserOptions: {lang: 'ts'}}})
@@ -161,6 +162,61 @@ tester.run('wunshot/no-catch-archive-count-mismatch-in-tx', noCatchArchiveCountM
 		{
 			code: 'const archiveFn = (input, {tx: transaction}) => childArchive(input, {transaction}).pipe(Effect.catchTags({ArchiveCountMismatchError: () => Effect.void}))',
 			errors: [{messageId: 'archiveMismatchInTx'}],
+		},
+	],
+})
+
+tester.run('wunshot/no-reexport', noReexportRule, {
+	valid: [
+		'export const value = 1;',
+		'export function run() {}',
+		'export type Shape = {readonly id: string};',
+		"import {value} from './value.ts'; export const doubled = value * 2;",
+		"import {value} from './value.ts'; const local = value; export {local};",
+		'const local = 1; export {local};',
+		'export default function run() {}',
+		'export default class Run {}',
+	],
+	invalid: [
+		{
+			code: "import {value} from './value.ts'; export {value};",
+			errors: [{messageId: 'forwardingReexport'}],
+		},
+		{
+			code: "import type {Shape} from './shape.ts'; export type {Shape};",
+			errors: [{messageId: 'forwardingReexport'}],
+		},
+		{
+			code: "export {value} from './value.ts';",
+			errors: [{messageId: 'forwardingReexport'}],
+		},
+		{
+			code: "export type {Shape} from './shape.ts';",
+			errors: [{messageId: 'forwardingReexport'}],
+		},
+		{
+			code: "export * from './value.ts';",
+			errors: [{messageId: 'forwardingReexport'}],
+		},
+		{
+			code: "export * as values from './value.ts';",
+			errors: [{messageId: 'forwardingReexport'}],
+		},
+		{
+			code: "import value from './value.ts'; export default value;",
+			errors: [{messageId: 'forwardingReexport'}],
+		},
+		{
+			code: "import * as values from './value.ts'; export {values};",
+			errors: [{messageId: 'forwardingReexport'}],
+		},
+		{
+			code: "export {value}; import {value} from './value.ts';",
+			errors: [{messageId: 'forwardingReexport'}],
+		},
+		{
+			code: "import {value} from './value.ts'; export {value as renamed};",
+			errors: [{messageId: 'forwardingReexport'}],
 		},
 	],
 })

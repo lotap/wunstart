@@ -159,6 +159,14 @@ const config = defineConfig({
 			},
 		},
 
+		/// DB MODULES ///
+		{
+			files: ['src/db/ops/**/*.ts', 'src/db/models/**/*.ts'],
+			rules: {
+				'wunshot/no-reexport': 'error',
+			},
+		},
+
 		/// SERVER ///
 		{
 			files: [
