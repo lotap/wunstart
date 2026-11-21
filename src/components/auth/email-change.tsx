@@ -60,6 +60,8 @@ function NewEmailForm({onCodeSent}: {onCodeSent: (email: string) => void}) {
 
 				<form
 					className="w-full max-w-sm"
+					aria-label="Change email"
+					noValidate
 					onSubmit={(e) => {
 						e.preventDefault()
 						e.stopPropagation()
@@ -73,7 +75,7 @@ function NewEmailForm({onCodeSent}: {onCodeSent: (email: string) => void}) {
 								name="email"
 								validators={[validateAfterFirstSubmit(Schema.toStandardSchemaV1(Email))]}
 							>
-								{(field) => <field.EmailField />}
+								{(field) => <field.EmailField formId="email-change" />}
 							</form.Field>
 
 							<form.OnSubmitErrors />

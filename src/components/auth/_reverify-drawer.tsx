@@ -143,6 +143,8 @@ function ConfirmPasswordForm() {
 
 				<form
 					className="w-full"
+					aria-label="Confirm your password"
+					noValidate
 					onSubmit={(e) => {
 						e.preventDefault()
 						e.stopPropagation()
@@ -156,7 +158,7 @@ function ConfirmPasswordForm() {
 								name="password"
 								validators={[validateAfterFirstSubmit(Schema.toStandardSchemaV1(Password))]}
 							>
-								{(field) => <field.PasswordField />}
+								{(field) => <field.PasswordField formId="reverify" />}
 							</form.Field>
 
 							<form.OnSubmitErrors />

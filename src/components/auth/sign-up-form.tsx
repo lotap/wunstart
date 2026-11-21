@@ -105,6 +105,8 @@ export function SignUpForm() {
 
 					<form
 						className="w-full max-w-sm"
+						aria-label="Sign up"
+						noValidate
 						onSubmit={(e) => {
 							e.preventDefault()
 							e.stopPropagation()
@@ -131,7 +133,7 @@ export function SignUpForm() {
 									]}
 									validators={[validateAfterFirstSubmit(Schema.toStandardSchemaV1(Email))]}
 								>
-									{(field) => <field.EmailField />}
+									{(field) => <field.EmailField formId="sign-up" />}
 								</step0Form.Field>
 
 								<step0Form.OnSubmitErrors />

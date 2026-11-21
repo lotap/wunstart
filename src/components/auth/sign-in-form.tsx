@@ -143,6 +143,8 @@ export function SignInForm() {
 
 					<form
 						className="w-full"
+						aria-label="Sign in"
+						noValidate
 						onSubmit={(e) => {
 							e.preventDefault()
 							e.stopPropagation()
@@ -169,7 +171,7 @@ export function SignInForm() {
 									]}
 									validators={[validateAfterFirstSubmit(Schema.toStandardSchemaV1(Email))]}
 								>
-									{(field) => <field.EmailField />}
+									{(field) => <field.EmailField formId="sign-in" autoComplete="username" />}
 								</step0Form.Field>
 
 								<step0Form.Field
@@ -197,7 +199,9 @@ export function SignInForm() {
 										},
 									]}
 								>
-									{(field) => <field.PasswordField isDisabled={branch !== 'password'} />}
+									{(field) => (
+										<field.PasswordField formId="sign-in" isDisabled={branch !== 'password'} />
+									)}
 								</step0Form.Field>
 
 								{submittedBranch !== 'passcode-send' && <step0Form.OnSubmitErrors />}

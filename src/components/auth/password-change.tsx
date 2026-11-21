@@ -139,6 +139,8 @@ export function ChangePasswordForm({
 
 				<form
 					className="w-full max-w-sm"
+					aria-label="Change password"
+					noValidate
 					onSubmit={(e) => {
 						e.preventDefault()
 						e.stopPropagation()
@@ -164,7 +166,13 @@ export function ChangePasswordForm({
 								}),
 							]}
 						>
-							{(field) => <field.PasswordField strength={strength} autoComplete="new-password" />}
+							{(field) => (
+								<field.PasswordField
+									formId="password-change"
+									strength={strength}
+									autoComplete="new-password"
+								/>
+							)}
 						</form.Field>
 
 						{showSignOutAllSessions && (

@@ -1,34 +1,50 @@
 import type {FieldWithValue} from '@tanstack/react-form'
 
-import {Field, FieldError, FieldLabel} from '#/components/ui/field.tsx'
+import {Field, FieldLabel} from '#/components/ui/field.tsx'
 import {Input} from '#/components/ui/input.tsx'
 
-export function EmailField({field}: {field: FieldWithValue<string>}) {
+import {FormError} from './form-error.tsx'
+
+export function EmailField({
+	field,
+	formId,
+	autoComplete = 'email',
+}: {
+	field: FieldWithValue<string>
+	/** Stable form slug; prefixes the DOM id, not the submitted field name */
+	formId: string
+	/** Sign-in uses `username`; new and changed addresses use `email` */
+	autoComplete?: 'email' | 'username'
+}) {
 	const isInvalid = field.meta.isTouched && !field.meta.isValid
+	const id = `${formId}-${field.name}`
+	const errorId = `${id}-error`
 
 	return (
 		<Field data-invalid={isInvalid}>
-			<FieldLabel htmlFor={field.name} className="sr-only">
+			<FieldLabel htmlFor={id} className="sr-only">
 				Email
 			</FieldLabel>
 
 			<Input
-				id={field.name}
+				id={id}
 				name={field.name}
 				type="email"
 				value={field.value}
 				onBlur={field.handleBlur}
 				onChange={(e) => field.handleChange(e.target.value)}
 				aria-invalid={isInvalid}
-				aria-describedby={isInvalid ? `${field.name}-error` : undefined}
+				aria-describedby={isInvalid ? errorId : undefined}
+				autoComplete={autoComplete}
+				autoCapitalize="none"
+				spellCheck={false}
+				required
 				placeholder="Email address"
 				minLength={6}
 				maxLength={254}
 			/>
 
-			{isInvalid && (
-				<FieldError id={`${field.name}-error`} errors={field.errors} className="text-center" />
-			)}
+			{isInvalid && <FormError id={errorId} errors={field.errors} />}
 		</Field>
 	)
 }
