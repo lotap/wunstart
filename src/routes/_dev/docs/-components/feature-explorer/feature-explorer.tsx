@@ -368,58 +368,59 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 		<PanelNavigationProvider onSelect={selectPanelTarget}>
 			<section ref={sectionRef} className="w-full max-w-5xl">
 				<div className="flex flex-col md:flex-row md:items-start md:gap-6">
+					{/* Reserve the md header height instead of following the dock: the scroll area must not resize when the bar reveals. */}
 					<div
-						className="scrollbar-thin font-mono text-xs md:sticky md:max-h-[calc(100svh-2rem-var(--header-dock,0px))] md:w-60 md:shrink-0 md:overflow-y-auto md:overscroll-contain md:pt-4 md:text-sm md:transition-[top] md:duration-(--header-dock-transition,0ms) md:ease-out"
+						className="font-mono text-xs md:sticky md:flex md:max-h-[calc(100svh-2rem-4.5rem)] md:w-60 md:shrink-0 md:flex-col md:text-sm md:transition-[top] md:duration-(--header-dock-transition,0ms) md:ease-out"
 						style={{top: 'calc(1rem + var(--header-dock, 0px))'}}
 					>
-						<SidePanelGroup
-							group="guide"
-							label="Guides"
-							panels={guidePanels}
-							activeKey={activeGuide}
-							onSelect={selectGuidePanel}
-						/>
+						{/* No overscroll containment: before the sidebar pins, its box can extend past the fold, so the page has to take over at the end of the list. */}
+						<div className="scrollbar-thin md:min-h-0 md:flex-1 md:overflow-y-auto md:pt-4">
+							<SidePanelGroup
+								group="guide"
+								label="Guides"
+								panels={guidePanels}
+								activeKey={activeGuide}
+								onSelect={selectGuidePanel}
+							/>
 
-						<div className="mt-5">
-							<SectionGroupLabel>Features</SectionGroupLabel>
-							<div
-								role="tablist"
-								aria-label="Features"
-								tabIndex={-1}
-								onKeyDown={(event) => handleTabKeyDown(event, selectFeature)}
-								className="mt-1.5 flex flex-wrap gap-1 border-b pb-2 md:flex-col md:flex-nowrap md:border-b-0 md:pb-0"
-							>
-								{featurePanels.map((feature, index) => (
-									<SidebarTab
-										key={feature.key}
-										active={index === activeFeature}
-										tabbable={index === tabbableFeature}
-										label={feature.label}
-										ariaLabel={
-											'planned' in feature ? `${feature.label}, coming soon` : feature.label
-										}
-										id={`feature-tab-${feature.key}`}
-										controls={`feature-panel-${feature.key}`}
-										onClick={() => selectFeature(index)}
-									/>
-								))}
+							<div className="mt-5">
+								<SectionGroupLabel>Features</SectionGroupLabel>
+								<div
+									role="tablist"
+									aria-label="Features"
+									tabIndex={-1}
+									onKeyDown={(event) => handleTabKeyDown(event, selectFeature)}
+									className="mt-1.5 flex flex-wrap gap-1 border-b pb-2 md:flex-col md:flex-nowrap md:border-b-0 md:pb-0"
+								>
+									{featurePanels.map((feature, index) => (
+										<SidebarTab
+											key={feature.key}
+											active={index === activeFeature}
+											tabbable={index === tabbableFeature}
+											label={feature.label}
+											ariaLabel={
+												'planned' in feature ? `${feature.label}, coming soon` : feature.label
+											}
+											id={`feature-tab-${feature.key}`}
+											controls={`feature-panel-${feature.key}`}
+											onClick={() => selectFeature(index)}
+										/>
+									))}
+								</div>
 							</div>
+
+							<SidePanelGroup
+								group="reference"
+								label="Reference"
+								panels={referencePanels}
+								activeKey={activeReference}
+								onSelect={selectReferencePanel}
+								className="mt-5"
+							/>
 						</div>
 
-						<SidePanelGroup
-							group="reference"
-							label="Reference"
-							panels={referencePanels}
-							activeKey={activeReference}
-							onSelect={selectReferencePanel}
-							className="mt-5"
-						/>
-
-						<nav aria-label="Stack" className="mt-5 flex flex-col gap-1">
-							<SectionGroupLabel>Stack</SectionGroupLabel>
-							<div className="flex flex-row flex-wrap gap-1 md:flex-col">
-								<SectionJump label="Architectural overview" target="architectural-overview" />
-							</div>
+						<nav aria-label="Stack" className="mt-3 border-t pt-3 md:pt-2">
+							<SectionJump label="Architectural overview" target="architectural-overview" />
 						</nav>
 					</div>
 
