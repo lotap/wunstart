@@ -18,7 +18,7 @@ Queries live in `queries.ts`, built with helpers from `db/helpers/query-fns.ts`.
 - Case-insensitive email: `lower(email) = lower(placeholder)` matching `uniqueIndex(lower(email))`.
 - `host(ip)`, `unnest` / `array_agg(DISTINCT host(...))` for IP aggregation.
 - `appendUniqueBoundedSql(col, incoming, 32)` (`query-fns.ts`) for metadata arrays read back with `.at(-1)` (session device/location): plain `DISTINCT unnest` destroys recency, and re-visiting a value must move it to the end. JS twin `appendUniqueBounded` (`array-fns.ts`) — keep ordering and cap semantics aligned.
-- Match a specific FK/unique constraint with `extractPgConstraint` (`db/ops/_extract-pg-error.ts`); `extractPgErrorMessage` returns the driver’s generic “Query failed”, not the server’s constraint name. Never classify by matching `ConstraintError` alone — NOT NULL/CHECK must stay internal errors.
+- Match a foreign-key violation by SQLSTATE (`extractPgCode` in `db/ops/_extract-pg-error.ts` returns `23503`); unique violations use the `UniqueViolation` reason tag. Never classify by the generic `ConstraintError` tag alone — NOT NULL (`23502`) and CHECK (`23514`) must stay internal errors. `extractPgErrorMessage` returns the driver’s generic “Query failed”, not the server’s constraint text.
 - `int8` returns string → `BigInt(total ?? 0)`.
 - `eslint-plugin-drizzle` enforced as errors on your db tree: `enforce-delete-with-where`, `enforce-update-with-where`.
 

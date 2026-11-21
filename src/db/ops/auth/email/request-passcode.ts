@@ -8,12 +8,13 @@ import * as emailVerificationsQueries from '#/db/models/email-verifications/quer
 import * as usersQueries from '#/db/models/users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
-import {extractPgConstraint, extractPgError} from '#/db/ops/_extract-pg-error.ts'
+import {extractPgCode, extractPgError} from '#/db/ops/_extract-pg-error.ts'
 import {retryTransientDb} from '#/db/ops/_retry.ts'
 import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/_anon-token.ts'
 import {hashTarget} from '#/db/ops/auth/_hashing.ts'
 import {ANON_SESSION_EXPIRED_MESSAGE} from '#/db/ops/auth/_messages.ts'
 import {verifyLiveSession} from '#/db/ops/auth/_verify-live-session.ts'
+import {PASSCODE_SENDS_PER_WINDOW} from '#/db/ops/auth/consts.ts'
 import {
 	extractErrorProps,
 	allowRatePerWindow,
@@ -42,10 +43,13 @@ export class AnonNotFoundError extends Schema.TaggedError<
 
 const anonNotFoundFailure = createOpsFailure(AnonNotFoundError)
 
-/** The anon FK can fail when a registered token outlives its row; other constraint failures are internal */
-const isAnonFkViolation = (error: EffectDrizzleQueryError | SchemaError) =>
-	Schema.is(EffectDrizzleQueryError)(error) &&
-	extractPgConstraint(error) === 'email_verifications_anon_id_anons_id_fkey'
+/**
+ * A foreign-key violation on the insert can mean the registered anon row
+ * vanished after the pre-check. The catch below asks whether that row is gone;
+ * SQLSTATE 23503 excludes NOT NULL and CHECK violations, which stay internal.
+ */
+const isForeignKeyViolation = (error: EffectDrizzleQueryError | SchemaError) =>
+	Schema.is(EffectDrizzleQueryError)(error) && extractPgCode(error) === '23503'
 
 const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 	input: {email, intent},
@@ -249,29 +253,37 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 				return Effect.fail(drizzleError)
 			}),
 			/**
-			 * Race backstop for the pre-check above: the row can disappear between
-			 * the read and this insert. Match the specific anon constraint so other
-			 * constraint failures still surface as internal errors.
+			 * Race backstop for the pre-check above: the anon row can disappear
+			 * between the read and this insert. On a foreign-key violation, ask
+			 * whether that row is gone; a missing User is a data bug, not a
+			 * recoverable anon state.
 			 */
-			Effect.catchIf(isAnonFkViolation, () =>
-				Effect.fail(
-					anonNotFoundFailure({
+			Effect.catchIf(isForeignKeyViolation, (drizzleError) =>
+				Effect.gen(function* () {
+					if (!registeredAnonId) return yield* drizzleError
+
+					const [anon] = yield* anonsQueries.select({id: registeredAnonId})
+
+					/** The row is still there, so another constraint failed; keep it internal */
+					if (anon) return yield* drizzleError
+
+					return yield* anonNotFoundFailure({
 						failureCause: 'ANON_NOT_FOUND',
 						rateAllowance: Infinity,
 						meta: {anonId: registeredAnonId},
 						message: ANON_SESSION_EXPIRED_MESSAGE,
-					}),
-				),
+					})
+				}),
 			),
 		)
 
 		/**
 		 * A refused resend is a self-throttle, not a failed credential: the row is
-		 * younger than the one-minute reset window, nothing was mailed, and the
-		 * message tells the caller to wait. Charge no ban weight — six clicks in a
-		 * stale tab must not ban the account — and leave request-rate limiting to
-		 * the per-IP middleware. The insert above is the authoritative throttle, so
-		 * a concurrent re-request still hashes and lands here.
+		 * younger than the reset window, nothing was mailed, and the message tells
+		 * the caller to wait. Charge no ban weight — a burst of clicks in a stale
+		 * tab must not ban the account — and leave request-rate limiting to the
+		 * per-IP middleware. The insert above is the authoritative throttle, so a
+		 * concurrent re-request still hashes and lands here.
 		 */
 		if (!data)
 			return yield* opsFailure({
@@ -326,14 +338,15 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 		return {
 			...data,
 			/**
-			 * Six sends per 10 minutes per IP and identity, enforced by the ban
-			 * pipeline: the seventh pre-check denies and creates the bans. An Anon
-			 * send weighs on IP + Anon; a session send weighs on IP + User, so a
-			 * shared NAT can lose sign-in and refresh, and the account can lose
-			 * refresh until the ban lifts. The per-IP middleware (5/min) is burst
-			 * defense; this durable cap is the only per-account email-send bound.
+			 * `PASSCODE_SENDS_PER_WINDOW` sends per activity window per IP and
+			 * identity, enforced by the ban pipeline: the next pre-check denies and
+			 * creates the bans. An Anon send weighs on IP + Anon; a session send
+			 * weighs on IP + User, so a shared NAT can lose sign-in and refresh, and
+			 * the account can lose refresh until the ban lifts. The per-IP middleware
+			 * is burst defense; this durable cap is the only per-account email-send
+			 * bound.
 			 */
-			logging: {anonId: registeredAnonId, weight: allowRatePerWindow(6)},
+			logging: {anonId: registeredAnonId, weight: allowRatePerWindow(PASSCODE_SENDS_PER_WINDOW)},
 		}
 	}).pipe(
 		// oxlint-disable-next-line effecttsgo/strict-effect-provide
