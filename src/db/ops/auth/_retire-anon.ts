@@ -71,9 +71,11 @@ export const retireAnon = Effect.fn('retireAnon')(function* (
 			 * A concurrent archive that loses the delete race raises
 			 * `ArchiveCountMismatchError` instead. Callers retry the whole
 			 * transaction (`retryTransientOrArchiveRace`), so the next attempt finds the
-			 * winner’s row here. Do not catch it inside this transaction: the loser’s
-			 * archive insert would commit as a duplicate; let the error roll back and be
-			 * retried by the caller.
+			 * winner’s row here. An `ArchiveNotFound` means no active row was visible;
+			 * if the winner’s archive row is also not visible yet, the fallback insert
+			 * appends another row, which the append-only archive allows. Do not catch the
+			 * mismatch inside this transaction: the loser’s archive insert would commit
+			 * as a duplicate; let the error roll back and be retried by the caller.
 			 */
 			.pipe(Effect.catchTag('ArchiveNotFoundError', () => Effect.succeed([])))
 

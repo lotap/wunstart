@@ -1,11 +1,12 @@
 /**
  * Cookie name and scope for the current environment.
  *
- * Production defaults to host-only `__Host-Http-` cookies: the browser requires
- * `Secure`, `HttpOnly`, and `Path=/`, and rejects any `Domain`, so the cookie is
- * sent only to the host that set it. Setting `VITE_COOKIE_DOMAIN` in a
- * production build opts into subdomain sharing: names switch to `__Http-` and
- * the cookie carries that `Domain`, so every subdomain under it can set it.
+ * Production defaults to host-only `__Host-Http-` cookies: the `__Host-` prefix
+ * requires `Secure`, `Path=/`, and no `Domain`, so the cookie is sent only to
+ * the host that set it. The app also sets `HttpOnly`. Setting
+ * `VITE_COOKIE_DOMAIN` in a production build opts into subdomain sharing: names
+ * switch to `__Http-` and the cookie carries that `Domain`, so every subdomain
+ * under it can set it.
  *
  * Cookies are scoped by domain and path, not port, so every worktree on
  * `localhost` would otherwise share the same auth cookies. In dev, append the
