@@ -22,22 +22,18 @@ type CookieScope = {
  * - production shared: `__Http-` (Secure, HttpOnly; Domain allowed)
  * - development: no prefix (both prefixes require Secure), branch suffix
  */
-const resolveCookieScope = ({
-	isProduction,
-	configuredDomain,
-	devSuffix,
-}: {
-	isProduction: boolean
-	configuredDomain: string | undefined
-	devSuffix: string | undefined
-}): CookieScope => {
-	if (!isProduction) {
+const resolveCookieScope = (): CookieScope => {
+	if (!import.meta.env.PROD) {
+		const devSuffix = import.meta.env.VITE_COOKIE_SUFFIX
+
 		return {
 			prefix: '',
 			domain: undefined,
 			suffix: devSuffix ? `-${devSuffix}` : '',
 		}
 	}
+
+	const configuredDomain = import.meta.env.VITE_COOKIE_DOMAIN || undefined
 
 	if (configuredDomain) {
 		return {prefix: '__Http-', domain: configuredDomain, suffix: ''}
@@ -46,11 +42,7 @@ const resolveCookieScope = ({
 	return {prefix: '__Host-Http-', domain: undefined, suffix: ''}
 }
 
-const cookieScope = resolveCookieScope({
-	isProduction: import.meta.env.PROD,
-	configuredDomain: import.meta.env.VITE_COOKIE_DOMAIN || undefined,
-	devSuffix: import.meta.env.VITE_COOKIE_SUFFIX,
-})
+const cookieScope = resolveCookieScope()
 
 /** Domain attribute for auth and Anon cookies; undefined keeps them host-only. */
 export const cookieDomain = cookieScope.domain
