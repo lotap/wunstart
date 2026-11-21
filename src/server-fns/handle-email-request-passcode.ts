@@ -17,9 +17,9 @@ import {
 	anonCookieConfig,
 	setAnonCookie,
 } from '#/middleware/_set-anon-cookie.ts'
+import {throwKnownServerError} from '#/middleware/known-server-error.ts'
 import {rateLimit} from '#/middleware/rate-limit.ts'
 import {requireAnon} from '#/middleware/require-anon.ts'
-import {throwKnownServerError} from '#/middleware/sanitize-errors.ts'
 
 export const handleEmailRequestPasscode = createServerFn({method: 'POST'})
 	.middleware([rateLimit, requireAnon])

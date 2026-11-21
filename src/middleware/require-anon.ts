@@ -2,7 +2,7 @@ import {createMiddleware} from '@tanstack/react-start'
 
 import type {GlobalServerFnContext} from '#/start-types.ts'
 
-import {throwKnownServerError} from './sanitize-errors.ts'
+import {throwKnownServerError} from './known-server-error.ts'
 
 /** Shared with `requireAnonRegistered`, which rejects authenticated requests the same way. */
 export const ALREADY_SIGNED_IN_MESSAGE = 'You’re already signed in. Refresh the page to continue.'

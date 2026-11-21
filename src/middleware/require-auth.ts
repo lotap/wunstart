@@ -3,7 +3,7 @@ import {createMiddleware} from '@tanstack/react-start'
 import {SIGN_IN_REQUIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 import type {GlobalServerFnContext} from '#/start-types.ts'
 
-import {throwKnownServerError} from './sanitize-errors.ts'
+import {throwKnownServerError} from './known-server-error.ts'
 
 export const requireAuth = createMiddleware({type: 'function'}).server(async ({next, context}) => {
 	const ctx: unknown = context

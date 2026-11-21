@@ -2,8 +2,8 @@ import {createMiddleware} from '@tanstack/react-start'
 
 import type {GlobalServerFnContext} from '#/start-types.ts'
 
+import {throwKnownServerError} from './known-server-error.ts'
 import {ALREADY_SIGNED_IN_MESSAGE} from './require-anon.ts'
-import {throwKnownServerError} from './sanitize-errors.ts'
 
 export const requireAnonRegistered = createMiddleware({type: 'function'}).server(
 	async ({next, context}) => {

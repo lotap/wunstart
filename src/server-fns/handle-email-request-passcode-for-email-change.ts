@@ -8,9 +8,9 @@ import {emailRequestPasscode} from '#/db/ops/auth/email/request-passcode.ts'
 import {emailLayer} from '#/email/layer.ts'
 import {EmailCredentials} from '#/isomorphic/validations/auth.ts'
 import {runOpClearingDeadSession} from '#/middleware/_run-op.server.ts'
+import {throwKnownServerError} from '#/middleware/known-server-error.ts'
 import {rateLimit} from '#/middleware/rate-limit.ts'
 import {requireAuth} from '#/middleware/require-auth.ts'
-import {throwKnownServerError} from '#/middleware/sanitize-errors.ts'
 
 /**
  * Request a verification code for a new email address

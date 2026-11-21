@@ -4,30 +4,7 @@ import {Schema} from 'effect'
 
 import {isOpsError} from '#/db/ops/ops-error.ts'
 
-/** Boundary copy for a request the app cannot serve at all. */
-export const SERVICE_UNAVAILABLE_MESSAGE =
-	'We hit a temporary snag on our end. Please try again in a moment.'
-
-/** Tagged error for known server errors that should surface to the client */
-export class KnownServerError extends Schema.TaggedError<
-	KnownServerError,
-	{readonly brand: unique symbol}
->()('KnownServerError', {
-	message: Schema.String,
-}) {}
-
-/**
- * Set an HTTP error status and throw the matching `KnownServerError`.
- *
- * Boundary only: ops stay transport-agnostic and use `opsFailure`. The helper
- * never returns, so the status cannot be set without the throw. Declared as a
- * function, not a const arrow: TypeScript only narrows after never-returning
- * calls to function declarations.
- */
-export function throwKnownServerError(status: number, message: string): never {
-	setResponseStatus(status)
-	throw new KnownServerError({message})
-}
+import {KnownServerError} from './known-server-error.ts'
 
 export const sanitizeErrors = createMiddleware().server(async ({next}) => {
 	try {
@@ -45,11 +22,13 @@ export const sanitizeErrors = createMiddleware().server(async ({next}) => {
 		}
 
 		/**
-		 * Status passthrough: this branch sets nothing, so the status the caller
-		 * set with `throwKnownServerError` is what the error response carries.
-		 * Only an ops error is rewritten to 422.
+		 * The status the caller chose is what the error response carries. Only an
+		 * ops error is rewritten to 422.
 		 */
-		if (Schema.is(KnownServerError)(error)) throw new Error(error.message, {cause: error})
+		if (Schema.is(KnownServerError)(error)) {
+			setResponseStatus(error.status)
+			throw new Error(error.message, {cause: error})
+		}
 
 		throw new Error('Something went wrong on our end. Please try again later.', {cause: error})
 	}

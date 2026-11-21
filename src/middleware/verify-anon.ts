@@ -12,7 +12,7 @@ import {RateLimitError} from '#/db/ops/rate-limit-error.ts'
 import type {DegradedAuth} from './_degraded-auth.ts'
 import {runOp} from './_run-op.server.ts'
 import {ANON_TOKEN_COOKIE_NAME, setAnonCookie} from './_set-anon-cookie.ts'
-import {KnownServerError} from './sanitize-errors.ts'
+import {KnownServerError} from './known-server-error.ts'
 import {verifyAuth} from './verify-auth.ts'
 
 /**

@@ -3,7 +3,8 @@ import {Schema} from 'effect'
 
 import type {GlobalServerFnContext} from '#/start-types.ts'
 
-import {SERVICE_UNAVAILABLE_MESSAGE, throwKnownServerError} from './sanitize-errors.ts'
+import {SERVICE_UNAVAILABLE_MESSAGE} from './_messages.ts'
+import {throwKnownServerError} from './known-server-error.ts'
 
 /**
  * The degraded context state: identity verification could not run due to an infrastructure

@@ -5,7 +5,8 @@ import {Result, Schema} from 'effect'
 import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
 import {IpAddress} from '#/db/helpers/validators.ts'
 
-import {SERVICE_UNAVAILABLE_MESSAGE, throwKnownServerError} from './sanitize-errors.ts'
+import {SERVICE_UNAVAILABLE_MESSAGE} from './_messages.ts'
+import {throwKnownServerError} from './known-server-error.ts'
 
 const PERCENT_ENCODED_PATTERN = /%[0-9A-Fa-f]{2}/
 
@@ -52,7 +53,13 @@ const timezoneHeaderValue = () => {
  */
 const TRUSTED_IP_HEADER = 'cf-connecting-ip' as const
 
-/** Development-only address when the dev runtime exposes no socket address. */
+/**
+ * Development-only address when the local runtime exposes no socket address.
+ *
+ * Gate on MODE, not DEV: Vite sets `DEV=false` for every build, and
+ * `build:preview` builds with `--mode development`. A production build uses
+ * mode production and still fails closed.
+ */
 const DEV_CLIENT_IP = '127.0.0.1'
 
 const decodeIp = Schema.decodeUnknownResult(IpAddress)
@@ -77,7 +84,7 @@ export const getRequestInfo = createMiddleware().server(({next}) => {
 	const resolvedIp =
 		resolveValidIp(getRequestHeader(TRUSTED_IP_HEADER)) ??
 		resolveValidIp(getRequestIP({xForwardedFor: false})) ??
-		(import.meta.env.DEV ? DEV_CLIENT_IP : null)
+		(import.meta.env.MODE === 'development' ? DEV_CLIENT_IP : null)
 
 	if (!resolvedIp || !isClientIpAddress(resolvedIp)) {
 		throwKnownServerError(503, SERVICE_UNAVAILABLE_MESSAGE)

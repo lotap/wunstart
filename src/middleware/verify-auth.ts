@@ -19,8 +19,8 @@ import {
 	setAuthCookies,
 } from './_set-auth-cookies.ts'
 import {getRequestInfo} from './get-request-info.ts'
+import {KnownServerError} from './known-server-error.ts'
 import {addRateLimitEvent, allowPerWindow} from './rate-limit.ts'
-import {KnownServerError} from './sanitize-errors.ts'
 
 /**
  * Status-discriminated: `'authenticated'` with tokens and user data, `'degraded'` when

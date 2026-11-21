@@ -10,9 +10,9 @@ import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
 import {runOpClearingDeadSession} from '#/middleware/_run-op.server.ts'
 import {setAnonCookie} from '#/middleware/_set-anon-cookie.ts'
 import {clearAuthCookies} from '#/middleware/_set-auth-cookies.ts'
+import {throwKnownServerError} from '#/middleware/known-server-error.ts'
 import {rateLimit} from '#/middleware/rate-limit.ts'
 import {requireAuth} from '#/middleware/require-auth.ts'
-import {throwKnownServerError} from '#/middleware/sanitize-errors.ts'
 
 export const handlePasswordChange = createServerFn({method: 'POST'})
 	.middleware([rateLimit, requireAuth])
