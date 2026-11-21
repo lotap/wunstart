@@ -38,6 +38,9 @@ const _removeUser = Effect.fn('removeUser')(function* ({
 	sudoExpiresAt?: DateTime.Utc
 	refreshToken: string
 }) {
+	/** Ensure the refresh-token session is still live, not just the access token */
+	yield* verifyLiveSession({refreshToken, userId})
+
 	/** Ensure sudo privileges have not expired */
 	if (!sudoExpiresAt || DateTime.isPastUnsafe(sudoExpiresAt)) {
 		return yield* opsFailure({
@@ -46,9 +49,6 @@ const _removeUser = Effect.fn('removeUser')(function* ({
 			message: VERIFICATION_EXPIRED_MESSAGE,
 		})
 	}
-
-	/** Ensure the refresh-token session is still live, not just the access token */
-	yield* verifyLiveSession({refreshToken, userId})
 
 	/** Before processing, check if the ip address or user should be ratelimited */
 	const currentBansAndExcessiveActivities = yield* checkCurrentBansAndExcessiveActivities({
