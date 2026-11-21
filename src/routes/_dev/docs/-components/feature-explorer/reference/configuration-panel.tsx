@@ -96,7 +96,7 @@ export function ConfigurationPanel() {
 						</dt>
 						<dd className="text-sm leading-relaxed text-muted-foreground">
 							Committed defaults shared by every checkout: <InlineCode>DATABASE_URL</InlineCode>,
-							JWT secrets, the local Hyperdrive URL, and the cookie domain.
+							JWT secrets, and the local Hyperdrive URL.
 						</dd>
 					</div>
 					<div className="flex flex-col gap-2 rounded-xl border bg-muted/20 p-5">

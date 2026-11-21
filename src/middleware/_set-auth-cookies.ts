@@ -1,7 +1,7 @@
 import {deleteCookie, setCookie} from '@tanstack/react-start/server'
 import {DateTime} from 'effect'
 
-import {cookieName} from './_cookie-names.ts'
+import {cookieDomain, cookieName} from './_cookie-config.ts'
 import {ANON_TOKEN_COOKIE_NAME, anonCookieConfig} from './_set-anon-cookie.ts'
 
 export const ACCESS_TOKEN_COOKIE_NAME = cookieName('access')
@@ -12,7 +12,7 @@ export const authCookiesConfig = {
 	sameSite: 'lax',
 	path: '/',
 	secure: import.meta.env.PROD,
-	domain: import.meta.env.VITE_COOKIE_DOMAIN,
+	domain: cookieDomain,
 } as const
 
 /**

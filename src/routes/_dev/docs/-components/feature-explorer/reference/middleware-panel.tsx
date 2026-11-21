@@ -221,18 +221,20 @@ export function MiddlewarePanel() {
 				<Prose>
 					Auth and Anon cookies are <InlineCode>httpOnly</InlineCode>,{' '}
 					<InlineCode>sameSite: &apos;lax&apos;</InlineCode>, scoped to <InlineCode>/</InlineCode>,
-					and secure in production. The domain is <InlineCode>VITE_COOKIE_DOMAIN</InlineCode>;
-					production prefixes both names with <InlineCode>__Http-</InlineCode>. Issuing an auth
-					session deletes the Anon cookie; signing out deletes the auth cookies and issues a fresh
-					Anon.
+					and secure in production. Production defaults to host-only{' '}
+					<InlineCode>__Host-Http-</InlineCode> names: the browser requires{' '}
+					<InlineCode>Secure</InlineCode>, <InlineCode>HttpOnly</InlineCode>, and{' '}
+					<InlineCode>Path=/</InlineCode>, and rejects any <InlineCode>Domain</InlineCode>, so the
+					cookie is sent only to the exact host. Issuing an auth session deletes the Anon cookie;
+					signing out deletes the auth cookies and issues a fresh Anon.
 				</Prose>
 				<Prose>
-					<InlineCode>__Http-</InlineCode> rather than <InlineCode>__Host-</InlineCode>:{' '}
-					<InlineCode>__Host-</InlineCode> forbids the <InlineCode>Domain</InlineCode> attribute
-					that <InlineCode>VITE_COOKIE_DOMAIN</InlineCode> needs for subdomain scoping. Leaving the
-					domain unset gives host-only cookies. In development, a per-branch suffix keeps worktrees
-					on <InlineCode>localhost</InlineCode> from reading each other&apos;s cookies, because
-					cookies ignore ports.
+					Set <InlineCode>VITE_COOKIE_DOMAIN</InlineCode> in a production build only to share auth
+					across subdomains. Names switch to <InlineCode>__Http-</InlineCode> and the cookie carries
+					that <InlineCode>Domain</InlineCode>; every subdomain under it can then set the cookie, so
+					keep untrusted content on a different registrable domain. A dedicated auth host with a
+					short-lived exchange token avoids the shared cookie. In development, plain names carry a
+					per-branch suffix because cookies ignore ports; no domain is needed.
 				</Prose>
 			</PanelSection>
 

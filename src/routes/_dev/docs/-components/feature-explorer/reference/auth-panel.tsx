@@ -347,7 +347,9 @@ export function AuthPanel() {
 						<InlineCode>access</InlineCode>, <InlineCode>refresh</InlineCode>, and{' '}
 						<InlineCode>anon</InlineCode> are httpOnly, SameSite=Lax, path{' '}
 						<InlineCode>/</InlineCode>, and secure in production. Production prefixes them with{' '}
-						<InlineCode>__Http-</InlineCode>. Issuing auth cookies deletes the Anon cookie.
+						<InlineCode>__Host-Http-</InlineCode> and omits <InlineCode>Domain</InlineCode>{' '}
+						(host-only); dev uses plain names plus the branch suffix. Issuing auth cookies deletes
+						the Anon cookie.
 					</PanelRow>
 					<PanelRow label="rollout">
 						Changing a token type’s derivation invalidates every token of that type minted before

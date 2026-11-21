@@ -22,8 +22,10 @@ const environmentGroups: Array<{
 				name: 'VITE_COOKIE_DOMAIN',
 				description: (
 					<>
-						Required. Domain for the auth and anon cookies. <InlineCode>localhost</InlineCode> in
-						development.
+						Production only; development does not need it. Setting it in a production build is the
+						subdomain-sharing opt-in; cookies switch to <InlineCode>__Http-</InlineCode> and carry
+						that <InlineCode>Domain</InlineCode>. Otherwise production uses host-only{' '}
+						<InlineCode>__Host-Http-</InlineCode> cookies with no <InlineCode>Domain</InlineCode>.
 					</>
 				),
 			},
