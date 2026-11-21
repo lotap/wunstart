@@ -26,7 +26,7 @@ export function ExternalFooter() {
 			<div className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-12 text-white mix-blend-difference">
 				<div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
 					<div className="max-w-xl">
-						<p className="max-w-lg text-3xl font-medium tracking-tight md:text-4xl">
+						<p className="max-w-lg font-heading text-3xl font-medium tracking-tight md:text-4xl dark:font-normal">
 							Webdev is finally solved.
 						</p>
 						<Link

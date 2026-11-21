@@ -27,7 +27,9 @@ function StatusPages() {
 				Dev only
 			</p>
 
-			<h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Status pages</h1>
+			<h1 className="mt-4 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
+				Status pages
+			</h1>
 
 			<p className="mt-3 max-w-md text-muted-foreground">
 				Preview the route-level error states and open a real 404. These routes are excluded from
