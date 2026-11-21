@@ -10,6 +10,7 @@ import {
 	InputGroupButton,
 	InputGroupInput,
 } from '#/components/ui/input-group.tsx'
+import type {PasswordStrength} from '#/isomorphic/password-strength.ts'
 
 import PasswordStrengthMeter from './password-strength-meter.tsx'
 
@@ -25,13 +26,14 @@ export function PasswordField({
 	field,
 	isDisabled = false,
 	showStrength = false,
-	strengthUserInputs,
+	strength,
 	autoComplete = 'current-password',
 }: {
 	field: FieldWithValue<string>
 	isDisabled?: boolean
 	showStrength?: boolean
-	strengthUserInputs?: Array<string>
+	/** Latest settled score from {@link usePasswordStrength}; pass alongside showStrength */
+	strength?: PasswordStrength | null
 	autoComplete?: 'current-password' | 'new-password'
 }) {
 	const [showPassword, setShowPassword] = useState(false)
@@ -74,9 +76,7 @@ export function PasswordField({
 				</InputGroupAddon>
 			</InputGroup>
 
-			{showStrength && (
-				<PasswordStrengthMeter value={field.value} userInputs={strengthUserInputs} />
-			)}
+			{showStrength && <PasswordStrengthMeter strength={strength ?? null} />}
 
 			{isInvalid && (
 				<FieldError

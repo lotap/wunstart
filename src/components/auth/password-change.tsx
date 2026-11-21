@@ -1,4 +1,5 @@
 import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
+import {useSelector} from '@tanstack/react-form'
 import {useQuery} from '@tanstack/react-query'
 import {useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
@@ -25,6 +26,7 @@ import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 import {handlePasswordChange} from '#/server-fns/handle-password-change.ts'
 
+import {usePasswordStrength} from './_hooks.ts'
 import {userProfileQueryOptions} from './user-profile.ts'
 
 const ReverifyDrawer = lazy(() =>
@@ -78,6 +80,11 @@ export function ChangePasswordForm({
 			})
 		},
 	})
+
+	const password = useSelector(form.atom, (state) => state.values.password)
+
+	/** One settled zxcvbn result drives both the submit gate and the meter, so they cannot disagree */
+	const strength = usePasswordStrength(password, strengthUserInputs)
 
 	/**
 	 * Always set the initial value to false so it renders closed
@@ -148,11 +155,7 @@ export function ChangePasswordForm({
 							]}
 						>
 							{(field) => (
-								<field.PasswordField
-									showStrength
-									strengthUserInputs={strengthUserInputs}
-									autoComplete="new-password"
-								/>
+								<field.PasswordField showStrength strength={strength} autoComplete="new-password" />
 							)}
 						</form.Field>
 
@@ -169,7 +172,16 @@ export function ChangePasswordForm({
 
 						<form.OnSubmitErrors />
 
-						<form.SubmitButton label="Set password" labelWhileSubmitting="Updating" />
+						{/**
+						 * Disabled until the password is strong; a disabled default button
+						 * also blocks implicit Enter submits. The validator covers only
+						 * the debounce race, and the server re-check stays authoritative
+						 */}
+						<form.SubmitButton
+							label="Set password"
+							labelWhileSubmitting="Updating"
+							buttonProps={{disabled: !strength?.isStrong}}
+						/>
 					</FieldGroup>
 				</form>
 			</div>
