@@ -31,7 +31,6 @@ export type AuthContext = {
 	auth:
 		| ({
 				readonly status: 'authenticated'
-				readonly accessToken: string
 				readonly refreshToken: string
 		  } & Effect.Success<ReturnType<typeof verifyAccessOpType>>)
 		| DegradedAuth
@@ -66,7 +65,7 @@ export const verifyAuth = createMiddleware()
 				// discriminator composes it into the authenticated context.
 				return next({
 					context: {
-						auth: {status: 'authenticated', accessToken, refreshToken, ...tokenData},
+						auth: {status: 'authenticated', refreshToken, ...tokenData},
 					} as AuthContext,
 				})
 			} catch (error) {
@@ -122,7 +121,6 @@ export const verifyAuth = createMiddleware()
 					context: {
 						auth: {
 							status: 'authenticated',
-							accessToken: newAccessToken,
 							refreshToken: newRefreshToken,
 							userId,
 						},
