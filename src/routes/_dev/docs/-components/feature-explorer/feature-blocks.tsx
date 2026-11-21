@@ -90,7 +90,7 @@ function Flow({flow, idPrefix}: {flow: FeatureFlow; idPrefix: string}) {
 
 			{flow.charts.length > 0 && (
 				<details className="group mt-5">
-					<summary className="-ml-2.5 inline-flex h-8 w-fit shrink-0 cursor-pointer list-none items-center justify-center gap-1 rounded-md px-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-all outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:hover:bg-accent/50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&::-webkit-details-marker]:hidden">
+					<summary className="-ml-2.5 inline-flex h-8 w-fit shrink-0 cursor-pointer list-none items-center justify-center gap-1 rounded-md px-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:hover:bg-accent/50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&::-webkit-details-marker]:hidden">
 						<span className="group-open:hidden">View detailed flow</span>
 						<span className="hidden group-open:inline">Hide detailed flow</span>
 						<ChevronDown
