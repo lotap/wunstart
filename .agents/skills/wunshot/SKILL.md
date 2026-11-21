@@ -20,7 +20,7 @@ Read only what the task needs:
 - Op skeleton, `opsFailure`, labels, retry, hashing order, error contract: `references/ops-contract.md`
 - Auth module composition + db-side invariants (eviction, email service, sudo, denial weight): `references/auth.md`
 - Weight routing, ban scopes, array references: `references/bans.md`
-- Comment voice, policy-map comments, IDE-hover docs: § Philosophy below; ops-site comments: `references/ops-contract.md`
+- Comment voice, policy-map comments, IDE-hover docs: § Philosophy below
 
 New module: start at `references/module-walkthrough.md`, then tables-archive → queries-validations → ops-contract as needed.
 
@@ -98,5 +98,5 @@ MORV: Model (migrations, connections, queries) + Operation (business logic, comp
 - Validate then database: malformed input dies before connections open.
 - Server-side processing over DB functions (portable, scales horizontally); exception: dates via DB `now()` (timezone/latency consistency).
 - Casing: files `kebab-case`; columns `snake_case` SQL / `camelCase` TS; types + validations `PascalCase`; exported consts + env `UPPER_SNAKE`; everything else `camelCase`.
-- Comment voice: `/// SECTION ///` banners divide model files (`PRIMITIVES` / `INSERT` / `SELECT` / …). `/** */` above an export is IDE hover; a concise description is useful even when it restates the signature, so keep it accurate. `//` for local explanation or `// SAFETY:` proof; verbosity is fine, but don’t restate a policy map, weight, or closed set that can drift — point to the owner. `{@link Symbol}` for cross-refs.
+- Comment voice: `/// SECTION ///` banners divide model files (`PRIMITIVES` / `INSERT` / `SELECT` / …). `/** */` documents a declaration or a statement-attached invariant — IDE hover where VS Code attaches it; a concise description is useful even when it restates the signature, so keep it accurate. `//` for local explanation or `// SAFETY:` proof; verbosity is fine, but don’t restate a policy map, weight, or closed set that can drift — point to the owner. The exception is a point-of-use explanation of an arbitrary constant’s non-obvious consequence; keep it with the constant and update it with the owner. `{@link Symbol}` for cross-refs.
 Project Effect conventions take precedence over vendored `effect` / `effect-ts` skills.

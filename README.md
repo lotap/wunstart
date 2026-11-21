@@ -271,7 +271,7 @@ Three things update three ways:
 
 Before deploying:
 
-- **Rotate token secret sets when this release changes token derivation.** Any deploy that changes a token’s HKDF purpose tag, payload shape, or a secret value under an existing `kid` must rotate the affected sets to a new `kid` and remove the old `kid` in the same deploy. Keeping the old `kid` charges stale access, refresh, and Anon tokens as invalid credentials (grace is weight 0), which can ban a shared NAT and block sign-in. Verify a pre-deploy token lands in the weight-0 `unknown-kid` path.
+- **Rotate token secret sets when this release changes token derivation.** Any deploy that changes a token’s HKDF purpose tag, payload shape, or a secret value under an existing `kid` must rotate the affected sets to a new `kid` and remove the old `kid` in the same deploy. Keeping the old `kid` charges stale access, refresh-entry, and Anon tokens as invalid credentials (an unreadable grace token is not charged), which can ban a shared NAT and block sign-in. Verify a pre-deploy token lands in the `unknown-kid` rotation path.
 
 Email needs two values in the deployed Worker environment:
 

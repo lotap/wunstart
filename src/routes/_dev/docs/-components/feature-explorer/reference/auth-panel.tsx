@@ -350,10 +350,9 @@ export function AuthPanel() {
 						<InlineCode>__Http-</InlineCode>. Issuing auth cookies deletes the Anon cookie.
 					</PanelRow>
 					<PanelRow label="rollout">
-						Changing a token’s derivation invalidates every token minted before the deploy. A stale{' '}
-						<InlineCode>kid</InlineCode> is charged as an invalid credential; a removed one lands at
-						weight 0. Ship the change with a new <InlineCode>kid</InlineCode> for each affected
-						token type and remove the old one — the README deployment checklist owns the steps.
+						Changing a token type’s derivation invalidates every token of that type minted before
+						the deploy. The README deployment checklist owns the rotation steps;{' '}
+						<PanelLink panel="abuse">Rate limits & bans</PanelLink> owns the failure weights.
 					</PanelRow>
 				</PanelList>
 				<Prose>
@@ -398,7 +397,7 @@ export function AuthPanel() {
 						Verifies the refresh token, requires its Session to still be live in the database and to
 						belong to the authenticated User, and checks the refresh nonce (current or grace
 						generation); then archives every Session for the User, clears the cookies, and issues a
-						new Anon. Unlike single sign-out, a dead session surfaces an error. A nonce mismatch
+						new Anon. Unlike single sign-out, a dead session surfaces an error. A failed nonce check
 						keeps that strict error at weight 0: it cannot archive anything, and the stale state
 						must not ban the account’s recovery path.
 					</PanelRow>
@@ -460,9 +459,8 @@ export function AuthPanel() {
 					</PanelRow>
 					<PanelRow label="passcode limits">
 						No cross-identity per-email cooldown — an attacker could exhaust it and lock the owner
-						out. The per-IP limits, send ceiling, and ban scopes live in{' '}
-						<PanelLink panel="abuse">Rate limits & bans</PanelLink>; the accepted cost is that a
-						shared NAT, and on a signed-in send the account itself, can be banned.
+						out. The per-IP limits, send ceiling, and ban scopes — including the accepted shared-NAT
+						cost — live in <PanelLink panel="abuse">Rate limits & bans</PanelLink>.
 					</PanelRow>
 				</PanelList>
 			</PanelSection>

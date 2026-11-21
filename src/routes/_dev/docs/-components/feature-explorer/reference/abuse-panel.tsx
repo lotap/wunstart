@@ -221,7 +221,9 @@ export function AbusePanel() {
 						global request limit. A successful action alone never approaches the ban threshold.
 					</PanelRow>
 					<PanelRow label="passcode sends">
-						Each successful passcode request spends a sixth of the threshold, so six sends in one
+						Each successful passcode request spends a sixth of the threshold (
+						<InlineCode>allowRatePerWindow(6)</InlineCode> in{' '}
+						<InlineCode>src/db/ops/auth/email/request-passcode.ts</InlineCode>), so six sends in one
 						activity window reach it. The weight applies to the IP plus the identity on the row; a
 						shared NAT, and on a signed-in send the account itself, can be banned. A refusal inside
 						the one-minute reset window (<InlineCode>TOO_SOON_SINCE_LAST_RESET</InlineCode>) mails
@@ -251,8 +253,11 @@ export function AbusePanel() {
 			<PanelSection id="abuse-token-failures" title="Token failure weights">
 				<Prose>
 					Token entries classify the failure before they charge anything. The table below owns the
-					verdicts, causes, and weights; the policy maps are the source of truth. A re-key deploy
-					must remove the old <InlineCode>kid</InlineCode>.
+					verdicts, causes, and weights; the policy maps are the source of truth. The refresh entry
+					also charges a wrong nonce (<InlineCode>attemptRotation</InlineCode>,{' '}
+					<InlineCode>replayFromGraceToken</InlineCode>) and a future generation (
+					<InlineCode>classifySession</InlineCode>); a reuse replay revokes the family (
+					<InlineCode>revokeForReuse</InlineCode>), and a missing session is not charged.
 				</Prose>
 				<div className="overflow-hidden rounded-xl border bg-muted/20">
 					<table className="w-full text-left">
@@ -303,8 +308,8 @@ export function AbusePanel() {
 				<Prose>
 					Allowance is failures per ban window; weight is the threshold divided by allowance,
 					rounded up. Anon and grace expired rows are unreachable today and omitted; the policy maps
-					still define them. Terminal refresh-token handling lives in{' '}
-					<PanelLink panel="auth">Auth</PanelLink>.
+					still define them. Terminal refresh-token handling never feeds the ban threshold; its
+					behavior lives in <PanelLink panel="auth">Auth</PanelLink>.
 				</Prose>
 			</PanelSection>
 

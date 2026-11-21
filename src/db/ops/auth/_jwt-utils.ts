@@ -16,8 +16,7 @@ class JwtKeyDerivationError extends Schema.TaggedError<
 >()('JwtKeyDerivationError', {cause: Schema.Defect()}) {}
 
 /**
- * HKDF purpose tag; changing it (or another key input) invalidates tokens
- * minted before the deploy.
+ * HKDF purpose tag; changing it invalidates that type’s pre-deploy tokens.
  */
 export type TokenPurpose = 'access' | 'refresh' | 'refresh-grace' | 'anon'
 
