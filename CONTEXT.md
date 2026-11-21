@@ -25,7 +25,7 @@ A short-lived privileged window unlocked by re-entering credentials. Code says S
 The unit of business logic in `src/db/ops`, invoked from server code through `runOp`.
 
 **Activity**:
-An append-only security log entry written by every Op: outcome, weight, IP, and credential.
+An append-only security log entry written by an Op: outcome, weight, IP, and credential.
 
 **Weight**:
 How strongly an Activity counts toward a Ban; a wrong password and a rate-limit denial carry different weight.
@@ -37,7 +37,7 @@ A temporary block on one scope — IP, credential (the email the attempt claimed
 The app’s no-hard-delete guarantee: removed data leaves the live tables for an archive twin, so it disappears from the product while audit history survives.
 
 **Email verification**:
-Verify-before-create: a 6-digit passcode authorizes User creation, so every User is verified by construction.
+Verify-before-create: a six-digit passcode authorizes User creation, so every User is verified by construction.
 
 **Static image**:
 A committed raster image imported with `?responsive` and emitted as AVIF variants at build time. Shared images live in `src/assets/images`; private ones live in `-images` beside their owner.

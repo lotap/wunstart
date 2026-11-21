@@ -45,7 +45,9 @@ export function AbuseProtectionFeature() {
 						activity before verifying anything.
 					</PanelRow>
 					<PanelRow label="Failures">
-						Every op logs an Activity. Enough weight in 10 minutes (
+						Ops log an Activity by default; <InlineCode>verifyAccess</InlineCode>,{' '}
+						<InlineCode>verifyAnon</InlineCode>, and <InlineCode>signAnon</InlineCode> skip the
+						success row. Enough weight in 10 minutes (
 						<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode>) creates a temporary ban,
 						which can extend up to 120 minutes (<InlineCode>PENALTY_INTERVAL_MAX_QTY</InlineCode> in{' '}
 						<InlineCode>src/db/models/bans/consts.ts</InlineCode>).
