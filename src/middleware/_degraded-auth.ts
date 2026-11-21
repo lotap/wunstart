@@ -1,10 +1,9 @@
 import {createMiddleware} from '@tanstack/react-start'
-import {setResponseStatus} from '@tanstack/react-start/server'
 import {Schema} from 'effect'
 
 import type {GlobalServerFnContext} from '#/start-types.ts'
 
-import {KnownServerError} from './sanitize-errors.ts'
+import {throwKnownServerError} from './sanitize-errors.ts'
 
 /**
  * The degraded context state: identity verification could not run due to an infrastructure
@@ -17,12 +16,8 @@ export type DegradedAuth = (typeof DegradedAuthSchema)['Type']
 
 const isDegradedAuth = Schema.is(DegradedAuthSchema)
 
-const reject = () => {
-	setResponseStatus(503)
-	throw new KnownServerError({
-		message: 'We hit a temporary snag on our end. Please try again in a moment.',
-	})
-}
+const reject = () =>
+	throwKnownServerError(503, 'We hit a temporary snag on our end. Please try again in a moment.')
 
 /**
  * Global function middleware, registered after `verifyAnon` in `start.ts`. Rejects

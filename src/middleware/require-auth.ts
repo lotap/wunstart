@@ -1,10 +1,9 @@
 import {createMiddleware} from '@tanstack/react-start'
-import {setResponseStatus} from '@tanstack/react-start/server'
 
 import {SIGN_IN_REQUIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 import type {GlobalServerFnContext} from '#/start-types.ts'
 
-import {KnownServerError} from './sanitize-errors.ts'
+import {throwKnownServerError} from './sanitize-errors.ts'
 
 export const requireAuth = createMiddleware({type: 'function'}).server(async ({next, context}) => {
 	const ctx: unknown = context
@@ -23,10 +22,7 @@ export const requireAuth = createMiddleware({type: 'function'}).server(async ({n
 	 * those states apart from this rejection, so the 401 must not be read as
 	 * proof that the cookies are dead.
 	 */
-	if (!auth) {
-		setResponseStatus(401)
-		throw new KnownServerError({message: SIGN_IN_REQUIRED_MESSAGE})
-	}
+	if (!auth) throwKnownServerError(401, SIGN_IN_REQUIRED_MESSAGE)
 
 	return next({context: {auth}})
 })

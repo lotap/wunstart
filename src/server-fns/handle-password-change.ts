@@ -12,7 +12,7 @@ import {setAnonCookie} from '#/middleware/_set-anon-cookie.ts'
 import {clearAuthCookies} from '#/middleware/_set-auth-cookies.ts'
 import {rateLimit} from '#/middleware/rate-limit.ts'
 import {requireAuth} from '#/middleware/require-auth.ts'
-import {KnownServerError} from '#/middleware/sanitize-errors.ts'
+import {throwKnownServerError} from '#/middleware/sanitize-errors.ts'
 
 export const handlePasswordChange = createServerFn({method: 'POST'})
 	.middleware([rateLimit, requireAuth])
@@ -37,7 +37,7 @@ export const handlePasswordChange = createServerFn({method: 'POST'})
 			 */
 			const {isStrong, message} = await checkPasswordStrength(data.password)
 
-			if (!isStrong) throw new KnownServerError({message})
+			if (!isStrong) throwKnownServerError(422, message)
 
 			const {anonToken} = await runOpClearingDeadSession({
 				op: passwordChange,

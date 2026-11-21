@@ -10,7 +10,7 @@ import {EmailCredentials} from '#/isomorphic/validations/auth.ts'
 import {runOpClearingDeadSession} from '#/middleware/_run-op.server.ts'
 import {rateLimit} from '#/middleware/rate-limit.ts'
 import {requireAuth} from '#/middleware/require-auth.ts'
-import {KnownServerError} from '#/middleware/sanitize-errors.ts'
+import {throwKnownServerError} from '#/middleware/sanitize-errors.ts'
 
 /**
  * Request a verification code for a new email address
@@ -25,10 +25,14 @@ export const handleEmailRequestPasscodeForEmailChange = createServerFn({method: 
 	.handler(async ({data: {email}, context: {ipAddress, auth}}) => {
 		const {sudoExpiresAt, userId, refreshToken} = auth
 
+		/**
+		 * Deliberate: sudo is caller policy (the from-session reverify path needs
+		 * none), and the op does not receive `sudoExpiresAt`. A dead session with a
+		 * lapsed lease stops here; the reverify path then fails its live-session
+		 * check and clears the pair. The confirm op re-checks sudo.
+		 */
 		if (!sudoExpiresAt || DateTime.isPastUnsafe(sudoExpiresAt))
-			throw new KnownServerError({
-				message: VERIFICATION_EXPIRED_MESSAGE,
-			})
+			throwKnownServerError(422, VERIFICATION_EXPIRED_MESSAGE)
 
 		const {expiresAt} = await runOpClearingDeadSession({
 			op: emailRequestPasscode,

@@ -1,5 +1,5 @@
 import {createServerFn} from '@tanstack/react-start'
-import {deleteCookie, setResponseStatus} from '@tanstack/react-start/server'
+import {deleteCookie} from '@tanstack/react-start/server'
 import {Schema} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
@@ -19,7 +19,7 @@ import {
 } from '#/middleware/_set-anon-cookie.ts'
 import {rateLimit} from '#/middleware/rate-limit.ts'
 import {requireAnon} from '#/middleware/require-anon.ts'
-import {KnownServerError} from '#/middleware/sanitize-errors.ts'
+import {throwKnownServerError} from '#/middleware/sanitize-errors.ts'
 
 export const handleEmailRequestPasscode = createServerFn({method: 'POST'})
 	.middleware([rateLimit, requireAnon])
@@ -82,12 +82,12 @@ export const handleEmailRequestPasscode = createServerFn({method: 'POST'})
 			} catch (retryError) {
 				if (!Schema.is(AnonNotFoundError)(retryError)) throw retryError
 
-				/** A second miss is not a loop: drop the identity and ask for a reload */
+				/**
+				 * A second miss is not a loop: drop the identity and ask for a reload.
+				 * The 400 is final; `sanitizeErrors` owns the 422 rewrite.
+				 */
 				deleteCookie(ANON_TOKEN_COOKIE_NAME, anonCookieConfig)
-				setResponseStatus(400)
-				throw new KnownServerError({
-					message: ANON_SESSION_EXPIRED_MESSAGE,
-				})
+				throwKnownServerError(400, ANON_SESSION_EXPIRED_MESSAGE)
 			}
 		}
 	})

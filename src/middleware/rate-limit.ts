@@ -1,8 +1,7 @@
 import {createMiddleware, createServerOnlyFn} from '@tanstack/react-start'
-import {setResponseStatus} from '@tanstack/react-start/server'
 
 import {getRequestInfo} from './get-request-info.ts'
-import {KnownServerError} from './sanitize-errors.ts'
+import {throwKnownServerError} from './sanitize-errors.ts'
 
 /**
  * Max accumulated score before a request is rejected.
@@ -118,12 +117,12 @@ export function allowPerWindow(maxAllowedPerWindow: number) {
 
 /**
  * Rejects the request with 429. Wrapped in `createServerOnlyFn` because
- * `setResponseStatus` is a server-only API. This keeps the client build clean
- * while `addRateLimitEvent` stays usable from isomorphic modules.
+ * `throwKnownServerError` calls the server-only `setResponseStatus`. This keeps
+ * the client build clean while `addRateLimitEvent` stays usable from isomorphic
+ * modules.
  */
 const rejectRateLimited = createServerOnlyFn(() => {
-	setResponseStatus(429)
-	throw new KnownServerError({message: 'Slow down a bit, then try again.'})
+	throwKnownServerError(429, 'Slow down a bit, then try again.')
 })
 
 /**
