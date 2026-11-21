@@ -1,10 +1,6 @@
 import type {JwtFailureVerdict, TokenFailurePolicy} from './_jwt-utils.ts'
 
-/**
- * Audit cause by verdict. This is the shared vocabulary: sign-out,
- * sign-out-all, and the live-session check read only this map and charge no
- * weight.
- */
+/** Audit cause by refresh-JWS verdict; nonce checks have their own cause map. */
 export const REFRESH_FAILURE_CAUSES = {
 	'expired': 'EXPIRED_JWS',
 	'invalid': 'INVALID_JWS',
@@ -15,11 +11,19 @@ export const REFRESH_FAILURE_CAUSES = {
 export type RefreshSessionInvalidReason = keyof typeof REFRESH_FAILURE_CAUSES
 
 /**
- * Failure policy for the unauthenticated refresh entry, built from
- * {@link REFRESH_FAILURE_CAUSES}. The allowance is specific to that entry;
- * terminal contexts must read the cause map rather than spread this row, or a
- * stale sign-out would start accruing bans.
+ * `grace-unreadable` is the stored grace JWE failing to decrypt/parse;
+ * `grace-unknown-kid` is a header naming a `kid` dropped from the secret map.
  */
+export type RefreshNonceCheck = 'match' | 'mismatch' | 'grace-unreadable' | 'grace-unknown-kid'
+
+/** Audit cause by nonce-check result for terminal contexts. */
+export const REFRESH_NONCE_CHECK_CAUSES = {
+	'mismatch': 'WRONG_NONCE',
+	'grace-unreadable': 'GRACE_UNREADABLE',
+	'grace-unknown-kid': 'UNKNOWN_KID',
+} as const satisfies Record<Exclude<RefreshNonceCheck, 'match'>, string>
+
+/** Refresh-entry policy; terminal contexts must read the cause maps, not spread this row. */
 export const REFRESH_TOKEN_FAILURES = {
 	'expired': {failureCause: REFRESH_FAILURE_CAUSES.expired, rateAllowance: Infinity},
 	'invalid': {failureCause: REFRESH_FAILURE_CAUSES.invalid, rateAllowance: 4},

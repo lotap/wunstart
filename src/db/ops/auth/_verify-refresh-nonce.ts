@@ -15,22 +15,14 @@ type SessionNonceRow = {
 }
 
 /**
- * Result of a presented refresh nonce check.
- * `grace-unreadable` is a corrupt row, or a token whose known `kid` will not
- * decrypt or parse. `grace-unknown-kid` is a header naming a `kid` dropped from
- * the secret map. Both are weight 0 either way.
- */
-export type RefreshNonceCheck = 'match' | 'mismatch' | 'grace-unreadable' | 'grace-unknown-kid'
-
-/**
  * Verify a presented refresh nonce against a live session row.
  *
  * The current generation is checked against the Argon2 hash. One generation
  * behind is checked against the previous nonce sealed in the grace token.
  * Unlike refresh's replay the grace window itself is not re-checked: this path
  * mints nothing, the session must still be live, and a slightly stale cookie
- * must still be able to end its session (rejecting it would accrue USER ban
- * weight and block refresh for the very user trying to sign out).
+ * must still be able to end its session. Rejecting it would leave the live row
+ * unarchived until it expires.
  *
  * An HKDF failure while opening the grace token is infrastructure, not a token
  * verdict, so it fails the effect instead of returning a weight-0 check result.

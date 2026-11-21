@@ -26,7 +26,6 @@ import {HashingStub} from '#/db/ops/service-bindings.ts'
 import {EmailService} from '#/email/service.ts'
 import {renderNoAccountFound} from '#/email/templates/no-account-found.tsx'
 import {renderVerificationEmail} from '#/email/templates/verify-email.tsx'
-import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 import type {PasscodeIntent} from '#/isomorphic/validations/auth.ts'
 
 const genericFailureOutputMessage = 'Something went wrong. Please try again in a moment.'
@@ -86,12 +85,9 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 	 * the 15-minute access token and 5-minute sudo lease expire.
 	 */
 	if (userId) {
+		/** A missing refresh token is a wiring error, not a dead session; fail as a defect. */
 		if (!refreshToken)
-			return yield* opsFailure({
-				failureCause: 'INVALID_PARAMS',
-				userId,
-				message: SESSION_EXPIRED_MESSAGE,
-			})
+			return yield* Effect.die(new Error('emailRequestPasscode: userId requires a refreshToken'))
 
 		yield* verifyLiveSession({refreshToken, userId})
 	}

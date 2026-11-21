@@ -1,22 +1,16 @@
 import type {JwtFailureVerdict, TokenFailurePolicy} from './_jwt-utils.ts'
 
 /**
- * Grace replay failure policy. The grace JWE carries no `exp`, so the expired
- * row is unreachable today and deliberately matches the corrupt/unreadable
- * state; an unknown kid is the rotated-out state with the cause preserved.
- * Both remain weight 0.
+ * Grace replay policy. The grace JWE has no `exp`, so `expired` is unreachable
+ * and matches the unreadable state; `unknown-kid` is the rotated-out state.
  */
 export const GRACE_REPLAY_FAILURES = {
-	'expired': {failureCause: 'WRONG_NONCE', rateAllowance: Infinity},
-	'invalid': {failureCause: 'WRONG_NONCE', rateAllowance: Infinity},
+	'expired': {failureCause: 'GRACE_UNREADABLE', rateAllowance: Infinity},
+	'invalid': {failureCause: 'GRACE_UNREADABLE', rateAllowance: Infinity},
 	'unknown-kid': {failureCause: 'UNKNOWN_KID', rateAllowance: Infinity},
 } as const satisfies Record<Exclude<JwtFailureVerdict, 'hkdf'>, TokenFailurePolicy>
 
-/**
- * Grace decode verdict to nonce-check reason. The grace JWE carries no `exp`,
- * so the expired row is unreachable today and deliberately matches the corrupt
- * or unreadable state.
- */
+/** Grace-decode verdict to nonce-check reason; `expired` is unreachable and matches the unreadable state. */
 export const GRACE_NONCE_CHECK_FAILURES = {
 	'expired': 'grace-unreadable',
 	'invalid': 'grace-unreadable',

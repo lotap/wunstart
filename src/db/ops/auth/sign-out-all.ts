@@ -9,7 +9,7 @@ import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 import {generateAnonToken} from './_anon-token.ts'
 import {decodeRefreshSession} from './_refresh-session.ts'
 import {verifyRefreshNonce} from './_verify-refresh-nonce.ts'
-import {REFRESH_FAILURE_CAUSES} from './refresh-token-policies.ts'
+import {REFRESH_FAILURE_CAUSES, REFRESH_NONCE_CHECK_CAUSES} from './refresh-token-policies.ts'
 
 /**
  * Remove all sessions for a user based on the given refresh token. Used to sign-out on all devices.
@@ -95,9 +95,9 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 
 	if (nonceCheck !== 'match')
 		return yield* opsFailure({
-			failureCause: nonceCheck === 'grace-unknown-kid' ? 'UNKNOWN_KID' : 'WRONG_NONCE',
+			failureCause: REFRESH_NONCE_CHECK_CAUSES[nonceCheck],
 			/**
-			 * A nonce mismatch cannot archive anything: the access token already
+			 * A nonce check failure cannot archive anything: the access token already
 			 * bound the caller to this user, and the stale generation is reachable
 			 * from ordinary rotation or theft. Keep the strict error, but charge no
 			 * ban weight — this action exists to recover from theft, and a USER ban

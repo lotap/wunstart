@@ -8,7 +8,7 @@ import {SESSION_EXPIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 import {generateAnonToken} from './_anon-token.ts'
 import {decodeRefreshSession} from './_refresh-session.ts'
 import {verifyRefreshNonce} from './_verify-refresh-nonce.ts'
-import {REFRESH_FAILURE_CAUSES} from './refresh-token-policies.ts'
+import {REFRESH_FAILURE_CAUSES, REFRESH_NONCE_CHECK_CAUSES} from './refresh-token-policies.ts'
 
 /**
  * The local sign-out is already complete: the refresh pair is unusable, or its
@@ -71,13 +71,13 @@ const _signOut = Effect.fn('signOut')(function* ({
 
 	const {userId} = session
 
-	/** Ensure the refresh token matches the hash (or grace nonce) stored in the database */
+	/** Check the nonce against the current hash or stored grace nonce. */
 	const nonceCheck = yield* verifyRefreshNonce({session, generation, nonce})
 
-	/** If the refresh token doesn't match, throw an associated error */
+	/** A failed check is terminal; the handler clears cookies at weight 0. */
 	if (nonceCheck !== 'match')
 		return yield* terminalSignOutFailure({
-			failureCause: nonceCheck === 'grace-unknown-kid' ? 'UNKNOWN_KID' : 'WRONG_NONCE',
+			failureCause: REFRESH_NONCE_CHECK_CAUSES[nonceCheck],
 			/** Same terminal-state handling: no ban weight for a sign-out the handler completes locally */
 			rateAllowance: Infinity,
 			userId,
@@ -97,7 +97,6 @@ const _signOut = Effect.fn('signOut')(function* ({
 		}),
 	)
 
-	/** Create a new anon token */
 	const anonToken = yield* generateAnonToken({
 		ipAddresses: [ipAddress],
 		userAgents: [userAgent],
