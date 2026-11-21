@@ -187,7 +187,10 @@ export function AbusePanel() {
 						<InlineCode>src/middleware/verify-auth.ts</InlineCode>). Keyed{' '}
 						<InlineCode>refresh:&lt;ip&gt;</InlineCode> so it does not spend the global/auth score.
 						Checked in <InlineCode>verifyAuth</InlineCode> before the refresh op; a normal browser
-						refreshes about once per access-token lifetime.
+						refreshes about once per access-token lifetime. The lane is per-IP and runs before the
+						token is verified, so on a shared egress a dead pair retrying at the global rate can 429
+						other clients’ refresh fallback for the rest of the window. Per-session keying would
+						need the verification the lane exists to bound.
 					</PanelRow>
 					<PanelRow label="sign-out bucket">
 						30 sign-out requests per minute per IP (
