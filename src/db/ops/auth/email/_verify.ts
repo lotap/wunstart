@@ -9,8 +9,7 @@ import {opsFailure} from '#/db/ops/ops-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 
 import {INVALID_PASSCODE_MESSAGE} from '../_messages.ts'
-
-const MAX_ATTEMPTS = 4
+import {PASSCODE_MAX_ATTEMPTS} from '../consts.ts'
 
 const archiveWithPasscode = (input: {id: string; passcodeHash: string}) =>
 	emailVerificationsCascades.archiveWithPasscode(input).pipe(
@@ -68,7 +67,7 @@ export const verify = Effect.fn('emailVerify')(function* (
 	const {id, attempts, passcodeHash} = verification
 
 	/** Check if already at max attempts */
-	if (attempts >= MAX_ATTEMPTS) {
+	if (attempts >= PASSCODE_MAX_ATTEMPTS) {
 		/**
 		 * Retire the dead row, guarded by its passcode hash so a concurrent new-code
 		 * reset cannot be clobbered. This runs in its own transaction and no caller
@@ -94,15 +93,16 @@ export const verify = Effect.fn('emailVerify')(function* (
 			/**
 			 * Wrong passcode. Increment attempts
 			 *
-			 * Only applies to the same, still-unexpired code generation and never past MAX_ATTEMPTS,
-			 * so a new-code reset or a concurrent burn cannot be overwritten.
+			 * Only applies to the same, still-unexpired code generation and never past
+			 * `PASSCODE_MAX_ATTEMPTS`, so a new-code reset or a concurrent burn cannot
+			 * be overwritten.
 			 */
 			const [incrementedRow] = yield* emailVerificationsQueries
 				.incrementAttempts({
 					...input,
 					id,
 					passcodeHash,
-					maxAttempts: MAX_ATTEMPTS,
+					maxAttempts: PASSCODE_MAX_ATTEMPTS,
 				})
 				.pipe(retryRollbackSafeDb)
 
@@ -117,7 +117,7 @@ export const verify = Effect.fn('emailVerify')(function* (
 					message: INVALID_PASSCODE_MESSAGE,
 				})
 
-			if (incrementedRow.attempts >= MAX_ATTEMPTS) {
+			if (incrementedRow.attempts >= PASSCODE_MAX_ATTEMPTS) {
 				/**
 				 * Max reached. Retire the dead row, guarded by its passcode hash so a
 				 * concurrent reset cannot be clobbered. A concurrent correct submission

@@ -28,6 +28,9 @@ const cookiePrefix = () => {
 	return sharedScope ? '__Http-' : '__Host-Http-'
 }
 
+/** Anon cookie lifetime; the browser drops the identity after it. */
+export const ANON_COOKIE_WEEKS = 8
+
 /** Build a cookie name for the current environment. */
 export const cookieName = (base: string) => {
 	const prefixed = `${cookiePrefix()}${base}`

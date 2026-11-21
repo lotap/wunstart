@@ -5,11 +5,19 @@
  */
 import {
 	ACTIVITIES_BASELINE_WEIGHT,
+	ACTIVITIES_RETENTION_WINDOW,
 	EXCESSIVE_ACTIVITIES_THRESHOLD,
+	EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL,
 } from '#/db/models/activities/consts.ts'
+import {
+	PENALTY_INTERVAL_INITIAL,
+	PENALTY_INTERVAL_MAX_QTY,
+	PENALTY_INTERVAL_UNIT,
+} from '#/db/models/bans/consts.ts'
 import type {JwtFailureVerdict, TokenFailurePolicy} from '#/db/ops/auth/_jwt-utils.ts'
 import {ACCESS_TOKEN_FAILURES} from '#/db/ops/auth/access-token-policies.ts'
 import {ANON_TOKEN_FAILURES} from '#/db/ops/auth/anon-token-policies.ts'
+import {PASSCODE_SENDS_PER_WINDOW} from '#/db/ops/auth/consts.ts'
 import {GRACE_REPLAY_FAILURES} from '#/db/ops/auth/grace-token-policies.ts'
 import {REFRESH_TOKEN_FAILURES} from '#/db/ops/auth/refresh-token-policies.ts'
 
@@ -221,13 +229,15 @@ export function AbusePanel() {
 						global request limit. A successful action alone never approaches the ban threshold.
 					</PanelRow>
 					<PanelRow label="passcode sends">
-						Each successful passcode request spends a sixth of the threshold (
-						<InlineCode>allowRatePerWindow(6)</InlineCode> in{' '}
-						<InlineCode>src/db/ops/auth/email/request-passcode.ts</InlineCode>), so six sends in one
-						activity window reach it. The weight applies to the IP plus the identity on the row; a
-						shared NAT, and on a signed-in send the account itself, can be banned. A refusal inside
-						the one-minute reset window (<InlineCode>TOO_SOON_SINCE_LAST_RESET</InlineCode>) mails
-						nothing and carries no weight.
+						Each successful passcode request spends an equal share of the threshold (
+						<InlineCode>allowRatePerWindow(PASSCODE_SENDS_PER_WINDOW)</InlineCode> in{' '}
+						<InlineCode>src/db/ops/auth/email/request-passcode.ts</InlineCode>), so{' '}
+						{PASSCODE_SENDS_PER_WINDOW} sends in one activity window reach it. The weight applies to
+						the IP plus the identity on the row; a shared NAT, and on a signed-in send the account
+						itself, can be banned. A refusal inside the reset window (
+						<InlineCode>resetFromExpiringByEmail</InlineCode> in{' '}
+						<InlineCode>src/db/models/email-verifications/queries.ts</InlineCode>) mails nothing,
+						carries no weight, and reports <InlineCode>TOO_SOON_SINCE_LAST_RESET</InlineCode>.
 					</PanelRow>
 					<PanelRow label="credential failure">
 						The op’s <InlineCode>rateAllowance</InlineCode> sets the weight. Password and passcode
@@ -243,9 +253,9 @@ export function AbusePanel() {
 					</PanelRow>
 				</PanelList>
 				<Prose>
-					Activities are append-only. The daily cron archives rows older than 30 days (
-					<InlineCode>retentionWindow</InlineCode> in{' '}
-					<InlineCode>src/db/ops/system/archive-old-activities.ts</InlineCode>), and{' '}
+					Activities are append-only. The daily cron archives rows older than{' '}
+					{ACTIVITIES_RETENTION_WINDOW} (the default in{' '}
+					<InlineCode>src/db/models/activities/consts.ts</InlineCode>), and{' '}
 					<InlineCode>archive-old-activities</InlineCode> runs the same path from a VPS.
 				</Prose>
 			</PanelSection>
@@ -316,10 +326,8 @@ export function AbusePanel() {
 			<PanelSection id="abuse-bans" title="Bans">
 				<Prose>
 					A ban is one temporary block on one scope. Credential ops check the current bans and the
-					last 10 minutes of weighted activity (
-					<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode>) before they do any work. An
-					IP, User, or Anon match rejects immediately; a failed-credential match follows the
-					known-IP rule below.
+					recent weighted activity before they do any work. An IP, User, or Anon match rejects
+					immediately; a failed-credential match follows the known-IP rule below.
 				</Prose>
 				<PanelList>
 					<PanelRow label="IP_ADDRESS">
@@ -337,11 +345,10 @@ export function AbusePanel() {
 					</PanelRow>
 				</PanelList>
 				<Prose>
-					The window is 10 minutes (<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode>)
-					and the threshold is {threshold} per scope. A new ban starts at 10 minutes when the total
-					weight is exactly at the threshold, grows with the accumulated weight, and caps at 120
-					minutes (<InlineCode>PENALTY_INTERVAL_INITIAL</InlineCode> and{' '}
-					<InlineCode>PENALTY_INTERVAL_MAX_QTY</InlineCode> in{' '}
+					The window is {EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL} and the threshold is {threshold} per
+					scope (<InlineCode>src/db/models/activities/consts.ts</InlineCode>). A new ban starts at{' '}
+					{PENALTY_INTERVAL_INITIAL} when the total weight is exactly at the threshold, grows with
+					the accumulated weight, and caps at {PENALTY_INTERVAL_MAX_QTY} {PENALTY_INTERVAL_UNIT} (
 					<InlineCode>src/db/models/bans/consts.ts</InlineCode>). A later activity extends only bans
 					of its own scope (<InlineCode>implicatesScope</InlineCode> in{' '}
 					<InlineCode>logActivityAndHandleBans</InlineCode>), so a denied request cannot compound an

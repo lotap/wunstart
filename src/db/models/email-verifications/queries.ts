@@ -135,6 +135,9 @@ export const resetFromExpiringByEmail = createPreparedQuery({
 						and(isNotNull(anonId), eq(anonId, sql.placeholder('anonId'))),
 						and(isNotNull(userId), eq(userId, sql.placeholder('userId'))),
 					),
+					// Reset window: the row must be at least a minute old. A row minted less
+					// than a minute ago still expires more than 14 minutes out, so it fails
+					// this comparison and the re-request is refused instead of resetting.
 					sql`${expiresAt} < now() + '14 minutes'::interval`,
 				),
 			)

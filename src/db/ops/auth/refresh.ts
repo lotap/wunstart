@@ -21,6 +21,7 @@ import {
 import {decodeRefreshSession} from './_refresh-session.ts'
 import {generateRefreshToken, type RefreshTokenPayloadCustomClaims} from './_refresh-token.ts'
 import {formatUserAgent} from './_user-agent.ts'
+import {REFRESH_GRACE_SECONDS} from './consts.ts'
 import {GRACE_REPLAY_FAILURES} from './grace-token-policies.ts'
 import {REFRESH_TOKEN_FAILURES} from './refresh-token-policies.ts'
 import {authTokenFailure} from './token-error.ts'
@@ -94,7 +95,7 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 
 	const now = yield* DateTime.now
 	const newExpiresAt = DateTime.add(now, {days: 30})
-	const graceExpiresAt = DateTime.add(now, {seconds: 30})
+	const graceExpiresAt = DateTime.add(now, {seconds: REFRESH_GRACE_SECONDS})
 
 	const {
 		token: graceToken,

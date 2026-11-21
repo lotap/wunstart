@@ -5,9 +5,7 @@ import {DateTimeUtcFromSeconds, UUID} from '#/db/helpers/validators.ts'
 
 import {AccessTokenSecretsConfig} from './_auth-layer.ts'
 import {generateSaltedKey, getKeyFromSecretsMap, JwtHandlerError} from './_jwt-utils.ts'
-
-/** The window of time that the access token will remain valid */
-const ACCESS_TOKEN_EXPIRATION_MILLISECONDS = 15 * 60 * 1000 // 15 minutes
+import {ACCESS_TOKEN_EXPIRATION_MILLISECONDS} from './consts.ts'
 
 /** Set the algorithm for the JWE */
 const alg = 'dir'

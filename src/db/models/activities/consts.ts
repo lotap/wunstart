@@ -11,3 +11,6 @@ export const EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL = `10 minutes`
 
 /** The weight used by default for successful activities */
 export const ACTIVITIES_BASELINE_WEIGHT = EXCESSIVE_ACTIVITIES_THRESHOLD / 150
+
+/** Default retention window for archived activities. */
+export const ACTIVITIES_RETENTION_WINDOW = '30 days'

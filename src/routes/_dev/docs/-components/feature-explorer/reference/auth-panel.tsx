@@ -3,9 +3,19 @@
  * link. Name the code path behind a behavioral claim.
  * Rules: .agents/skills/wunstart/references/docs.md § Policy prose.
  */
+import {
+	ACCESS_TOKEN_EXPIRATION_MILLISECONDS,
+	PASSCODE_MAX_ATTEMPTS,
+	REFRESH_GRACE_SECONDS,
+} from '#/db/ops/auth/consts.ts'
+import {ANON_COOKIE_WEEKS} from '#/middleware/_cookie-config.ts'
+
 import {PanelLink, PanelReferences} from '../../doc-links.tsx'
 import {InlineCode, PanelHeader, PanelList, PanelRow, PanelSection, Prose} from '../../doc-ui.tsx'
 import {FeatureFlows, type FeatureFlow} from '../feature-blocks.tsx'
+
+/** Access token lifetime in minutes for the sessions table. */
+const accessTokenMinutes = ACCESS_TOKEN_EXPIRATION_MILLISECONDS / 60_000
 
 const requestPasscodeChart = (formPath: string) => `flowchart LR
   form(["${formPath}"]) -->|"email + intent"| fn["handleEmailRequestPasscode"]
@@ -264,7 +274,9 @@ export function AuthPanel() {
 						that sign-in.
 					</PanelRow>
 					<PanelRow label="Anon">
-						A signed eight-week JWS cookie (<InlineCode>setAnonCookie</InlineCode> in{' '}
+						A signed {ANON_COOKIE_WEEKS}-week JWS cookie (<InlineCode>ANON_COOKIE_WEEKS</InlineCode>{' '}
+						in <InlineCode>src/middleware/_cookie-config.ts</InlineCode>, applied by{' '}
+						<InlineCode>setAnonCookie</InlineCode> in{' '}
 						<InlineCode>src/middleware/_set-anon-cookie.ts</InlineCode>). It stays stateless until
 						the first meaningful action creates an <InlineCode>anons</InlineCode> row.
 					</PanelRow>
@@ -296,9 +308,9 @@ export function AuthPanel() {
 						<PanelLink panel="email">Email</PanelLink> for the resend gate.
 					</PanelRow>
 					<PanelRow label="attempts">
-						Four wrong codes retire the row (<InlineCode>MAX_ATTEMPTS</InlineCode> in{' '}
-						<InlineCode>src/db/ops/auth/email/_verify.ts</InlineCode>). The next request mints a
-						fresh one.
+						{PASSCODE_MAX_ATTEMPTS} wrong codes retire the row (
+						<InlineCode>PASSCODE_MAX_ATTEMPTS</InlineCode> in{' '}
+						<InlineCode>src/db/ops/auth/consts.ts</InlineCode>). The next request mints a fresh one.
 					</PanelRow>
 					<PanelRow label="storage">
 						Only the Argon2id hash is stored. A send failure archives the row immediately, so a
@@ -327,21 +339,24 @@ export function AuthPanel() {
 			<PanelSection id="auth-sessions" title="Sessions and tokens">
 				<PanelList>
 					<PanelRow label="access">
-						JWE, 15 minutes (<InlineCode>ACCESS_TOKEN_EXPIRATION_MILLISECONDS</InlineCode> in{' '}
-						<InlineCode>src/db/ops/auth/_access-token.ts</InlineCode>). Carries{' '}
+						JWE, {accessTokenMinutes} minutes (
+						<InlineCode>ACCESS_TOKEN_EXPIRATION_MILLISECONDS</InlineCode> in{' '}
+						<InlineCode>src/db/ops/auth/consts.ts</InlineCode>). Carries{' '}
 						<InlineCode>userId</InlineCode> and the optional sudo expiry, and is verified by
 						decryption with no Postgres round trip.
 					</PanelRow>
 					<PanelRow label="refresh">
-						JWS, tied to a 30-day Session (the <InlineCode>expiresAt</InlineCode> default). The
-						session stores only the nonce hash; each refresh rotates the nonce, the generation, and
-						both cookies.
+						JWS, tied to the Session lifetime (the <InlineCode>expiresAt</InlineCode> default in{' '}
+						<InlineCode>src/db/models/sessions/schemas.ts</InlineCode>). The session stores only the
+						nonce hash; each refresh rotates the nonce, the generation, and both cookies.
 					</PanelRow>
 					<PanelRow label="refresh grace">
-						A 30-second encrypted successor nonce (<InlineCode>graceExpiresAt</InlineCode> set by
-						the refresh op). A token one generation behind replays through it; anything older
-						revokes the session and notifies the owner. A future generation is rejected without
-						revoking.
+						A {REFRESH_GRACE_SECONDS}-second encrypted successor nonce (
+						<InlineCode>graceExpiresAt</InlineCode>, from{' '}
+						<InlineCode>REFRESH_GRACE_SECONDS</InlineCode> in{' '}
+						<InlineCode>src/db/ops/auth/consts.ts</InlineCode>). A token one generation behind
+						replays through it; anything older revokes the session and notifies the owner. A future
+						generation is rejected without revoking.
 					</PanelRow>
 					<PanelRow label="cookies">
 						<InlineCode>access</InlineCode>, <InlineCode>refresh</InlineCode>, and{' '}
@@ -457,8 +472,8 @@ export function AuthPanel() {
 						cannot stand in for another.
 					</PanelRow>
 					<PanelRow label="secrets">
-						Purpose tags do not protect a shared master secret. Production needs four distinct
-						secret sets per environment and database; the generator is deferred.
+						Purpose tags do not protect a shared master secret. Production needs a distinct secret
+						set per token purpose, per environment, and per database; the generator is deferred.
 					</PanelRow>
 					<PanelRow label="passcode limits">
 						No cross-identity per-email cooldown — an attacker could exhaust it and lock the owner
