@@ -1,4 +1,4 @@
-import {HASHING_CONFIG} from '#/db/ops/auth/_hashing.ts'
+import {HASHING_CONFIG} from './_hashing-config.ts'
 
 export function needsRehash(hash: string): boolean {
 	const match = /^\$argon2id\$v=(\d+)\$m=(\d+),t=(\d+),p=(\d+)\$/.exec(hash)

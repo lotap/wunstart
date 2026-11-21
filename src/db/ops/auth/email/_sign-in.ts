@@ -13,8 +13,8 @@ import {renderSignInNotification} from '#/email/templates/sign-in-notification.t
 
 import {formatUserAgent} from '../_user-agent.ts'
 import {burnPasscode} from './_burn-passcode.ts'
+import type {VerifyPasscodeContext} from './_verify-passcode-context.ts'
 import {verify} from './_verify.ts'
-import type {VerifyPasscodeContext} from './verify-passcode.ts'
 
 export const signInWithVerifiedCode = Effect.fn('emailVerifyPasscode.signIn')(function* ({
 	verification,

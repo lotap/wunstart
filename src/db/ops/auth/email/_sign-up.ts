@@ -8,8 +8,8 @@ import {generateNonce} from '#/db/ops/auth/_refresh-token.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 
 import {burnPasscode} from './_burn-passcode.ts'
+import type {VerifyPasscodeContext} from './_verify-passcode-context.ts'
 import {verify} from './_verify.ts'
-import type {VerifyPasscodeContext} from './verify-passcode.ts'
 
 export const signUpWithVerifiedCode = Effect.fn('emailVerifyPasscode.signUp')(function* ({
 	verification,

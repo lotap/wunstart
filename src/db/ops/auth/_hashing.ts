@@ -2,17 +2,7 @@ import {Effect, Schedule, Schema} from 'effect'
 
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 
-/**
- * Options based on https://www.rfc-editor.org/rfc/rfc9106.html#name-recommendations
- * cross-reference https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id
- * & https://tobtu.com/minimum-password-settings/
- */
-export const HASHING_CONFIG = {
-	p: 1, // Parallel
-	t: 3, // Time Cost
-	m: 2 ** 16, // Memory Cost (64 MiB)
-	dkLen: 32, // Hash length
-}
+import {HASHING_CONFIG} from './_hashing-config.ts'
 
 /**
  * A syntactically valid Argon2id PHC string with no matching password.

@@ -45,7 +45,8 @@ export type AnonTokenPayloadCustomClaims = Omit<(typeof AnonTokenPayload)['Type'
  * values can be multi-byte, and a hostile client can exceed the browser cookie
  * limit for its own anon identity — the browser drops the cookie and the next
  * request issues a fresh anon. The database arrays have their own 32-entry
- * bound; these caps are separate.
+ * bound; these caps are separate. They live with the signed-payload schema they
+ * bound, not in the shared constants module.
  */
 export const ANON_METADATA_COOKIE_CAPS = {
 	ipAddresses: 6,

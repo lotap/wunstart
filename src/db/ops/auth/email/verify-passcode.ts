@@ -4,27 +4,16 @@ import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
 import * as sessionsUsersQueries from '#/db/models/sessions---users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
-import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/_anon-token.ts'
 import {UserAlreadyExistsError} from '#/db/ops/auth/_create-user.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import type {EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 
 import {signInWithVerifiedCode} from './_sign-in.ts'
 import {signUpWithVerifiedCode} from './_sign-up.ts'
+import type {VerifyPasscodeContext} from './_verify-passcode-context.ts'
 import {verify} from './_verify.ts'
 
 const genericFailureOutputMessage = 'Something went wrong. Double-check your details and try again.'
-
-export type VerifyPasscodeContext = {
-	email: string
-	ipAddress: string
-	userAgent: string
-	country: string
-	city: string | null
-	region: string | null
-	timezone: string | null
-	anonTokenPayload: AnonTokenPayloadCustomClaims
-}
 
 const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 	input: {email, passcode},
@@ -37,19 +26,21 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 	anonTokenPayload,
 }: {
 	input: (typeof EmailPasscodeCredentials)['Type']
-	ipAddress: string
-	userAgent: string
-	country: string
-	city: string | null
-	region: string | null
-	timezone: string | null
-	anonTokenPayload: AnonTokenPayloadCustomClaims
-}) {
+} & Omit<VerifyPasscodeContext, 'email'>) {
 	const {id: anonId} = anonTokenPayload
 	/** Only registered anons have a database row, so only their id may populate the FK column */
 	const registeredAnonId = anonTokenPayload.registered ? anonId : undefined
 
-	const ctx = {email, ipAddress, userAgent, country, city, region, timezone, anonTokenPayload}
+	const ctx: VerifyPasscodeContext = {
+		email,
+		ipAddress,
+		userAgent,
+		country,
+		city,
+		region,
+		timezone,
+		anonTokenPayload,
+	}
 
 	/** Before processing, check if the ip address should be ratelimited */
 	const currentBansAndExcessiveActivities = yield* checkCurrentBansAndExcessiveActivities({
