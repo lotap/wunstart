@@ -292,7 +292,8 @@ export function AuthPanel() {
 					<PanelRow label="lifetime">
 						Fifteen minutes (the <InlineCode>expiresAt</InlineCode> default in{' '}
 						<InlineCode>src/db/models/email-verifications/schemas.ts</InlineCode>). A new request
-						replaces the active row for that email and identity, subject to a short resend cooldown.
+						replaces the active row for that email and identity; see{' '}
+						<PanelLink panel="email">Email</PanelLink> for the resend gate.
 					</PanelRow>
 					<PanelRow label="attempts">
 						Four wrong codes retire the row (<InlineCode>MAX_ATTEMPTS</InlineCode> in{' '}
@@ -349,18 +350,10 @@ export function AuthPanel() {
 						<InlineCode>__Http-</InlineCode>. Issuing auth cookies deletes the Anon cookie.
 					</PanelRow>
 					<PanelRow label="rollout">
-						Changing a token’s derivation — HKDF purpose, a secret value under the same{' '}
-						<InlineCode>kid</InlineCode>, or payload shape — invalidates every token minted before
-						the deploy. Users sign out, Anon identities reset, and grace replays fail. The old{' '}
-						<InlineCode>kid</InlineCode> still resolves, so access, refresh, and Anon failures are
-						charged as invalid credentials (an undecodable grace token is weight 0); to land in the
-						weight-0 rotation state instead, ship the change with a new <InlineCode>kid</InlineCode>{' '}
-						for each affected token type and remove the old one (adding the new one alongside does
-						not help — the old key still derives the new purpose). A token whose{' '}
-						<InlineCode>kid</InlineCode> is no longer in the secret map is treated as a rotation
-						state at weight 0, not a failed credential, so returning clients are not IP-banned.
-						Deploy atomically; during a rolling deploy old and new versions reject each other’s
-						tokens. Unused Session rows expire on their normal Session schedule.
+						Changing a token’s derivation invalidates every token minted before the deploy. A stale{' '}
+						<InlineCode>kid</InlineCode> is charged as an invalid credential; a removed one lands at
+						weight 0. Ship the change with a new <InlineCode>kid</InlineCode> for each affected
+						token type and remove the old one — the README deployment checklist owns the steps.
 					</PanelRow>
 				</PanelList>
 				<Prose>
@@ -466,8 +459,8 @@ export function AuthPanel() {
 						secret sets per environment and database; the generator is deferred.
 					</PanelRow>
 					<PanelRow label="passcode limits">
-						No per-email cooldown — an attacker could exhaust it and lock the owner out. The per-IP
-						limits, send ceiling, and ban scopes live in{' '}
+						No cross-identity per-email cooldown — an attacker could exhaust it and lock the owner
+						out. The per-IP limits, send ceiling, and ban scopes live in{' '}
 						<PanelLink panel="abuse">Rate limits & bans</PanelLink>; the accepted cost is that a
 						shared NAT, and on a signed-in send the account itself, can be banned.
 					</PanelRow>

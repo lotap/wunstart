@@ -43,7 +43,7 @@ export function EmailPanel() {
 						A re-request replaces the active row once the current code is about a minute old (
 						<InlineCode>resetFromExpiringByEmail</InlineCode> in{' '}
 						<InlineCode>src/db/models/email-verifications/queries.ts</InlineCode>). There is no
-						per-email cap; the passcode send ceiling and ban scopes live in{' '}
+						cross-identity per-email cap; the passcode send ceiling and ban scopes live in{' '}
 						<PanelLink panel="abuse">Rate limits & bans</PanelLink>.
 					</PanelRow>
 					<PanelRow label="Deliverable mail" labelVariant="text">

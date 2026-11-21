@@ -315,7 +315,7 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 			message: 'Grace replay failed: grace token generation does not match the session',
 		})
 
-	/** Ensure the presented gen-1 token carries the authentic gen-1 nonce */
+	/** The presented gen-1 token must carry the stored previous nonce. */
 	if (!noncesMatch(graceTokenData.previousNonce, nonce))
 		return yield* authTokenFailure({
 			failureCause: 'WRONG_NONCE',
@@ -323,7 +323,7 @@ const replayFromGraceToken = Effect.fn('replayFromGraceToken')(function* ({
 			message: SESSION_EXPIRED_MESSAGE,
 		})
 
-	/** Authentic gen-1 token presented after grace window expired -> revoke family for reuse */
+	/** An authentic gen-1 token after the grace window is reuse: revoke the family. */
 	if (graceExpiresAt.getTime() <= DateTime.nowUnsafe().epochMilliseconds)
 		return yield* revokeForReuse({session, ipAddress, userAgent, country, city, region, timezone})
 
@@ -478,12 +478,8 @@ const _refresh = Effect.fn('refresh')(function* ({
 	const resolved = yield* decodeRefreshSession({token})
 
 	/**
-	 * An expired JWS held a valid signature, and an unknown `kid` is treated as
-	 * the state after a rotation drops an old key; both log at weight 0 and the
-	 * auth middleware clears the cookies. A token with a known `kid` that fails
-	 * verification is different: it never proved anything, so it stays charged as
-	 * a failed credential presentation, and the weight’s effect is the IP ban that
-	 * blocks that address’s other flows.
+	 * Expired and unknown-kid refresh JWS log at weight 0; a known-kid
+	 * verification failure is charged as a failed credential presentation.
 	 */
 	if (resolved.status === 'invalid')
 		return yield* authTokenFailure({
@@ -493,11 +489,8 @@ const _refresh = Effect.fn('refresh')(function* ({
 		})
 
 	/**
-	 * The JWS verified, so the caller provably held a genuine refresh token; the
-	 * row is just gone, expired, or revoked. That is the ordinary state after a
-	 * remote sign-out or a password change that signs out all sessions, so charge
-	 * no ban weight: a few stale devices behind one IP must not lock that address
-	 * out of signing in. No userId is available — the row that named it is gone.
+	 * The JWS verified but the row is gone, expired, or revoked: an ordinary
+	 * stale session. Charge no ban weight; the missing row supplies no `userId`.
 	 */
 	if (resolved.status === 'missing')
 		return yield* authTokenFailure({

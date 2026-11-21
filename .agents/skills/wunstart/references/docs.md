@@ -53,10 +53,10 @@ When a feature has real depth, write the reference panel alongside the tab. The 
 
 Policy prose is code-adjacent, not ordinary copy. It earns a read-back against the adjacent table or code path even though it does not earn `bun run check`.
 
-- A rendered table or policy map owns its rows, states, exceptions, and weights. Prose states the invariant and links; it never enumerates the table.
-- A behavioral claim names the function, parameter, or branch that makes it true. If no call site can be named, delete the claim.
+- A rendered table or policy map owns its rows, states, exceptions, and weights. Prose states the invariant and links; it never enumerates the table. If a sentence only restates a row or value and adds no reader-facing decision, replace it with a link; keep the explanation when it changes a decision or explains why — verbosity is fine, duplication is not.
+- A behavioral claim that cannot point to the function, parameter, or branch that makes it true is a guess; delete it.
 - If two panels state the same behavior, one owns it and the other links. A second panel never paraphrases.
-- After a policy change, check the qualifiers (`all`, `only`, `never`, `same`, `separate`, `shared`, `always`, `cannot`) against the code. A symbol grep will not catch a wrong adjective.
+- After a policy change, delete the claims that only restated the old state; update the owner. If a claim stays, check its qualifiers (`all`, `only`, `never`, `same`, `separate`, `shared`, `always`, `cannot`) against the code. A symbol grep will not catch a wrong adjective.
 
 ## Extend prompts
 

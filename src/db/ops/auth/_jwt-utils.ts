@@ -16,13 +16,8 @@ class JwtKeyDerivationError extends Schema.TaggedError<
 >()('JwtKeyDerivationError', {cause: Schema.Defect()}) {}
 
 /**
- * Purpose tag for HKDF domain separation, one per token type.
- *
- * Changing the tag (or another derived-key input or payload shape) re-keys every
- * token minted before the deploy while its `kid` still resolves, so those
- * failures are charged as invalid credentials. Ship the change with a new `kid`
- * and drop the old one; the auth contract's token-secrets section owns the
- * rollout rule.
+ * HKDF purpose tag; changing it (or another key input) invalidates tokens
+ * minted before the deploy.
  */
 export type TokenPurpose = 'access' | 'refresh' | 'refresh-grace' | 'anon'
 
@@ -128,14 +123,12 @@ export const isJwtExpiredError = (error: JwtHandlerError) =>
 	error.cause instanceof errors.JWTExpired
 
 /**
- * Classify a token failure once so every token path applies the same precedence.
- * `hkdf` is an infrastructure fault, not a verdict about the presented token;
- * callers must fail it before applying token policy. This is a classification
- * input, not the activity `failureCause`; each op maps it to its own audit text.
+ * Ordered classification; `hkdf` is infrastructure, not a token verdict.
+ * This is a classification input, not an activity `failureCause`.
  */
 export type JwtFailureVerdict = 'expired' | 'invalid' | 'unknown-kid' | 'hkdf'
 
-/** Ordered classification for a `JwtHandlerError`; only `invalid` is a failed credential presentation. */
+/** Classify a `JwtHandlerError` by precedence; `hkdf` is infrastructure, not a token verdict. */
 export const jwtFailureVerdict = (error: JwtHandlerError): JwtFailureVerdict => {
 	if (isJwtKeyDerivationError(error)) return 'hkdf'
 

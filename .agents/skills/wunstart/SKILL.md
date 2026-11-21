@@ -26,6 +26,7 @@ Client never sends or receives db ids; server fns unwrap cookie identity (conven
 - Routes, `_auth-*` guards, component placement, forms, shadcn, compiler, styling (including page-specific CSS modules), runtime layers: `references/app.md`
 - Static images — co-located `-images/`, `?responsive` imports, AVIF ladder, overrides, sharp build caveat: `references/static-images.md`
 - Docs page — content rules, reader checklist, diagrams, extend prompts: `references/docs.md`; surface ownership and panel wiring: `references/app.md` § In-repo docs
+- Comments and docs prose — `AGENTS.md` § Hard rules → House voice; policy prose: `references/docs.md`
 - Visual contract — every visual decision bends to it; load for any visual work: `references/design/contract.md`
 - Page-craft process — scope ladder (page / section / cosmetic), repo discovery, missing-facts protocol: `references/design/process.md`
 - Design depth by concern — copy: `references/design/copy.md`; layout, type, color, depth: `references/design/visual.md`; motion and interaction: `references/design/motion.md`; final gate (page/section): `references/design/verify.md`

@@ -14,7 +14,7 @@ import {GRACE_REPLAY_FAILURES} from '#/db/ops/auth/grace-token-policies.ts'
 import {REFRESH_TOKEN_FAILURES} from '#/db/ops/auth/refresh-token-policies.ts'
 
 import {DocDiagram} from '../../doc-diagram.tsx'
-import {PanelReferences} from '../../doc-links.tsx'
+import {PanelLink, PanelReferences} from '../../doc-links.tsx'
 import {
 	InlineCode,
 	PanelHeader,
@@ -63,7 +63,7 @@ type TokenFailureState = Exclude<JwtFailureVerdict, 'hkdf'>
 
 const tokenStateLabels = {
 	'expired': 'expired',
-	'invalid': 'invalid signature',
+	'invalid': 'invalid token',
 	'unknown-kid': 'retired key (unknown kid)',
 } as const satisfies Record<TokenFailureState, string>
 
@@ -221,14 +221,11 @@ export function AbusePanel() {
 						global request limit. A successful action alone never approaches the ban threshold.
 					</PanelRow>
 					<PanelRow label="passcode sends">
-						Each successful passcode request spends a sixth of the threshold instead (
-						<InlineCode>allowRatePerWindow(6)</InlineCode> in{' '}
-						<InlineCode>src/db/ops/auth/email/request-passcode.ts</InlineCode>), so six sends per IP
-						in one activity window reach it. A refused resend mails nothing and carries no weight.
-						The weight applies to the IP plus the identity on the row: IP + Anon for an Anon send,
-						IP + User for a signed-in send. A shared NAT can be banned for the resulting penalty; a
-						signed-in send can also ban the account, which refuses its refresh until the ban lifts
-						while the IP ban blocks signing in again from that address. Retries extend it.
+						Each successful passcode request spends a sixth of the threshold, so six sends in one
+						activity window reach it. The weight applies to the IP plus the identity on the row; a
+						shared NAT, and on a signed-in send the account itself, can be banned. A refusal inside
+						the one-minute reset window (<InlineCode>TOO_SOON_SINCE_LAST_RESET</InlineCode>) mails
+						nothing and carries no weight.
 					</PanelRow>
 					<PanelRow label="credential failure">
 						The op’s <InlineCode>rateAllowance</InlineCode> sets the weight. Password and passcode
@@ -253,15 +250,9 @@ export function AbusePanel() {
 
 			<PanelSection id="abuse-token-failures" title="Token failure weights">
 				<Prose>
-					Token entries classify the failure before they charge anything. Outside grace, among token
-					verdicts, only a known-<InlineCode>kid</InlineCode> verification failure is charged. The
-					refresh entry also charges a wrong nonce (<InlineCode>attemptRotation</InlineCode>,{' '}
-					<InlineCode>replayFromGraceToken</InlineCode>) and a future generation (
-					<InlineCode>classifySession</InlineCode>); a decodable grace JWE with the wrong nonce is
-					included, while an undecodable grace JWE is weight 0. A reuse replay revokes the family
-					and logs at the baseline weight, and a missing session is weight 0. The table below owns
-					the verdict rows. A stale token whose <InlineCode>kid</InlineCode> still resolves is
-					charged, so a re-key deploy must remove the old <InlineCode>kid</InlineCode>.
+					Token entries classify the failure before they charge anything. The table below owns the
+					verdicts, causes, and weights; the policy maps are the source of truth. A re-key deploy
+					must remove the old <InlineCode>kid</InlineCode>.
 				</Prose>
 				<div className="overflow-hidden rounded-xl border bg-muted/20">
 					<table className="w-full text-left">
@@ -310,12 +301,10 @@ export function AbusePanel() {
 					</table>
 				</div>
 				<Prose>
-					Allowance is the number of failures that spend the full {threshold} threshold; weight is{' '}
-					<InlineCode>ceil({threshold} / allowance)</InlineCode>. Anon and grace tokens carry no{' '}
-					<InlineCode>exp</InlineCode> claim, so their expired rows are unreachable today and
-					omitted; the policy maps still define them, so adding expiry cannot fall through silently.
-					Sign-out, sign-out-all, and the live-session check treat an unusable refresh token as
-					terminal and charge zero in every state.
+					Allowance is failures per ban window; weight is the threshold divided by allowance,
+					rounded up. Anon and grace expired rows are unreachable today and omitted; the policy maps
+					still define them. Terminal refresh-token handling lives in{' '}
+					<PanelLink panel="auth">Auth</PanelLink>.
 				</Prose>
 			</PanelSection>
 

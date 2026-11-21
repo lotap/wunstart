@@ -1,9 +1,8 @@
 import type {JwtFailureVerdict, TokenFailurePolicy} from './_jwt-utils.ts'
 
 /**
- * Token failure policy for access JWEs. Expired and rotated-out tokens are
- * ordinary fall-through states; only a known-kid invalid JWE is a failed
- * credential presentation and carries ban weight.
+ * Access-JWE policy. Expired and rotated-out tokens fall through; only a
+ * known-kid invalid JWE is a failed credential presentation.
  */
 export const ACCESS_TOKEN_FAILURES = {
 	'expired': {failureCause: 'EXPIRED_JWE', rateAllowance: Infinity},

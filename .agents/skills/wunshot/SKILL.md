@@ -1,7 +1,7 @@
 ---
 name: wunshot
 description: |
-  Portable Drizzle + Postgres + Effect database-module system. Use when finding/installing wunshot core modules (via Shadcn) or writing custom modules: tables, queries, validations, cascades, archive pairs, ban/activity references, auth module contract, or Effect ops with activity logging. Applies to any host project, regardless of frontend, runtime, or tree layout. Routing, middleware, cookies, and transport wiring belong to your app — this skill covers only the portable DB modules.
+  Portable Drizzle + Postgres + Effect database-module system. Use when finding/installing wunshot core modules (via Shadcn) or writing custom modules: tables, queries, validations, cascades, archive pairs, ban/activity references, auth module contract, Effect ops with activity logging, or comment voice for module and op files. Applies to any host project, regardless of frontend, runtime, or tree layout. Routing, middleware, cookies, and transport wiring belong to your app — this skill covers only the portable DB modules.
 ---
 
 # Wunshot
@@ -20,6 +20,7 @@ Read only what the task needs:
 - Op skeleton, `opsFailure`, labels, retry, hashing order, error contract: `references/ops-contract.md`
 - Auth module composition + db-side invariants (eviction, email service, sudo, denial weight): `references/auth.md`
 - Weight routing, ban scopes, array references: `references/bans.md`
+- Comment voice, policy-map comments, IDE-hover docs: § Philosophy below; ops-site comments: `references/ops-contract.md`
 
 New module: start at `references/module-walkthrough.md`, then tables-archive → queries-validations → ops-contract as needed.
 
@@ -97,5 +98,5 @@ MORV: Model (migrations, connections, queries) + Operation (business logic, comp
 - Validate then database: malformed input dies before connections open.
 - Server-side processing over DB functions (portable, scales horizontally); exception: dates via DB `now()` (timezone/latency consistency).
 - Casing: files `kebab-case`; columns `snake_case` SQL / `camelCase` TS; types + validations `PascalCase`; exported consts + env `UPPER_SNAKE`; everything else `camelCase`.
-- Comment voice: `/// SECTION ///` banners divide model files (`PRIMITIVES` / `INSERT` / `SELECT` / …). `/** */` is documentation — every export, plus statement-attached invariants a future editor must not undo (it surfaces in IDE hover, which is how installed modules get read). `//` is narration — step labels, line-tied caveats, multi-line rationale, `// SAFETY:` proofs; meaningful only while reading the body. `{@link Symbol}` for cross-refs.
+- Comment voice: `/// SECTION ///` banners divide model files (`PRIMITIVES` / `INSERT` / `SELECT` / …). `/** */` above an export is IDE hover; a concise description is useful even when it restates the signature, so keep it accurate. `//` for local explanation or `// SAFETY:` proof; verbosity is fine, but don’t restate a policy map, weight, or closed set that can drift — point to the owner. `{@link Symbol}` for cross-refs.
 Project Effect conventions take precedence over vendored `effect` / `effect-ts` skills.

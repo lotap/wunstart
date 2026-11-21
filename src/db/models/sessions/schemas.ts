@@ -32,7 +32,7 @@ export const activeTable = createActiveTable(tableName, {
 	revokedAt: timestamp(TIMESTAMPTZ_CONFIG),
 })
 
-/** The sessions archive table. Preserves relations while keeping the users table small and efficient */
+/** The sessions archive table. */
 export const archiveTable = createArchiveTable(`${tableName}_archive`, {
 	...baseCols,
 	userId: uuid().references(() => users.id),

@@ -269,7 +269,9 @@ Three things update three ways:
 
 ### Deployment
 
-_By default, the auth module deploys a hashing method ([Argon2](https://en.wikipedia.org/wiki/Argon2)) using [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/). To use a different architecture, use a different hashing algorithm._
+Before deploying:
+
+- **Rotate token secret sets when this release changes token derivation.** Any deploy that changes a token’s HKDF purpose tag, payload shape, or a secret value under an existing `kid` must rotate the affected sets to a new `kid` and remove the old `kid` in the same deploy. Keeping the old `kid` charges stale access, refresh, and Anon tokens as invalid credentials (grace is weight 0), which can ban a shared NAT and block sign-in. Verify a pre-deploy token lands in the weight-0 `unknown-kid` path.
 
 Email needs two values in the deployed Worker environment:
 
@@ -278,11 +280,9 @@ Email needs two values in the deployed Worker environment:
 
 Set them as Worker variables before deploying. In development they default to `http://localhost:3000` and `noreply@wunstart.com`.
 
+_By default, the auth module deploys a hashing method ([Argon2](https://en.wikipedia.org/wiki/Argon2)) using [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/). To use a different architecture, use a different hashing algorithm._
+
 Deployment support is still in development. The focus is on simplicity and platform agnosticism.
-
-#### Token key rotation
-
-Any deploy that changes a token’s HKDF purpose tag, payload shape, or a secret value under an existing `kid` must rotate the affected token secret sets to a new `kid` and remove the old `kid` in the same deploy. Verify a pre-deploy token lands in the weight-0 `unknown-kid` path.
 
 ## Git worktrees (for parallel work)
 

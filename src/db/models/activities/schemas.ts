@@ -85,7 +85,6 @@ export const activeTable = createActiveLogTable(
 
 /**
  * The activities archive table. Preserves relations while keeping the activities table small and efficient.
- * Archived automatically by the daily cron job [archiveOld]{@link (file://./../../ops/system/archive-old-activities.ts)}
  */
 export const archiveTable = createArchiveLogTable(`${tableName}_archive`, {
 	...baseCols,
