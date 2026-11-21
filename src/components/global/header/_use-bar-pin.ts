@@ -13,12 +13,15 @@ const DOCK_VAR = '--header-dock'
 /** Duration of the dock offset; nonzero only while the bar animates in. */
 const DOCK_MOTION_VAR = '--header-dock-transition'
 
-/** Matches the reveal animation on the bar. */
-const REVEAL_MS = 150
+/** Set by a programmatic scroll that must not reveal the bar; cleared on `scrollend`. */
+const HOLD_ATTR = 'data-hold-pin'
 
-/** Animate the reveal only when the user has not asked for less motion. */
-function shouldAnimateReveal(reveal: boolean) {
-	return reveal && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+/** Matches the bar’s enter and exit animations. */
+const BAR_MOTION_MS = 150
+
+/** Animate bar motion only when the user has not asked for less motion. */
+function shouldAnimateBar(animate: boolean) {
+	return animate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
 type BarPinOptions = {
@@ -47,6 +50,7 @@ export function useBarPin({barRef, slotRef}: BarPinOptions) {
 
 		const root = document.documentElement
 		let frame = 0
+		let dismissTimer = 0
 		let dockPx = Number.NaN
 		let dockMotion = Number.NaN
 
@@ -81,11 +85,11 @@ export function useBarPin({barRef, slotRef}: BarPinOptions) {
 		}
 
 		const pin = (reveal: boolean) => {
-			const animate = shouldAnimateReveal(reveal)
+			const animate = shouldAnimateBar(reveal)
 
 			bar.style.position = 'fixed'
 			bar.style.top = '0px'
-			applyDock(bar.offsetHeight, animate ? REVEAL_MS : 0)
+			applyDock(bar.offsetHeight, animate ? BAR_MOTION_MS : 0)
 			bar.toggleAttribute('data-reveal', animate)
 			pinned.current = true
 		}
@@ -93,6 +97,36 @@ export function useBarPin({barRef, slotRef}: BarPinOptions) {
 		const update = () => {
 			const scrollY = window.scrollY
 			const last = lastScrollY.current
+
+			if (bar.hasAttribute(HOLD_ATTR)) {
+				if (pinned.current) {
+					/** A held selection always leaves the bar out of view, not just unpinned. */
+					pinned.current = false
+					bar.removeAttribute('data-reveal')
+					window.clearTimeout(dismissTimer)
+
+					if (shouldAnimateBar(true)) {
+						bar.setAttribute('data-dismiss', '')
+						applyDock(0, BAR_MOTION_MS)
+
+						// Park the bar once the slide-out has finished; it is fixed at the top meanwhile.
+						dismissTimer = window.setTimeout(() => {
+							bar.removeAttribute('data-dismiss')
+							bar.style.position = 'fixed'
+							bar.style.top = `${-bar.offsetHeight}px`
+						}, BAR_MOTION_MS)
+					} else {
+						bar.removeAttribute('data-dismiss')
+						bar.style.position = 'fixed'
+						bar.style.top = `${-bar.offsetHeight}px`
+						applyDock(0, 0)
+					}
+				}
+
+				lastScrollY.current = scrollY
+
+				return
+			}
 
 			if (Math.abs(scrollY - last) > window.innerHeight) {
 				/** A route change or anchor jump: show the bar where it lands. */
@@ -139,6 +173,8 @@ export function useBarPin({barRef, slotRef}: BarPinOptions) {
 			resizeObserver.disconnect()
 			root.style.removeProperty(DOCK_VAR)
 			root.style.removeProperty(DOCK_MOTION_VAR)
+
+			window.clearTimeout(dismissTimer)
 
 			if (frame) cancelAnimationFrame(frame)
 		}
