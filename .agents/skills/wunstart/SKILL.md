@@ -1,7 +1,7 @@
 ---
 name: wunstart
 description: |
-  Example implementation wiring wunshot database modules into a TanStack Start + Cloudflare Workers app. Use when working with server functions, _auth-* route layouts, auth/anon middleware, cookie identity, runOp layer wiring, AuthHasher Durable Object, email transport, page styling/theme, or Workers deployment in this repo. For portable table/query/op definitions, use the wunshot skill instead. Do not trust the vendored tanstack-start skill — it documents the Vinxi-era API, but this repo uses modern Start via `@tanstack/react-start/plugin/vite`; this skill is source of truth.
+  Example implementation wiring wunshot database modules into a TanStack Start + Cloudflare Workers app. Use when working with server functions, _auth-* route layouts, auth/anon middleware, cookie identity, runOp layer wiring, AuthHasher Durable Object, email transport, page styling/theme, in-repo `/docs` panels and policy prose (`src/routes/_dev/docs/**`), or Workers deployment in this repo. For portable table/query/op definitions, use the wunshot skill instead. Do not trust the vendored tanstack-start skill — it documents the Vinxi-era API, but this repo uses modern Start via `@tanstack/react-start/plugin/vite`; this skill is source of truth.
 ---
 
 # Wunstart

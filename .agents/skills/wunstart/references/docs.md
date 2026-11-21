@@ -49,6 +49,15 @@ When a feature has real depth, write the reference panel alongside the tab. The 
 - Use examples as proof or a concrete use case, not project-internal trivia.
 - Cut architecture bragging, cache paths, internal names, and duplicated facts unless they change a decision.
 
+## Policy prose
+
+Policy prose is code-adjacent, not ordinary copy. It earns a read-back against the adjacent table or code path even though it does not earn `bun run check`.
+
+- A rendered table or policy map owns its rows, states, exceptions, and weights. Prose states the invariant and links; it never enumerates the table.
+- A behavioral claim names the function, parameter, or branch that makes it true. If no call site can be named, delete the claim.
+- If two panels state the same behavior, one owns it and the other links. A second panel never paraphrases.
+- After a policy change, check the qualifiers (`all`, `only`, `never`, `same`, `separate`, `shared`, `always`, `cannot`) against the code. A symbol grep will not catch a wrong adjective.
+
 ## Extend prompts
 
 - Title the section “Extension prompts”; the feature tab already names the feature.
