@@ -1,51 +1,25 @@
 /**
  * Cookie name and scope for the current environment.
  *
- * In production, no configured domain gives host-only `__Host-Http-` cookies;
- * setting `VITE_COOKIE_DOMAIN` gives shared `__Http-` cookies for that domain.
- *
- * Cookies are scoped by domain and path, not port, so every worktree on
- * `localhost` would otherwise share the same auth cookies. In dev, append the
- * per-branch suffix written by `branch-env` so the browser never sends another
- * worktree's identity; no cookie domain is needed.
+ * Production host-only uses `__Host-Http-` (Secure, HttpOnly, Path=/, no
+ * Domain). Setting `VITE_COOKIE_DOMAIN` switches to `__Http-` (Secure,
+ * HttpOnly; the cookie carries that Domain). Development uses no prefix
+ * because both require Secure; the per-branch suffix keeps worktrees on
+ * `localhost` apart.
  */
-type CookieScope = {
-	readonly prefix: string
-	readonly domain: string | undefined
-	readonly suffix: string
-}
-
-/**
- * The three supported shapes:
- *
- * - production host-only: `__Host-Http-` (Secure, HttpOnly, Path=/, no Domain)
- * - production shared: `__Http-` (Secure, HttpOnly; Domain allowed)
- * - development: no prefix (both prefixes require Secure), branch suffix
- */
-const resolveCookieScope = (): CookieScope => {
-	if (!import.meta.env.PROD) {
-		const devSuffix = import.meta.env.VITE_COOKIE_SUFFIX
-
-		return {
-			prefix: '',
-			domain: undefined,
-			suffix: devSuffix ? `-${devSuffix}` : '',
-		}
-	}
-
-	const configuredDomain = import.meta.env.VITE_COOKIE_DOMAIN || undefined
-
-	if (configuredDomain) {
-		return {prefix: '__Http-', domain: configuredDomain, suffix: ''}
-	}
-
-	return {prefix: '__Host-Http-', domain: undefined, suffix: ''}
-}
-
-const cookieScope = resolveCookieScope()
 
 /** Domain attribute for auth and Anon cookies; undefined keeps them host-only. */
-export const cookieDomain = cookieScope.domain
+export const cookieDomain = import.meta.env.PROD
+	? import.meta.env.VITE_COOKIE_DOMAIN || undefined
+	: undefined
+
+const devSuffix = import.meta.env.PROD ? undefined : import.meta.env.VITE_COOKIE_SUFFIX
 
 /** Build a cookie name for the current environment. */
-export const cookieName = (base: string) => `${cookieScope.prefix}${base}${cookieScope.suffix}`
+export const cookieName = (base: string) => {
+	if (!import.meta.env.PROD) return devSuffix ? `${base}-${devSuffix}` : base
+
+	if (cookieDomain) return `__Http-${base}`
+
+	return `__Host-Http-${base}`
+}
