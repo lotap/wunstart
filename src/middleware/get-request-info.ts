@@ -45,8 +45,10 @@ const timezoneHeaderValue = () => {
 /**
  * The current deployment target is Cloudflare Workers, where the edge
  * overwrites `cf-connecting-ip`. Do not trust `X-Forwarded-For`/`Forwarded`
- * here; a client can forge them when the origin is reachable directly. A
- * per-deployment source setting is the portability follow-up.
+ * here; a client can forge them when the origin is reachable directly. The
+ * socket fallback assumes a directly exposed Node process; behind a local
+ * proxy it is the proxy's address, so a proxied deployment must supply this
+ * header. A per-deployment source setting is the portability follow-up.
  */
 const TRUSTED_IP_HEADER = 'cf-connecting-ip' as const
 

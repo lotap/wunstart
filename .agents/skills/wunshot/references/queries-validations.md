@@ -59,7 +59,7 @@ export const ByEmail = selectPrimitive.mapFields(Struct.pick(['email']))
 
 Refine db-inferred types via the `overrides` second arg (`inet` needs manual handling — no automatic IP check); reshape with `pick` (subset) / `omit` (all-but) / `assign` (add or rename keys — renames align validation keys with `sql.placeholder` names) / `evolve` (transform types), nullables with `withNullDefault` / `NullishToNull`.
 
-`IpAddress` deliberately rejects IPv6 zone IDs (`fe80::1%eth0`) and embedded IPv4 with leading-zero octets (`::ffff:1.2.3.04`); Postgres `inet` rejects both with `22P02`. Pure IPv4 leading zeros are rejected too — stricter than `inet`, fail-safe, so a header value becomes the invalid-IP sentinel instead of a 500.
+`IpAddress` deliberately rejects IPv6 zone IDs (`fe80::1%eth0`) and embedded IPv4 with leading-zero octets (`::ffff:1.2.3.04`); Postgres `inet` rejects both with `22P02`. Pure IPv4 leading zeros are rejected too — stricter than `inet`, fail-safe, so an unparseable header value is dropped and the boundary falls through to the socket or fails closed, instead of a 500.
 
 ## Naming
 

@@ -191,9 +191,10 @@ export function MiddlewarePanel() {
 			<PanelSection id="middleware-ip" title="Client IP">
 				<Prose>
 					The request boundary reads <InlineCode>cf-connecting-ip</InlineCode>, which Cloudflare
-					overwrites, then the runtime socket address. A deployment behind another proxy must supply
-					its own overwriting header; a per-deployment source setting is deferred. Production
-					rejects a request with no valid client IP instead of inventing one.
+					overwrites, then the runtime socket address. The socket is the client only on a directly
+					exposed Node process; behind a local proxy it is the proxy, so a proxied deployment must
+					supply its own overwriting header. Production rejects a request with no valid client IP
+					instead of inventing one; a per-deployment source setting is deferred.
 				</Prose>
 				<PanelList>
 					<PanelRow label="trusted header">

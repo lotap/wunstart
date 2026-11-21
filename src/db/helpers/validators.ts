@@ -11,8 +11,9 @@ export const Argon2Hash = Schema.String.check(Schema.isPattern(ARGON2_HASH_REGEX
  *
  * These values are written to `inet` columns and used as ban/rate-limit keys,
  * so the validator must not accept a value the database rejects. The reverse is
- * allowed because rejection is fail-safe: `getRequestInfo` falls back to the
- * invalid-IP sentinel. The Valibot regex this derives from allowed a link-local
+ * allowed because rejection is fail-safe: `getRequestInfo` drops an unparseable
+ * value, then resolves the socket or fails closed in production. The Valibot
+ * regex this derives from allowed a link-local
  * zone (`fe80::1%eth0`) and embedded IPv4 with a leading zero
  * (`::ffff:1.2.3.04`); both are valid in other contexts but fail `inet` parsing,
  * turning a header value into a 500. This regex also rejects two `inet`-valid
