@@ -1,3 +1,8 @@
+/**
+ * Policy prose: the table or code owns the details; state the invariant and
+ * link. Name the code path behind a behavioral claim.
+ * Rules: .agents/skills/wunstart/references/docs.md § Policy prose.
+ */
 import {
 	ACTIVITIES_BASELINE_WEIGHT,
 	EXCESSIVE_ACTIVITIES_THRESHOLD,
@@ -122,7 +127,7 @@ export function AbusePanel() {
 			<PanelSection id="abuse-layers" title="Two layers">
 				<Prose>
 					The first layer is an in-memory request limiter. The second is a database-backed ban
-					system fed by every op outcome. The limiter rejects bursts; bans reject a subject over a
+					system fed by logged op outcomes. The limiter rejects bursts; bans reject a subject over a
 					longer window.
 				</Prose>
 				<figure>
@@ -163,8 +168,7 @@ export function AbusePanel() {
 						<InlineCode>createRateLimit(150)</InlineCode> in <InlineCode>src/start.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="rateLimit">
-						The auth limiter: 5 requests per minute per IP on its own (
-						<InlineCode>rateLimit</InlineCode> in{' '}
+						The auth limiter: 5 requests per minute per IP (<InlineCode>rateLimit</InlineCode> in{' '}
 						<InlineCode>src/middleware/rate-limit.ts</InlineCode>). Attach it to sign-up, sign-in,
 						and passcode functions. It shares the global key, so a request that passes both limits
 						consumes both weights from one budget.
@@ -192,9 +196,10 @@ export function AbusePanel() {
 						limit.
 					</PanelRow>
 					<PanelRow label="stacking">
-						The global and auth limiters feed the same per-IP score, so a request that passes both
-						consumes both weights. The refresh and sign-out buckets have their own scoped keys and
-						do not spend that budget.
+						The global and auth limiters feed the same per-IP score (
+						<InlineCode>addRateLimitEvent</InlineCode> without a scope), so a request that passes
+						both consumes both weights. The refresh and sign-out buckets pass a{' '}
+						<InlineCode>scope</InlineCode> and use their own keys, so they do not spend that budget.
 					</PanelRow>
 				</PanelList>
 				<Prose>
@@ -248,10 +253,15 @@ export function AbusePanel() {
 
 			<PanelSection id="abuse-token-failures" title="Token failure weights">
 				<Prose>
-					Token entries classify the failure before they charge anything. Only a token with a known{' '}
-					<InlineCode>kid</InlineCode> that fails verification is a failed credential presentation.
-					Expired, rotated-out, and unreadable states log an Activity at weight 0, so a stale cookie
-					cannot ban an address.
+					Token entries classify the failure before they charge anything. Outside grace, among token
+					verdicts, only a known-<InlineCode>kid</InlineCode> verification failure is charged. The
+					refresh entry also charges a wrong nonce (<InlineCode>attemptRotation</InlineCode>,{' '}
+					<InlineCode>replayFromGraceToken</InlineCode>) and a future generation (
+					<InlineCode>classifySession</InlineCode>); a decodable grace JWE with the wrong nonce is
+					included, while an undecodable grace JWE is weight 0. A reuse replay revokes the family
+					and logs at the baseline weight, and a missing session is weight 0. The table below owns
+					the verdict rows. A stale token whose <InlineCode>kid</InlineCode> still resolves is
+					charged, so a re-key deploy must remove the old <InlineCode>kid</InlineCode>.
 				</Prose>
 				<div className="overflow-hidden rounded-xl border bg-muted/20">
 					<table className="w-full text-left">
@@ -339,7 +349,9 @@ export function AbusePanel() {
 					minutes (<InlineCode>PENALTY_INTERVAL_INITIAL</InlineCode> and{' '}
 					<InlineCode>PENALTY_INTERVAL_MAX_QTY</InlineCode> in{' '}
 					<InlineCode>src/db/models/bans/consts.ts</InlineCode>). A later activity extends only bans
-					of its own scope, so a denied request cannot compound an unrelated ban.
+					of its own scope (<InlineCode>implicatesScope</InlineCode> in{' '}
+					<InlineCode>logActivityAndHandleBans</InlineCode>), so a denied request cannot compound an
+					unrelated ban.
 				</Prose>
 			</PanelSection>
 

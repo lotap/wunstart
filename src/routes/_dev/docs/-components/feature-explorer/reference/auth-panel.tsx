@@ -1,3 +1,8 @@
+/**
+ * Policy prose: the table or code owns the details; state the invariant and
+ * link. Name the code path behind a behavioral claim.
+ * Rules: .agents/skills/wunstart/references/docs.md § Policy prose.
+ */
 import {PanelLink, PanelReferences} from '../../doc-links.tsx'
 import {InlineCode, PanelHeader, PanelList, PanelRow, PanelSection, Prose} from '../../doc-ui.tsx'
 import {FeatureFlows, type FeatureFlow} from '../feature-blocks.tsx'
@@ -278,8 +283,10 @@ export function AuthPanel() {
 
 			<PanelSection id="auth-email-verification" title="Email verification">
 				<Prose>
-					A six-digit passcode authorizes account creation. Verify-before-create means every User is
-					verified by construction: no User row exists until a code sent to the address is accepted.
+					A six-digit passcode (<InlineCode>Passcode</InlineCode> in{' '}
+					<InlineCode>src/isomorphic/validators.ts</InlineCode>) authorizes account creation.
+					Verify-before-create means every User is verified by construction: no User row exists
+					until a code sent to the address is accepted.
 				</Prose>
 				<PanelList>
 					<PanelRow label="lifetime">
@@ -346,14 +353,14 @@ export function AuthPanel() {
 						<InlineCode>kid</InlineCode>, or payload shape — invalidates every token minted before
 						the deploy. Users sign out, Anon identities reset, and grace replays fail. The old{' '}
 						<InlineCode>kid</InlineCode> still resolves, so access, refresh, and Anon failures are
-						charged as invalid credentials (grace is weight 0 either way); to land in the weight-0
-						rotation state instead, ship the change with a new <InlineCode>kid</InlineCode> and
-						remove the old one (adding the new one alongside does not help — the old key still
-						derives the new purpose). A token whose <InlineCode>kid</InlineCode> is no longer in the
-						secret map is treated as a rotation state at weight 0, not a failed credential, so
-						returning clients are not IP-banned. Deploy atomically; during a rolling deploy old and
-						new versions reject each other’s tokens. Unused Session rows expire on their normal
-						Session schedule.
+						charged as invalid credentials (an undecodable grace token is weight 0); to land in the
+						weight-0 rotation state instead, ship the change with a new <InlineCode>kid</InlineCode>{' '}
+						for each affected token type and remove the old one (adding the new one alongside does
+						not help — the old key still derives the new purpose). A token whose{' '}
+						<InlineCode>kid</InlineCode> is no longer in the secret map is treated as a rotation
+						state at weight 0, not a failed credential, so returning clients are not IP-banned.
+						Deploy atomically; during a rolling deploy old and new versions reject each other’s
+						tokens. Unused Session rows expire on their normal Session schedule.
 					</PanelRow>
 				</PanelList>
 				<Prose>
@@ -361,8 +368,8 @@ export function AuthPanel() {
 					rate-limit rejection keeps them. An infrastructure failure never looks like an invalid
 					token: the request is rejected with 503 before the handler. Middleware & identity owns
 					that decision table. Per-token failure weights live in{' '}
-					<PanelLink panel="abuse">Rate limits & bans</PanelLink>; expired, rotated-out, and
-					unreadable states carry none.
+					<PanelLink panel="abuse">Rate limits & bans</PanelLink>; the table owns the states and
+					weights.
 				</Prose>
 			</PanelSection>
 
@@ -459,10 +466,10 @@ export function AuthPanel() {
 						secret sets per environment and database; the generator is deferred.
 					</PanelRow>
 					<PanelRow label="passcode limits">
-						No per-email cooldown — an attacker could exhaust it and lock the owner out. Per-IP
-						limits and weighted bans are the ceiling; enough sends in one activity window can ban a
-						shared NAT, and on a signed-in send the account itself, which is the accepted cost of
-						bounding cookie-dropping.
+						No per-email cooldown — an attacker could exhaust it and lock the owner out. The per-IP
+						limits, send ceiling, and ban scopes live in{' '}
+						<PanelLink panel="abuse">Rate limits & bans</PanelLink>; the accepted cost is that a
+						shared NAT, and on a signed-in send the account itself, can be banned.
 					</PanelRow>
 				</PanelList>
 			</PanelSection>

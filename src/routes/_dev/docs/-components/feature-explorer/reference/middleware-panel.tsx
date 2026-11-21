@@ -1,3 +1,8 @@
+/**
+ * Policy prose: the table or code owns the details; state the invariant and
+ * link. Name the code path behind a behavioral claim.
+ * Rules: .agents/skills/wunstart/references/docs.md § Policy prose.
+ */
 import {ExternalDocLink} from '#/components/global/external-doc-link.tsx'
 
 import {PanelReferences} from '../../doc-links.tsx'
@@ -31,7 +36,7 @@ const middlewareLayers = [
 			{
 				name: 'createRateLimit(150)',
 				description:
-					'In-memory per-IP limit. The global lane defaults to 150 requests per minute; auth, fallback refresh, and sign-out add separate lanes, and the scoped buckets do not spend the global score. Sizes live with the middleware; the abuse reference tabulates them.',
+					'In-memory per-IP limit. The global limiter is installed in src/start.ts; the auth, refresh, and sign-out lanes and their scoring are in Rate limits & bans.',
 			},
 			{
 				name: 'verifyAnon',
@@ -60,7 +65,7 @@ const identityOutcomes = [
 	{
 		situation: 'No auth tokens',
 		outcome:
-			'The Anon token is verified, or a fresh Anon is issued with an 8-week cookie (src/middleware/_set-anon-cookie.ts).',
+			'The Anon token is verified, or a fresh Anon is issued (setAnonCookie in src/middleware/_set-anon-cookie.ts); the Auth panel owns the lifetime.',
 	},
 	{
 		situation: 'AuthTokenError',
