@@ -93,7 +93,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 		})
 
 	/** Attempt to find the user for the given credentials */
-	const [user] = yield* sessionsUsersQueries.selectUserByEmailWithKnownIp({email, ipAddress})
+	const [user] = yield* sessionsUsersQueries.selectUserWithKnownIpByEmail({email, ipAddress})
 
 	/**
 	 * If the credential has bans or excessive activities AND this is not a known IP

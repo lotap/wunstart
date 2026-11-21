@@ -65,7 +65,7 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 		})
 
 	/** Look up the user. Absence selects the creation branch instead of failing */
-	const [user] = yield* sessionsUsersQueries.selectUserByEmailWithKnownIp({email, ipAddress})
+	const [user] = yield* sessionsUsersQueries.selectUserWithKnownIpByEmail({email, ipAddress})
 
 	if (user) {
 		/**
@@ -136,7 +136,7 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 			 * already-verified code instead of failing.
 			 */
 			Effect.gen(function* () {
-				const [racedUser] = yield* sessionsUsersQueries.selectUserByEmailWithKnownIp({
+				const [racedUser] = yield* sessionsUsersQueries.selectUserWithKnownIpByEmail({
 					email,
 					ipAddress,
 				})

@@ -39,7 +39,7 @@ const selectSessionsIpAddressesCTE = (qx: QueryExecutor) =>
  * canonicalizes both sides; comparing raw strings would false-deny an owner
  * whose IPv6 spelling differs from `host()` output.
  */
-export const selectUserByEmailWithKnownIp = createPreparedQuery({
+export const selectUserWithKnownIpByEmail = createPreparedQuery({
 	vSchema: ByEmailAndIp,
 	stmtFn: (qx) => {
 		const selectUserByEmail = selectUserByEmailCTE(qx)
@@ -64,6 +64,6 @@ export const selectUserByEmailWithKnownIp = createPreparedQuery({
 				eq(selectUserByEmail.id, selectSessionsIpAddresses.userId),
 			)
 			.groupBy(selectUserByEmail.id, selectUserByEmail.email, selectUserByEmail.passwordHash)
-			.prepare('sessions_users_select_user_by_email_with_known_ip')
+			.prepare('sessions_users_select_user_with_known_ip_by_email')
 	},
 })
