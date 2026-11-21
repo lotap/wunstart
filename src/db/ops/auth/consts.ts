@@ -11,3 +11,6 @@ export const PASSCODE_SENDS_PER_WINDOW = 6
 
 /** Lifetime of the successor nonce minted by a refresh rotation. */
 export const REFRESH_GRACE_SECONDS = 30
+
+/** Anon cookie lifetime; the browser drops the identity after it. */
+export const ANON_COOKIE_WEEKS = 8

@@ -1,40 +1,59 @@
 /**
  * Cookie name and scope for the current environment.
  *
- * Production defaults to host-only `__Host-Http-` cookies: supporting browsers
- * require `Secure`, `HttpOnly`, and `Path=/`, and reject any `Domain`, so the
- * cookie is sent only to the host that set it. Setting `VITE_COOKIE_DOMAIN` in
- * a production build opts into subdomain sharing: names switch to `__Http-`,
- * which still requires `Secure` and `HttpOnly` but allows that `Domain`, so
- * every subdomain under it can set the cookie.
+ * In production, no configured domain gives host-only `__Host-Http-` cookies;
+ * setting `VITE_COOKIE_DOMAIN` gives shared `__Http-` cookies for that domain.
  *
  * Cookies are scoped by domain and path, not port, so every worktree on
  * `localhost` would otherwise share the same auth cookies. In dev, append the
  * per-branch suffix written by `branch-env` so the browser never sends another
  * worktree's identity; no cookie domain is needed.
  */
-const configuredDomain = import.meta.env.VITE_COOKIE_DOMAIN || undefined
-
-/** Production subdomain-sharing opt-in. */
-const sharedScope = import.meta.env.PROD && configuredDomain !== undefined
-
-/** Domain attribute for the cookie; host-only mode omits it. */
-export const cookieDomain = sharedScope ? configuredDomain : undefined
-
-const devSuffix = import.meta.env.DEV ? (import.meta.env.VITE_COOKIE_SUFFIX ?? '') : ''
-
-const cookiePrefix = () => {
-	if (!import.meta.env.PROD) return ''
-
-	return sharedScope ? '__Http-' : '__Host-Http-'
+type CookieScope = {
+	readonly prefix: string
+	readonly domain: string | undefined
+	readonly suffix: string
 }
 
-/** Anon cookie lifetime; the browser drops the identity after it. */
-export const ANON_COOKIE_WEEKS = 8
+/**
+ * The three supported shapes:
+ *
+ * - production host-only: `__Host-Http-` (Secure, HttpOnly, Path=/, no Domain)
+ * - production shared: `__Http-` (Secure, HttpOnly; Domain allowed)
+ * - development: no prefix (both prefixes require Secure), branch suffix
+ */
+const resolveCookieScope = ({
+	isProduction,
+	configuredDomain,
+	devSuffix,
+}: {
+	isProduction: boolean
+	configuredDomain: string | undefined
+	devSuffix: string | undefined
+}): CookieScope => {
+	if (!isProduction) {
+		return {
+			prefix: '',
+			domain: undefined,
+			suffix: devSuffix ? `-${devSuffix}` : '',
+		}
+	}
+
+	if (configuredDomain) {
+		return {prefix: '__Http-', domain: configuredDomain, suffix: ''}
+	}
+
+	return {prefix: '__Host-Http-', domain: undefined, suffix: ''}
+}
+
+const cookieScope = resolveCookieScope({
+	isProduction: import.meta.env.PROD,
+	configuredDomain: import.meta.env.VITE_COOKIE_DOMAIN || undefined,
+	devSuffix: import.meta.env.VITE_COOKIE_SUFFIX,
+})
+
+/** Domain attribute for auth and Anon cookies; undefined keeps them host-only. */
+export const cookieDomain = cookieScope.domain
 
 /** Build a cookie name for the current environment. */
-export const cookieName = (base: string) => {
-	const prefixed = `${cookiePrefix()}${base}`
-
-	return devSuffix ? `${prefixed}-${devSuffix}` : prefixed
-}
+export const cookieName = (base: string) => `${cookieScope.prefix}${base}${cookieScope.suffix}`

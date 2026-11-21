@@ -5,10 +5,10 @@
  */
 import {
 	ACCESS_TOKEN_EXPIRATION_MILLISECONDS,
+	ANON_COOKIE_WEEKS,
 	PASSCODE_MAX_ATTEMPTS,
 	REFRESH_GRACE_SECONDS,
 } from '#/db/ops/auth/consts.ts'
-import {ANON_COOKIE_WEEKS} from '#/middleware/_cookie-config.ts'
 
 import {PanelLink, PanelReferences} from '../../doc-links.tsx'
 import {InlineCode, PanelHeader, PanelList, PanelRow, PanelSection, Prose} from '../../doc-ui.tsx'
@@ -275,7 +275,7 @@ export function AuthPanel() {
 					</PanelRow>
 					<PanelRow label="Anon">
 						A signed {ANON_COOKIE_WEEKS}-week JWS cookie (<InlineCode>ANON_COOKIE_WEEKS</InlineCode>{' '}
-						in <InlineCode>src/middleware/_cookie-config.ts</InlineCode>, applied by{' '}
+						in <InlineCode>src/db/ops/auth/consts.ts</InlineCode>, applied by{' '}
 						<InlineCode>setAnonCookie</InlineCode> in{' '}
 						<InlineCode>src/middleware/_set-anon-cookie.ts</InlineCode>). It stays stateless until
 						the first meaningful action creates an <InlineCode>anons</InlineCode> row.
