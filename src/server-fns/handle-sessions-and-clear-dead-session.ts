@@ -27,7 +27,7 @@ import {requireAuth} from '#/middleware/require-auth.ts'
  * Query prefetch (`prefetchQuery`, `ensureQueryData`): the cookie clear is a
  * logout, not a cache refresh.
  */
-export const handleSessions = createServerFn({method: 'POST'})
+export const handleSessionsAndClearDeadSession = createServerFn({method: 'POST'})
 	.middleware([requireAuth])
 	.handler(
 		async ({

@@ -7,7 +7,7 @@ import {Button} from '#/components/ui/button.tsx'
 import {Spinner} from '#/components/ui/spinner.tsx'
 import {useSignOutAll} from '#/hooks/use-sign-out-all.ts'
 import {useSignOut} from '#/hooks/use-sign-out.ts'
-import {handleSessions} from '#/server-fns/handle-sessions.ts'
+import {handleSessionsAndClearDeadSession} from '#/server-fns/handle-sessions-and-clear-dead-session.ts'
 
 import {useStaleSessionRedirect} from '../-hooks/use-stale-session-redirect.ts'
 
@@ -61,7 +61,7 @@ function CurrentBox({children}: {children: ReactNode}) {
 }
 
 function useSessionsQuery() {
-	const handleSessionsFn = useServerFn(handleSessions)
+	const handleSessionsFn = useServerFn(handleSessionsAndClearDeadSession)
 
 	return useQuery(
 		queryOptions({

@@ -22,7 +22,7 @@ const serverFunctionExample = `export const handleGetUserProfile = createServerF
 	})`
 
 /** Query options shape shown in the page recipe. */
-const queryExample = `const handleSessionsFn = useServerFn(handleSessions)
+const queryExample = `const handleSessionsFn = useServerFn(handleSessionsAndClearDeadSession)
 
 const sessionsQueryOptions = queryOptions({
 	queryKey: ['sessions'],
