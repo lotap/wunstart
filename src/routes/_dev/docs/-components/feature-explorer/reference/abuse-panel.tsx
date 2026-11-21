@@ -20,6 +20,7 @@ import {ANON_TOKEN_FAILURES} from '#/db/ops/auth/anon-token-policies.ts'
 import {PASSCODE_SENDS_PER_WINDOW} from '#/db/ops/auth/consts.ts'
 import {GRACE_REPLAY_FAILURES} from '#/db/ops/auth/grace-token-policies.ts'
 import {REFRESH_TOKEN_FAILURES} from '#/db/ops/auth/refresh-token-policies.ts'
+import {allowRatePerWindow} from '#/db/ops/ops-error.ts'
 
 import {DocDiagram} from '../../doc-diagram.tsx'
 import {PanelLink, PanelReferences} from '../../doc-links.tsx'
@@ -99,9 +100,7 @@ const toTokenFailureRows = (
 			state,
 			cause: failureCause,
 			allowance: rateAllowance,
-			weight: Number.isFinite(rateAllowance)
-				? Math.ceil(EXCESSIVE_ACTIVITIES_THRESHOLD / rateAllowance)
-				: 0,
+			weight: allowRatePerWindow(rateAllowance),
 		}
 	})
 
