@@ -19,15 +19,19 @@ const _listSessions = Effect.fn('listSessions')(function* ({
 		Effect.map((payload) => payload.sessionId),
 		/**
 		 * An invalid, expired, or rotated-out refresh JWS only means this device’s
-		 * session cannot be identified; the endpoint then clears the pair. An HKDF
-		 * failure is an infrastructure outage and must not look like an invalid
-		 * token, so it stays a failure and the cookies are kept.
+		 * session cannot be identified; the caller clears the pair. An HKDF failure
+		 * is an infrastructure outage and must not look like an invalid token, so
+		 * it stays a failure and the cookies are kept.
 		 */
 		Effect.catchTag('JwtHandlerError', (error) =>
 			jwtFailureVerdict(error) === 'hkdf' ? Effect.fail(hkdfFailure(error)) : Effect.succeed(null),
 		),
 	)
 
+	/**
+	 * The list is user-scoped, so a valid refresh token for another User is
+	 * simply absent: no row gets `isCurrent`, and the caller clears the pair.
+	 */
 	const sessions = yield* sessionsQueries.selectFromUnexpiredUnrevokedByUser({userId})
 
 	return sessions.map((session) => ({

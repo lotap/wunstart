@@ -405,7 +405,8 @@ export function AuthPanel() {
 					</PanelRow>
 					<PanelRow label="stale session">
 						The settings session list covers every live Session for the User, so a result without
-						the current Session makes the sessions query clear both auth cookies and return an empty
+						the current Session means this device has no live Session — missing, revoked, expired,
+						foreign, or unreadable — and the handler clears both auth cookies and returns an empty
 						list; the page then refreshes the router and the guard redirects to sign-in. It is a
 						POST with a logout side effect — never load or prefetch it from a route loader or a
 						query prefetch. Auth transitions also clear the client cache (

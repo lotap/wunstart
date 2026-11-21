@@ -16,10 +16,11 @@ import {requireAuth} from '#/middleware/require-auth.ts'
  * below still applies.
  *
  * This check relies on the list covering every live Session for the User: no
- * `isCurrent` entry then means this device’s refresh session is revoked,
- * expired, or gone. Clearing both auth cookies here ends the zombie identity the
- * access token would otherwise carry for up to 15 minutes; returning `[]` lets
- * the client refresh the router and the guard redirect.
+ * `isCurrent` entry means this device has no live Session — the row is missing,
+ * revoked, or expired, the refresh token belongs to another User, or the
+ * refresh JWS is unreadable. The handler clears both auth cookies, ending the
+ * zombie identity the access token would otherwise carry for up to 15 minutes;
+ * returning `[]` lets the client refresh the router and the guard redirect.
  *
  * A filtered or paginated list must keep the current row in its result, or check
  * liveness separately. Never call this from a loader, router prefetch, or React

@@ -73,7 +73,7 @@ export const verifyLiveSession = Effect.fn('verifyLiveSession')(function* ({
 	 */
 	if (session.userId !== userId)
 		return yield* deadSessionFailure({
-			failureCause: 'SESSION_NOT_FOUND',
+			failureCause: 'SESSION_USER_MISMATCH',
 			userId,
 			meta: {sessionId: session.id},
 			rateAllowance: Infinity,

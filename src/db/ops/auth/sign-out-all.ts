@@ -84,7 +84,7 @@ const _signOutAll = Effect.fn('signOutAll')(function* ({
 	 */
 	if (sessionUserId !== userId)
 		return yield* opsFailure({
-			failureCause: 'SESSION_NOT_FOUND',
+			failureCause: 'SESSION_USER_MISMATCH',
 			userId,
 			meta: {sessionId: session.id},
 			rateAllowance: Infinity,

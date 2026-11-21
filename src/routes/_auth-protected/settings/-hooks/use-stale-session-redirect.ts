@@ -5,10 +5,12 @@ import {useEffect, useRef} from 'react'
 import {clearIdentityCache} from '#/components/auth/identity-cache.ts'
 
 /**
- * An empty sessions result means this device’s refresh session is gone and the
- * dead auth cookies have already been cleared. Drop the dead identity’s cached
- * data, then refresh the router once so the root auth check runs without those
- * cookies and the route guard redirects to sign-in.
+ * An empty sessions result means this device has no live Session for the User —
+ * the session is missing, revoked, or expired, the refresh token belongs to
+ * another User, or the JWS is unreadable — and the handler has already cleared
+ * the auth cookies. Drop the dead identity’s cached data, then refresh the
+ * router once so the root auth check runs without those cookies and the route
+ * guard redirects to sign-in.
  */
 export function useStaleSessionRedirect(isEmpty: boolean) {
 	const router = useRouter()
