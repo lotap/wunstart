@@ -1,5 +1,10 @@
+/**
+ * Policy prose: the table or code owns the details; state the invariant and
+ * link. Name the code path behind a behavioral claim.
+ * Rules: .agents/skills/wunstart/references/docs.md § Policy prose.
+ */
 import {CodeBlock} from '../../code-block.tsx'
-import {PanelReferences} from '../../doc-links.tsx'
+import {PanelLink, PanelReferences} from '../../doc-links.tsx'
 import {DocBulletList, InlineCode, PanelHeader, PanelSection, Prose} from '../../doc-ui.tsx'
 
 /** Worker entry shown in the runtime reference. */
@@ -31,8 +36,8 @@ const bindings = [
 const hashingFacts = [
 	'Workers allows 10 ms of CPU per request on the free plan; Argon2id needs about 700 ms at the current parameters.',
 	'The AuthHasher Durable Object has a 30 s budget, so one hash costs about 2% of it.',
-	'Per-user sharding: idFromName(userId) isolates users and acts as an implicit rate limit.',
-	'Parameters live in _hashing.ts: m=65536, t=3, p=1, dkLen=32. A login rehashes when the stored parameters lag.',
+	'Per-identity sharding: idFromName(userId ?? anonId) isolates users and anonymous visitors and acts as an implicit rate limit.',
+	'Parameters live in _hashing-config.ts: m=65536, t=3, p=1, dkLen=32. A login rehashes when the stored parameters lag.',
 ]
 
 export function RuntimePanel() {
@@ -83,8 +88,9 @@ export function RuntimePanel() {
 					The four token secret sets are required in development:{' '}
 					<InlineCode>ACCESS_TOKEN_SECRETS</InlineCode>, <InlineCode>ANON_TOKEN_SECRETS</InlineCode>
 					, <InlineCode>REFRESH_TOKEN_SECRETS</InlineCode>, and{' '}
-					<InlineCode>REFRESH_GRACE_TOKEN_SECRETS</InlineCode>. Provision the same values in
-					production with <InlineCode>wrangler secret put</InlineCode>.
+					<InlineCode>REFRESH_GRACE_TOKEN_SECRETS</InlineCode>. Provision the same four variables in
+					production with <InlineCode>wrangler secret put</InlineCode>, using distinct values per
+					environment and database (<PanelLink panel="auth">Auth</PanelLink> owns the rule).
 				</Prose>
 			</PanelSection>
 

@@ -280,6 +280,10 @@ Set them as Worker variables before deploying. In development they default to `h
 
 Deployment support is still in development. The focus is on simplicity and platform agnosticism.
 
+#### Token key rotation
+
+Any deploy that changes a token’s HKDF purpose tag, payload shape, or a secret value under an existing `kid` must rotate the affected token secret sets to a new `kid` and remove the old `kid` in the same deploy. Verify a pre-deploy token lands in the weight-0 `unknown-kid` path.
+
 ## Git worktrees (for parallel work)
 
 Use additional worktrees only when you need to work on more than one thing at a time, such as two branches or two agents in parallel. For a single new project, the Clone and Setup steps are enough.
