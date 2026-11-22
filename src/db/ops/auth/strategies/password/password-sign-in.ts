@@ -94,11 +94,12 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 	const [user] = yield* sessionsUsersQueries.selectUserWithKnownIpByEmail({email, ipAddress})
 
 	/**
-	 * If the credential has bans or excessive activities AND this is not a known IP
-	 * for an existing user, reject with rateLimitFailure before running Argon2id.
-	 * This allows a legitimate user on a known IP to sign in during a brute-force attack,
-	 * while routing unknown-IP denial weight to IP_ADDRESS scope without extending the
-	 * credential ban or burning AuthHasher DO CPU.
+	 * If the credential has bans or excessive activities AND this is not a known
+	 * network for an existing user, reject with rateLimitFailure before running
+	 * Argon2id. This allows a legitimate user on a known network to sign in during
+	 * a brute-force attack, while routing unknown-network denial weight to
+	 * IP_ADDRESS scope without extending the credential ban or burning AuthHasher
+	 * DO CPU.
 	 */
 	if (
 		currentBansAndExcessiveActivities.filter((element) => element.scope === 'FAILED_CREDENTIAL')

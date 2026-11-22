@@ -25,17 +25,24 @@ const selectPrimitive = createSelectSchema(activeTable, overrides)
 
 /// INSERT ///
 
-const InsertBaseVariant = insertPrimitive.mapFields(Struct.omit(['id', 'timestamp'])).mapFields(
-	Struct.evolve({
-		anonId: (field) => field.pipe(withNullDefault),
-		anonsArchiveId: (field) => field.pipe(withNullDefault),
-		meta: (field) => field.pipe(withNullDefault),
-		userId: (field) => field.pipe(withNullDefault),
-		usersArchiveId: (field) => field.pipe(withNullDefault),
-		weight: (field) =>
-			field.pipe(Schema.withDecodingDefault(Effect.succeed(ACTIVITIES_BASELINE_WEIGHT))),
-	}),
-)
+/**
+ * The payload callers log. `ipNetwork` is absent because the logging boundary
+ * derives it from `ipAddress`, so an activity and any ban it creates key the
+ * same network.
+ */
+const InsertBaseVariant = insertPrimitive
+	.mapFields(Struct.omit(['id', 'timestamp', 'ipNetwork']))
+	.mapFields(
+		Struct.evolve({
+			anonId: (field) => field.pipe(withNullDefault),
+			anonsArchiveId: (field) => field.pipe(withNullDefault),
+			meta: (field) => field.pipe(withNullDefault),
+			userId: (field) => field.pipe(withNullDefault),
+			usersArchiveId: (field) => field.pipe(withNullDefault),
+			weight: (field) =>
+				field.pipe(Schema.withDecodingDefault(Effect.succeed(ACTIVITIES_BASELINE_WEIGHT))),
+		}),
+	)
 
 const InsertSuccessVariant = InsertBaseVariant.mapFields(
 	Struct.evolve({
@@ -58,7 +65,14 @@ export const InsertFailureVariant = InsertBaseVariant.mapFields(
 	}),
 )
 
-export const Insert = Schema.Union([InsertSuccessVariant, InsertFailureVariant])
+/** What ops and the logging wrapper pass around; the network is derived, not supplied */
+export const InsertPayload = Schema.Union([InsertSuccessVariant, InsertFailureVariant])
+
+/** Statement input for the insert query: the payload plus its derived network */
+export const Insert = Schema.Union([
+	InsertSuccessVariant.mapFields(Struct.assign({ipNetwork: Schema.String})),
+	InsertFailureVariant.mapFields(Struct.assign({ipNetwork: Schema.String})),
+])
 
 /// SELECT ///
 

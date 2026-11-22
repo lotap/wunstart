@@ -1,5 +1,5 @@
 import {sql} from 'drizzle-orm'
-import {bigint, check, index, inet, timestamp, unique, uuid, varchar} from 'drizzle-orm/pg-core'
+import {bigint, check, cidr, index, timestamp, unique, uuid, varchar} from 'drizzle-orm/pg-core'
 
 import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/column-config.ts'
 import {createActiveTable, createArchiveTable} from '#/db/helpers/table-fns.ts'
@@ -12,7 +12,11 @@ export const tableName = 'bans'
 /** Columns with identical definitions in the active and archive tables */
 const baseCols = {
 	scope: banScopes().notNull(),
-	ipAddress: inet(),
+	/**
+	 * The banned network, and the scope's target column. The exact address that
+	 * triggered the ban lives on the linked activities, not here
+	 */
+	ipNetwork: cidr(),
 	failedCredential: varchar({length: 255}),
 	// Arrays over join tables for query efficiency (ANY() joins). No FK constraints, because Postgres doesn't support FKs on array types.
 	activityIds: uuid().notNull().array(),
@@ -53,8 +57,8 @@ export const activeTable = createActiveTable(
 		 * since only threshold crossings insert here
 		 */
 		index()
-			.on(table.ipAddress)
-			.where(sql`${table.ipAddress} is not null`),
+			.on(table.ipNetwork)
+			.where(sql`${table.ipNetwork} is not null`),
 		index()
 			.on(table.failedCredential)
 			.where(sql`${table.failedCredential} is not null`),
@@ -80,7 +84,7 @@ export const activeTable = createActiveTable(
 		unique(`${tableName}_scope_target_unique`)
 			.on(
 				table.scope,
-				table.ipAddress,
+				table.ipNetwork,
 				table.failedCredential,
 				table.userId,
 				table.anonId,
@@ -91,7 +95,7 @@ export const activeTable = createActiveTable(
 		/** Every ban targets exactly one subject (the scope's target column) */
 		check(
 			`${tableName}_single_target_check`,
-			sql`num_nonnulls(${table.ipAddress}, ${table.failedCredential}, ${table.userId}, ${table.anonId}, ${table.usersArchiveId}, ${table.anonsArchiveId}) = 1`,
+			sql`num_nonnulls(${table.ipNetwork}, ${table.failedCredential}, ${table.userId}, ${table.anonId}, ${table.usersArchiveId}, ${table.anonsArchiveId}) = 1`,
 		),
 	],
 )

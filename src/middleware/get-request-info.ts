@@ -68,9 +68,9 @@ const resolveValidIp = (raw: string | undefined) => {
 
 export const getRequestInfo = createMiddleware().server(({next}) => {
 	/**
-	 * Preserve the full address for user-facing security displays; IPv6 /64
-	 * normalization belongs to the in-memory rate limiter. The address feeds
-	 * rate limits, bans, and the known-IP bypass, so never invent one: a
+	 * Preserve the full address for user-facing security displays; every key
+	 * that must agree (the limiter, activities and bans, the known-IP bypass)
+	 * derives its network through `ipNetwork`. Never invent an address: a
 	 * production request that cannot resolve a client IP fails closed, while
 	 * development falls back to loopback so the app stays usable.
 	 */

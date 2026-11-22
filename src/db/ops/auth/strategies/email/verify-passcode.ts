@@ -69,9 +69,9 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 	if (user) {
 		/**
 		 * If the credential used to find the user has bans or excessive activities
-		 * AND this is a new ip address for the user throw an error.
-		 * This will allow a user to log in with a known ip address if a bad actor is trying to brute-force lock them out
-		 * it will also prevent brute-force attacks where a bad actor switches ip addresses for several attempts at guessing a password
+		 * AND this is a new network for the user throw an error.
+		 * This will allow a user to log in from a known network if a bad actor is trying to brute-force lock them out.
+		 * It will also prevent brute-force attacks where a bad actor moves to other networks for several attempts at guessing a password
 		 */
 		if (
 			currentBansAndExcessiveActivities.filter((element) => element.scope === 'FAILED_CREDENTIAL')

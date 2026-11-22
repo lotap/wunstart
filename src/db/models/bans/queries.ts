@@ -22,7 +22,7 @@ export const insert = createPreparedQuery({
 			.insert(activeTable)
 			.values({
 				scope: sql.placeholder('scope'),
-				ipAddress: sql.placeholder('ipAddress'),
+				ipNetwork: sql.placeholder('ipNetwork'),
 				userId: sql.placeholder('userId'),
 				anonId: sql.placeholder('anonId'),
 				failedCredential: sql.placeholder('failedCredential'),
@@ -55,7 +55,7 @@ export const insert = createPreparedQuery({
 export const insertOrMergeMany = createQueryFn({
 	vSchema: V.InsertMany,
 	query: (qx, inputs) => {
-		const {scope, ipAddress, failedCredential, userId, anonId, usersArchiveId, anonsArchiveId} =
+		const {scope, ipNetwork, failedCredential, userId, anonId, usersArchiveId, anonsArchiveId} =
 			getColumns(activeTable)
 
 		return qx
@@ -73,7 +73,7 @@ export const insertOrMergeMany = createQueryFn({
 			.onConflictDoUpdate({
 				target: [
 					scope,
-					ipAddress,
+					ipNetwork,
 					failedCredential,
 					userId,
 					anonId,

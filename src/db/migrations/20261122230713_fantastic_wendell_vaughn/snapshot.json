@@ -1,0 +1,57 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "89236113-f87f-41f5-83a3-1e83386c200d",
+  "prevIds": [
+    "955efce1-5489-4b25-9833-11acdafaf183"
+  ],
+  "footprints": [
+    {
+      "statementType": "drop_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "bans",
+        "ip_address"
+      ],
+      "writes": [
+        "s|col|public.bans.ip_address",
+        "n|col|public.bans.ip_address",
+        "e|col|public.bans.ip_address"
+      ],
+      "reads": [
+        "n|tbl|public.bans",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "drop_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "bans_archive",
+        "ip_address"
+      ],
+      "writes": [
+        "s|col|public.bans_archive.ip_address",
+        "n|col|public.bans_archive.ip_address",
+        "e|col|public.bans_archive.ip_address"
+      ],
+      "reads": [
+        "n|tbl|public.bans_archive",
+        "n|sch|public"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"bans\",\"ip_address\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"bans_archive\",\"ip_address\"]"
+    }
+  ]
+}

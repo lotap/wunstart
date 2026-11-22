@@ -1,6 +1,7 @@
-import {eq, sql} from 'drizzle-orm'
+import {eq, sql, type SQLWrapper} from 'drizzle-orm'
 import {Struct} from 'effect'
 
+import {IP_NETWORK_PREFIX} from '#/db/helpers/ip-network.ts'
 import {createPreparedQuery} from '#/db/helpers/query-fns.ts'
 import type {QueryExecutor} from '#/db/helpers/types.ts'
 import {IpAddress} from '#/db/helpers/validators.ts'
@@ -34,10 +35,18 @@ const selectSessionsIpAddressesCTE = (qx: QueryExecutor) =>
 	)
 
 /**
- * User lookup for credential ops, including whether the request IP appears in
- * any of the user's Sessions. The comparison runs as `inet = inet` so Postgres
- * canonicalizes both sides; comparing raw strings would false-deny an owner
- * whose IPv6 spelling differs from `host()` output.
+ * Masks an address to its family's network prefix (`IP_NETWORK_PREFIX`). Both
+ * sides of the known-IP check run through it, so an owner whose IPv6 interface
+ * identifier rotated still matches, and the prefix lengths stay in TypeScript.
+ */
+const toNetwork = (address: SQLWrapper) =>
+	sql`network(set_masklen(${address}::inet, CASE WHEN family(${address}::inet) = 6 THEN ${IP_NETWORK_PREFIX.v6} ELSE ${IP_NETWORK_PREFIX.v4} END))`
+
+/**
+ * User lookup for credential ops, including whether the request comes from one
+ * of the networks the user's Sessions signed in from. Both sides are masked
+ * before comparing, so the check never compares a network to an address, and
+ * an IPv4 session stays on the IPv4 branch.
  */
 export const selectUserWithKnownIpByEmail = createPreparedQuery({
 	vSchema: ByEmailAndIp,
@@ -46,7 +55,7 @@ export const selectUserWithKnownIpByEmail = createPreparedQuery({
 		const selectSessionsIpAddresses = selectSessionsIpAddressesCTE(qx)
 
 		const hasKnownIp =
-			sql<boolean>`coalesce(bool_or(${selectSessionsIpAddresses.ipAddress} = ${sql.placeholder('ipAddress')}::inet), false)`.as(
+			sql<boolean>`coalesce(bool_or(${toNetwork(selectSessionsIpAddresses.ipAddress)} = ${toNetwork(sql.placeholder('ipAddress'))}), false)`.as(
 				'has_known_ip',
 			)
 

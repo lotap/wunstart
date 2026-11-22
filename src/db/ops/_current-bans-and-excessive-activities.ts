@@ -1,5 +1,6 @@
 import {Context, Effect, Option, Ref} from 'effect'
 
+import {ipNetwork} from '#/db/helpers/ip-network.ts'
 import * as activitiesBansQueries from '#/db/models/activities---bans/queries.ts'
 import {ByManyTargets} from '#/db/models/activities---bans/validations.ts'
 
@@ -38,14 +39,26 @@ export class CurrentBansAndExcessiveActivities extends Context.Service<
 	PrefetchedRowsRef
 >()('ops.CurrentBansAndExcessiveActivities') {}
 
+/** Pre-check targets: the raw request address, as every op receives it */
+type BanCheckTargets = Omit<(typeof ByManyTargets)['Encoded'], 'ipNetwork'> & {
+	ipAddress?: string | null
+}
+
 /**
  * Runs the ban pre-check for the given targets and stashes its rows so this
  * invocation's activity logging reuses them instead of re-running the union.
+ *
+ * This is where the request address becomes its network: callers pass the
+ * address the boundary resolved, and the query only ever compares `ip_network`.
  */
 export const checkCurrentBansAndExcessiveActivities = Effect.fn(
 	'checkCurrentBansAndExcessiveActivities',
-)(function* (targets: (typeof ByManyTargets)['Encoded']) {
-	const rows = yield* activitiesBansQueries.selectCurrentAndExcessiveByTargets(targets)
+)(function* ({ipAddress, ...targets}: BanCheckTargets) {
+	const rows = yield* activitiesBansQueries.selectCurrentAndExcessiveByTargets({
+		...targets,
+		ipNetwork: ipAddress == null ? undefined : ipNetwork(ipAddress),
+	})
+
 	const prefetchedRowsRef = yield* Effect.serviceOption(CurrentBansAndExcessiveActivities)
 
 	if (Option.isSome(prefetchedRowsRef)) yield* Ref.set(prefetchedRowsRef.value, rows)

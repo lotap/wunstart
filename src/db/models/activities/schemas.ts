@@ -2,6 +2,7 @@ import {sql} from 'drizzle-orm'
 import {
 	bigint,
 	boolean,
+	cidr,
 	index,
 	inet,
 	jsonb,
@@ -30,6 +31,12 @@ const baseCols = {
 	anonId: uuid().references(() => anons.id),
 	anonsArchiveId: bigint(ARCHIVE_ID_CONFIG).references(() => anonsArchive.archiveId),
 	ipAddress: inet().notNull(),
+	/**
+	 * The request address's network, derived through [ipNetwork]{@link (file://./../../helpers/ip-network.ts)}
+	 * at the logging boundary. This is the ban key, so it cannot disagree with
+	 * the limiter; `ipAddress` stays exact for display and audit
+	 */
+	ipNetwork: cidr().notNull(),
 }
 
 /** The active activities table */
@@ -42,13 +49,13 @@ export const activeTable = createActiveLogTable(
 	(table) => [
 		index().on(table.timestamp),
 		/**
-		 * Composite (not hash): the hot ban-check filters `ip_address = $1 AND
+		 * Composite (not hash): the hot ban-check filters `ip_network = $1 AND
 		 * "timestamp" >= now() - window` per subject, so one btree serves both
-		 * the equality and the range. ip_address is NOT NULL on every row, so
+		 * the equality and the range. ip_network is NOT NULL on every row, so
 		 * this index is maintained on every insert, the one place a full index
 		 * is warranted, because the IP arm runs on every logged activity
 		 */
-		index().on(table.ipAddress, table.timestamp),
+		index().on(table.ipNetwork, table.timestamp),
 		/**
 		 * Per-target indexes for the filter-first excessive-activity arms. Each
 		 * arm aggregates only its subject's rows, which is what keeps the ban
