@@ -181,6 +181,10 @@ tester.run('wunstart/email-layer-allowlist', emailLayerAllowlistRule, {
 			code: "import type {EmailService} from '#/email/service.ts';",
 			filename: 'src/routes/settings.tsx',
 		},
+		{
+			code: "import {PASSCODE_MAX_ATTEMPTS} from '#/db/ops/auth/strategies/email/consts.ts';",
+			filename: 'src/routes/_dev/docs/-components/feature-explorer/reference/auth-panel.tsx',
+		},
 	],
 	invalid: [
 		{
