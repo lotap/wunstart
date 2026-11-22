@@ -91,7 +91,7 @@ export function CopyButton({
 	label: string
 	copyLabel?: string
 	variant?: ButtonProps['variant']
-	/** Keep the tooltip open while an external hint is pointing at the button. */
+	/** Keep the tooltip open until the caller releases it. */
 	isTooltipPinned?: boolean
 }) {
 	const [copied, setCopied] = useState(false)
@@ -143,7 +143,7 @@ export function CopyButton({
 								}
 							}}
 						>
-							{copied ? <Check /> : <Copy />}
+							{copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
 						</Button>
 					}
 				/>

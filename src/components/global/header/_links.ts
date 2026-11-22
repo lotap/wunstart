@@ -1,0 +1,20 @@
+import type {LinkProps} from '@tanstack/react-router'
+
+export type HeaderLink = {
+	to: NonNullable<LinkProps['to']>
+	label: string
+}
+
+/** Add a route here to put it in the signed-out header and menu. */
+export const ANON_LINKS: readonly HeaderLink[] = [
+	// Examples: replace these with your product’s pages.
+	{to: '/landing-page', label: 'Landing page'},
+	{to: '/pricing', label: 'Pricing'},
+]
+
+/** Add a route here to put it in the signed-in header and menu. */
+export const USER_LINKS: readonly HeaderLink[] = []
+
+/** The signed-out auth pair. */
+export const SIGN_IN_LINK: HeaderLink = {to: '/sign-in', label: 'Sign in'}
+export const SIGN_UP_LINK: HeaderLink = {to: '/sign-up', label: 'Sign up'}

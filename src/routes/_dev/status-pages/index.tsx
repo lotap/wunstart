@@ -27,7 +27,9 @@ function StatusPages() {
 				Dev only
 			</p>
 
-			<h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Status pages</h1>
+			<h1 className="mt-4 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
+				Status pages
+			</h1>
 
 			<p className="mt-3 max-w-md text-muted-foreground">
 				Preview the route-level error states and open a real 404. These routes are excluded from
@@ -36,6 +38,10 @@ function StatusPages() {
 
 			<ul className="mt-10 divide-y divide-border border-y border-border">
 				<li>
+					{/*
+					 * Unmatched path: Link has no route to resolve, and only a full
+					 * document request gets the server’s 404 response
+					 */}
 					<a
 						href="/does-not-exist"
 						className="flex flex-col gap-1 py-5 transition-colors hover:text-foreground sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"

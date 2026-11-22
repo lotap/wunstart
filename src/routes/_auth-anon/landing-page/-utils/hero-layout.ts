@@ -52,8 +52,12 @@ export const HEADLINE_FADE_VH = 40
  */
 export const FEATURES_TEXT_BLOCK_TOP_VH = 139
 
-/** Top inset where the features text pins, slightly above the headline. */
-export const FEATURES_TEXT_STICKY_TOP_VH = STICKY_TOP_VH - 1
+/**
+ * Top inset where the features text pins, in pixels. A little air above the
+ * line, then it rides the site bar’s visible height (`--header-dock`) so the
+ * revealed bar never clips it.
+ */
+export const FEATURES_TEXT_STICKY_TOP_PX = 40
 
 /** Lead below the pinned subline where the shader curtain starts releasing, in viewport heights. */
 export const SHADER_RELEASE_LEAD_VH = 4
@@ -69,12 +73,12 @@ const INITIAL_SUBLINE_HEIGHT_VH = 9
  * with the measured subline height so the shader releases as the subline
  * starts leaving.
  */
-export const SHADER_PARENT_HEIGHT_CSS = `${
+export const SHADER_PARENT_HEIGHT_CSS = `calc(${
 	BOXES_BLOCK_TOP_VH -
-	(FEATURES_TEXT_STICKY_TOP_VH + INITIAL_SUBLINE_HEIGHT_VH + SHADER_RELEASE_LEAD_VH) +
+	(INITIAL_SUBLINE_HEIGHT_VH + SHADER_RELEASE_LEAD_VH) +
 	SHADER_STICKY_TOP_VH +
 	SHADER_STICKY_HEIGHT_VH
-}svh`
+}svh - ${FEATURES_TEXT_STICKY_TOP_PX}px)`
 
 /**
  * Sticky runway past the first box top. The text stays pinned until the first

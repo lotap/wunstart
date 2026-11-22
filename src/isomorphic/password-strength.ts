@@ -49,7 +49,10 @@ export function loadZxcvbn() {
 
 /**
  * Checks a password against the zxcvbn dictionaries plus contextual inputs
- * (the app name is always included; pass identifiers like the user's email)
+ * (the app name is always included; pass identifiers like the user's email).
+ * Server callers are authoritative: include every identity value the client
+ * uses (in its real form when the client only has a masked one) and any
+ * server-only values; the server check must never be weaker.
  * https://zxcvbn-ts.github.io/zxcvbn/guide/best-practices/
  */
 export async function checkPasswordStrength(password: string, userInputs: Array<string> = []) {

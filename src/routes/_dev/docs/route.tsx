@@ -2,6 +2,8 @@ import {createFileRoute} from '@tanstack/react-router'
 import {Schema} from 'effect'
 import {lazy} from 'react'
 
+import {pageMeta} from '#/lib/page-meta.ts'
+
 /**
  * Dev-only docs route. The page implementation sits outside the route tree and
  * is imported inside the DEV branch, so production builds tree-shake it away.
@@ -23,6 +25,9 @@ export const Route = createFileRoute('/_dev/docs')({
 		}),
 	),
 	component: DocsRoute,
+	head: () => ({
+		meta: pageMeta('Docs', 'Developer documentation: setup, architecture, and extension guides.'),
+	}),
 })
 
 function DocsRoute() {

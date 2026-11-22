@@ -1,4 +1,5 @@
 import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
+import {useSelector} from '@tanstack/react-form'
 import {useQuery} from '@tanstack/react-query'
 import {useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
@@ -25,7 +26,8 @@ import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 import {handlePasswordChange} from '#/server-fns/handle-password-change.ts'
 
-import {userProfileQueryOptions} from './_utils.ts'
+import {type PasswordStrengthContext, usePasswordStrength} from './_hooks.ts'
+import {userProfileQueryOptions} from './user-profile.ts'
 
 const ReverifyDrawer = lazy(() =>
 	import('./_reverify-drawer.tsx').then((m) => ({default: m.ReverifyDrawer})),
@@ -48,7 +50,16 @@ export function ChangePasswordForm({
 
 	const {data: profile} = useQuery(userProfileQueryOptions({serverFn: handleGetUserProfileFn}))
 
-	const strengthUserInputs = profile?.email ? [profile.email] : []
+	/**
+	 * Client-side identity context for zxcvbn. The profile email is masked, so
+	 * this is best-effort only; the server check is authoritative. Add new
+	 * non-sensitive profile identity fields here and to `PasswordStrengthContext`
+	 */
+	const strengthContext = {email: profile?.email} satisfies PasswordStrengthContext
+
+	const strengthUserInputs = Object.values(strengthContext).filter(
+		(value): value is string => value !== undefined,
+	)
 
 	/**
 	 * The zxcvbn dictionaries load lazily on first check, so warm them up while
@@ -78,6 +89,11 @@ export function ChangePasswordForm({
 			})
 		},
 	})
+
+	const password = useSelector(form.atom, (state) => state.values.password)
+
+	/** One settled zxcvbn result drives both the submit gate and the meter, so they cannot disagree */
+	const strength = usePasswordStrength(password, strengthContext)
 
 	/**
 	 * Always set the initial value to false so it renders closed
@@ -123,6 +139,8 @@ export function ChangePasswordForm({
 
 				<form
 					className="w-full max-w-sm"
+					aria-label="Change password"
+					noValidate
 					onSubmit={(e) => {
 						e.preventDefault()
 						e.stopPropagation()
@@ -136,8 +154,9 @@ export function ChangePasswordForm({
 							validators={[
 								validateAfterFirstSubmit(async ({value}: {value: string}) => {
 									/**
-									 * Async because the zxcvbn dictionaries lazy-load; the
-									 * password is also checked against the user's own email
+									 * Async because the zxcvbn dictionaries lazy-load. The
+									 * client context is the masked profile email; the server
+									 * checks the real address
 									 */
 									const {isStrong, message} = await checkPasswordStrength(value, strengthUserInputs)
 
@@ -149,8 +168,8 @@ export function ChangePasswordForm({
 						>
 							{(field) => (
 								<field.PasswordField
-									showStrength
-									strengthUserInputs={strengthUserInputs}
+									formId="password-change"
+									strength={strength}
 									autoComplete="new-password"
 								/>
 							)}
@@ -169,7 +188,16 @@ export function ChangePasswordForm({
 
 						<form.OnSubmitErrors />
 
-						<form.SubmitButton label="Set Password" labelWhileSubmitting="Updating" />
+						{/**
+						 * Disabled until the password is strong; a disabled default button
+						 * also blocks implicit Enter submits. The validator covers only
+						 * the debounce race, and the server re-check stays authoritative
+						 */}
+						<form.SubmitButton
+							label="Set password"
+							labelWhileSubmitting="Updating"
+							buttonProps={{disabled: !strength?.isStrong}}
+						/>
 					</FieldGroup>
 				</form>
 			</div>
@@ -189,12 +217,12 @@ export function PasswordChangeDrawer({
 	return (
 		<Drawer showSwipeHandle open={open} onOpenChange={setOpen}>
 			<DrawerTrigger render={<Button variant={triggerVariant} className={triggerClassName} />}>
-				Change Password
+				Change password
 			</DrawerTrigger>
 			<DrawerPrimitive.VirtualKeyboardProvider>
 				<DrawerContent className="min-h-2/3">
 					<DrawerHeader>
-						<DrawerTitle className="text-4xl font-bold">Update Your Password</DrawerTitle>
+						<DrawerTitle className="text-4xl font-bold">Update your password</DrawerTitle>
 						<DrawerDescription>Changes will take effect immediately</DrawerDescription>
 					</DrawerHeader>
 					<div className="flex grow flex-col items-center justify-center p-4">

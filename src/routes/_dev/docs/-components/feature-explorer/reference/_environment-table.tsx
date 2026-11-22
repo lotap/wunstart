@@ -216,7 +216,7 @@ function EnvironmentVariableName({name}: {name: string}) {
 	const segments = name.split('_')
 
 	return (
-		<code className="font-mono text-xs text-foreground">
+		<code className="font-mono text-sm text-foreground">
 			{segments.map((segment, index) => (
 				// oxlint-disable-next-line react/no-array-index-key react-doctor/no-array-index-as-key -- segments are positional
 				<span key={index}>
@@ -234,32 +234,32 @@ function EnvironmentVariableName({name}: {name: string}) {
 
 export function EnvironmentTable() {
 	return (
-		<div className="overflow-hidden rounded-xl border bg-muted/20">
+		<div className="overflow-hidden rounded-xl border">
 			<table className="w-full table-fixed text-left">
 				<caption className="sr-only">Environment variables</caption>
 				<thead>
-					<tr className="bg-muted/30">
-						<PanelTableHeader scope="col" className="w-[40%] px-5 py-3">
+					<tr className="border-b">
+						<PanelTableHeader scope="col" className="w-2/5 px-5 py-4">
 							Variable
 						</PanelTableHeader>
-						<PanelTableHeader scope="col" className="px-5 py-3">
+						<PanelTableHeader scope="col" className="px-5 py-4">
 							Used for
 						</PanelTableHeader>
 					</tr>
 				</thead>
 				{environmentGroups.map((group) => (
 					<tbody key={group.name}>
-						<tr className="border-t bg-muted/20">
-							<PanelTableHeader colSpan={2} scope="colgroup" className="px-5 py-2">
+						<tr className="border-t">
+							<PanelTableHeader colSpan={2} scope="colgroup" className="px-5 py-3">
 								{group.name}
 							</PanelTableHeader>
 						</tr>
 						{group.variables.map((envVar) => (
 							<tr key={envVar.name} className="border-t align-top">
-								<th scope="row" className="px-5 py-3 text-left font-normal">
+								<th scope="row" className="px-5 py-4 text-left font-normal">
 									<EnvironmentVariableName name={envVar.name} />
 								</th>
-								<td className="px-5 py-3 text-sm leading-relaxed text-muted-foreground">
+								<td className="px-5 py-4 text-base leading-relaxed text-muted-foreground">
 									{envVar.description}
 								</td>
 							</tr>

@@ -107,16 +107,16 @@ export function MiddlewarePanel() {
 						<section
 							key={layer.label}
 							aria-label={`${layer.label} middleware`}
-							className="overflow-hidden rounded-xl border bg-muted/20"
+							className="overflow-hidden rounded-xl border"
 						>
-							<header className="bg-muted/30 px-5 py-3">
-								<h6 className="text-sm font-medium">{layer.label} middleware</h6>
+							<header className="border-b px-5 py-4">
+								<h6 className="text-base font-medium">{layer.label} middleware</h6>
 							</header>
 							<ul>
 								{layer.items.map((item) => (
-									<li key={item.name} className="border-t px-5 py-3">
+									<li key={item.name} className="border-t px-5 py-4">
 										<code className="font-mono text-sm text-foreground">{item.name}</code>
-										<p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+										<p className="mt-1 text-base leading-relaxed text-muted-foreground">
 											{item.description}
 										</p>
 									</li>

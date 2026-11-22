@@ -10,7 +10,7 @@ import {CommandBlock} from './code-block.tsx'
 import {DocLink, MicroLabel} from './doc-ui.tsx'
 
 function ShortcutCard({children}: {children: React.ReactNode}) {
-	return <li className="flex flex-col gap-4 bg-background p-5 md:p-6">{children}</li>
+	return <li className="flex flex-col gap-4 bg-card p-5 md:p-6">{children}</li>
 }
 
 function ShortcutHeader({title, children}: {title: string; children: React.ReactNode}) {
@@ -56,7 +56,11 @@ export function LocalDevPanel() {
 	}
 
 	return (
-		<section id="local-development" aria-label="Local development" className="w-full max-w-5xl">
+		<section
+			id="local-development"
+			aria-label="Local development"
+			className="w-full max-w-5xl scroll-mt-(--header-dock,0px)"
+		>
 			<ul className="grid gap-px overflow-hidden rounded-xl border bg-border md:grid-cols-2 lg:grid-cols-4">
 				<ShortcutCard>
 					<ShortcutHeader title="Email inbox">
@@ -79,7 +83,7 @@ export function LocalDevPanel() {
 								href={mailpitUrl}
 								target="_blank"
 								rel="noreferrer"
-								className={cn(buttonVariants({size: 'lg'}), 'h-10 w-full')}
+								className={cn(buttonVariants({size: 'lg'}), 'w-full')}
 							>
 								Open Mailpit
 							</a>
@@ -114,7 +118,7 @@ export function LocalDevPanel() {
 							href={localServices.studioUrl}
 							target="_blank"
 							rel="noreferrer"
-							className={cn(buttonVariants({size: 'lg'}), 'h-10 w-full')}
+							className={cn(buttonVariants({size: 'lg'}), 'w-full')}
 						>
 							Open Drizzle Studio
 						</a>
@@ -146,7 +150,7 @@ export function LocalDevPanel() {
 							href={localServices.reactEmailUrl}
 							target="_blank"
 							rel="noreferrer"
-							className={cn(buttonVariants({size: 'lg'}), 'h-10 w-full')}
+							className={cn(buttonVariants({size: 'lg'}), 'w-full')}
 						>
 							Open React Email
 						</a>
@@ -168,7 +172,7 @@ export function LocalDevPanel() {
 						</p>
 					</ShortcutHeader>
 					<ShortcutAction>
-						<Button size="lg" className="h-10 w-full" onClick={openTanStackDevtools}>
+						<Button size="lg" className="w-full" onClick={openTanStackDevtools}>
 							Open devtools
 						</Button>
 					</ShortcutAction>
@@ -176,7 +180,10 @@ export function LocalDevPanel() {
 			</ul>
 
 			{terminalOpen && (
-				<div id="terminal-help" className="mt-4 rounded-xl border bg-muted/20 p-5 md:p-6">
+				<div
+					id="terminal-help"
+					className="mt-4 scroll-mt-(--header-dock,0px) rounded-xl border bg-card p-5 md:p-6"
+				>
 					<div className="flex items-start justify-between gap-4">
 						<div className="flex flex-col gap-3">
 							<div className="flex flex-col gap-2">
@@ -252,7 +259,7 @@ export function LocalDevPanel() {
 								terminalTriggerRef.current?.focus()
 							}}
 						>
-							<X />
+							<X aria-hidden="true" />
 						</Button>
 					</div>
 				</div>

@@ -1,9 +1,7 @@
 import {Check, X} from 'lucide-react'
-import {useEffect, useState} from 'react'
 
 import {Badge} from '#/components/ui/badge.tsx'
 import type {PasswordStrength} from '#/isomorphic/password-strength.ts'
-import {checkPasswordStrength} from '#/isomorphic/password-strength.ts'
 import {cn} from '#/lib/utils.ts'
 
 const strengthMeta = [
@@ -40,40 +38,12 @@ function StrengthBadge({
 	)
 }
 
-/** Live strength indicator for a password input, scored by zxcvbn */
-export default function PasswordStrengthMeter({
-	value,
-	userInputs = [],
-}: {
-	value: string
-	/** Memoize to avoid needless re-checks */
-	userInputs?: Array<string>
-}) {
-	const [strength, setStrength] = useState<PasswordStrength | null>(null)
-
-	useEffect(() => {
-		if (!value) return
-
-		let isStale = false
-
-		/** Debounced so zxcvbn does not run on every keystroke while typing */
-		const timeout = setTimeout(() => {
-			checkPasswordStrength(value, userInputs)
-				.then((result) => {
-					if (!isStale) setStrength(result)
-				})
-				.catch(() => {
-					/** Strength is informational, so a failed check just leaves the meter idle */
-				})
-		}, 200)
-
-		return () => {
-			isStale = true
-			clearTimeout(timeout)
-		}
-	}, [value, userInputs])
-
-	const meta = value && strength ? strengthMeta[strength.score] : null
+/**
+ * Live strength indicator for a password input, fed by the form’s debounced
+ * strength result so it always agrees with the submit gate
+ */
+export default function PasswordStrengthMeter({strength}: {strength: PasswordStrength | null}) {
+	const meta = strength ? strengthMeta[strength.score] : null
 
 	return (
 		<div aria-live="polite" className="flex items-center gap-2">

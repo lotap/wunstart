@@ -14,13 +14,14 @@ import {cva} from 'class-variance-authority'
 
 import {appInfo} from '#/app-info.ts'
 import {Footer} from '#/components/global/footer/footer.tsx'
-import {Header} from '#/components/global/header.tsx'
+import {Header} from '#/components/global/header/header.tsx'
 import {NotFound} from '#/components/global/status-pages/not-found.tsx'
 import {RouteError} from '#/components/global/status-pages/route-error.tsx'
 import {Toaster} from '#/components/ui/toast.tsx'
 import {TooltipProvider} from '#/components/ui/tooltip.tsx'
 import {ThemeProvider, useTheme} from '#/contexts/theme.tsx'
 import {resolveAudience, type AudienceDeclaration} from '#/lib/resolve-audience.ts'
+import {getSiteOrigin} from '#/lib/site-origin.ts'
 import {handleVerifyAuth} from '#/server-fns/handle-verify-auth.ts'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools.tsx'
@@ -64,6 +65,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	head: ({matches}) => {
 		const notFound = hasNotFound(matches)
 		const error = hasError(matches)
+		const noindex = notFound || error
+		const pathname = matches[matches.length - 1]?.pathname ?? '/'
+		const canonicalPath = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
+		const url = `${getSiteOrigin()}${canonicalPath}`
 
 		return {
 			meta: [
@@ -78,7 +83,16 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 					name: 'description',
 					content: appInfo.description,
 				},
-				...(notFound || error ? [{name: 'robots', content: 'noindex'}] : []),
+				...(noindex ? [{name: 'robots', content: 'noindex'}] : []),
+				{
+					property: 'og:site_name',
+					content: appInfo.name,
+				},
+				{
+					property: 'og:type',
+					content: 'website',
+				},
+				...(noindex ? [] : [{property: 'og:url', content: url}]),
 				{
 					title: notFound
 						? `Page not found | ${appInfo.name}`
@@ -97,6 +111,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 					type: 'image/svg+xml',
 					href: '/favicon.svg',
 				},
+				...(noindex ? [] : [{rel: 'canonical', href: url}]),
 			],
 			scripts: [{src: '/theme-init.js'}],
 		}

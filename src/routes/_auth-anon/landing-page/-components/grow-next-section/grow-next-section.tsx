@@ -39,6 +39,7 @@ export function GrowNextSection({onManualInstall}: {onManualInstall: () => void}
 	const promptRef = useRef<HTMLDivElement>(null)
 	const navRef = useRef<HTMLElement>(null)
 	const navSlotRef = useRef<HTMLDivElement>(null)
+	const navDockRef = useRef<HTMLDivElement>(null)
 	const sublineRef = useRef<HTMLParagraphElement>(null)
 	const sublineWordRefs = useRef<Array<HTMLSpanElement | null>>([])
 	const boxesBlockRef = useRef<HTMLDivElement>(null)
@@ -111,6 +112,7 @@ export function GrowNextSection({onManualInstall}: {onManualInstall: () => void}
 		promptRef,
 		navRef,
 		navSlotRef,
+		navDockRef,
 		sublineRef,
 		sublineWordRefs,
 		boxesBlockRef,
@@ -179,13 +181,18 @@ export function GrowNextSection({onManualInstall}: {onManualInstall: () => void}
 								/>
 							</div>
 						</div>
-						{/* Fixed in the hero layer so it stays centered while the subline lands. */}
+						{/*
+						 * Fixed in the hero layer so it stays put while the subline lands.
+						 * The bottom offset scales with the viewport height, keeping the gaps
+						 * above and below the panel even.
+						 */}
 						<div
 							ref={promptRef}
-							className="pointer-events-auto absolute inset-x-0 bottom-25 flex justify-center px-4 sm:bottom-30 [@media(max-height:700px)]:bottom-7 sm:[@media(max-height:820px)]:bottom-24 [@media(min-width:640px)_and_(min-height:940px)]:bottom-32"
+							className="pointer-events-auto absolute inset-x-0 bottom-[calc(25svh-5rem)] flex justify-center px-4 sm:bottom-30 sm:[@media(max-height:820px)]:bottom-24 [@media(max-width:359px)_and_(max-height:700px)]:bottom-7 [@media(min-width:360px)_and_(max-width:639px)_and_(max-height:700px)]:bottom-[calc(25svh-6rem)] [@media(min-width:640px)_and_(min-height:940px)]:bottom-32"
 						>
 							<StartPrompt
-								className="w-full max-w-2xl text-xs sm:text-sm"
+								containerClassName="w-full max-w-2xl"
+								className="text-xs sm:text-sm"
 								action={
 									<Button
 										type="button"
@@ -199,7 +206,7 @@ export function GrowNextSection({onManualInstall}: {onManualInstall: () => void}
 								}
 							/>
 						</div>
-						<HeroSectionNav navRef={navRef} slotRef={navSlotRef} />
+						<HeroSectionNav navRef={navRef} slotRef={navSlotRef} dockRef={navDockRef} />
 					</div>
 				</div>
 			</div>

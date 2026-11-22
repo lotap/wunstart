@@ -80,3 +80,5 @@ When a feature has real depth, write the reference panel alongside the tab. The 
 - A flow diagram or backend call chain sits in a feature tab when a reference panel owns the internals.
 - A docs content module holds prose, diagrams, or panel content instead of letting each panel own it.
 - The section explains how the code is organized instead of how the reader uses it.
+- A section walks through the classes, gaps, or measured sizes behind the layout instead of a decision the reader makes.
+- A rule or fact appears in two panels; one should own it and the other link to it.

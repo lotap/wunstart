@@ -1,7 +1,10 @@
 import {useMutation, useQueryClient} from '@tanstack/react-query'
 import {DateTime} from 'effect'
+import {useEffect, useState} from 'react'
 
 import {useLocalStorageQuery} from '#/hooks/use-local-storage-query.ts'
+import type {PasswordStrength} from '#/isomorphic/password-strength.ts'
+import {checkPasswordStrength} from '#/isomorphic/password-strength.ts'
 
 import {
 	passcodeRequestQueryOptions,
@@ -35,7 +38,7 @@ export function usePasscodeRequestMutation({
 	return {mutatePasscodeRequest, passcodeRequestIsPending}
 }
 
-/** Shared email-capture state for the sign-in and sign-up forms */
+/** Email-capture and passcode-request state for the auth flow. */
 export function useAuthFormEmailState({
 	serverFn,
 	email,
@@ -95,4 +98,52 @@ export function useLocalStorageAuthFormState({key}: {key: string}) {
 	const isPending = query.isPending
 
 	return {step, setStep, isPending, remove}
+}
+
+/**
+ * Non-sensitive profile identifiers used to penalize a password that contains
+ * them. Add a field here and to the effect below; see `checkPasswordStrength`
+ * for the server-side strictness rule.
+ */
+export type PasswordStrengthContext = {
+	email?: string
+}
+
+/**
+ * Live zxcvbn strength for a password value, debounced so the dictionaries
+ * are not checked on every keystroke. Returns the latest settled score — the
+ * previous one during the debounce window — or null while the value is empty
+ * or no check has landed yet
+ */
+export function usePasswordStrength(value: string, {email}: PasswordStrengthContext = {}) {
+	const [strength, setStrength] = useState<PasswordStrength | null>(null)
+
+	useEffect(() => {
+		if (!value) return
+
+		let isStale = false
+
+		/** Debounced so zxcvbn does not run on every keystroke while typing */
+		const timeout = setTimeout(() => {
+			checkPasswordStrength(value, email ? [email] : [])
+				.then((result) => {
+					if (!isStale) setStrength(result)
+				})
+				.catch(() => {
+					/**
+					 * Strength gates the submit button, so a failed check clears the
+					 * score and keeps it disabled; the next keystroke retries, and the
+					 * server re-check stays authoritative
+					 */
+					if (!isStale) setStrength(null)
+				})
+		}, 200)
+
+		return () => {
+			isStale = true
+			clearTimeout(timeout)
+		}
+	}, [value, email])
+
+	return value ? strength : null
 }

@@ -1,15 +1,14 @@
 import {mergeProps} from '@base-ui/react/merge-props'
 import {useRender} from '@base-ui/react/use-render'
+import {cva} from 'class-variance-authority'
 import {cn} from 'cn'
+import {Info, TriangleAlert} from 'lucide-react'
 
 /** Small uppercase label used above code, tables, and sidebar groups. */
 export function MicroLabel({className, children, ...props}: React.ComponentProps<'p'>) {
 	return (
 		<p
-			className={cn(
-				'font-mono text-[0.65rem] tracking-[0.16em] text-muted-foreground uppercase',
-				className,
-			)}
+			className={cn('font-mono text-xs tracking-widest text-muted-foreground uppercase', className)}
 			{...props}
 		>
 			{children}
@@ -21,10 +20,7 @@ export function MicroLabel({className, children, ...props}: React.ComponentProps
 export function PanelTableHeader({className, children, ...props}: React.ComponentProps<'th'>) {
 	return (
 		<th
-			className={cn(
-				'font-mono text-[0.65rem] tracking-[0.16em] text-muted-foreground uppercase',
-				className,
-			)}
+			className={cn('font-mono text-xs tracking-widest text-muted-foreground uppercase', className)}
 			{...props}
 		>
 			{children}
@@ -77,7 +73,7 @@ export function DocBulletList({
 	return (
 		<ul
 			className={cn(
-				'flex list-disc flex-col gap-1.5 pl-5 text-sm leading-relaxed text-muted-foreground marker:text-muted-foreground/50',
+				'flex list-disc flex-col gap-2 pl-5 text-base leading-relaxed text-muted-foreground marker:text-muted-foreground/50',
 				className,
 			)}
 		>
@@ -86,10 +82,10 @@ export function DocBulletList({
 	)
 }
 
-/** mono font inline code box */
+/** Inline code in a monospace box. */
 export function InlineCode({children}: {children: React.ReactNode}) {
 	return (
-		<code className="rounded-sm bg-muted px-1 py-0.5 font-mono text-xs text-foreground">
+		<code className="rounded-sm bg-muted px-1 py-0.5 font-mono text-sm text-foreground">
 			{children}
 		</code>
 	)
@@ -98,16 +94,67 @@ export function InlineCode({children}: {children: React.ReactNode}) {
 /** Heading for the content of a side panel. */
 export function PanelHeader({title, description}: {title: string; description: string}) {
 	return (
-		<header className="flex flex-col gap-2">
-			<h4 className="font-heading text-3xl">{title}</h4>
-			<p className="max-w-2xl text-muted-foreground">{description}</p>
+		<header className="flex flex-col gap-3">
+			<h4 className="font-heading text-4xl leading-tight">{title}</h4>
+			<p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">{description}</p>
 		</header>
 	)
 }
 
 /** Paragraph style for docs sections. */
 export function Prose({children}: {children: React.ReactNode}) {
-	return <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">{children}</p>
+	return <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">{children}</p>
+}
+
+const docNoteVariants = cva(
+	'max-w-3xl rounded-lg border bg-card p-4 text-sm leading-relaxed text-muted-foreground',
+	{
+		variants: {
+			variant: {
+				info: '',
+				warning: 'border-destructive/25',
+			},
+		},
+		defaultVariants: {variant: 'info'},
+	},
+)
+
+const docNoteIcons = {info: Info, warning: TriangleAlert} as const
+
+type DocNoteVariant = keyof typeof docNoteIcons
+
+/** Icon-led callout for a caveat or exception inside a docs section. */
+export function DocNote({
+	variant = 'info',
+	title,
+	children,
+}: {
+	variant?: DocNoteVariant
+	title: string
+	children: React.ReactNode
+}) {
+	const Icon = docNoteIcons[variant]
+
+	return (
+		<aside
+			data-variant={variant}
+			aria-label={title}
+			className={cn('group', docNoteVariants({variant}))}
+		>
+			<div className="flex items-start gap-3">
+				<Icon
+					className="mt-0.5 size-4 shrink-0 group-data-[variant=warning]:text-destructive"
+					aria-hidden="true"
+				/>
+				<div className="flex flex-col gap-1">
+					<p className="font-medium text-foreground group-data-[variant=warning]:text-destructive">
+						{title}
+					</p>
+					<div>{children}</div>
+				</div>
+			</div>
+		</aside>
+	)
 }
 
 /** Titled block inside a side panel. Callers compose the content as children. */
@@ -123,20 +170,18 @@ export function PanelSection({
 	children?: React.ReactNode
 }) {
 	return (
-		<section aria-labelledby={id} className={cn('mt-8', className)}>
-			<h5 id={id} className="font-heading text-lg font-medium">
+		<section aria-labelledby={id} className={cn('mt-12', className)}>
+			<h5 id={id} className="scroll-mt-(--header-dock,0px) font-heading text-3xl font-medium">
 				{title}
 			</h5>
-			{children && <div className="mt-4 flex flex-col gap-3">{children}</div>}
+			{children && <div className="mt-4 flex flex-col gap-4">{children}</div>}
 		</section>
 	)
 }
 
 /** Bordered list used for reference rows. */
 export function PanelList({children, className}: {children: React.ReactNode; className?: string}) {
-	return (
-		<ul className={cn('overflow-hidden rounded-xl border bg-muted/20', className)}>{children}</ul>
-	)
+	return <ul className={cn('overflow-hidden rounded-xl border', className)}>{children}</ul>
 }
 
 const rowWidths = {
@@ -144,6 +189,8 @@ const rowWidths = {
 	medium: 'sm:grid-cols-[15rem_1fr]',
 	wide: 'sm:grid-cols-[19rem_1fr]',
 } as const
+
+const labelSizes = {xs: 'text-xs', sm: 'text-sm'} as const
 
 function PanelRowLabel({
 	variant,
@@ -155,11 +202,7 @@ function PanelRowLabel({
 	children: React.ReactNode
 }) {
 	if (variant === 'code') {
-		return (
-			<code className={cn('font-mono text-foreground', size === 'xs' ? 'text-xs' : 'text-sm')}>
-				{children}
-			</code>
-		)
+		return <code className={cn('font-mono text-foreground', labelSizes[size])}>{children}</code>
 	}
 
 	if (variant === 'text') return <p className="text-sm font-medium">{children}</p>
@@ -182,11 +225,11 @@ export function PanelRow({
 	labelSize?: 'sm' | 'xs'
 }) {
 	return (
-		<li className={cn('grid gap-1 border-t px-5 py-3 first:border-t-0 sm:gap-4', rowWidths[width])}>
+		<li className={cn('grid gap-1 border-t px-5 py-4 first:border-t-0 sm:gap-4', rowWidths[width])}>
 			<PanelRowLabel variant={labelVariant} size={labelSize}>
 				{label}
 			</PanelRowLabel>
-			<p className="text-sm leading-relaxed text-muted-foreground">{children}</p>
+			<p className="text-base leading-relaxed text-muted-foreground">{children}</p>
 		</li>
 	)
 }

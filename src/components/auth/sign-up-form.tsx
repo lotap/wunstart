@@ -101,10 +101,12 @@ export function SignUpForm() {
 		<div className="mx-auto flex w-full max-w-sm flex-col items-center p-4">
 			{step === 0 && (
 				<step0Form.AppForm>
-					<FormHeading headline="Sign Up" subhead="Create an account" />
+					<FormHeading headline="Sign up" subhead="Create an account" />
 
 					<form
 						className="w-full max-w-sm"
+						aria-label="Sign up"
+						noValidate
 						onSubmit={(e) => {
 							e.preventDefault()
 							e.stopPropagation()
@@ -131,7 +133,7 @@ export function SignUpForm() {
 									]}
 									validators={[validateAfterFirstSubmit(Schema.toStandardSchemaV1(Email))]}
 								>
-									{(field) => <field.EmailField />}
+									{(field) => <field.EmailField formId="sign-up" />}
 								</step0Form.Field>
 
 								<step0Form.OnSubmitErrors />
@@ -140,7 +142,7 @@ export function SignUpForm() {
 									buttonProps={{disabled: branch !== 'default'}}
 									label="Continue"
 									changeLabelWhileSubmitting={branch === 'default'}
-									labelWhileSubmitting="Sending Code"
+									labelWhileSubmitting="Sending code"
 								/>
 
 								<step0Form.SubmitButton
@@ -177,7 +179,7 @@ export function SignUpForm() {
 											setBranch('skip')
 										},
 									}}
-									label="Have a Passcode?"
+									label="Have a passcode?"
 									changeLabelWhileSubmitting={branch === 'skip'}
 									labelWhileSubmitting="Loading"
 								/>
@@ -209,14 +211,15 @@ export function SignUpForm() {
 							branchRef.current = 'default'
 						}}
 					>
-						<ArrowLeft data-icon="inline-start" /> Change email
+						<ArrowLeft aria-hidden="true" data-icon="inline-start" /> Change email
 					</Button>
 
 					<FormHeading
 						headline="Verify your email"
 						subhead={
 							<>
-								We sent a passcode/instructions to <strong>{email}</strong>
+								We sent a passcode/instructions to{' '}
+								<strong className="dark:font-semibold">{email}</strong>
 							</>
 						}
 					/>

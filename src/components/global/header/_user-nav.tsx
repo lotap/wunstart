@@ -4,7 +4,7 @@ import {useServerFn} from '@tanstack/react-start'
 import {LogOut, User} from 'lucide-react'
 import {useState} from 'react'
 
-import {userProfileQueryOptions} from '#/components/auth/_utils.ts'
+import {userProfileQueryOptions} from '#/components/auth/user-profile.ts'
 import {Button} from '#/components/ui/button.tsx'
 import {
 	DropdownMenu,
@@ -17,8 +17,9 @@ import {
 } from '#/components/ui/dropdown-menu.tsx'
 import {Skeleton} from '#/components/ui/skeleton.tsx'
 import {useSignOut} from '#/hooks/use-sign-out.ts'
-import {CATEGORIES} from '#/routes/_auth-protected/settings/-categories.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
+
+import {SETTINGS_SHORTCUTS} from './_settings-shortcuts.ts'
 
 export function UserNav() {
 	const signOut = useSignOut()
@@ -36,8 +37,10 @@ export function UserNav() {
 
 	return (
 		<DropdownMenu open={open} onOpenChange={setOpen}>
-			<DropdownMenuTrigger render={<Button variant="ghost" size="icon" aria-label="Account" />}>
-				<User />
+			<DropdownMenuTrigger
+				render={<Button variant="ghost" size="icon-lg" aria-label="Account" className="size-10" />}
+			>
+				<User aria-hidden="true" />
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" sideOffset={8} className="min-w-48">
 				{(isPending || profile) && (
@@ -53,13 +56,13 @@ export function UserNav() {
 					</DropdownMenuGroup>
 				)}
 				{(isPending || profile) && <DropdownMenuSeparator />}
-				{CATEGORIES.map(({id, label, Icon}) => (
+				{SETTINGS_SHORTCUTS.map(({id, label, Icon}) => (
 					<DropdownMenuItem
 						key={id}
 						render={<Link to="/settings" search={{categories: [id]}} />}
 						className="cursor-pointer"
 					>
-						<Icon />
+						<Icon aria-hidden="true" />
 						{label}
 					</DropdownMenuItem>
 				))}
@@ -70,8 +73,8 @@ export function UserNav() {
 						void signOut()
 					}}
 				>
-					<LogOut />
-					Sign Out
+					<LogOut aria-hidden="true" />
+					Sign out
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

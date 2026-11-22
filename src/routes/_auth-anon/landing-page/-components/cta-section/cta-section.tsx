@@ -32,7 +32,7 @@ function PanelFooter({panelRef}: {panelRef: Ref<HTMLDivElement>}) {
 				rel="noreferrer"
 				className="inline-flex items-center gap-1 text-sm font-semibold underline-offset-4 hover:underline dark:font-medium"
 			>
-				Open on GitHub <ArrowUpRight className="size-3.5" />
+				Open on GitHub <ArrowUpRight aria-hidden="true" className="size-3.5" />
 			</a>
 			<p className="text-sm text-muted-foreground">MIT licensed</p>
 		</div>
@@ -47,7 +47,7 @@ function CtaTagline({
 	lineRefs: RefObject<Array<HTMLSpanElement | null>>
 }) {
 	return (
-		<h3
+		<h2
 			ref={taglineRef}
 			className="pointer-events-auto flex w-fit flex-col font-heading text-5xl leading-[0.95] tracking-[-0.04em] sm:text-6xl lg:text-7xl"
 		>
@@ -67,7 +67,7 @@ function CtaTagline({
 					</span>
 				</span>
 			))}
-		</h3>
+		</h2>
 	)
 }
 

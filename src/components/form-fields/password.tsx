@@ -1,60 +1,58 @@
 import type {FieldWithValue} from '@tanstack/react-form'
-import {cva} from 'class-variance-authority'
 import {Eye, EyeOff} from 'lucide-react'
 import {useState} from 'react'
 
-import {Field, FieldError, FieldLabel} from '#/components/ui/field.tsx'
+import {Field, FieldLabel} from '#/components/ui/field.tsx'
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupButton,
 	InputGroupInput,
 } from '#/components/ui/input-group.tsx'
+import type {PasswordStrength} from '#/isomorphic/password-strength.ts'
 
+import {FormError} from './form-error.tsx'
 import PasswordStrengthMeter from './password-strength-meter.tsx'
-
-const errorTextVariants = cva('text-center', {
-	variants: {
-		isDisabled: {
-			true: 'opacity-50',
-		},
-	},
-})
 
 export function PasswordField({
 	field,
+	formId,
 	isDisabled = false,
-	showStrength = false,
-	strengthUserInputs,
+	strength,
 	autoComplete = 'current-password',
 }: {
 	field: FieldWithValue<string>
+	/** Stable form slug; prefixes the DOM id, not the submitted field name */
+	formId: string
 	isDisabled?: boolean
-	showStrength?: boolean
-	strengthUserInputs?: Array<string>
+	/** Latest settled score; pass to render the meter, omit to hide it */
+	strength?: PasswordStrength | null
 	autoComplete?: 'current-password' | 'new-password'
 }) {
 	const [showPassword, setShowPassword] = useState(false)
 
 	const isInvalid = field.meta.isTouched && !field.meta.isValid
+	const id = `${formId}-${field.name}`
+	const errorId = `${id}-error`
 
 	return (
 		<Field data-invalid={isInvalid}>
-			<FieldLabel htmlFor={field.name} className="sr-only">
+			<FieldLabel htmlFor={id} className="sr-only">
 				Password
 			</FieldLabel>
 
 			<InputGroup data-disabled={isDisabled}>
 				<InputGroupInput
-					id={field.name}
+					id={id}
 					name={field.name}
 					value={field.value}
 					onBlur={field.handleBlur}
 					onChange={(e) => field.handleChange(e.target.value)}
 					disabled={isDisabled}
 					aria-invalid={isInvalid}
-					aria-describedby={isInvalid ? `${field.name}-error` : undefined}
+					aria-describedby={isInvalid ? errorId : undefined}
 					autoComplete={autoComplete}
+					required
 					placeholder="Password"
 					minLength={8}
 					maxLength={72}
@@ -74,17 +72,9 @@ export function PasswordField({
 				</InputGroupAddon>
 			</InputGroup>
 
-			{showStrength && (
-				<PasswordStrengthMeter value={field.value} userInputs={strengthUserInputs} />
-			)}
+			{strength !== undefined && <PasswordStrengthMeter strength={strength} />}
 
-			{isInvalid && (
-				<FieldError
-					id={`${field.name}-error`}
-					errors={field.errors}
-					className={errorTextVariants({isDisabled})}
-				/>
-			)}
+			{isInvalid && <FormError id={errorId} errors={field.errors} isMuted={isDisabled} />}
 		</Field>
 	)
 }

@@ -45,7 +45,7 @@ function SignOutButton() {
 
 	return (
 		<Button variant="outline" onClick={async () => await signOut()} className="w-fit">
-			Sign Out
+			Sign out
 		</Button>
 	)
 }
@@ -153,10 +153,10 @@ export function SessionsSection() {
 				<ErrorBoundary fallback={<p>Couldn’t render your sessions. Please try again.</p>}>
 					<SessionsList />
 				</ErrorBoundary>
-				{/** Extra top margin as a deliberate break before the sign-out-all action */}
+				{/** Deliberate break before the sign-out-all action */}
 				<div className="mt-2 flex flex-row flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border p-4">
 					<Button variant="outline" onClick={async () => await signOutAll()} className="w-fit">
-						Sign Out All
+						Sign out all
 					</Button>
 					<p className="min-w-0 flex-1 basis-64 text-sm text-muted-foreground">
 						Ends every session, including this device. You will need to sign in again.

@@ -72,7 +72,7 @@ function ConfirmRemoval({closeRemoveAccountDrawer}: {closeRemoveAccountDrawer?: 
 			<div className="flex w-full max-w-md flex-col items-center gap-4 text-center">
 				<p>This will permanently remove your account and sign you out on&nbsp;all&nbsp;devices.</p>
 				<p>
-					<strong>
+					<strong className="dark:font-semibold">
 						Your account data will be archived and this action cannot&nbsp;be&nbsp;undone.
 					</strong>
 				</p>
@@ -132,20 +132,18 @@ export function RemoveAccountDrawer({triggerClassName}: {triggerClassName?: stri
 	return (
 		<Drawer showSwipeHandle open={open} onOpenChange={setOpen}>
 			<DrawerTrigger render={<Button variant="destructive" className={triggerClassName} />}>
-				Remove Account
+				Remove account
 			</DrawerTrigger>
 			<DrawerContent className="min-h-2/3">
 				<DrawerHeader>
-					<DrawerTitle className="text-4xl font-bold">Remove Your Account</DrawerTitle>
+					<DrawerTitle className="text-4xl font-bold">Remove your account</DrawerTitle>
 					<DrawerDescription>Permanently lose access</DrawerDescription>
 				</DrawerHeader>
-				{/* <div className="flex grow flex-col items-center justify-center p-4"> */}
 				<ConfirmRemoval
 					closeRemoveAccountDrawer={() => {
 						setOpen(false)
 					}}
 				/>
-				{/* </div> */}
 			</DrawerContent>
 		</Drawer>
 	)
