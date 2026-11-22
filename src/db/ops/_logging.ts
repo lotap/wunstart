@@ -191,8 +191,7 @@ const logActivityAndHandleBans = Effect.fn('logActivityAndHandleBans')(
 
 						const extendableBanIds: string[] = []
 
-						const existingBansScopes: (typeof currentBansAndExcessiveActivities)[number]['scope'][] =
-							[]
+						const existingBansScopes = new Set<BanScope>()
 
 						/**
 						 * An activity may only extend bans of its own scope. The lookup
@@ -215,7 +214,7 @@ const logActivityAndHandleBans = Effect.fn('logActivityAndHandleBans')(
 						for (const {id, scope, source} of currentBansAndExcessiveActivities) {
 							// active_bans should always have an id, the extra check prevents typescript errors
 							if (source === 'active_bans' && id !== null) {
-								existingBansScopes.push(scope)
+								existingBansScopes.add(scope)
 
 								if (!implicatesScope[scope]) continue
 
@@ -239,7 +238,7 @@ const logActivityAndHandleBans = Effect.fn('logActivityAndHandleBans')(
 
 						const newBans = currentBansAndExcessiveActivities.filter(
 							({source, scope}) =>
-								source === 'excessive_activities' && !existingBansScopes.includes(scope),
+								source === 'excessive_activities' && !existingBansScopes.has(scope),
 						)
 
 						/**
