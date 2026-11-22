@@ -4,6 +4,7 @@ import {Result, Schema} from 'effect'
 
 import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
 import {IpAddress} from '#/db/helpers/validators.ts'
+import {isValidTimeZone} from '#/lib/timezone.ts'
 
 import {SERVICE_UNAVAILABLE_MESSAGE} from './_messages.ts'
 import {throwKnownServerError} from './known-server-error.ts'
@@ -32,15 +33,7 @@ const geoHeaderValue = (header: string, maxLength: number) => {
 const timezoneHeaderValue = () => {
 	const raw = geoHeaderValue('cf-timezone', 64)
 
-	if (!raw) return null
-
-	try {
-		new Intl.DateTimeFormat('en-US', {timeZone: raw}).format(new Date())
-
-		return raw
-	} catch {
-		return null
-	}
+	return raw && isValidTimeZone(raw) ? raw : null
 }
 
 /**
