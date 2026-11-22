@@ -18,14 +18,21 @@ class JwtKeyDerivationError extends Schema.TaggedError<
 >()('JwtKeyDerivationError', {cause: Schema.Defect()}) {}
 
 /**
- * HKDF purpose tag; changing it invalidates that type’s pre-deploy tokens.
+ * HKDF `info` tag binding a key to one token type: a key derived for one type
+ * cannot verify or decrypt another, even if a secret set is shared or
+ * misconfigured. The tag is public, so it hardens by separating key spaces, not
+ * by protecting the raw secret.
+ *
+ * Changing a tag invalidates tokens of that type minted before the change.
  */
 export type TokenPurpose = 'access' | 'refresh' | 'refresh-grace' | 'anon'
 
 /**
- * Derives an encryption key from the provided secret and salt.
- * Uses the HKDF function to ensure uniform randomness in the generated key, even if the secret is weak.
- * The purpose tag binds the derived key to a single token type (RFC 5869 §3.2)
+ * Derives one token key from the `kid` secret, the token’s fresh random salt
+ * (its `s` header), and the purpose tag. Minting writes `kid` and `s` into the
+ * header; {@link getKeyFromSecretsMap} re-derives from them at verification.
+ * HKDF output is uniform even from a weak secret and one-way, so a leaked
+ * derived key does not expose the raw secret.
  */
 export function deriveHashKey({
 	secret,
@@ -37,7 +44,7 @@ export function deriveHashKey({
 	purpose: TokenPurpose
 }) {
 	return Effect.callback<Uint8Array, JwtKeyDerivationError>((resume) => {
-		hkdf('sha256', secret, salt, `Generated for Wunstart:${purpose}`, 32, (err, derivedKey) => {
+		hkdf('sha256', secret, salt, `Generated with wunstart | ${purpose}`, 32, (err, derivedKey) => {
 			if (err) return resume(Effect.fail(new JwtKeyDerivationError({cause: err})))
 			resume(Effect.succeed(new Uint8Array(derivedKey)))
 		})
