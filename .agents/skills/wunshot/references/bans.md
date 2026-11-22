@@ -4,6 +4,8 @@ Dimensions tracked per activity: IP, credential, user, anon. The `currentBansAnd
 
 The HTTP boundary rejects a request it cannot resolve to a client IP, so the ban pipeline only sees real addresses. `SYSTEM_OPS_IP` (`db/helpers/ip-sentinels.ts`) is the exception for system ops; no user request can carry it.
 
+The IP scope keys on the client’s network, not the exact address: `IP_NETWORK_PREFIX` (`db/helpers/ip-network.ts`) sets the mask, and `bans.ip_network` / `activities.ip_network` store the result. A client rotating addresses inside its own allocation therefore cannot reset the ban, and the limiter uses the same key. `activities.ip_address` keeps the exact address for display and audit; `bans` carries no address, only the network, and the address behind a ban is recoverable through its `activityIds` / `activitiesArchiveIds`. `checkCurrentBansAndExcessiveActivities` converts the request address once, so ops keep passing `ipAddress`.
+
 ## Weight routing
 
 Omit `failedCredential` from the `ActivityError` payload on IP_ADDRESS and FAILED_CREDENTIAL rate-limit denials. This routes weight exclusively to IP scope via the query's per-arm `isNotNull(targetColumn)` filter, so the credential ban expires at the end of `EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL` instead of being extended forever by an attacker cycling IPs.
@@ -22,7 +24,9 @@ if (current.filter((element) => element.scope !== 'FAILED_CREDENTIAL').length)
 	return yield* rateLimitFailure({message: genericFailureOutputMessage, meta: {credential: email}, anonId})
 ```
 
-Filter the scope your op guards (`!==` to enforce non-credential bans, `===` with a known-IP escape to enforce credential bans without locking out legit users on familiar IPs). New code copies this shape; never place `failedCredential` in the denial.
+Filter the scope your op guards (`!==` to enforce non-credential bans, `===` with a known-IP escape to enforce credential bans without locking out legit users on familiar networks). New code copies this shape; never place `failedCredential` in the denial.
+
+The known-IP escape compares networks, not addresses: `selectUserWithKnownIpByEmail` masks both the request and each Session address with the family’s prefix (`IP_NETWORK_PREFIX`) before comparing, so an owner whose IPv6 interface identifier rotated still counts as known.
 
 ```ts
 if (current.filter((element) => element.scope === 'FAILED_CREDENTIAL').length && !ipAddresses.includes(ipAddress))

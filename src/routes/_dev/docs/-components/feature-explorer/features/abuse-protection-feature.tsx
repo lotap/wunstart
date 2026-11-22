@@ -16,7 +16,7 @@ const captchaPrompt =
 	'Add a Cloudflare Turnstile challenge after three failed credential attempts. Verify the token server-side before the credential op and store only the verification outcome on the Activity.'
 
 const sharedLimiterPrompt =
-	'Replace the in-memory rate-limit store with a shared, atomic Redis-compatible service such as Redis, Valkey, or Upstash. Keep the 60-second weighted window (WINDOW_MS), the 12,600 threshold (EXCESSIVE_ACTIVITIES_THRESHOLD), the op denial penalty, and the IPv6 /64 keying; read the connection from environment config and fail open when the store is unavailable. Postgres bans remain the durable ceiling; this layer only rejects bursts across instances.'
+	'Replace the in-memory rate-limit store with a shared, atomic Redis-compatible service such as Redis, Valkey, or Upstash. Keep the 60-second weighted window (WINDOW_MS), the 12,600 threshold (EXCESSIVE_ACTIVITIES_THRESHOLD), the op denial penalty, and the network keying (ipNetwork in src/db/helpers/ip-network.ts); read the connection from environment config and fail open when the store is unavailable. Postgres bans remain the durable per-network ceiling; this layer only rejects bursts across instances.'
 
 /** Catalog entry for abuse protection. Details live in the Rate limits & bans reference panel. */
 export function AbuseProtectionFeature() {
@@ -91,8 +91,8 @@ export function AbuseProtectionFeature() {
 						read. A denial carries the full threshold.
 					</PanelRow>
 					<PanelRow label="known IP">
-						A failed-credential ban rejects a new IP but lets the account owner sign in from an IP
-						already on the User. A third party cannot lock the account out.
+						A failed-credential ban rejects a new network but lets the account owner sign in from a
+						network already on the User. A third party cannot lock the account out.
 					</PanelRow>
 				</PanelList>
 			</PanelSection>

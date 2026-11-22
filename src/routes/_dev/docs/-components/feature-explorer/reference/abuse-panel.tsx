@@ -38,9 +38,9 @@ const guardrailsChart = `flowchart LR
   request(["Server fn request"]) -->|"global limit"| mw["rateLimit · per-IP score"]
   mw -->|"over limit"| denied["429"]
   mw -->|"server fn"| auth["verifyAuth"]
-  auth -->|"fallback refresh"| refresh["refresh lane · refresh:IP"]
+  auth -->|"fallback refresh"| refresh["refresh lane · refresh|network"]
   refresh -->|"over limit"| denied
-  auth -->|"sign-out"| sout["sign-out lane · sign-out:IP"]
+  auth -->|"sign-out"| sout["sign-out lane · sign-out|network"]
   sout -->|"over limit"| denied
   auth -->|"server fn"| op["runOp · createOpsFn"]
   op -->|"credential ops"| check["checkCurrentBansAndExcessiveActivities"]
@@ -184,21 +184,21 @@ export function AbusePanel() {
 						30 fallback refresh attempts per minute per IP (
 						<InlineCode>REFRESH_ATTEMPTS_PER_MINUTE</InlineCode> in{' '}
 						<InlineCode>src/middleware/verify-auth.ts</InlineCode>). Keyed{' '}
-						<InlineCode>refresh:&lt;ip&gt;</InlineCode> so it does not spend the global/auth score.
-						Checked in <InlineCode>verifyAuth</InlineCode> before the refresh op; a normal browser
-						refreshes about once per access-token lifetime. The lane is per-IP and runs before the
-						token is verified, so on a shared egress a dead pair retrying at the global rate can 429
-						other clients’ refresh fallback for the rest of the window. Per-session keying would
-						need the verification the lane exists to bound.
+						<InlineCode>refresh|&lt;network&gt;</InlineCode> so it does not spend the global/auth
+						score. Checked in <InlineCode>verifyAuth</InlineCode> before the refresh op; a normal
+						browser refreshes about once per access-token lifetime. The lane is per-IP and runs
+						before the token is verified, so on a shared egress a dead pair retrying at the global
+						rate can 429 other clients’ refresh fallback for the rest of the window. Per-session
+						keying would need the verification the lane exists to bound.
 					</PanelRow>
 					<PanelRow label="sign-out bucket">
 						30 sign-out requests per minute per IP (
 						<InlineCode>SIGN_OUT_ATTEMPTS_PER_MINUTE</InlineCode> in{' '}
 						<InlineCode>src/middleware/rate-limit.ts</InlineCode>), keyed{' '}
-						<InlineCode>sign-out:&lt;ip&gt;</InlineCode>. Both sign-out handlers run the refresh
-						nonce check, but sign-out cannot guess a credential and a shared egress can sign out
-						several devices at once, so the lane bounds the Argon2 work without spending the auth
-						budget. The global limiter remains the outer bound.
+						<InlineCode>sign-out|&lt;network&gt;</InlineCode>. Both sign-out handlers run the
+						refresh nonce check, but sign-out cannot guess a credential and a shared egress can sign
+						out several devices at once, so the lane bounds the Argon2 work without spending the
+						auth budget. The global limiter remains the outer bound.
 					</PanelRow>
 					<PanelRow label="storage">
 						An in-memory <InlineCode>Map</InlineCode> in the Worker. It is per isolate, not shared
@@ -329,16 +329,21 @@ export function AbusePanel() {
 				<Prose>
 					A ban is one temporary block on one scope. Credential ops check the current bans and the
 					recent weighted activity before they do any work. An IP, User, or Anon match rejects
-					immediately; a failed-credential match follows the known-IP rule below.
+					immediately; a failed-credential match follows the known-IP rule below, compared by
+					network.
 				</Prose>
 				<PanelList>
 					<PanelRow label="IP_ADDRESS">
-						The request IP. Applies to every op that receives an IP address; the boundary rejects a
-						request without a resolvable client IP.
+						The request IP network, so a client rotating addresses inside its own allocation cannot
+						reset the ban. <InlineCode>IP_NETWORK_PREFIX</InlineCode> in{' '}
+						<InlineCode>src/db/helpers/ip-network.ts</InlineCode> owns the mask. Applies to every op
+						that receives an IP address; the boundary rejects a request without a resolvable client
+						IP.
 					</PanelRow>
 					<PanelRow label="FAILED_CREDENTIAL">
 						The email an attempt claimed. Only applied when a User exists and the request comes from
-						a new IP; a known IP can still sign in, so a third party cannot lock the account out.
+						a new network; a known network can still sign in, so a third party cannot lock the
+						account out.
 					</PanelRow>
 					<PanelRow label="USER">The signed-in User.</PanelRow>
 					<PanelRow label="ANON">The anonymous identity.</PanelRow>

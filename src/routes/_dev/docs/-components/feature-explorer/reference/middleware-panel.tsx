@@ -208,9 +208,11 @@ export function MiddlewarePanel() {
 						placeholder.
 					</PanelRow>
 					<PanelRow label="stored address">
-						The full address is stored and shown in Settings and security emails. IPv6{' '}
-						<InlineCode>/64</InlineCode> normalization applies only inside the in-memory limiter, so
-						displayed history stays exact.
+						The full address is stored and shown in Settings and security emails. Bans, activities,
+						the limiter, and the known-IP check key the address’s network through{' '}
+						<InlineCode>ipNetwork</InlineCode> (<InlineCode>IP_NETWORK_PREFIX</InlineCode> in{' '}
+						<InlineCode>src/db/helpers/ip-network.ts</InlineCode>), so displayed history stays
+						exact.
 					</PanelRow>
 					<PanelRow label="system ops">
 						<InlineCode>0.0.0.0</InlineCode> marks a system operation with no client. It never
