@@ -2,7 +2,7 @@ import {createServerFn} from '@tanstack/react-start'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {emailRequestPasscode} from '#/db/ops/auth/email/request-passcode.ts'
+import {emailRequestPasscode} from '#/db/ops/auth/strategies/email/request-passcode.ts'
 import {emailLayer} from '#/email/layer.ts'
 import {runOpClearingDeadSession} from '#/middleware/_run-op.server.ts'
 import {rateLimit} from '#/middleware/rate-limit.ts'

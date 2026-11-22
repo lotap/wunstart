@@ -1,7 +1,7 @@
 import {createServerOnlyFn} from '@tanstack/react-start'
 import {Effect, Layer, Result, Schema} from 'effect'
 
-import {DeadSessionError} from '#/db/ops/auth/token-error.ts'
+import {DeadSessionError} from '#/db/ops/auth/tokens/token-error.ts'
 import type {OpsErrorContract} from '#/db/ops/ops-error.ts'
 import {RateLimitError} from '#/db/ops/rate-limit-error.ts'
 

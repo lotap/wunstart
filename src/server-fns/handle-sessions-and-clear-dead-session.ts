@@ -2,7 +2,7 @@ import {createServerFn} from '@tanstack/react-start'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {listSessions} from '#/db/ops/auth/list-sessions.ts'
+import {listSessions} from '#/db/ops/auth/sessions/list-sessions.ts'
 import {runOp} from '#/middleware/_run-op.server.ts'
 import {clearAuthCookies} from '#/middleware/_set-auth-cookies.ts'
 import {requireAuth} from '#/middleware/require-auth.ts'

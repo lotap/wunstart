@@ -14,12 +14,12 @@ import {
 	PENALTY_INTERVAL_MAX_QTY,
 	PENALTY_INTERVAL_UNIT,
 } from '#/db/models/bans/consts.ts'
-import type {JwtFailureVerdict, TokenFailurePolicy} from '#/db/ops/auth/_jwt-utils.ts'
-import {ACCESS_TOKEN_FAILURES} from '#/db/ops/auth/access-token-policies.ts'
-import {ANON_TOKEN_FAILURES} from '#/db/ops/auth/anon-token-policies.ts'
-import {PASSCODE_SENDS_PER_WINDOW} from '#/db/ops/auth/consts.ts'
-import {GRACE_REPLAY_FAILURES} from '#/db/ops/auth/grace-token-policies.ts'
-import {REFRESH_TOKEN_FAILURES} from '#/db/ops/auth/refresh-token-policies.ts'
+import {PASSCODE_SENDS_PER_WINDOW} from '#/db/ops/auth/strategies/email/consts.ts'
+import type {JwtFailureVerdict, TokenFailurePolicy} from '#/db/ops/auth/tokens/_jwt-utils.ts'
+import {ACCESS_TOKEN_FAILURES} from '#/db/ops/auth/tokens/access-token-policies.ts'
+import {ANON_TOKEN_FAILURES} from '#/db/ops/auth/tokens/anon-token-policies.ts'
+import {GRACE_REPLAY_FAILURES} from '#/db/ops/auth/tokens/grace-token-policies.ts'
+import {REFRESH_TOKEN_FAILURES} from '#/db/ops/auth/tokens/refresh-token-policies.ts'
 import {allowRatePerWindow} from '#/db/ops/ops-error.ts'
 
 import {DocDiagram} from '../../doc-diagram.tsx'
@@ -233,7 +233,7 @@ export function AbusePanel() {
 					<PanelRow label="passcode sends">
 						Each successful passcode request spends an equal share of the threshold (
 						<InlineCode>allowRatePerWindow(PASSCODE_SENDS_PER_WINDOW)</InlineCode> in{' '}
-						<InlineCode>src/db/ops/auth/email/request-passcode.ts</InlineCode>), so{' '}
+						<InlineCode>src/db/ops/auth/strategies/email/request-passcode.ts</InlineCode>), so{' '}
 						{PASSCODE_SENDS_PER_WINDOW} sends in one activity window reach it. The weight applies to
 						the IP plus the identity on the row; a shared NAT, and on a signed-in send the account
 						itself, can be banned. A refusal inside the reset window (

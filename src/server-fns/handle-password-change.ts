@@ -3,7 +3,7 @@ import {Schema} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {passwordChange} from '#/db/ops/auth/password-change.ts'
+import {passwordChange} from '#/db/ops/auth/strategies/password/password-change.ts'
 import {emailLayer} from '#/email/layer.ts'
 import {checkPasswordStrength} from '#/isomorphic/password-strength.ts'
 import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'

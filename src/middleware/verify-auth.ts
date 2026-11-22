@@ -5,8 +5,8 @@ import type {Effect} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {AuthTokenError} from '#/db/ops/auth/token-error.ts'
-import type {verifyAccess as verifyAccessOpType} from '#/db/ops/auth/verify-access'
+import {AuthTokenError} from '#/db/ops/auth/tokens/token-error.ts'
+import type {verifyAccess as verifyAccessOpType} from '#/db/ops/auth/tokens/verify-access'
 import {RateLimitError} from '#/db/ops/rate-limit-error.ts'
 import {emailLayer} from '#/email/layer.ts'
 
@@ -52,7 +52,7 @@ export const verifyAuth = createMiddleware()
 
 		if (accessToken && refreshToken) {
 			/** Dynamically import verifyAccess op because it relies on injecting env values into the cf worker */
-			const {verifyAccess} = await import('#/db/ops/auth/verify-access')
+			const {verifyAccess} = await import('#/db/ops/auth/tokens/verify-access')
 
 			try {
 				const tokenData = await runOp({
@@ -98,7 +98,7 @@ export const verifyAuth = createMiddleware()
 			})
 
 			/** Dynamically import refresh op because it relies on cf injected values for hashing */
-			const {refresh} = await import('#/db/ops/auth/refresh')
+			const {refresh} = await import('#/db/ops/auth/sessions/refresh')
 
 			try {
 				const refreshData = await runOp({

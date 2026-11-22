@@ -3,12 +3,15 @@ import {deleteCookie} from '@tanstack/react-start/server'
 import {Schema} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
-import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/_anon-token.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {ANON_SESSION_EXPIRED_MESSAGE} from '#/db/ops/auth/_messages.ts'
-import {AnonNotFoundError, emailRequestPasscode} from '#/db/ops/auth/email/request-passcode.ts'
-import {registerAnon} from '#/db/ops/auth/register-anon.ts'
-import {signAnon} from '#/db/ops/auth/sign-anon.ts'
+import {registerAnon} from '#/db/ops/auth/anons/register-anon.ts'
+import {ANON_SESSION_EXPIRED_MESSAGE} from '#/db/ops/auth/messages.ts'
+import {
+	AnonNotFoundError,
+	emailRequestPasscode,
+} from '#/db/ops/auth/strategies/email/request-passcode.ts'
+import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/tokens/_anon-token.ts'
+import {signAnon} from '#/db/ops/auth/tokens/sign-anon.ts'
 import {emailLayer} from '#/email/layer.ts'
 import {EmailPasscodeIntentCredentials} from '#/isomorphic/validations/auth.ts'
 import {runOp} from '#/middleware/_run-op.server.ts'

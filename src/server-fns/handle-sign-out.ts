@@ -3,7 +3,7 @@ import {Schema} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {signOut, TerminalSignOutError} from '#/db/ops/auth/sign-out.ts'
+import {signOut, TerminalSignOutError} from '#/db/ops/auth/sessions/sign-out.ts'
 import {runOp} from '#/middleware/_run-op.server.ts'
 import {setAnonCookie} from '#/middleware/_set-anon-cookie.ts'
 import {clearAuthCookies} from '#/middleware/_set-auth-cookies.ts'

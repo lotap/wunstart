@@ -3,12 +3,10 @@
  * link. Name the code path behind a behavioral claim.
  * Rules: .agents/skills/wunstart/references/docs.md § Policy prose.
  */
-import {
-	ACCESS_TOKEN_EXPIRATION_MILLISECONDS,
-	ANON_COOKIE_WEEKS,
-	PASSCODE_MAX_ATTEMPTS,
-	REFRESH_GRACE_SECONDS,
-} from '#/db/ops/auth/consts.ts'
+import {ANON_COOKIE_WEEKS} from '#/db/ops/auth/anons/consts.ts'
+import {REFRESH_GRACE_SECONDS} from '#/db/ops/auth/sessions/consts.ts'
+import {PASSCODE_MAX_ATTEMPTS} from '#/db/ops/auth/strategies/email/consts.ts'
+import {ACCESS_TOKEN_EXPIRATION_MILLISECONDS} from '#/db/ops/auth/tokens/consts.ts'
 
 import {PanelLink, PanelReferences} from '../../doc-links.tsx'
 import {InlineCode, PanelHeader, PanelList, PanelRow, PanelSection, Prose} from '../../doc-ui.tsx'
@@ -275,7 +273,7 @@ export function AuthPanel() {
 					</PanelRow>
 					<PanelRow label="Anon">
 						A signed {ANON_COOKIE_WEEKS}-week JWS cookie (<InlineCode>ANON_COOKIE_WEEKS</InlineCode>{' '}
-						in <InlineCode>src/db/ops/auth/consts.ts</InlineCode>, applied by{' '}
+						in <InlineCode>src/db/ops/auth/anons/consts.ts</InlineCode>, applied by{' '}
 						<InlineCode>setAnonCookie</InlineCode> in{' '}
 						<InlineCode>src/middleware/_set-anon-cookie.ts</InlineCode>). It stays stateless until
 						the first meaningful action creates an <InlineCode>anons</InlineCode> row.
@@ -310,7 +308,8 @@ export function AuthPanel() {
 					<PanelRow label="attempts">
 						{PASSCODE_MAX_ATTEMPTS} wrong codes retire the row (
 						<InlineCode>PASSCODE_MAX_ATTEMPTS</InlineCode> in{' '}
-						<InlineCode>src/db/ops/auth/consts.ts</InlineCode>). The next request mints a fresh one.
+						<InlineCode>src/db/ops/auth/strategies/email/consts.ts</InlineCode>). The next request
+						mints a fresh one.
 					</PanelRow>
 					<PanelRow label="storage">
 						Only the Argon2id hash is stored. A send failure archives the row immediately, so a
@@ -341,7 +340,7 @@ export function AuthPanel() {
 					<PanelRow label="access">
 						JWE, {accessTokenMinutes} minutes (
 						<InlineCode>ACCESS_TOKEN_EXPIRATION_MILLISECONDS</InlineCode> in{' '}
-						<InlineCode>src/db/ops/auth/consts.ts</InlineCode>). Carries{' '}
+						<InlineCode>src/db/ops/auth/tokens/consts.ts</InlineCode>). Carries{' '}
 						<InlineCode>userId</InlineCode> and the optional sudo expiry, and is verified by
 						decryption with no Postgres round trip.
 					</PanelRow>
@@ -354,9 +353,9 @@ export function AuthPanel() {
 						A {REFRESH_GRACE_SECONDS}-second encrypted successor nonce (
 						<InlineCode>graceExpiresAt</InlineCode>, from{' '}
 						<InlineCode>REFRESH_GRACE_SECONDS</InlineCode> in{' '}
-						<InlineCode>src/db/ops/auth/consts.ts</InlineCode>). A token one generation behind
-						replays through it; anything older revokes the session and notifies the owner. A future
-						generation is rejected without revoking.
+						<InlineCode>src/db/ops/auth/sessions/consts.ts</InlineCode>). A token one generation
+						behind replays through it; anything older revokes the session and notifies the owner. A
+						future generation is rejected without revoking.
 					</PanelRow>
 					<PanelRow label="cookies">
 						<InlineCode>access</InlineCode>, <InlineCode>refresh</InlineCode>, and{' '}

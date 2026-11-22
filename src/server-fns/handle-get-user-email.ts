@@ -2,7 +2,7 @@ import {createServerFn} from '@tanstack/react-start'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {getUserEmail} from '#/db/ops/auth/get-user-email.ts'
+import {getUserEmail} from '#/db/ops/auth/users/get-user-email.ts'
 import {runOp} from '#/middleware/_run-op.server.ts'
 import {requireAuth} from '#/middleware/require-auth.ts'
 

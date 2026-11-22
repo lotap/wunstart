@@ -4,9 +4,9 @@ import {Effect, Schema} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {signAnon} from '#/db/ops/auth/sign-anon.ts'
-import {AuthTokenError} from '#/db/ops/auth/token-error.ts'
-import type {verifyAnon as verifyAnonOpType} from '#/db/ops/auth/verify-anon.ts'
+import {signAnon} from '#/db/ops/auth/tokens/sign-anon.ts'
+import {AuthTokenError} from '#/db/ops/auth/tokens/token-error.ts'
+import type {verifyAnon as verifyAnonOpType} from '#/db/ops/auth/tokens/verify-anon.ts'
 import {RateLimitError} from '#/db/ops/rate-limit-error.ts'
 
 import type {DegradedAuth} from './_degraded-auth.ts'
@@ -50,7 +50,7 @@ export const verifyAnon = createMiddleware({type: 'function'})
 
 		if (anonToken) {
 			/** Dynamically import verifyAnon op because it relies on injecting env values into the cf worker */
-			const {verifyAnon: verifyAnonOp} = await import('#/db/ops/auth/verify-anon.ts')
+			const {verifyAnon: verifyAnonOp} = await import('#/db/ops/auth/tokens/verify-anon.ts')
 
 			try {
 				const payload = await runOp({

@@ -3,7 +3,7 @@ import {DateTime, Schema} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {passwordReverify} from '#/db/ops/auth/password-reverify.ts'
+import {passwordReverify} from '#/db/ops/auth/strategies/password/password-reverify.ts'
 import {PasswordCredentials} from '#/isomorphic/validations/auth.ts'
 import {runOpClearingDeadSession} from '#/middleware/_run-op.server.ts'
 import {setAccessTokenCookie} from '#/middleware/_set-auth-cookies.ts'

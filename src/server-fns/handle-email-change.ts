@@ -3,7 +3,7 @@ import {Schema} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {emailChange} from '#/db/ops/auth/email-change.ts'
+import {emailChange} from '#/db/ops/auth/users/email-change.ts'
 import {emailLayer} from '#/email/layer.ts'
 import {EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 import {runOpClearingDeadSession} from '#/middleware/_run-op.server.ts'
