@@ -79,6 +79,7 @@ const config = defineConfig({
 		'wunshot/no-pgtable-direct': 'error',
 		'wunshot/no-zod-valibot': 'error',
 		'wunshot/no-failed-credential-in-denial': 'error',
+		'wunshot/no-catch-archive-count-mismatch-in-tx': 'error',
 		'wunstart/no-static-workers-import-in-middleware': 'error',
 		'wunstart/no-single-session-revoke': 'error',
 		'wunstart/email-layer-allowlist': 'error',
@@ -155,6 +156,14 @@ const config = defineConfig({
 			rules: {
 				'drizzle/enforce-delete-with-where': 'error',
 				'drizzle/enforce-update-with-where': 'error',
+			},
+		},
+
+		/// DB MODULES ///
+		{
+			files: ['src/db/ops/**/*.ts', 'src/db/models/**/*.ts'],
+			rules: {
+				'wunshot/no-reexport': 'error',
 			},
 		},
 

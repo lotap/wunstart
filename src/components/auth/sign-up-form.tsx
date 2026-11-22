@@ -1,4 +1,5 @@
 import {useSelector} from '@tanstack/react-form'
+import {useQueryClient} from '@tanstack/react-query'
 import {Link, useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 import {Schema} from 'effect'
@@ -21,6 +22,7 @@ import {
 	useLocalStorageEmail,
 } from './_hooks.ts'
 import {PasscodeForm} from './_passcode-form.tsx'
+import {clearIdentityCache} from './identity-cache.ts'
 
 const LinkToSignIn = () => (
 	<Link to="/sign-in" className="mt-10 font-bold text-muted-foreground hover:underline">
@@ -33,6 +35,8 @@ export function SignUpForm() {
 	const handleEmailVerifyPasscodeFn = useServerFn(handleEmailVerifyPasscode)
 
 	const router = useRouter()
+
+	const queryClient = useQueryClient()
 
 	const {
 		query: {data: localStorageEmail},
@@ -232,10 +236,12 @@ export function SignUpForm() {
 							 * not trigger the welcome page
 							 */
 							const {isNewUser} = await handleEmailVerifyPasscodeFn({data: {email, passcode}})
+							clearIdentityCache(queryClient)
 							removeLocalStorageSignUpState()
 							void router.navigate({to: '/', state: {welcome: isNewUser}})
 						}}
 						email={email}
+						anonBound
 						passcodeRequestQueryOptions={passcodeRequestOptions}
 						mutatePasscodeRequest={mutatePasscodeRequest}
 						mutatePasscodeRequestIsPending={passcodeRequestIsPending}

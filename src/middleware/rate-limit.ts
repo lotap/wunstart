@@ -1,8 +1,8 @@
 import {createMiddleware, createServerOnlyFn} from '@tanstack/react-start'
-import {setResponseStatus} from '@tanstack/react-start/server'
 
+import {RATE_LIMITED_MESSAGE} from './_messages.ts'
 import {getRequestInfo} from './get-request-info.ts'
-import {KnownServerError} from './sanitize-errors.ts'
+import {throwKnownServerError} from './known-server-error.ts'
 
 /**
  * Max accumulated score before a request is rejected.
@@ -15,7 +15,10 @@ const THRESHOLD = 12_600 // Least Common Multiple of 1-10 & 25
 /** How long to hold points for a request */
 const WINDOW_MS = 60_000 // 1 min
 
-/** In-memory score store keyed by ip. */
+/** Hard cap on tracked keys so spoofed addresses cannot grow the store without bound */
+const MAX_STORE_ENTRIES = 10_000
+
+/** In-memory score store keyed by rate-limit key. */
 const store = new Map<
 	string,
 	{
@@ -23,6 +26,71 @@ const store = new Map<
 		timestamp: number
 	}[]
 >()
+
+const IPV4_TAIL = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+
+/** Rewrite a dotted IPv4 tail into two hexadecimal hextets, or null if absent */
+const expandIpv4Tail = (ipAddress: string) => {
+	const separator = ipAddress.lastIndexOf(':'),
+		match = IPV4_TAIL.exec(ipAddress.slice(separator + 1))
+
+	if (separator < 0 || !match) return null
+
+	const [a = 0, b = 0, c = 0, d = 0] = match.slice(1).map(Number)
+
+	return `${ipAddress.slice(0, separator + 1)}${((a << 8) | b).toString(16)}:${((c << 8) | d).toString(16)}`
+}
+
+/**
+ * Normalizes IPv6 addresses to their /64 prefix so a client rotating interface
+ * identifiers within a single /64 allocation shares one rate-limit bucket.
+ *
+ * A dotted tail is valid IPv6 notation, not proof of IPv4: expand it to hextets
+ * before taking the prefix, otherwise every interface identifier in a routed
+ * /64 becomes its own bucket. An IPv4-mapped address collapses to the wrapped
+ * IPv4 key, so the same client is not counted under mapped and plain forms
+ * separately, and mapped clients do not all share the zero /64.
+ */
+const toRateLimitKey = (ipAddress: string) => {
+	const lower = ipAddress.toLowerCase()
+
+	if (!lower.includes(':')) return lower
+
+	const expanded = lower.includes('.') ? expandIpv4Tail(lower) : lower
+
+	if (!expanded) return lower
+
+	const [head = '', tail = ''] = expanded.split('::')
+	const headParts = head ? head.split(':') : []
+	const tailParts = tail ? tail.split(':') : []
+	const missing = 8 - headParts.length - tailParts.length
+
+	if (missing < 0) return lower
+
+	const full = [...headParts, ...Array.from({length: missing}, () => '0'), ...tailParts]
+
+	const [first, second, third, fourth, fifth, sixth, seventh, eighth] = full.map((hextet) =>
+		Number.parseInt(hextet, 16),
+	)
+
+	if (
+		first === 0 &&
+		second === 0 &&
+		third === 0 &&
+		fourth === 0 &&
+		((fifth === 0 && sixth === 0xffff) || (fifth === 0xffff && sixth === 0))
+	) {
+		const high = seventh ?? 0
+		const low = eighth ?? 0
+
+		return `${high >> 8}.${high & 0xff}.${low >> 8}.${low & 0xff}`
+	}
+
+	return `${full
+		.slice(0, 4)
+		.map((hextet) => hextet.padStart(4, '0'))
+		.join(':')}::/64`
+}
 
 let cleanCounter = 0
 
@@ -50,38 +118,83 @@ export function allowPerWindow(maxAllowedPerWindow: number) {
 
 /**
  * Rejects the request with 429. Wrapped in `createServerOnlyFn` because
- * `setResponseStatus` is a server-only API. This keeps the client build clean
- * while `addRateLimitEvent` stays usable from isomorphic modules.
+ * rejecting a request only makes sense in a server request context, while
+ * `addRateLimitEvent` stays usable from isomorphic modules.
  */
 const rejectRateLimited = createServerOnlyFn(() => {
-	setResponseStatus(429)
-	throw new KnownServerError({message: 'Slow down a bit, then try again.'})
+	throwKnownServerError(429, RATE_LIMITED_MESSAGE)
 })
 
 /**
- * Record a scored event for an IP address and check the rate-limit threshold.
+ * Record a scored event for a rate-limit key and check the threshold.
  *
  * Expired events (older than `WINDOW_MS`) are pruned before the check.
  * If the accumulated score exceeds `THRESHOLD`, the response is set to 429
- * and a `KnownServerError` is thrown. This must only be called within a
- * request context (middleware or server function).
+ * and a `KnownServerError` is thrown. Once a key is over threshold, further
+ * events are rejected without being recorded, so a flooded key cannot grow
+ * its own event array or slide its window forward. This must only be called
+ * within a request context (middleware or server function).
+ *
+ * `scope` namespaces the key so a tighter lane can count a subset of requests
+ * without spending the global per-IP budget.
  *
  * @throws {KnownServerError} with HTTP 429 when threshold is breached.
  */
-export function addRateLimitEvent({ipAddress, weight}: {ipAddress: string; weight: number}) {
+export function addRateLimitEvent({
+	ipAddress,
+	weight,
+	scope,
+}: {
+	ipAddress: string
+	weight: number
+	scope?: string
+}) {
 	const now = Date.now()
-	const events = store.get(ipAddress)?.filter((e) => e.timestamp > now - WINDOW_MS) ?? []
-	events.unshift({weight, timestamp: now})
-	store.set(ipAddress, events)
+	const normalizedIp = toRateLimitKey(ipAddress)
+	const key = scope ? `${scope}:${normalizedIp}` : normalizedIp
 
-	let sum = 0
+	if (!store.has(key) && store.size >= MAX_STORE_ENTRIES) {
+		/**
+		 * O(1) least-recently-used eviction. The full prune stays on the amortized
+		 * cleanup path above; sweeping 10k keys here would let an attacker at
+		 * capacity trigger an O(store × events) scan on every new key.
+		 */
+		const oldestKey = store.keys().next().value
 
-	for (const {weight: _weight} of events) {
-		sum = sum + _weight
-
-		if (sum > THRESHOLD) rejectRateLimited()
+		if (oldestKey !== undefined) store.delete(oldestKey)
 	}
+
+	const events = store.get(key)?.filter((event) => event.timestamp > now - WINDOW_MS) ?? []
+
+	const previousWeight = events.reduce((sum, event) => sum + event.weight, 0)
+
+	if (previousWeight > THRESHOLD) {
+		/** Re-insert so an active blocked bucket cannot age out and reset its score */
+		if (store.has(key)) {
+			store.delete(key)
+			store.set(key, events)
+		}
+
+		return rejectRateLimited()
+	}
+
+	events.unshift({weight, timestamp: now})
+
+	/** Re-insert on access so Map order is least-recently-used, not insertion order */
+	store.delete(key)
+	store.set(key, events)
+
+	if (previousWeight + weight > THRESHOLD) rejectRateLimited()
 }
+
+/**
+ * Sign-out attempts allowed per IP per minute. Sign-out runs the Argon2 nonce
+ * check but cannot guess a credential, and one shared egress can legitimately
+ * produce several sign-outs at once. Its own lane keeps a sign-out burst from
+ * spending the 5/min credential budget; the global limiter stays the outer
+ * bound.
+ */
+const SIGN_OUT_ATTEMPTS_PER_MINUTE = 30
 
 /**
  * Per-IP rate limiting middleware. Not shared across clusters/instances/isolates.
@@ -92,8 +205,9 @@ export function addRateLimitEvent({ipAddress, weight}: {ipAddress: string; weigh
  * Expired events are purged every 10_000 requests as a safeguard.
  *
  * @argument max The number of requests allowed by an ip within {@link WINDOW_MS}. Must be a positive integer to function as intended
+ * @argument scope Optional namespace for a dedicated bucket; omit to spend the shared per-IP score
  */
-export function createRateLimit(max: number) {
+export function createRateLimit(max: number, scope?: string) {
 	return createMiddleware({type: 'function'})
 		.middleware([getRequestInfo])
 		.server(async ({next, context: {ipAddress}}) => {
@@ -101,7 +215,7 @@ export function createRateLimit(max: number) {
 
 			if (cleanCounter > 10_000) cleanup()
 
-			addRateLimitEvent({ipAddress, weight: allowPerWindow(max)})
+			addRateLimitEvent({ipAddress, weight: allowPerWindow(max), scope})
 
 			return next()
 		})
@@ -109,3 +223,10 @@ export function createRateLimit(max: number) {
 
 /** Default: 5 requests per minute per ip */
 export const rateLimit = createRateLimit(5)
+
+/**
+ * Sign-out lane: 30 requests per minute per IP, keyed `sign-out:<ip>`.
+ * Both sign-out handlers run the refresh nonce check, so the lane bounds the
+ * Argon2 work without charging it to the shared auth budget.
+ */
+export const signOutRateLimit = createRateLimit(SIGN_OUT_ATTEMPTS_PER_MINUTE, 'sign-out')

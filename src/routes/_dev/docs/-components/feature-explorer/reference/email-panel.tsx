@@ -29,8 +29,22 @@ export function EmailPanel() {
 				</Prose>
 				<PanelList>
 					<PanelRow label="Request" labelVariant="text">
-						Rate-limited before the op runs. A sign-in request for an unknown address sends the
-						no-account notice instead of a code; the response shape stays the same.
+						Rate-limited before the op runs; the lanes live in{' '}
+						<PanelLink panel="abuse">Rate limits & bans</PanelLink>. A sign-in request for an
+						unknown address sends the no-account notice instead of a code; the response shape stays
+						the same.
+					</PanelRow>
+					<PanelRow label="Request paths" labelVariant="text">
+						Sign-up and sign-in requests require an Anon. Reverify and email-change requests require
+						a signed-in User and a live session; email change also requires sudo at request and
+						confirm time.
+					</PanelRow>
+					<PanelRow label="Resend" labelVariant="text">
+						A re-request replaces the active row once the current code is about a minute old (
+						<InlineCode>resetFromExpiringByEmail</InlineCode> in{' '}
+						<InlineCode>src/db/models/email-verifications/queries.ts</InlineCode>). There is no
+						cross-identity per-email cap; the passcode send ceiling and ban scopes live in{' '}
+						<PanelLink panel="abuse">Rate limits & bans</PanelLink>.
 					</PanelRow>
 					<PanelRow label="Deliverable mail" labelVariant="text">
 						The code is rendered before the verification row commits. A render failure fails the op;
@@ -135,12 +149,13 @@ export function EmailPanel() {
 						<InlineCode>http://localhost:3000</InlineCode>.
 					</PanelRow>
 					<PanelRow label="EMAIL_TRANSPORT">
-						<InlineCode>mailpit</InlineCode>, <InlineCode>sendemail</InlineCode>, or{' '}
-						<InlineCode>brevo</InlineCode>. Development defaults to Mailpit; production defaults to{' '}
+						The transport schemas in <InlineCode>src/email/layer.ts</InlineCode> own the accepted
+						values; development defaults to Mailpit, production to{' '}
 						<InlineCode>sendemail</InlineCode>.
 					</PanelRow>
 					<PanelRow label="EMAIL_FALLBACK">
-						Comma-separated fallback transports. Defaults to <InlineCode>brevo</InlineCode> in
+						Comma-separated fallback transports. The default chain in{' '}
+						<InlineCode>src/email/layer.ts</InlineCode> is <InlineCode>brevo</InlineCode> in
 						production and empty in development.
 					</PanelRow>
 					<PanelRow label="MAILPIT_URL">

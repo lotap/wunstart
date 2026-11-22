@@ -3,7 +3,7 @@ import {Schema} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {passwordSignIn} from '#/db/ops/auth/password-sign-in.ts'
+import {passwordSignIn} from '#/db/ops/auth/strategies/password/password-sign-in.ts'
 import {emailLayer} from '#/email/layer.ts'
 import {EmailPasswordCredentials} from '#/isomorphic/validations/auth.ts'
 import {runOp} from '#/middleware/_run-op.server.ts'

@@ -2,14 +2,17 @@ import {defineRule} from '@oxlint/plugins'
 import type {ESTree} from '@oxlint/plugins'
 
 /**
- * Any `#/email/` subpath: layer + service + templates + transports + format
+ * The `#/email` module: layer + service + templates + transports + format
  * helpers. Email-sending capability must not leak into routes/components; only
  * the approved code path (ops that send + the server fns / middleware that
- * provide the layer) may touch it. The `/email/` segment match also catches
- * relative traversals (`../../email/…`); `#/`-only is prose, not lint.
+ * provide the layer) may touch it. The rule also catches relative traversals
+ * into a sibling `email` module (`../../email/…`). A strategy folder named
+ * `email` under `#/db/ops/...` is not the email layer and is not matched.
  */
 function isEmailSource(source: string): boolean {
-	return source === '#/email' || source.split('/').includes('email')
+	if (source === '#/email' || source.startsWith('#/email/')) return true
+
+	return /^(?:\.\.?\/)+email(?:\/|$)/.test(source)
 }
 
 function isEmailPath(path: string): boolean {

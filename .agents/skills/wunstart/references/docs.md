@@ -43,10 +43,20 @@ When a feature has real depth, write the reference panel alongside the tab. The 
 - Keep each panel’s prose, examples, diagrams, and data with the panel component — in the panel file or a private child beside it. Do not create a shared docs content module. The explorer may list panels for navigation; the list must not hold their content.
 - One diagram per concept. Split a diagram that exceeds roughly six nodes or needs horizontal scrolling, and place each piece next to the explanation it supports.
 - Verify behavior before documenting a limitation. Say what actually happens (“it is flattened to a still frame”), not an absolute the code does not enforce.
+- Prefer the durable rule over the current snapshot: state the invariant and why, and link to the source of truth instead of restating a list of files, ops, env keys, or consumers. Name a path only when it is the interface the reader must use.
 - Do not ship a control or disclosure with nothing behind it.
 - A feature summary states the capability or payoff, not the how-to.
 - Use examples as proof or a concrete use case, not project-internal trivia.
 - Cut architecture bragging, cache paths, internal names, and duplicated facts unless they change a decision.
+
+## Policy prose
+
+Policy prose is code-adjacent, not ordinary copy. It earns a read-back against the adjacent table or code path even though it does not earn `bun run check`.
+
+- A rendered table or policy map owns its rows, states, exceptions, and weights. Prose states the invariant and links; it never enumerates the table. If a sentence only restates a row or value and adds no reader-facing decision, replace it with a link; keep the explanation when it changes a decision or explains why — verbosity is fine, duplication is not.
+- A behavioral claim that cannot point to the function, parameter, or branch that makes it true is a guess; delete it.
+- If two panels state the same behavior, one owns it and the other links. A second panel never paraphrases.
+- After a policy change, delete the claims that only restated the old state; update the owner. If a claim stays, check its qualifiers (`all`, `only`, `never`, `same`, `separate`, `shared`, `always`, `cannot`) against the code. A symbol grep will not catch a wrong adjective.
 
 ## Extend prompts
 

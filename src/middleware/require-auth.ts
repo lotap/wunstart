@@ -1,9 +1,9 @@
 import {createMiddleware} from '@tanstack/react-start'
-import {setResponseStatus} from '@tanstack/react-start/server'
 
+import {SIGN_IN_REQUIRED_MESSAGE} from '#/isomorphic/auth-messages.ts'
 import type {GlobalServerFnContext} from '#/start-types.ts'
 
-import {KnownServerError} from './sanitize-errors.ts'
+import {throwKnownServerError} from './known-server-error.ts'
 
 export const requireAuth = createMiddleware({type: 'function'}).server(async ({next, context}) => {
 	const ctx: unknown = context
@@ -14,10 +14,15 @@ export const requireAuth = createMiddleware({type: 'function'}).server(async ({n
 	// so it is widened to `unknown` before the single assertion.
 	const {auth} = ctx as GlobalServerFnContext
 
-	if (!auth) {
-		setResponseStatus(401)
-		throw new KnownServerError({message: 'You need to sign in to do that.'})
-	}
+	/**
+	 * Report the request state; `requireAuth` does not end cookies. `verifyAuth`
+	 * has already ended the pair when it saw a definitively invalid token, and
+	 * deliberately keeps it when a ban or rate limit refused the refresh,
+	 * because the Session behind it may still be alive. The client cannot tell
+	 * those states apart from this rejection, so the 401 must not be read as
+	 * proof that the cookies are dead.
+	 */
+	if (!auth) throwKnownServerError(401, SIGN_IN_REQUIRED_MESSAGE)
 
 	return next({context: {auth}})
 })

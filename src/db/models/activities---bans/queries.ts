@@ -1,7 +1,7 @@
 import {and, eq, getColumns, gte, isNotNull, sql} from 'drizzle-orm'
 import type {PgColumn} from 'drizzle-orm/pg-core'
 
-import {createQueryFn, createPreparedQuery} from '#/db/helpers/funcs.ts'
+import {createQueryFn, createPreparedQuery} from '#/db/helpers/query-fns.ts'
 import type {QueryExecutor} from '#/db/helpers/types.ts'
 import {
 	EXCESSIVE_ACTIVITIES_THRESHOLD,
@@ -104,7 +104,7 @@ const excessiveArm = (
 /**
  * One active-ban arm: reads this target's unexpired ban row directly. Mirrors
  * the excessive arms so each scope is a single-index-shaped lookup, with no OR
- * across six columns and no view handoff
+ * across the target columns and no view handoff
  */
 const bansArm = (qx: QueryExecutor, targetColumn: PgColumn, placeholderName: string) =>
 	qx
@@ -190,8 +190,8 @@ export const selectCurrentAndExcessiveByTargets = createPreparedQuery({
  *
  * Built dynamically instead of prepared: the caller has already narrowed to a
  * single scope ({@link V.ByOneTarget} enforces exactly one non-null target),
- * so the WHERE carries only that one condition, with no six-way OR and no unused
- * placeholders. Non-prepared is fine for a rare-path query
+ * so the WHERE carries only that one condition, with no multi-way OR and no
+ * unused placeholders. Non-prepared is fine for a rare-path query
  */
 export const selectActivityIdsByTarget = createQueryFn({
 	vSchema: V.BySingleTarget,

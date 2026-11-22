@@ -1,6 +1,6 @@
 import {and, desc, eq, getColumns, isNull, sql} from 'drizzle-orm'
 
-import {createPreparedQuery} from '#/db/helpers/funcs.ts'
+import {appendUniqueBoundedSql, createPreparedQuery} from '#/db/helpers/query-fns.ts'
 
 import {activeTable, tableName} from './schemas.ts'
 import * as V from './validations.ts'
@@ -108,21 +108,20 @@ export const rotate = createPreparedQuery({
 		qx
 			.update(activeTable)
 			.set({
-				ipAddresses: sql`ARRAY(SELECT DISTINCT unnest(array_cat(${
-					ipAddresses
-				}, ARRAY[${sql.placeholder('ipAddress')}::inet])))`,
-				userAgents: sql`ARRAY(SELECT DISTINCT unnest(array_cat(${
-					userAgents
-				}, ARRAY[${sql.placeholder('userAgent')}::text])))`,
-				countries: sql`ARRAY(SELECT DISTINCT unnest(array_cat(${
-					countries
-				}, ARRAY[${sql.placeholder('country')}::text])))`,
-				cities: sql`ARRAY(SELECT DISTINCT unnest(array_cat(${
-					cities
-				}, ${sql.placeholder('newCities')}::text[])))`,
-				regions: sql`ARRAY(SELECT DISTINCT unnest(array_cat(${
-					regions
-				}, ${sql.placeholder('newRegions')}::text[])))`,
+				ipAddresses: appendUniqueBoundedSql(
+					ipAddresses,
+					sql`ARRAY[${sql.placeholder('ipAddress')}::inet]`,
+				),
+				userAgents: appendUniqueBoundedSql(
+					userAgents,
+					sql`ARRAY[${sql.placeholder('userAgent')}::text]`,
+				),
+				countries: appendUniqueBoundedSql(
+					countries,
+					sql`ARRAY[${sql.placeholder('country')}::text]`,
+				),
+				cities: appendUniqueBoundedSql(cities, sql`${sql.placeholder('newCities')}::text[]`),
+				regions: appendUniqueBoundedSql(regions, sql`${sql.placeholder('newRegions')}::text[]`),
 				nonceHash: sql`${sql.placeholder('nextNonceHash')}`,
 				refreshGeneration: sql`${sql.placeholder('refreshGeneration')} + 1`,
 				expiresAt: sql`${sql.placeholder('expiresAt')}`,

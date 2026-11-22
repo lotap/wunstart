@@ -1,9 +1,11 @@
 import {createMiddleware} from '@tanstack/react-start'
-import {setResponseStatus} from '@tanstack/react-start/server'
 
 import type {GlobalServerFnContext} from '#/start-types.ts'
 
-import {KnownServerError} from './sanitize-errors.ts'
+import {throwKnownServerError} from './known-server-error.ts'
+
+/** Shared with `requireAnonRegistered`, which rejects authenticated requests the same way. */
+export const ALREADY_SIGNED_IN_MESSAGE = 'You’re already signed in. Refresh the page to continue.'
 
 export const requireAnon = createMiddleware({type: 'function'}).server(async ({next, context}) => {
 	const ctx: unknown = context
@@ -14,12 +16,7 @@ export const requireAnon = createMiddleware({type: 'function'}).server(async ({n
 	// so it is widened to `unknown` before the single assertion.
 	const {anon} = ctx as GlobalServerFnContext
 
-	if (!anon) {
-		setResponseStatus(400)
-		throw new KnownServerError({
-			message: 'Something went wrong. Please refresh the page and try again.',
-		})
-	}
+	if (!anon) throwKnownServerError(400, ALREADY_SIGNED_IN_MESSAGE)
 
 	return next({context: {anon}})
 })

@@ -11,8 +11,8 @@ import {
 	varchar,
 } from 'drizzle-orm/pg-core'
 
-import {ARCHIVE_ID_CONFIG} from '#/db/helpers/consts.ts'
-import {createActiveLogTable, createArchiveLogTable} from '#/db/helpers/tables.ts'
+import {ARCHIVE_ID_CONFIG} from '#/db/helpers/column-config.ts'
+import {createActiveLogTable, createArchiveLogTable} from '#/db/helpers/table-fns.ts'
 import {activeTable as anons, archiveTable as anonsArchive} from '#/db/models/anons/schemas.ts'
 import {activeTable as users, archiveTable as usersArchive} from '#/db/models/users/schemas.ts'
 
@@ -85,7 +85,6 @@ export const activeTable = createActiveLogTable(
 
 /**
  * The activities archive table. Preserves relations while keeping the activities table small and efficient.
- * Archived automatically by the daily cron job [archiveOld]{@link (file://./../../ops/system/archive-old-activities.ts)}
  */
 export const archiveTable = createArchiveLogTable(`${tableName}_archive`, {
 	...baseCols,

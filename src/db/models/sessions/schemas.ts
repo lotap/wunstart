@@ -1,8 +1,8 @@
 import {sql} from 'drizzle-orm'
 import {bigint, inet, smallint, text, timestamp, uuid} from 'drizzle-orm/pg-core'
 
-import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/consts.ts'
-import {createActiveTable, createArchiveTable} from '#/db/helpers/tables.ts'
+import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/column-config.ts'
+import {createActiveTable, createArchiveTable} from '#/db/helpers/table-fns.ts'
 import {activeTable as users, archiveTable as usersArchive} from '#/db/models/users/schemas.ts'
 
 export const tableName = 'sessions'
@@ -32,7 +32,7 @@ export const activeTable = createActiveTable(tableName, {
 	revokedAt: timestamp(TIMESTAMPTZ_CONFIG),
 })
 
-/** The sessions archive table. Preserves relations while keeping the users table small and efficient */
+/** The sessions archive table. */
 export const archiveTable = createArchiveTable(`${tableName}_archive`, {
 	...baseCols,
 	userId: uuid().references(() => users.id),

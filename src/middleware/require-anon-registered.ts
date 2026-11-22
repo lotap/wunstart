@@ -1,9 +1,9 @@
 import {createMiddleware} from '@tanstack/react-start'
-import {setResponseStatus} from '@tanstack/react-start/server'
 
 import type {GlobalServerFnContext} from '#/start-types.ts'
 
-import {KnownServerError} from './sanitize-errors.ts'
+import {throwKnownServerError} from './known-server-error.ts'
+import {ALREADY_SIGNED_IN_MESSAGE} from './require-anon.ts'
 
 export const requireAnonRegistered = createMiddleware({type: 'function'}).server(
 	async ({next, context}) => {
@@ -15,12 +15,14 @@ export const requireAnonRegistered = createMiddleware({type: 'function'}).server
 		// so it is widened to `unknown` before the single assertion.
 		const {anon} = ctx as GlobalServerFnContext
 
-		if (!anon?.registered) {
-			setResponseStatus(400)
-			throw new KnownServerError({
-				message: 'Something went wrong. Please refresh the page and try again.',
-			})
-		}
+		/** Authenticated requests have no anon identity; the verified passcode flow is anon-only. */
+		if (!anon) throwKnownServerError(400, ALREADY_SIGNED_IN_MESSAGE)
+
+		if (!anon.registered)
+			throwKnownServerError(
+				400,
+				'This code may have been requested in another browser. Request a new code here.',
+			)
 
 		return next({context: {anon}})
 	},

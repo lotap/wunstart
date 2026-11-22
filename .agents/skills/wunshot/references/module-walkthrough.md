@@ -78,7 +78,7 @@ export const archiveByUser = createArchiveFn({
 
 (`deleteWhere` is an optional extra guard ANDed into the delete for columns the caller races on — e.g. `passcodeHash` in `email-verifications/cascades.ts:19`. Never guard on `id`: the machinery already deletes by selected-row ids.)
 
-`consts.ts` — only if ops or other models import it (status strings stay inline otherwise; a shared `TRIAL_DAYS` belongs here, not in the op).
+`consts.ts` — only if ops or other models import it (user-facing copy belongs in the narrowest messages file, not here; a shared `TRIAL_DAYS` belongs here, not in the op).
 
 ## Core-extension step: re-point the owner's cascades
 
@@ -117,7 +117,7 @@ const _syncSubscription = Effect.fn('syncSubscription')(function* ({providerSubs
 export const syncSubscription = createSystemOpsFn({fn: _syncSubscription, label: 'SYSTEM_SYNC_SUBSCRIPTION'})
 ```
 
-(`createSystemOpsFn` defaults `ipAddress` to `'0.0.0.0'`; see `archive-old-activities` for the full system-op shape including batched loops.)
+(`createSystemOpsFn` defaults `ipAddress` to `SYSTEM_OPS_IP` (`'0.0.0.0'`); see `archive-old-activities` for the full system-op shape including batched loops.)
 
 ## Cross-domain read: `subscriptions---users/`
 

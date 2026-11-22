@@ -1,6 +1,6 @@
 import {Drawer as DrawerPrimitive} from '@base-ui/react/drawer'
 import {useSelector} from '@tanstack/react-form'
-import {useQuery} from '@tanstack/react-query'
+import {useQuery, useQueryClient} from '@tanstack/react-query'
 import {useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 import {lazy, useEffect, useState} from 'react'
@@ -26,8 +26,12 @@ import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
 import {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 import {handlePasswordChange} from '#/server-fns/handle-password-change.ts'
 
-import {type PasswordStrengthContext, usePasswordStrength} from './_hooks.ts'
-import {userProfileQueryOptions} from './user-profile.ts'
+import {
+	type PasswordStrengthContext,
+	useDeadSessionRecovery,
+	usePasswordStrength,
+} from './_hooks.ts'
+import {clearIdentityCache, userProfileQueryOptions} from './identity-cache.ts'
 
 const ReverifyDrawer = lazy(() =>
 	import('./_reverify-drawer.tsx').then((m) => ({default: m.ReverifyDrawer})),
@@ -45,6 +49,10 @@ export function ChangePasswordForm({
 	const {hasSudo} = useHasSudo()
 
 	const router = useRouter()
+
+	const queryClient = useQueryClient()
+
+	const recoverDeadSession = useDeadSessionRecovery()
 
 	const handleGetUserProfileFn = useServerFn(handleGetUserProfile)
 
@@ -76,17 +84,25 @@ export function ChangePasswordForm({
 		},
 		onSubmitSchema: PasswordChangeCredentials,
 		onSubmitTry: async ({password, signOutAllSessions}) => {
-			await handlePasswordChangeFn({data: {password, signOutAllSessions}})
+			try {
+				await handlePasswordChangeFn({data: {password, signOutAllSessions}})
 
-			/** Every session was archived, including this one, so refresh app state */
-			if (signOutAllSessions) await router.invalidate()
+				/** Every session was archived, including this one, so refresh app state */
+				if (signOutAllSessions) {
+					clearIdentityCache(queryClient)
+					await router.invalidate()
+				}
 
-			if (closePasswordChangeDrawer) closePasswordChangeDrawer()
-			toast.add({
-				type: 'success',
-				title: 'Password updated',
-				description: signOutAllSessions ? 'You have been signed out of all sessions' : undefined,
-			})
+				if (closePasswordChangeDrawer) closePasswordChangeDrawer()
+				toast.add({
+					type: 'success',
+					title: 'Password updated',
+					description: signOutAllSessions ? 'You have been signed out of all sessions' : undefined,
+				})
+			} catch (error) {
+				recoverDeadSession(error)
+				throw error
+			}
 		},
 	})
 

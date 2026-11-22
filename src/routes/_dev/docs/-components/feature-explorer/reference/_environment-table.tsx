@@ -22,8 +22,21 @@ const environmentGroups: Array<{
 				name: 'VITE_COOKIE_DOMAIN',
 				description: (
 					<>
-						Required. Domain for the auth and anon cookies. <InlineCode>localhost</InlineCode> in
-						development.
+						Production only; development does not need it. Setting it in a production build is the
+						subdomain-sharing opt-in; cookies switch to <InlineCode>__Http-</InlineCode> and carry
+						that <InlineCode>Domain</InlineCode>. Otherwise production uses host-only{' '}
+						<InlineCode>__Host-Http-</InlineCode> cookies with no <InlineCode>Domain</InlineCode>.
+					</>
+				),
+			},
+			{
+				name: 'VITE_COOKIE_SUFFIX',
+				description: (
+					<>
+						Dev only. Suffix appended to the auth and anon cookie names, written to{' '}
+						<InlineCode>.env.local</InlineCode> by <InlineCode>branch-env</InlineCode> from the
+						branch database name. Cookies ignore ports, so worktrees on{' '}
+						<InlineCode>localhost</InlineCode> would otherwise collide.
 					</>
 				),
 			},

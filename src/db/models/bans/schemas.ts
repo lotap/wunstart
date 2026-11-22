@@ -1,8 +1,8 @@
 import {sql} from 'drizzle-orm'
 import {bigint, check, index, inet, timestamp, unique, uuid, varchar} from 'drizzle-orm/pg-core'
 
-import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/consts.ts'
-import {createActiveTable, createArchiveTable} from '#/db/helpers/tables.ts'
+import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/column-config.ts'
+import {createActiveTable, createArchiveTable} from '#/db/helpers/table-fns.ts'
 import {banScopes} from '#/db/models/activities---bans/schemas.ts'
 import {activeTable as anons, archiveTable as anonsArchive} from '#/db/models/anons/schemas.ts'
 import {activeTable as users, archiveTable as usersArchive} from '#/db/models/users/schemas.ts'
@@ -40,7 +40,7 @@ export const activeTable = createActiveTable(
 		/** Containment joins (@> ARRAY[id]) scan this array. See updateBansForArchivedActivities */
 		index().using('gin', table.activityIds),
 		/**
-		 * One partial index per target column, mirroring the ban pre-check's six
+		 * One partial index per target column, mirroring the ban pre-check's
 		 * active-ban arms (`WHERE col = $x AND expires_at >= now()`). Partial on
 		 * the non-null guard so NULL-heavy rows skip maintenance entirely, and
 		 * single-column on purpose: the single-target CHECK plus
@@ -71,7 +71,7 @@ export const activeTable = createActiveTable(
 			.on(table.anonsArchiveId)
 			.where(sql`${table.anonsArchiveId} is not null`),
 		/**
-		 * One active ban per (scope, target). NULLS NOT DISTINCT makes the five
+		 * One active ban per (scope, target). NULLS NOT DISTINCT makes the
 		 * always-null target columns compare equal. Without it a composite UNIQUE
 		 * never fires (NULLs are distinct by default and every ban row has exactly
 		 * one non-null target). This constraint is the ON CONFLICT arbiter for

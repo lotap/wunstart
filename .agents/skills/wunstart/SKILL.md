@@ -1,7 +1,7 @@
 ---
 name: wunstart
 description: |
-  Example implementation wiring wunshot database modules into a TanStack Start + Cloudflare Workers app. Use when working with server functions, _auth-* route layouts, auth/anon middleware, cookie identity, runOp layer wiring, AuthHasher Durable Object, email transport, page styling/theme, or Workers deployment in this repo. For portable table/query/op definitions, use the wunshot skill instead. Do not trust the vendored tanstack-start skill — it documents the Vinxi-era API, but this repo uses modern Start via `@tanstack/react-start/plugin/vite`; this skill is source of truth.
+  Example implementation wiring wunshot database modules into a TanStack Start + Cloudflare Workers app. Use when working with server functions, _auth-* route layouts, auth/anon middleware, cookie identity, runOp layer wiring, AuthHasher Durable Object, email transport, page styling/theme, in-repo `/docs` panels and policy prose (`src/routes/_dev/docs/**`), or Workers deployment in this repo. For portable table/query/op definitions, use the wunshot skill instead. Do not trust the vendored tanstack-start skill — it documents the Vinxi-era API, but this repo uses modern Start via `@tanstack/react-start/plugin/vite`; this skill is source of truth.
 ---
 
 # Wunstart
@@ -26,6 +26,7 @@ Client never sends or receives db ids; server fns unwrap cookie identity (conven
 - Routes, `_auth-*` guards, component placement, forms, shadcn, compiler, styling (including page-specific CSS modules), runtime layers: `references/app.md`
 - Static images — co-located `-images/`, `?responsive` imports, AVIF ladder, overrides, sharp build caveat: `references/static-images.md`
 - Docs page — content rules, reader checklist, diagrams, extend prompts: `references/docs.md`; surface ownership and panel wiring: `references/app.md` § In-repo docs
+- Comments and docs prose — `AGENTS.md` § Hard rules → House voice; policy prose: `references/docs.md`
 - Visual contract — every visual decision bends to it; load for any visual work: `references/design/contract.md`
 - Page-craft process — scope ladder (page / section / cosmetic), repo discovery, missing-facts protocol: `references/design/process.md`
 - Design depth by concern — copy: `references/design/copy.md`; layout, type, color, depth: `references/design/visual.md`; motion and interaction: `references/design/motion.md`; final gate (page/section): `references/design/verify.md`

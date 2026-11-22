@@ -1,6 +1,7 @@
 import {Effect} from 'effect'
 
 import {archiveManyOldByCutoff} from '#/db/models/activities/cascades.ts'
+import {ACTIVITIES_RETENTION_WINDOW} from '#/db/models/activities/consts.ts'
 import {createSystemOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {retryTransientDb} from '#/db/ops/_retry.ts'
 
@@ -12,7 +13,7 @@ import {retryTransientDb} from '#/db/ops/_retry.ts'
 const ARCHIVE_BATCH_SIZE = 500
 
 const _archiveOldActivities = Effect.fn('archiveOldActivities')(function* ({
-	retentionWindow = '30 days',
+	retentionWindow = ACTIVITIES_RETENTION_WINDOW,
 }: {
 	retentionWindow?: string
 }) {

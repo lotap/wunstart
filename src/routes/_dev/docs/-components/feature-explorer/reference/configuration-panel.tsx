@@ -96,7 +96,7 @@ export function ConfigurationPanel() {
 						</dt>
 						<dd className="text-base leading-relaxed text-muted-foreground">
 							Committed defaults shared by every checkout: <InlineCode>DATABASE_URL</InlineCode>,
-							JWT secrets, the local Hyperdrive URL, and the cookie domain.
+							JWT secrets, and the local Hyperdrive URL.
 						</dd>
 					</div>
 					<div className="flex flex-col gap-2 rounded-xl border p-5">
@@ -104,11 +104,10 @@ export function ConfigurationPanel() {
 							<code className="font-mono text-sm text-foreground">.env.local</code>
 						</dt>
 						<dd className="text-base leading-relaxed text-muted-foreground">
-							Gitignored per-checkout values written by <InlineCode>branch-env</InlineCode>:{' '}
-							<InlineCode>DATABASE_URL</InlineCode>, <InlineCode>DEV_PORT</InlineCode>,{' '}
-							<InlineCode>AGENT_DEV_PORT</InlineCode>, and <InlineCode>MAILPIT_URL</InlineCode>. Add
-							your own overrides here; re-running <InlineCode>branch-env</InlineCode> keeps them.
-							Delete the file and re-run it to regenerate the managed keys.
+							Gitignored per-checkout values written by <InlineCode>branch-env</InlineCode> — the
+							connection URL, mail URL, dev ports, and the dev cookie suffix. Add your own overrides
+							here; re-running <InlineCode>branch-env</InlineCode> keeps them. Delete the file and
+							re-run it to regenerate the managed keys.
 						</dd>
 					</div>
 				</dl>
@@ -116,9 +115,10 @@ export function ConfigurationPanel() {
 
 			<PanelSection id="environment-variables" title="Environment variables">
 				<Prose>
-					The variables the app and local tooling read. Workers bindings such as{' '}
-					<InlineCode>HYPERDRIVE</InlineCode>, <InlineCode>EMAIL</InlineCode>, and{' '}
-					<InlineCode>AUTH_HASHER</InlineCode> live in <InlineCode>wrangler.jsonc</InlineCode>.
+					The variables whose meaning is not obvious; the committed env files are the source of
+					truth. Workers bindings such as <InlineCode>HYPERDRIVE</InlineCode>,{' '}
+					<InlineCode>EMAIL</InlineCode>, and <InlineCode>AUTH_HASHER</InlineCode> live in{' '}
+					<InlineCode>wrangler.jsonc</InlineCode>.
 				</Prose>
 				<EnvironmentTable />
 			</PanelSection>

@@ -72,5 +72,6 @@ export const ArchiveInsert = archiveInsertPrimitive.mapFields(
 		'countries',
 		'cities',
 		'regions',
+		'userId',
 	]),
 )

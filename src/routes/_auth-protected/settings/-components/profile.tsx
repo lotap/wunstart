@@ -2,7 +2,7 @@ import {useQuery} from '@tanstack/react-query'
 import {useServerFn} from '@tanstack/react-start'
 
 import {EmailChangeDrawer} from '#/components/auth/email-change.tsx'
-import {userProfileQueryOptions} from '#/components/auth/user-profile.ts'
+import {userProfileQueryOptions} from '#/components/auth/identity-cache.ts'
 import {ErrorBoundary} from '#/components/global/error-boundary.tsx'
 import {Field, FieldContent, FieldLabel} from '#/components/ui/field.tsx'
 import {Skeleton} from '#/components/ui/skeleton.tsx'

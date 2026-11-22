@@ -1,17 +1,19 @@
 # Tables + archive pairs
 
-New-module recipe, in order: `schemas.ts` → `validations.ts` → `queries.ts` → `cascades.ts` → (`consts.ts` if shared constants) → op in `db/ops/<domain>/` (see `references/ops-contract.md`). No registration step: the drizzle-kit glob auto-discovers `*schemas.ts`, and twins migrate together (`drizzle-kit generate` / `check`).
+New-module recipe, in order: `schemas.ts` → `validations.ts` → `queries.ts` → `cascades.ts` → (`consts.ts` if shared constants) → op in `db/ops/<domain>/` (see `references/ops-contract.md`; add the narrowest messages file when a scope emits user-facing copy). No registration step: the drizzle-kit glob auto-discovers `*schemas.ts`, and twins migrate together (`drizzle-kit generate` / `check`).
 
 1. `schemas.ts`: hand-write `export const tableName = 'snake_case'`; name the archive twin `` `${tableName}_archive` ``; extract shared `baseCols` when twins share columns (see `bans`), duplicate when PII diverges (see `users`); FK refs lazy, e.g. `usersArchiveId: bigint(ARCHIVE_ID_CONFIG).references(() => usersArchive.archiveId)`; PII columns nullable in the archive twin (erasure keeps the row + FKs while wiping identity). Unique keys via the third arg, `extraConfig: (t) => [uniqueIndex(...)]` (see `email-verifications`). Archive-twin FK mirror: every `xId` FK gains an `xArchiveId` (`bigint` → that twin's `archiveId`) alongside the nullable original.
 2. `validations.ts`: primitives via `createInsertSchema` / `createSelectSchema` + `RefinementsFor`; shape with `pick` / `omit` / `assign` / `evolve` (see `references/queries-validations.md`).
 3. `queries.ts`: `const labelPrefix = tableName`; `getColumns` destructure to whitelist `returning`; `createPreparedQuery({vSchema, stmtFn})` with `.prepare()` suffixed per query (`` `${labelPrefix}_select` ``, `_insert`, `_select_by_email`); forward optional `tx`. Query/cascade naming: see `Naming` in `references/queries-validations.md`.
-4. `cascades.ts`: `createArchiveFn({selectFn, activeTable, archiveTable})` (+ `…ByX` variants); re-point related rows with `extraData: {xArchiveId}` (FK redirect onto the new archive row, e.g. `archiveByUser({userId}, {tx, extraData: {usersArchiveId: archiveId}})`); `Effect.catchTags({ArchiveNotFoundError: () => Effect.void, …})` for optional children.
+4. `cascades.ts`: `createArchiveFn({selectFn, activeTable, archiveTable})` (+ `…ByX` variants); re-point related rows with `extraData: {xArchiveId}` (FK redirect onto the new archive row, e.g. `archiveByUser({userId}, {tx, extraData: {usersArchiveId: archiveId}})`); `Effect.catchTag('ArchiveNotFoundError', () => Effect.void)` for optional children — never catch the count mismatch here (see below).
 5. FKs a core model? Extend that model's `cascades.ts` now — the owner's delete fails on the FK until you do. Which form (per-user archival call vs in-place re-point + sweep): see `references/module-walkthrough.md`.
 6. Verify: typecheck + lint + `drizzle-kit check`.
 
-Every domain table has an active twin and an archive twin. Deletes never touch the active row in place: `createArchiveFn` (in `db/helpers/funcs.ts`) selects → inserts into archive (validate + `extraData`) → runs domain cascades → deletes active rows with `id IN (...)` + optional `deleteWhere` CAS guard → count-checks. Count mismatch rolls back as typed `ArchiveCountMismatchError`; zero rows is `ArchiveNotFoundError`. Recover with `Effect.catchTags({ArchiveNotFoundError: () => Effect.void, ArchiveCountMismatchError: () => Effect.void})` (`catchTag` for a single tag). Batched system archivals loop with a batch limit until short (e.g. 500); NotFound/Mismatch → `[]` stops (next run resumes).
+Every domain table has an active twin and an archive twin. Deletes never touch the active row in place: `createArchiveFn` (in `db/helpers/archive-fns.ts`) selects → inserts into archive (validate + `extraData`) → runs domain cascades → deletes active rows with `id IN (...)` + optional `deleteWhere` CAS guard → count-checks. Zero rows is `ArchiveNotFoundError`; a concurrent archive can make the delete remove fewer rows than the select found, which rolls back as `ArchiveCountMismatchError`.
 
-## Factories (`db/helpers/tables.ts`, all wrap `snakeCase.table`)
+Recovering depends on who owns the transaction. Without a `tx`, the archive call opens its own, so catching either error outside it is safe — nothing was committed, a sweep can stop with `[]`, and the next run resumes (batched system archivals loop until a short batch, e.g. 500 rows). Inside a transaction you share with the caller, catch `ArchiveNotFoundError` only: catching the mismatch would commit this cascade’s archive insert as a duplicate, so let it roll the whole transaction back and give the caller `retryTransientOrArchiveRace`. Linted by `wunshot/no-catch-archive-count-mismatch-in-tx`.
+
+## Factories (`db/helpers/table-fns.ts`, all wrap `snakeCase.table`)
 
 - `createActiveTable(name, cols)`: adds `id` uuid PK defaultRandom, `createdAt`/`updatedAt` timestamptz defaultNow + `$onUpdate`
 - `createArchiveTable(name, cols)`: adds `id` uuid NOT NULL (plain, not PK, no defaults — machinery copies values), `createdAt`/`updatedAt` (no defaults), `archiveId` bigint identity PK, `archivedAt` defaultNow. PII columns go nullable here
@@ -22,7 +24,7 @@ Rejected: `deleted_at` column (dangling FKs), hard delete (loses audit), event s
 ## Column gotchas
 
 - `snakeCase.table` snake_cases COLUMN KEYS ONLY; table name passes through verbatim. No column helper exists — don't invent one. Hand-write `export const tableName = 'email_verifications'` in snake_case. TS access stays camelCase; only SQL is snake_case. Hand-written fragments must spell `EXCLUDED.ip_addresses`.
-- Always `timestamp(TIMESTAMPTZ_CONFIG)`; never inline `{withTimezone: true}`. Archive id always `bigint('archive_id', ...)` via `ARCHIVE_ID_CONFIG` outside `tables.ts`; never inline `{mode: 'bigint'}` in schemas (the factory itself spells the full column def).
+- Always `timestamp(TIMESTAMPTZ_CONFIG)`; never inline `{withTimezone: true}`. Archive id always `bigint('archive_id', ...)` via `ARCHIVE_ID_CONFIG` outside `table-fns.ts`; never inline `{mode: 'bigint'}` in schemas (the factory itself spells the full column def).
 - `inet().array()` / `uuid().array()` for ban `activityIds` (PG can't FK arrays — no FK by design, cascade owns integrity).
 - SQL defaults need nowrap `sql'...'` (no params).
 - CTE aliases `.as('snake_case')`.

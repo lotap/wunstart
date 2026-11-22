@@ -1,5 +1,7 @@
 import {Effect, Ref} from 'effect'
 
+import {SYSTEM_OPS_IP} from '#/db/helpers/ip-sentinels.ts'
+
 import {
 	CurrentBansAndExcessiveActivities as CurrentBansAndExcessiveActivitiesService,
 	type CurrentBansAndExcessiveActivitiesCtx,
@@ -130,7 +132,7 @@ export function createOpsFn<Params, A extends object, E, R>({
 	}
 }
 
-/** Create an ops function for system operations. Automatically applies ip address of 0.0.0.0 if not defined */
+/** Create an ops function for system operations. Automatically applies `SYSTEM_OPS_IP` if not defined */
 export function createSystemOpsFn<Params, A extends object, E, R>(args: {
 	fn: (params: Params) => Effect.Effect<A, E, R>
 	label: string
@@ -138,5 +140,5 @@ export function createSystemOpsFn<Params, A extends object, E, R>(args: {
 	logOnFailure?: boolean
 }) {
 	return (_args: Params & Partial<OpsInvocationOptions>) =>
-		createOpsFn(args)({..._args, ipAddress: _args.ipAddress ?? '0.0.0.0'})
+		createOpsFn(args)({..._args, ipAddress: _args.ipAddress ?? SYSTEM_OPS_IP})
 }

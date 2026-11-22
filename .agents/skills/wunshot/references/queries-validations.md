@@ -1,6 +1,6 @@
 # Queries + validations
 
-Queries live in `queries.ts`, built with helpers from `db/helpers/funcs.ts`. Both accept an Effect Schema for input validation and auto-handle parsing + transaction passthrough. Always forward optional `tx`.
+Queries live in `queries.ts`, built with helpers from `db/helpers/query-fns.ts`. Both accept an Effect Schema for input validation and auto-handle parsing + transaction passthrough. Always forward optional `tx`.
 
 - `createPreparedQuery({vSchema, stmtFn})` (default): validated, statement-cached, `sql.placeholder` + `.prepare(name)`. Decoded result must be a plain object. Passing `tx` rebuilds uncached per call — only for use inside a transaction.
 - `createQueryFn({vSchema, query: (qx, input) => ...})`: only for dynamic SQL that can't be prepared — e.g. `selectActivityIdsByTarget` (`activities---bans`), whose WHERE is built at runtime from the single narrowed scope instead of a six-way OR with unused placeholders.
@@ -17,6 +17,8 @@ Queries live in `queries.ts`, built with helpers from `db/helpers/funcs.ts`. Bot
 - `getColumns(table)` destructure to whitelist `returning` / omit secrets.
 - Case-insensitive email: `lower(email) = lower(placeholder)` matching `uniqueIndex(lower(email))`.
 - `host(ip)`, `unnest` / `array_agg(DISTINCT host(...))` for IP aggregation.
+- `appendUniqueBoundedSql(col, incoming, 32)` (`query-fns.ts`) for metadata arrays read back with `.at(-1)` (session device/location): plain `DISTINCT unnest` destroys recency, and re-visiting a value must move it to the end. JS twin `appendUniqueBounded` (`array-fns.ts`) — keep ordering and cap semantics aligned.
+- Match a foreign-key violation by SQLSTATE (`extractPgCode` in `db/ops/_extract-pg-error.ts` returns `23503`); unique violations use the `UniqueViolation` reason tag. Never classify by the generic `ConstraintError` tag alone — NOT NULL (`23502`) and CHECK (`23514`) must stay internal errors. `extractPgErrorMessage` returns the driver’s generic “Query failed”, not the server’s constraint text.
 - `int8` returns string → `BigInt(total ?? 0)`.
 - `eslint-plugin-drizzle` enforced as errors on your db tree: `enforce-delete-with-where`, `enforce-update-with-where`.
 
@@ -56,6 +58,8 @@ export const ByEmail = selectPrimitive.mapFields(Struct.pick(['email']))
 ```
 
 Refine db-inferred types via the `overrides` second arg (`inet` needs manual handling — no automatic IP check); reshape with `pick` (subset) / `omit` (all-but) / `assign` (add or rename keys — renames align validation keys with `sql.placeholder` names) / `evolve` (transform types), nullables with `withNullDefault` / `NullishToNull`.
+
+`IpAddress` deliberately rejects IPv6 zone IDs (`fe80::1%eth0`) and embedded IPv4 with leading-zero octets (`::ffff:1.2.3.04`); Postgres `inet` rejects both with `22P02`. Pure IPv4 leading zeros are rejected too — stricter than `inet`, fail-safe, so an unparseable header value is dropped and the boundary falls through to the socket or fails closed, instead of a 500.
 
 ## Naming
 

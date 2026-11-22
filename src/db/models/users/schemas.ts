@@ -1,7 +1,7 @@
 import {sql} from 'drizzle-orm'
 import {text, uniqueIndex, varchar} from 'drizzle-orm/pg-core'
 
-import {createActiveTable, createArchiveTable} from '#/db/helpers/tables.ts'
+import {createActiveTable, createArchiveTable} from '#/db/helpers/table-fns.ts'
 
 export const tableName = 'users'
 

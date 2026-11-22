@@ -5,8 +5,8 @@ import type {Effect} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {AuthTokenError} from '#/db/ops/auth/token-error.ts'
-import type {verifyAccess as verifyAccessOpType} from '#/db/ops/auth/verify-access'
+import {AuthTokenError} from '#/db/ops/auth/tokens/token-error.ts'
+import type {verifyAccess as verifyAccessOpType} from '#/db/ops/auth/tokens/verify-access'
 import {RateLimitError} from '#/db/ops/rate-limit-error.ts'
 import {emailLayer} from '#/email/layer.ts'
 
@@ -19,7 +19,8 @@ import {
 	setAuthCookies,
 } from './_set-auth-cookies.ts'
 import {getRequestInfo} from './get-request-info.ts'
-import {KnownServerError} from './sanitize-errors.ts'
+import {KnownServerError} from './known-server-error.ts'
+import {addRateLimitEvent, allowPerWindow} from './rate-limit.ts'
 
 /**
  * Status-discriminated: `'authenticated'` with tokens and user data, `'degraded'` when
@@ -30,12 +31,18 @@ export type AuthContext = {
 	auth:
 		| ({
 				readonly status: 'authenticated'
-				readonly accessToken: string
 				readonly refreshToken: string
 		  } & Effect.Success<ReturnType<typeof verifyAccessOpType>>)
 		| DegradedAuth
 		| null
 }
+
+/**
+ * Fallback refresh attempts allowed per IP per minute. A browser refreshes about
+ * once per 15 minutes, so this leaves headroom for a shared NAT while rejecting
+ * a dead-pair loop before it runs the refresh op and writes an activity.
+ */
+const REFRESH_ATTEMPTS_PER_MINUTE = 30
 
 export const verifyAuth = createMiddleware()
 	.middleware([getRequestInfo])
@@ -45,7 +52,7 @@ export const verifyAuth = createMiddleware()
 
 		if (accessToken && refreshToken) {
 			/** Dynamically import verifyAccess op because it relies on injecting env values into the cf worker */
-			const {verifyAccess} = await import('#/db/ops/auth/verify-access')
+			const {verifyAccess} = await import('#/db/ops/auth/tokens/verify-access')
 
 			try {
 				const tokenData = await runOp({
@@ -58,7 +65,7 @@ export const verifyAuth = createMiddleware()
 				// discriminator composes it into the authenticated context.
 				return next({
 					context: {
-						auth: {status: 'authenticated', accessToken, refreshToken, ...tokenData},
+						auth: {status: 'authenticated', refreshToken, ...tokenData},
 					} as AuthContext,
 				})
 			} catch (error) {
@@ -77,8 +84,21 @@ export const verifyAuth = createMiddleware()
 		}
 
 		if (refreshToken) {
+			/**
+			 * A failed access check falls back to the refresh cookie. Count the
+			 * attempt in its own per-IP bucket so a dead or forged pair cannot turn
+			 * a request stream into an unbounded run of refresh ops and activity
+			 * rows. The global 150/min function limit remains the outer bound. Both
+			 * are in-memory per isolate; production still needs an edge rate limit.
+			 */
+			addRateLimitEvent({
+				ipAddress,
+				weight: allowPerWindow(REFRESH_ATTEMPTS_PER_MINUTE),
+				scope: 'refresh',
+			})
+
 			/** Dynamically import refresh op because it relies on cf injected values for hashing */
-			const {refresh} = await import('#/db/ops/auth/refresh')
+			const {refresh} = await import('#/db/ops/auth/sessions/refresh')
 
 			try {
 				const refreshData = await runOp({
@@ -101,7 +121,6 @@ export const verifyAuth = createMiddleware()
 					context: {
 						auth: {
 							status: 'authenticated',
-							accessToken: newAccessToken,
 							refreshToken: newRefreshToken,
 							userId,
 						},

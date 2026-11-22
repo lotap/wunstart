@@ -1,3 +1,8 @@
+/**
+ * Policy prose: the table or code owns the details; state the invariant and
+ * link. Name the code path behind a behavioral claim.
+ * Rules: .agents/skills/wunstart/references/docs.md § Policy prose.
+ */
 import {ExternalDocLink} from '#/components/global/external-doc-link.tsx'
 
 import {PanelReferences} from '../../doc-links.tsx'
@@ -24,9 +29,14 @@ const middlewareLayers = [
 		label: 'Function',
 		items: [
 			{
+				name: 'serverFnNoStore',
+				description:
+					'Sets Cache-Control: no-store on every server-function response. An endpoint that is genuinely public and cacheable overrides it explicitly and owns the full policy, including Vary; cookies alone do not make a response private.',
+			},
+			{
 				name: 'createRateLimit(150)',
 				description:
-					'In-memory per-IP limit: 150 requests per minute. Auth functions add a tighter 5-per-minute limit.',
+					'In-memory per-IP limit. The global limiter is installed in src/start.ts; the auth, refresh, and sign-out lanes and their scoring are in Rate limits & bans.',
 			},
 			{
 				name: 'verifyAnon',
@@ -54,7 +64,8 @@ const identityOutcomes = [
 	},
 	{
 		situation: 'No auth tokens',
-		outcome: 'The Anon token is verified, or a fresh Anon is issued with an 8-week cookie.',
+		outcome:
+			'The Anon token is verified, or a fresh Anon is issued (setAnonCookie in src/middleware/_set-anon-cookie.ts); the Auth panel owns the lifetime.',
 	},
 	{
 		situation: 'AuthTokenError',
@@ -177,14 +188,55 @@ export function MiddlewarePanel() {
 				</PanelList>
 			</PanelSection>
 
+			<PanelSection id="middleware-ip" title="Client IP">
+				<Prose>
+					The request boundary reads <InlineCode>cf-connecting-ip</InlineCode>, which Cloudflare
+					overwrites, then the runtime socket address. The socket is the client only on a directly
+					exposed Node process; behind a local proxy it is the proxy, so a proxied deployment must
+					supply its own overwriting header. Production rejects a request with no valid client IP
+					instead of inventing one; a per-deployment source setting is deferred.
+				</Prose>
+				<PanelList>
+					<PanelRow label="trusted header">
+						Only <InlineCode>cf-connecting-ip</InlineCode> is read. Cloudflare overwrites it at the
+						edge; <InlineCode>X-Forwarded-For</InlineCode> and <InlineCode>Forwarded</InlineCode>{' '}
+						are ignored because a client can forge them behind a naive proxy.
+					</PanelRow>
+					<PanelRow label="fallback">
+						The runtime socket address when one is exposed. Development falls back to{' '}
+						<InlineCode>127.0.0.1</InlineCode>; production returns 503 rather than storing a
+						placeholder.
+					</PanelRow>
+					<PanelRow label="stored address">
+						The full address is stored and shown in Settings and security emails. IPv6{' '}
+						<InlineCode>/64</InlineCode> normalization applies only inside the in-memory limiter, so
+						displayed history stays exact.
+					</PanelRow>
+					<PanelRow label="system ops">
+						<InlineCode>0.0.0.0</InlineCode> marks a system operation with no client. It never
+						counts as a known IP for the failed-credential bypass and never reaches a user request.
+					</PanelRow>
+				</PanelList>
+			</PanelSection>
+
 			<PanelSection id="middleware-cookies" title="Cookies">
 				<Prose>
 					Auth and Anon cookies are <InlineCode>httpOnly</InlineCode>,{' '}
 					<InlineCode>sameSite: &apos;lax&apos;</InlineCode>, scoped to <InlineCode>/</InlineCode>,
-					and secure in production. The domain is <InlineCode>VITE_COOKIE_DOMAIN</InlineCode>;
-					production prefixes both names with <InlineCode>__Http-</InlineCode>. Issuing an auth
-					session deletes the Anon cookie; signing out deletes the auth cookies and issues a fresh
-					Anon.
+					and secure in production. Production defaults to host-only{' '}
+					<InlineCode>__Host-Http-</InlineCode> names: the browser requires{' '}
+					<InlineCode>Secure</InlineCode>, <InlineCode>HttpOnly</InlineCode>, and{' '}
+					<InlineCode>Path=/</InlineCode>, and rejects any <InlineCode>Domain</InlineCode>, so the
+					cookie is sent only to the exact host. Issuing an auth session deletes the Anon cookie;
+					signing out deletes the auth cookies and issues a fresh Anon.
+				</Prose>
+				<Prose>
+					Set <InlineCode>VITE_COOKIE_DOMAIN</InlineCode> in a production build only to share auth
+					across subdomains. Names switch to <InlineCode>__Http-</InlineCode> and the cookie carries
+					that <InlineCode>Domain</InlineCode>; every subdomain under it can then set the cookie, so
+					keep untrusted content on a different registrable domain. A dedicated auth host with a
+					short-lived exchange token avoids the shared cookie. In development, plain names carry a
+					per-branch suffix because cookies ignore ports; no domain is needed.
 				</Prose>
 			</PanelSection>
 

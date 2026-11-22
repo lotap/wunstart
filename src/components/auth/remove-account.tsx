@@ -1,3 +1,4 @@
+import {useQueryClient} from '@tanstack/react-query'
 import {useRouter} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 import {lazy, useEffect, useState} from 'react'
@@ -18,6 +19,9 @@ import {toast} from '#/components/ui/toast.tsx'
 import {useHasSudo} from '#/contexts/has-sudo.tsx'
 import {handleRemoveUser} from '#/server-fns/handle-remove-user.ts'
 
+import {useDeadSessionRecovery} from './_hooks.ts'
+import {clearIdentityCache} from './identity-cache.ts'
+
 const ReverifyDrawer = lazy(() =>
 	import('./_reverify-drawer.tsx').then((m) => ({default: m.ReverifyDrawer})),
 )
@@ -25,6 +29,8 @@ const ReverifyDrawer = lazy(() =>
 function ConfirmRemoval({closeRemoveAccountDrawer}: {closeRemoveAccountDrawer?: () => void}) {
 	const handleRemoveUserFn = useServerFn(handleRemoveUser)
 	const router = useRouter()
+	const queryClient = useQueryClient()
+	const recoverDeadSession = useDeadSessionRecovery()
 
 	const {hasSudo} = useHasSudo()
 
@@ -88,12 +94,14 @@ function ConfirmRemoval({closeRemoveAccountDrawer}: {closeRemoveAccountDrawer?: 
 
 							try {
 								await handleRemoveUserFn()
+								clearIdentityCache(queryClient)
 								/** The account is gone, so leave the protected area before refreshing auth state */
 								await router.navigate({to: '/', replace: true})
 								await router.invalidate()
 								toast.add({title: 'Your account has been removed', type: 'success'})
 							} catch (error) {
 								setIsRemoving(false)
+								recoverDeadSession(error)
 								toast.add({
 									type: 'error',
 									title:

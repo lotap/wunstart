@@ -1,4 +1,5 @@
 import {useSelector} from '@tanstack/react-form'
+import {useQueryClient} from '@tanstack/react-query'
 import {Link, useRouter, useSearch} from '@tanstack/react-router'
 import {useServerFn} from '@tanstack/react-start'
 import {Schema} from 'effect'
@@ -22,6 +23,7 @@ import {
 	useLocalStorageEmail,
 } from './_hooks.ts'
 import {PasscodeForm} from './_passcode-form.tsx'
+import {clearIdentityCache} from './identity-cache.ts'
 
 const LinkToSignUp = () => (
 	<Link to="/sign-up" className="mt-10 font-bold text-muted-foreground hover:underline">
@@ -45,12 +47,30 @@ function safeRedirectTarget(raw?: string) {
 	return '/'
 }
 
+function SignInFormSkeleton() {
+	return (
+		<div className="mx-auto flex w-full max-w-sm flex-col items-center p-4">
+			<Skeleton className="mb-3 h-10 w-full" />
+			<Skeleton className="mb-10 h-7 w-full" />
+			<Skeleton className="mb-4 h-8 w-full" />
+			<Skeleton className="mb-4 h-8 w-full" />
+			<Skeleton className="mb-2.5 h-9 w-full" />
+			<Skeleton className="mb-2.5 size-5" />
+			<Skeleton className="mb-4 h-9 w-full" />
+			<Skeleton className="h-7 w-1/2" />
+			<LinkToSignUp />
+		</div>
+	)
+}
+
 export function SignInForm() {
 	const handlePasswordSignInFn = useServerFn(handlePasswordSignIn)
 	const handleEmailRequestPasscodeFn = useServerFn(handleEmailRequestPasscode)
 	const handleEmailVerifyPasscodeFn = useServerFn(handleEmailVerifyPasscode)
 
 	const router = useRouter()
+
+	const queryClient = useQueryClient()
 
 	const {redirect} = useSearch({from: '/_auth-gateway/sign-in'})
 
@@ -87,6 +107,7 @@ export function SignInForm() {
 
 			if (branchRef.current === 'password') {
 				await handlePasswordSignInFn({data: {email, password}})
+				clearIdentityCache(queryClient)
 				removeLocalStorageSignInState()
 				router.history.push(safeRedirectTarget(redirect))
 			} else if (branchRef.current === 'passcode-send') {
@@ -120,20 +141,7 @@ export function SignInForm() {
 		intent: 'sign-in',
 	})
 
-	if (localStorageSignInStateIsPending || localStorageEmailIsPending)
-		return (
-			<div className="mx-auto flex w-full max-w-sm flex-col items-center p-4">
-				<Skeleton className="mb-3 h-10 w-full" />
-				<Skeleton className="mb-10 h-7 w-full" />
-				<Skeleton className="mb-4 h-8 w-full" />
-				<Skeleton className="mb-4 h-8 w-full" />
-				<Skeleton className="mb-2.5 h-9 w-full" />
-				<Skeleton className="mb-2.5 size-5" />
-				<Skeleton className="mb-4 h-9 w-full" />
-				<Skeleton className="h-7 w-1/2" />
-				<LinkToSignUp />
-			</div>
-		)
+	if (localStorageSignInStateIsPending || localStorageEmailIsPending) return <SignInFormSkeleton />
 
 	return (
 		<div className="mx-auto flex w-full max-w-sm flex-col items-center p-4">
@@ -330,10 +338,12 @@ export function SignInForm() {
 						onSubmitSchema={EmailPasscodeCredentials}
 						onSubmitTry={async ({passcode}) => {
 							await handleEmailVerifyPasscodeFn({data: {email, passcode}})
+							clearIdentityCache(queryClient)
 							removeLocalStorageSignInState()
 							router.history.push(safeRedirectTarget(redirect))
 						}}
 						email={email}
+						anonBound
 						passcodeRequestQueryOptions={passcodeRequestOptions}
 						mutatePasscodeRequest={mutatePasscodeRequest}
 						mutatePasscodeRequestIsPending={passcodeRequestIsPending}

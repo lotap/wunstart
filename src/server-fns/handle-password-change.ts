@@ -1,24 +1,19 @@
 import {createServerFn} from '@tanstack/react-start'
-import {deleteCookie} from '@tanstack/react-start/server'
 import {Schema} from 'effect'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {getUserEmail} from '#/db/ops/auth/get-user-email.ts'
-import {passwordChange} from '#/db/ops/auth/password-change.ts'
+import {passwordChange} from '#/db/ops/auth/strategies/password/password-change.ts'
+import {getUserEmail} from '#/db/ops/auth/users/get-user-email.ts'
 import {emailLayer} from '#/email/layer.ts'
 import {checkPasswordStrength} from '#/isomorphic/password-strength.ts'
 import {PasswordChangeCredentials} from '#/isomorphic/validations/auth.ts'
-import {runOp} from '#/middleware/_run-op.server.ts'
+import {runOp, runOpClearingDeadSession} from '#/middleware/_run-op.server.ts'
 import {setAnonCookie} from '#/middleware/_set-anon-cookie.ts'
-import {
-	ACCESS_TOKEN_COOKIE_NAME,
-	authCookiesConfig,
-	REFRESH_TOKEN_COOKIE_NAME,
-} from '#/middleware/_set-auth-cookies.ts'
+import {clearAuthCookies} from '#/middleware/_set-auth-cookies.ts'
+import {throwKnownServerError} from '#/middleware/known-server-error.ts'
 import {rateLimit} from '#/middleware/rate-limit.ts'
 import {requireAuth} from '#/middleware/require-auth.ts'
-import {KnownServerError} from '#/middleware/sanitize-errors.ts'
 
 export const handlePasswordChange = createServerFn({method: 'POST'})
 	.middleware([rateLimit, requireAuth])
@@ -33,7 +28,7 @@ export const handlePasswordChange = createServerFn({method: 'POST'})
 				city,
 				region,
 				timezone,
-				auth: {userId, sudoExpiresAt},
+				auth: {userId, sudoExpiresAt, refreshToken},
 			},
 		}) => {
 			/**
@@ -50,9 +45,9 @@ export const handlePasswordChange = createServerFn({method: 'POST'})
 
 			const {isStrong, message} = await checkPasswordStrength(data.password, [email])
 
-			if (!isStrong) throw new KnownServerError({message})
+			if (!isStrong) throwKnownServerError(422, message)
 
-			const {anonToken} = await runOp({
+			const {anonToken} = await runOpClearingDeadSession({
 				op: passwordChange,
 				data: {
 					input: data,
@@ -64,6 +59,7 @@ export const handlePasswordChange = createServerFn({method: 'POST'})
 					timezone,
 					userId,
 					sudoExpiresAt,
+					refreshToken,
 				},
 				layers: [authLayer, dbLayer, emailLayer],
 			})
@@ -74,8 +70,7 @@ export const handlePasswordChange = createServerFn({method: 'POST'})
 			 * identity
 			 */
 			if (anonToken) {
-				deleteCookie(ACCESS_TOKEN_COOKIE_NAME, authCookiesConfig)
-				deleteCookie(REFRESH_TOKEN_COOKIE_NAME, authCookiesConfig)
+				clearAuthCookies()
 
 				setAnonCookie(anonToken.token)
 			}

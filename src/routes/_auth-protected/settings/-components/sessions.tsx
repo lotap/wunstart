@@ -7,7 +7,9 @@ import {Button} from '#/components/ui/button.tsx'
 import {Spinner} from '#/components/ui/spinner.tsx'
 import {useSignOutAll} from '#/hooks/use-sign-out-all.ts'
 import {useSignOut} from '#/hooks/use-sign-out.ts'
-import {handleGetSessions} from '#/server-fns/handle-get-sessions.ts'
+import {handleSessionsAndClearDeadSession} from '#/server-fns/handle-sessions-and-clear-dead-session.ts'
+
+import {useStaleSessionRedirect} from '../-hooks/use-stale-session-redirect.ts'
 
 type SessionDisplay = {
 	createdAt: Date
@@ -58,40 +60,49 @@ function CurrentBox({children}: {children: ReactNode}) {
 	)
 }
 
-function SessionsList() {
-	const handleGetSessionsFn = useServerFn(handleGetSessions)
+function useSessionsQuery() {
+	const handleSessionsFn = useServerFn(handleSessionsAndClearDeadSession)
 
-	const sessionsQueryOptions = queryOptions({
-		queryKey: ['sessions'],
-		queryFn: () => handleGetSessionsFn(),
-		/**
-		 * Locale-dependent display text is derived as query data (select),
-		 * not formatted during render
-		 */
-		select: (sessions) =>
-			sessions.map((session) => ({
-				...session,
-				createdAtString: session.createdAt.toLocaleString(),
-			})),
-	})
+	return useQuery(
+		queryOptions({
+			queryKey: ['sessions'],
+			queryFn: () => handleSessionsFn(),
+			/**
+			 * Locale-dependent display text is derived as query data (select),
+			 * not formatted during render
+			 */
+			select: (sessions) =>
+				sessions.map((session) => ({
+					...session,
+					createdAtString: session.createdAt.toLocaleString(),
+				})),
+		}),
+	)
+}
 
-	const {isPending, error, data: sessions} = useQuery(sessionsQueryOptions)
+type SessionsQuery = ReturnType<typeof useSessionsQuery>
 
-	if (isPending)
-		return (
-			<CurrentBox>
-				{/* min-h matches the three-line current-session content below so the box never changes height */}
-				<p
-					// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-					role="status"
-					aria-busy="true"
-					className="flex min-h-16 items-center gap-1 text-sm text-muted-foreground"
-				>
-					Loading sessions <Spinner />
-				</p>
-				<SignOutButton />
-			</CurrentBox>
-		)
+function SessionsLoading() {
+	return (
+		<CurrentBox>
+			{/* min-h matches the three-line current-session content below so the box never changes height */}
+			<p
+				// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+				role="status"
+				aria-busy="true"
+				className="flex min-h-16 items-center gap-1 text-sm text-muted-foreground"
+			>
+				Loading sessions <Spinner />
+			</p>
+			<SignOutButton />
+		</CurrentBox>
+	)
+}
+
+function SessionsList({query}: {query: SessionsQuery}) {
+	const {isPending, error, data: sessions, isFetchedAfterMount} = query
+
+	if (isPending) return <SessionsLoading />
 
 	if (error)
 		return (
@@ -103,11 +114,19 @@ function SessionsList() {
 			</CurrentBox>
 		)
 
+	/**
+	 * A cached empty list is not evidence: a remote sign-out leaves `[]` in the
+	 * cache, and a later sign-in would show “Your session has ended.” until the
+	 * refetch lands. Wait for a fetch that completed after this mount.
+	 */
+	if (sessions.length === 0 && !isFetchedAfterMount) return <SessionsLoading />
+
 	const current = sessions.find((session) => session.isCurrent)
 	const others = sessions.filter((session) => !session.isCurrent)
 
-	/** Every session is gone (e.g. a remote sign-out-all): nothing to list or leave */
-	if (!sessions.length) return <p className="text-sm text-muted-foreground">No active sessions.</p>
+	/** No live Session for this device (e.g. a remote sign-out-all): the guard is about to redirect */
+	if (!sessions.length)
+		return <p className="text-sm text-muted-foreground">Your session has ended.</p>
 
 	/** Fail-closed: current unknown, keep the single combined list */
 	if (!current)
@@ -145,23 +164,41 @@ function SessionsList() {
 
 export function SessionsSection() {
 	const signOutAll = useSignOutAll()
+	const sessionsQuery = useSessionsQuery()
+
+	/**
+	 * Stale device: an empty result means the server already cleared the dead auth
+	 * cookies because this device had no live Session. Hide the action while the
+	 * guard redirects to sign-in. Only a response that completed after this mount
+	 * counts: a cached empty list survives a later sign-in and would otherwise
+	 * redirect on stale data.
+	 */
+	const hasNoSessions =
+		sessionsQuery.isFetchedAfterMount &&
+		!sessionsQuery.isPending &&
+		!sessionsQuery.error &&
+		sessionsQuery.data.length === 0
+
+	useStaleSessionRedirect(hasNoSessions)
 
 	return (
 		<section className="flex flex-col gap-4">
 			<h3 className="text-sm font-medium text-muted-foreground">Sessions</h3>
 			<div className="flex flex-col gap-2">
 				<ErrorBoundary fallback={<p>Couldn’t render your sessions. Please try again.</p>}>
-					<SessionsList />
+					<SessionsList query={sessionsQuery} />
 				</ErrorBoundary>
-				{/** Deliberate break before the sign-out-all action */}
-				<div className="mt-2 flex flex-row flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border p-4">
-					<Button variant="outline" onClick={async () => await signOutAll()} className="w-fit">
-						Sign out all
-					</Button>
-					<p className="min-w-0 flex-1 basis-64 text-sm text-muted-foreground">
-						Ends every session, including this device. You will need to sign in again.
-					</p>
-				</div>
+				{hasNoSessions ? null : (
+					/** Deliberate break before the sign-out-all action */
+					<div className="mt-2 flex flex-row flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border p-4">
+						<Button variant="outline" onClick={async () => await signOutAll()} className="w-fit">
+							Sign out all
+						</Button>
+						<p className="min-w-0 flex-1 basis-64 text-sm text-muted-foreground">
+							Ends every session, including this device. You will need to sign in again.
+						</p>
+					</div>
+				)}
 			</div>
 		</section>
 	)

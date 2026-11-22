@@ -1,6 +1,6 @@
 import {and, eq, getColumns, isNotNull, or, sql} from 'drizzle-orm'
 
-import {createPreparedQuery} from '#/db/helpers/funcs.ts'
+import {createPreparedQuery} from '#/db/helpers/query-fns.ts'
 
 import {activeTable, archiveTable, tableName} from './schemas.ts'
 import * as V from './validations.ts'
@@ -135,6 +135,9 @@ export const resetFromExpiringByEmail = createPreparedQuery({
 						and(isNotNull(anonId), eq(anonId, sql.placeholder('anonId'))),
 						and(isNotNull(userId), eq(userId, sql.placeholder('userId'))),
 					),
+					// Reset window: the row must be at least a minute old. A row minted less
+					// than a minute ago still expires more than 14 minutes out, so it fails
+					// this comparison and the re-request is refused instead of resetting.
 					sql`${expiresAt} < now() + '14 minutes'::interval`,
 				),
 			)

@@ -1,4 +1,4 @@
-/** The three primitives every feature is built from. */
+/** The primitives every feature is built from. */
 export const primitiveSteps = [
 	{label: 'Route', description: 'Page or server function'},
 	{label: 'Op', description: 'Business logic'},

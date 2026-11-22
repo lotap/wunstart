@@ -20,6 +20,7 @@ import {RouteError} from '#/components/global/status-pages/route-error.tsx'
 import {Toaster} from '#/components/ui/toast.tsx'
 import {TooltipProvider} from '#/components/ui/tooltip.tsx'
 import {ThemeProvider, useTheme} from '#/contexts/theme.tsx'
+import {useAuthCacheSync} from '#/hooks/use-auth-cache-sync.ts'
 import {resolveAudience, type AudienceDeclaration} from '#/lib/resolve-audience.ts'
 import {getSiteOrigin} from '#/lib/site-origin.ts'
 import {handleVerifyAuth} from '#/server-fns/handle-verify-auth.ts'
@@ -133,6 +134,7 @@ const documentVariants = cva('h-full', {
 })
 
 function RootDocument({children}: {children: React.ReactNode}) {
+	useAuthCacheSync()
 	const {resolved} = useTheme()
 	const {auth} = rootApi.useRouteContext()
 	const matches = useMatches()

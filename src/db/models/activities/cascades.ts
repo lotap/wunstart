@@ -1,4 +1,4 @@
-import {createArchiveManyFn} from '#/db/helpers/funcs.ts'
+import {createArchiveManyFn} from '#/db/helpers/archive-fns.ts'
 import * as activitiesBansQueries from '#/db/models/activities---bans/queries.ts'
 
 import * as queries from './queries.ts'

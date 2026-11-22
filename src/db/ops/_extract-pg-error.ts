@@ -41,13 +41,15 @@ const findSqlError = (drizzleError: EffectDrizzleQueryError) => {
 }
 
 /**
- * The underlying Postgres server message from a drizzle error, if any.
+ * The driver's top-level message for a drizzle query failure, if any.
  *
- * Unlike `EffectDrizzleQueryError.message`, a getter that embeds the bound
- * query parameters, this is the server's own error text, which never contains
- * bound parameter values. Data-exception messages (22xxx) can still echo
- * literal input values (e.g. `invalid input syntax for type uuid: "abc"`), so
- * treat the message as untrusted when persisting it.
+ * `SqlError.message` resolves to its reason's message: a driver-generated
+ * summary such as `PgConnection: Query failed`, another connection-level
+ * literal, or the reason tag when the reason carries no message. The server's
+ * own text lives on the reason's `cause.message` and is not returned here;
+ * that text never contains bound parameter values, but data-exception messages
+ * (22xxx) can echo literal input values (e.g. `invalid input syntax for type
+ * uuid: "abc"`), so treat any server text as untrusted when persisting it.
  */
 export const extractPgErrorMessage = (drizzleError: EffectDrizzleQueryError) =>
 	// @effect-diagnostics-next-line unstableApiUsage:off
@@ -55,6 +57,23 @@ export const extractPgErrorMessage = (drizzleError: EffectDrizzleQueryError) =>
 
 export function extractPgError(drizzleError: EffectDrizzleQueryError) {
 	return findSqlError(drizzleError)?.reason._tag
+}
+
+/**
+ * The Postgres SQLSTATE from a constraint violation, when the driver attached
+ * one. `23503` is a foreign-key violation; `23502` (NOT NULL) and `23514`
+ * (CHECK) must stay internal, so classify by the code rather than the generic
+ * `ConstraintError` tag. The fields live on the reason's `cause`, not on
+ * `SqlError.message`, which stays a generic connection message.
+ */
+const PgCode = Schema.Struct({code: Schema.String})
+
+export const extractPgCode = (drizzleError: EffectDrizzleQueryError) => {
+	const reason = findSqlError(drizzleError)?.reason
+
+	if (!reason || !('cause' in reason)) return undefined
+
+	return Schema.is(PgCode)(reason.cause) ? reason.cause.code : undefined
 }
 
 // @effect-diagnostics-next-line unstableApiUsage:off

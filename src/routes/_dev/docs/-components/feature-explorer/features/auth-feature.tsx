@@ -81,7 +81,7 @@ export function AuthFeature() {
 			<PanelSection id="auth-account" title="Manage the account">
 				<Prose>
 					Settings covers credentials and sessions. Changes that could lock someone out require
-					sudo: a five-minute lease minted by re-entering a password or verifying an emailed code.
+					sudo: a short lease minted by re-entering a password or verifying an emailed code.
 				</Prose>
 				<PanelList>
 					<PanelRow label="Password">

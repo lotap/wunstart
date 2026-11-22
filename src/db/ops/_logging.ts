@@ -281,7 +281,7 @@ const logActivityAndHandleBans = Effect.fn('logActivityAndHandleBans')(
 											/**
 											 * SAFETY: the row's scope is a plain enum, not a discriminant, so TS
 											 * cannot see which Insert variant each payload matches; the schema
-											 * decodes it at runtime (same VSchema-narrowing limitation as funcs.ts)
+											 * decodes it at runtime (same VSchema-narrowing limitation as query-fns.ts)
 											 */
 											payloads as (typeof BansInsertMany)['Encoded'],
 											tx,
@@ -385,8 +385,8 @@ export const logFailedActivity = Effect.fn('logFailedActivity')(function* ({
 		/**
 		 * Parameters can embed hashes and credentials, so never persist them.
 		 * Drizzle's own `message` getter embeds the params too, so it is excluded;
-		 * the underlying Postgres message never contains parameter values. The
-		 * query text is static SQL with placeholders only.
+		 * `extractPgErrorMessage` returns the driver's generic summary instead.
+		 * The query text is static SQL with placeholders only.
 		 */
 		const {name, query} = error
 		const message = extractPgErrorMessage(error)

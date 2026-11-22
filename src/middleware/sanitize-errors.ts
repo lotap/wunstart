@@ -4,13 +4,7 @@ import {Schema} from 'effect'
 
 import {isOpsError} from '#/db/ops/ops-error.ts'
 
-/** Tagged error for known server errors that should surface to the client */
-export class KnownServerError extends Schema.TaggedError<
-	KnownServerError,
-	{readonly brand: unique symbol}
->()('KnownServerError', {
-	message: Schema.String,
-}) {}
+import {KnownServerError} from './known-server-error.ts'
 
 export const sanitizeErrors = createMiddleware().server(async ({next}) => {
 	try {
@@ -27,7 +21,14 @@ export const sanitizeErrors = createMiddleware().server(async ({next}) => {
 			throw new Error(error.message, {cause: error})
 		}
 
-		if (Schema.is(KnownServerError)(error)) throw new Error(error.message, {cause: error})
+		/**
+		 * The status the caller chose is what the error response carries. Only an
+		 * ops error is rewritten to 422.
+		 */
+		if (Schema.is(KnownServerError)(error)) {
+			setResponseStatus(error.status)
+			throw new Error(error.message, {cause: error})
+		}
 
 		throw new Error('Something went wrong on our end. Please try again later.', {cause: error})
 	}

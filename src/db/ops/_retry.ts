@@ -1,4 +1,6 @@
-import {Effect, Schedule} from 'effect'
+import {Effect, Schedule, Schema} from 'effect'
+
+import {ArchiveCountMismatchError} from '#/db/helpers/archive-fns.ts'
 
 import {isRollbackSafePgError, isTransientPgError} from './_extract-pg-error.ts'
 
@@ -26,6 +28,24 @@ const retryOn =
  * statements inside the transaction, as Postgres aborts the transaction on the first error.
  */
 export const retryTransientDb = retryOn(isTransientPgError)
+
+/**
+ * Retries on transient Postgres failures or a lost concurrent-archive race.
+ *
+ * An archive reads its rows, inserts copies, then deletes by id. Two writers
+ * can both select the same row; the loser’s delete succeeds but returns zero
+ * rows, and the application-level count check raises
+ * `ArchiveCountMismatchError`. The transaction is still healthy at that point,
+ * but catching the error here would commit the loser’s archive insert as a
+ * duplicate. Let it roll the transaction back and retry; the next attempt sees
+ * no active row and can return the winner’s archive row.
+ *
+ * Use for any transaction that can retire a row another writer may archive
+ * (the sign-in/sign-up flows that retire an Anon, for example).
+ */
+export const retryTransientOrArchiveRace = retryOn(
+	(error) => isTransientPgError(error) || Schema.is(ArchiveCountMismatchError)(error),
+)
 
 /**
  * Retries a failing effect only on server-issued Postgres errors that guarantee the

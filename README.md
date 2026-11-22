@@ -269,7 +269,11 @@ Three things update three ways:
 
 ### Deployment
 
-_By default, the auth module deploys a hashing method ([Argon2](https://en.wikipedia.org/wiki/Argon2)) using [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/). To use a different architecture, use a different hashing algorithm._
+Before deploying:
+
+- **Rotate token secret sets when this release changes token derivation.** Any deploy that changes a token’s HKDF purpose tag, payload shape, or a secret value under an existing `kid` must rotate the affected sets to a new `kid` and remove the old `kid` in the same deploy. Keeping the old `kid` charges stale access, refresh-entry, and Anon tokens as invalid credentials (an unreadable grace token is not charged), which can ban a shared NAT and block sign-in. Verify a pre-deploy token lands in the `unknown-kid` rotation path.
+- **Keep auth and Anon cookies host-only unless you need subdomain sharing.** Production sets `__Host-Http-` cookies: `Secure`, `HttpOnly`, `Path=/`, and no `Domain`, so the browser sends them only to the exact host. Do not set `VITE_COOKIE_DOMAIN` in the production build for this default; development does not need it. Setting it opts into `__Http-` cookies with that `Domain`; every subdomain under it can then set the cookie, so only do that when every subdomain is fully trusted. A sibling subdomain can also force a logout by setting a foreign refresh cookie; treat that as accepted denial of service, not account takeover. Keep untrusted content on a different registrable domain, or use a dedicated auth host with a short-lived exchange token instead of a shared cookie. The first deployment has no auth cookies to migrate: the build setting chooses the mode. Changing it later renames the cookies, so existing sessions sign out and Anon identities reset.
+- **Trust the client IP.** The request boundary reads `cf-connecting-ip`, which Cloudflare overwrites, then the runtime socket address. The socket fallback assumes a directly exposed Node process: behind a local proxy it is the proxy’s address, so a proxied deployment must supply `cf-connecting-ip` until the per-platform source setting lands. Production rejects the request with 503 when neither yields a valid client IP rather than inventing one; development and preview builds fall back to loopback so the app stays usable.
 
 Email needs two values in the deployed Worker environment:
 
@@ -277,6 +281,8 @@ Email needs two values in the deployed Worker environment:
 - `EMAIL_FROM` — a sender address verified for that domain.
 
 Set them as Worker variables before deploying. In development they default to `http://localhost:3000` and `noreply@wunstart.com`.
+
+_By default, the auth module deploys a hashing method ([Argon2](https://en.wikipedia.org/wiki/Argon2)) using [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/). To use a different architecture, use a different hashing algorithm._
 
 Deployment support is still in development. The focus is on simplicity and platform agnosticism.
 

@@ -1,16 +1,11 @@
 import {createServerFn} from '@tanstack/react-start'
-import {deleteCookie} from '@tanstack/react-start/server'
 
 import {dbLayer} from '#/db/index.ts'
 import {authLayer} from '#/db/ops/auth/_auth-layer.ts'
-import {removeUser} from '#/db/ops/auth/remove-user.ts'
-import {runOp} from '#/middleware/_run-op.server.ts'
+import {removeUser} from '#/db/ops/auth/users/remove-user.ts'
+import {runOpClearingDeadSession} from '#/middleware/_run-op.server.ts'
 import {setAnonCookie} from '#/middleware/_set-anon-cookie.ts'
-import {
-	ACCESS_TOKEN_COOKIE_NAME,
-	authCookiesConfig,
-	REFRESH_TOKEN_COOKIE_NAME,
-} from '#/middleware/_set-auth-cookies.ts'
+import {clearAuthCookies} from '#/middleware/_set-auth-cookies.ts'
 import {rateLimit} from '#/middleware/rate-limit.ts'
 import {requireAuth} from '#/middleware/require-auth.ts'
 
@@ -24,19 +19,18 @@ export const handleRemoveUser = createServerFn({method: 'POST'})
 				country,
 				city,
 				region,
-				auth: {userId, sudoExpiresAt},
+				auth: {userId, sudoExpiresAt, refreshToken},
 			},
 		}) => {
 			const {
 				anonToken: {token},
-			} = await runOp({
+			} = await runOpClearingDeadSession({
 				op: removeUser,
-				data: {userId, sudoExpiresAt, ipAddress, userAgent, country, city, region},
+				data: {userId, sudoExpiresAt, refreshToken, ipAddress, userAgent, country, city, region},
 				layers: [authLayer, dbLayer],
 			})
 
-			deleteCookie(ACCESS_TOKEN_COOKIE_NAME, authCookiesConfig)
-			deleteCookie(REFRESH_TOKEN_COOKIE_NAME, authCookiesConfig)
+			clearAuthCookies()
 
 			setAnonCookie(token)
 		},

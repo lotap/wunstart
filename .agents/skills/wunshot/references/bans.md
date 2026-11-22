@@ -2,6 +2,8 @@
 
 Dimensions tracked per activity: IP, credential, user, anon. The `currentBansAndExcessiveActivities` prepared query (`db/models/activities---bans/queries.ts`, via `checkCurrentBansAndExcessiveActivities`) unions one arm per scope dimension over activities inside `EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL`. Crossing `EXCESSIVE_ACTIVITIES_THRESHOLD` within the window creates a ban for that scope. All three consts live in `db/models/activities/consts.ts`.
 
+The HTTP boundary rejects a request it cannot resolve to a client IP, so the ban pipeline only sees real addresses. `SYSTEM_OPS_IP` (`db/helpers/ip-sentinels.ts`) is the exception for system ops; no user request can carry it.
+
 ## Weight routing
 
 Omit `failedCredential` from the `ActivityError` payload on IP_ADDRESS and FAILED_CREDENTIAL rate-limit denials. This routes weight exclusively to IP scope via the query's per-arm `isNotNull(targetColumn)` filter, so the credential ban expires at the end of `EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL` instead of being extended forever by an attacker cycling IPs.
@@ -35,4 +37,4 @@ Rejected: join table (N INSERTs per ban, unjustified for 1–60 rows), JSONB (un
 
 ## Weight math
 
-`rateAllowance → weight` via `allowRatePerWindow(n) = ceil(EXCESSIVE_ACTIVITIES_THRESHOLD / n)` (see `ops-error.ts`); omitted `rateAllowance` → `ACTIVITIES_BASELINE_WEIGHT`. `Infinity → weight 0` → server faults never feed ban thresholds.
+`rateAllowance → weight` via `allowRatePerWindow(n) = ceil(EXCESSIVE_ACTIVITIES_THRESHOLD / n)` (see `ops-error.ts`); omitted `rateAllowance` → `ACTIVITIES_BASELINE_WEIGHT`. `Infinity → weight 0` records the activity without ever feeding a ban. It is a policy choice, not a default: server faults always take it, while session, token, and stale-claim cases and their charged exceptions are owned by `auth.md`.
