@@ -78,7 +78,7 @@ export const archiveByUser = createArchiveFn({
 
 (`deleteWhere` is an optional extra guard ANDed into the delete for columns the caller races on — e.g. `passcodeHash` in `email-verifications/cascades.ts:19`. Never guard on `id`: the machinery already deletes by selected-row ids.)
 
-`consts.ts` — only if ops or other models import it (user-facing copy belongs in the ops domain’s `_messages.ts`, not here; a shared `TRIAL_DAYS` belongs here, not in the op).
+`consts.ts` — only if ops or other models import it (user-facing copy belongs in the narrowest messages file, not here; a shared `TRIAL_DAYS` belongs here, not in the op).
 
 ## Core-extension step: re-point the owner's cascades
 
