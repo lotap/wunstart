@@ -55,9 +55,8 @@ export const selectByEmail = createPreparedQuery({
 const {id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...profileCols} = nonsensitiveCols
 
 /**
- * Profile identity fields also feed password strength. When adding one,
- * update the client context in `usePasswordStrength` and the server check in
- * `handle-password-change` so the server stays at least as strict.
+ * Profile identity fields also feed password strength. The server check must
+ * stay at least as strict as the client check.
  */
 export const selectProfile = createPreparedQuery({
 	vSchema: V.Select,

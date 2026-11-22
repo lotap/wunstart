@@ -271,11 +271,11 @@ export function AbusePanel() {
 					<InlineCode>classifySession</InlineCode>); a reuse replay revokes the family (
 					<InlineCode>revokeForReuse</InlineCode>), and a missing session is not charged.
 				</Prose>
-				<div className="overflow-hidden rounded-xl border bg-muted/20">
+				<div className="overflow-hidden rounded-xl border">
 					<table className="w-full text-left">
 						<caption className="sr-only">Token failure policy</caption>
 						<thead>
-							<tr className="bg-muted/30">
+							<tr className="border-b">
 								<PanelTableHeader scope="col" className="px-5 py-3">
 									State
 								</PanelTableHeader>
@@ -292,7 +292,7 @@ export function AbusePanel() {
 						</thead>
 						{tokenFailureGroups.map((group) => (
 							<tbody key={group.label}>
-								<tr className="border-t bg-muted/20">
+								<tr className="border-t">
 									<PanelTableHeader colSpan={4} scope="colgroup" className="px-5 py-2">
 										{group.label}
 									</PanelTableHeader>
