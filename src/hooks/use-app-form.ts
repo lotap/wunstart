@@ -50,6 +50,37 @@ export const validateAfterFirstSubmit = createValidator({
 
 type OnSubmitTry<T> = (value: T) => Promise<void> | void
 
+/**
+ * Mirrors native validation’s focus move after a failed submit: the first
+ * invalid control, otherwise the form-level banner. The submit button
+ * disables while submitting and drops focus to the body; without this,
+ * keyboard users lose their place. Scoped to the form that owns the error so
+ * another form on the page is left alone
+ */
+function focusFirstFormError() {
+	const activeForm = document.activeElement?.closest('form')
+
+	const form =
+		activeForm ??
+		[...document.querySelectorAll('form')].find((candidate) =>
+			candidate.querySelector('[aria-invalid="true"], [data-slot="form-error-banner"]'),
+		)
+
+	if (!form) return
+
+	const invalid = form.querySelector<HTMLElement>('[aria-invalid="true"]')
+
+	/** The invalid element can be a wrapper (passcode slots); focus its control */
+	const invalidControl = invalid?.matches('input, textarea, select, button, [tabindex]')
+		? invalid
+		: invalid?.querySelector<HTMLElement>('input, textarea, select, button, [tabindex]')
+
+	const target =
+		invalidControl ?? form.querySelector<HTMLElement>('[data-slot="form-error-banner"]')
+
+	target?.focus()
+}
+
 const createFormOptions = <T extends object>({
 	defaultValues,
 	onSubmitTry,
@@ -64,6 +95,10 @@ const createFormOptions = <T extends object>({
 		validators: onSubmitSchema
 			? [{run: Schema.toStandardSchemaV1(onSubmitSchema), triggers: []}]
 			: [],
+		onSubmitInvalid: () => {
+			/** Let the error nodes commit before moving focus to them */
+			requestAnimationFrame(focusFirstFormError)
+		},
 		onSubmit: async ({value, createValidationError}) => {
 			try {
 				await onSubmitTry(value)

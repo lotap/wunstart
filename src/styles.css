@@ -225,4 +225,10 @@
 	::view-transition-new(*) {
 		animation: none !important;
 	}
+
+	/* Drawers open and close instantly; the transition is decorative. */
+	[data-slot='drawer-popup'],
+	[data-slot='drawer-overlay'] {
+		transition: none;
+	}
 }

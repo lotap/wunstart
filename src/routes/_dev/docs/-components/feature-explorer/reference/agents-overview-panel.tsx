@@ -146,34 +146,37 @@ export function AgentsOverviewPanel() {
 				description="The context files, skills, and MCP tools agents use before changing this repo."
 			/>
 
-			<dl className="mt-8 grid gap-4 sm:grid-cols-2">
-				<div className="flex flex-col gap-1 border-t pt-3">
+			<dl className="mt-10 grid gap-5 sm:grid-cols-2">
+				<div className="flex flex-col gap-2 border-t pt-4">
 					<dt>
 						<code className="font-mono text-sm text-foreground">AGENTS.md</code>
 					</dt>
-					<dd className="text-sm leading-relaxed text-muted-foreground">
+					<dd className="text-base leading-relaxed text-muted-foreground">
 						The commands, hard rules, and verification steps for working in this repo. Agents read
 						it first; it is the best place to see how changes are expected to land.
 					</dd>
 				</div>
-				<div className="flex flex-col gap-1 border-t pt-3">
+				<div className="flex flex-col gap-2 border-t pt-4">
 					<dt>
 						<code className="font-mono text-sm text-foreground">CONTEXT.md</code>
 					</dt>
-					<dd className="text-sm leading-relaxed text-muted-foreground">
+					<dd className="text-base leading-relaxed text-muted-foreground">
 						The product glossary. Add domain terms here so copy, code, and agents use the same
 						language as the app grows.
 					</dd>
 				</div>
 			</dl>
 
-			<section aria-labelledby="skills-included" className="mt-8">
+			<section aria-labelledby="skills-included" className="mt-10">
 				<div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-					<div className="flex flex-col gap-1">
-						<h5 id="skills-included" className="font-heading text-lg font-medium">
+					<div className="flex flex-col gap-2">
+						<h5
+							id="skills-included"
+							className="scroll-mt-(--header-dock,0px) font-heading text-2xl font-medium"
+						>
 							Skills included
 						</h5>
-						<p className="max-w-2xl text-sm text-muted-foreground">
+						<p className="max-w-2xl text-base leading-relaxed text-muted-foreground">
 							Plain Markdown, grouped by the work they cover. The project skills are maintained
 							here; everything else is a vendored reference.
 						</p>
@@ -183,27 +186,27 @@ export function AgentsOverviewPanel() {
 					</p>
 				</div>
 
-				<div className="mt-5 overflow-hidden rounded-xl border bg-muted/20">
+				<div className="mt-6 overflow-hidden rounded-xl border">
 					{skillGroups.map((group) => (
 						<section
 							key={group.title}
 							aria-label={group.title}
 							className="border-t first:border-t-0"
 						>
-							<header className="flex flex-col gap-1 bg-muted/30 px-5 py-4">
+							<header className="flex flex-col gap-1 border-b px-5 py-5">
 								<div className="flex items-baseline justify-between gap-3">
-									<h6 className="text-sm font-medium">{group.title}</h6>
+									<h6 className="text-base font-medium">{group.title}</h6>
 									<span className="font-mono text-xs text-muted-foreground">
 										{group.skills.length} skills
 									</span>
 								</div>
-								<p className="text-sm text-muted-foreground">{group.description}</p>
+								<p className="text-base text-muted-foreground">{group.description}</p>
 							</header>
 							<ul>
 								{group.skills.map((skill) => (
 									<li
 										key={skill.name}
-										className="grid gap-1 border-t px-5 py-3 sm:grid-cols-[13rem_1fr] sm:gap-4"
+										className="grid gap-1 border-t px-5 py-4 sm:grid-cols-[13rem_1fr] sm:gap-4"
 									>
 										<div className="flex flex-wrap items-center gap-2">
 											<code className="font-mono text-sm text-foreground">{skill.name}</code>
@@ -213,7 +216,7 @@ export function AgentsOverviewPanel() {
 												</span>
 											)}
 										</div>
-										<p className="text-sm leading-relaxed text-muted-foreground">
+										<p className="text-base leading-relaxed text-muted-foreground">
 											{skill.description}
 										</p>
 									</li>
@@ -232,25 +235,25 @@ export function AgentsOverviewPanel() {
 				</Prose>
 				<div className="grid gap-4 lg:grid-cols-2">
 					<div className="flex flex-col gap-3">
-						<p className="text-sm font-medium">Install</p>
+						<p className="text-base font-medium">Install</p>
 						<CodeBlock
 							code="npx skills add <owner>/<repo>"
 							label="Install a collection"
 							language="bash"
 						/>
-						<p className="text-sm leading-relaxed text-muted-foreground">
+						<p className="text-base leading-relaxed text-muted-foreground">
 							Installs every skill in the repository.
 						</p>
 					</div>
 
 					<div className="flex flex-col gap-3">
-						<p className="text-sm font-medium">Update</p>
+						<p className="text-base font-medium">Update</p>
 						<CodeBlock
 							code={`npx skills check\nnpx skills update`}
 							label="Check and update"
 							language="bash"
 						/>
-						<p className="text-sm leading-relaxed text-muted-foreground">
+						<p className="text-base leading-relaxed text-muted-foreground">
 							<InlineCode>check</InlineCode> lists managed skills that have drifted;{' '}
 							<InlineCode>update</InlineCode> rewrites them. Pass a skill name to update one. Review
 							the diff before committing.
@@ -274,9 +277,9 @@ export function AgentsOverviewPanel() {
 					them.
 				</Prose>
 
-				<div className="rounded-xl border bg-muted/20 p-4">
-					<p className="text-sm font-medium">Owned vs. managed</p>
-					<p className="mt-1 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+				<div className="rounded-xl border p-5">
+					<p className="text-base font-medium">Owned vs. managed</p>
+					<p className="mt-2 max-w-3xl text-base leading-relaxed text-muted-foreground">
 						Edit <InlineCode>wunstart</InlineCode> and <InlineCode>wunshot</InlineCode> here. Every
 						other skill is managed by skills.sh; local edits are replaced on{' '}
 						<InlineCode>update</InlineCode>, so send fixes upstream instead.
@@ -288,11 +291,11 @@ export function AgentsOverviewPanel() {
 				<Prose>External skill sources. None are installed by default.</Prose>
 				<ul className="grid gap-3 sm:grid-cols-2">
 					{recommendedSkills.map((skill) => (
-						<li key={skill.name} className="flex flex-col gap-1 rounded-xl border bg-muted/20 p-4">
+						<li key={skill.name} className="flex flex-col gap-2 rounded-xl border p-5">
 							<ExternalDocLink href={skill.href}>
 								<code className="font-mono text-sm">{skill.name}</code>
 							</ExternalDocLink>
-							<p className="text-sm leading-relaxed text-muted-foreground">{skill.description}</p>
+							<p className="text-base leading-relaxed text-muted-foreground">{skill.description}</p>
 						</li>
 					))}
 				</ul>
@@ -306,11 +309,13 @@ export function AgentsOverviewPanel() {
 				</Prose>
 				<ul className="grid gap-3 sm:grid-cols-2">
 					{recommendedMcpServers.map((server) => (
-						<li key={server.name} className="flex flex-col gap-1 rounded-xl border bg-muted/20 p-4">
+						<li key={server.name} className="flex flex-col gap-2 rounded-xl border p-5">
 							<ExternalDocLink href={server.href}>
 								<code className="font-mono text-sm">{server.name}</code>
 							</ExternalDocLink>
-							<p className="text-sm leading-relaxed text-muted-foreground">{server.description}</p>
+							<p className="text-base leading-relaxed text-muted-foreground">
+								{server.description}
+							</p>
 						</li>
 					))}
 				</ul>

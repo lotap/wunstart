@@ -4,7 +4,7 @@ import {HERO_SUBLINE_WORDS} from '../../-content/hero.ts'
 import {
 	FEATURES_TEXT_BLOCK_TOP_VH,
 	FEATURES_TEXT_STICKY_HEIGHT_VH,
-	FEATURES_TEXT_STICKY_TOP_VH,
+	FEATURES_TEXT_STICKY_TOP_PX,
 } from '../../-utils/hero-layout.ts'
 
 export function FeaturesText({
@@ -22,7 +22,10 @@ export function FeaturesText({
 				height: `${FEATURES_TEXT_STICKY_HEIGHT_VH}svh`,
 			}}
 		>
-			<div className="sticky" style={{top: `${FEATURES_TEXT_STICKY_TOP_VH}svh`}}>
+			<div
+				className="sticky transition-[top] duration-(--header-dock-transition,0ms) ease-out"
+				style={{top: `calc(${FEATURES_TEXT_STICKY_TOP_PX}px + var(--header-dock, 0px))`}}
+			>
 				<div className="flex justify-center px-4">
 					<p
 						ref={sublineRef}

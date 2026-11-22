@@ -52,6 +52,7 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 
 	return (
 		<div className="mx-auto flex h-full max-w-5xl flex-col gap-2 p-2 md:flex-row md:gap-4">
+			<h1 className="sr-only">Settings</h1>
 			<nav className="contents gap-2 py-2 md:flex md:flex-col">
 				{CATEGORIES.map(({id, label, Icon}, i) => {
 					const isExpanded = activeCategories.includes(id)
@@ -83,10 +84,11 @@ export function SettingsPage({activeCategories}: {activeCategories: readonly Cat
 								className="grow justify-between text-muted-foreground"
 							>
 								<span className="flex items-center gap-2">
-									<Icon data-icon="inline-start" />
+									<Icon aria-hidden="true" data-icon="inline-start" />
 									{label}
 								</span>
 								<ChevronDown
+									aria-hidden="true"
 									data-icon="inline-end"
 									className={cn(navChevronVariants({expanded: isExpanded}))}
 								/>

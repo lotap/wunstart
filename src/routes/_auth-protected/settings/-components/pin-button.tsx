@@ -40,16 +40,17 @@ export function PinButton({
 						}
 						aria-pressed={isPinned}
 					>
-						<Pin />
+						<Pin aria-hidden="true" />
 					</Button>
 				}
 			/>
 			<TooltipContent>
 				{isPinned ? (
-					<strong>Unpin {label}</strong>
+					<strong className="dark:font-semibold">Unpin {label}</strong>
 				) : (
 					<p>
-						<strong>Pin {label}</strong> to keep it open as you navigate settings
+						<strong className="dark:font-semibold">Pin {label}</strong> to keep it open as you
+						navigate settings
 					</p>
 				)}
 			</TooltipContent>

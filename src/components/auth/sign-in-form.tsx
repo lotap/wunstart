@@ -47,6 +47,22 @@ function safeRedirectTarget(raw?: string) {
 	return '/'
 }
 
+function SignInFormSkeleton() {
+	return (
+		<div className="mx-auto flex w-full max-w-sm flex-col items-center p-4">
+			<Skeleton className="mb-3 h-10 w-full" />
+			<Skeleton className="mb-10 h-7 w-full" />
+			<Skeleton className="mb-4 h-8 w-full" />
+			<Skeleton className="mb-4 h-8 w-full" />
+			<Skeleton className="mb-2.5 h-9 w-full" />
+			<Skeleton className="mb-2.5 size-5" />
+			<Skeleton className="mb-4 h-9 w-full" />
+			<Skeleton className="h-7 w-1/2" />
+			<LinkToSignUp />
+		</div>
+	)
+}
+
 export function SignInForm() {
 	const handlePasswordSignInFn = useServerFn(handlePasswordSignIn)
 	const handleEmailRequestPasscodeFn = useServerFn(handleEmailRequestPasscode)
@@ -125,29 +141,18 @@ export function SignInForm() {
 		intent: 'sign-in',
 	})
 
-	if (localStorageSignInStateIsPending || localStorageEmailIsPending)
-		return (
-			<div className="mx-auto flex w-full max-w-sm flex-col items-center p-4">
-				<Skeleton className="mb-3 h-10 w-full" />
-				<Skeleton className="mb-10 h-7 w-full" />
-				<Skeleton className="mb-4 h-8 w-full" />
-				<Skeleton className="mb-4 h-8 w-full" />
-				<Skeleton className="mb-2.5 h-9 w-full" />
-				<Skeleton className="mb-2.5 size-5" />
-				<Skeleton className="mb-4 h-9 w-full" />
-				<Skeleton className="h-7 w-1/2" />
-				<LinkToSignUp />
-			</div>
-		)
+	if (localStorageSignInStateIsPending || localStorageEmailIsPending) return <SignInFormSkeleton />
 
 	return (
 		<div className="mx-auto flex w-full max-w-sm flex-col items-center p-4">
 			{step === 0 && (
 				<step0Form.AppForm>
-					<FormHeading headline="Sign In" subhead="Welcome back!" />
+					<FormHeading headline="Sign in" subhead="Welcome back!" />
 
 					<form
 						className="w-full"
+						aria-label="Sign in"
+						noValidate
 						onSubmit={(e) => {
 							e.preventDefault()
 							e.stopPropagation()
@@ -174,7 +179,7 @@ export function SignInForm() {
 									]}
 									validators={[validateAfterFirstSubmit(Schema.toStandardSchemaV1(Email))]}
 								>
-									{(field) => <field.EmailField />}
+									{(field) => <field.EmailField formId="sign-in" autoComplete="username" />}
 								</step0Form.Field>
 
 								<step0Form.Field
@@ -202,7 +207,9 @@ export function SignInForm() {
 										},
 									]}
 								>
-									{(field) => <field.PasswordField isDisabled={branch !== 'password'} />}
+									{(field) => (
+										<field.PasswordField formId="sign-in" isDisabled={branch !== 'password'} />
+									)}
 								</step0Form.Field>
 
 								{submittedBranch !== 'passcode-send' && <step0Form.OnSubmitErrors />}
@@ -250,7 +257,7 @@ export function SignInForm() {
 											setBranch('passcode-send')
 										},
 									}}
-									label="Send a Passcode"
+									label="Send a passcode"
 									changeLabelWhileSubmitting={branch === 'passcode-send'}
 									labelWhileSubmitting="Sending code"
 								/>
@@ -291,7 +298,7 @@ export function SignInForm() {
 											setBranch('passcode-skip')
 										},
 									}}
-									label="Already Have a Passcode?"
+									label="Already have a passcode?"
 									changeLabelWhileSubmitting={branch === 'passcode-skip'}
 									labelWhileSubmitting="Loading"
 								/>
@@ -314,14 +321,15 @@ export function SignInForm() {
 							branchRef.current = 'password'
 						}}
 					>
-						<ArrowLeft data-icon="inline-start" /> Change email
+						<ArrowLeft aria-hidden="true" data-icon="inline-start" /> Change email
 					</Button>
 
 					<FormHeading
 						headline="Verify your email"
 						subhead={
 							<>
-								We sent a passcode/instructions to <strong>{email}</strong>
+								We sent a passcode/instructions to{' '}
+								<strong className="dark:font-semibold">{email}</strong>
 							</>
 						}
 					/>

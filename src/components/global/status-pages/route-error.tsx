@@ -25,7 +25,7 @@ export function RouteError({error, reset}: ErrorComponentProps) {
 			<h1
 				ref={headingRef}
 				tabIndex={-1}
-				className="max-w-3xl text-4xl font-bold tracking-tight text-pretty outline-none sm:text-5xl lg:text-6xl"
+				className="max-w-3xl font-heading text-4xl font-bold tracking-tight text-pretty outline-none sm:text-5xl lg:text-6xl dark:font-semibold"
 			>
 				This page didn’t load.
 			</h1>

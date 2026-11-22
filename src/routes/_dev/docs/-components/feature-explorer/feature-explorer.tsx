@@ -1,9 +1,11 @@
 import {useRouter} from '@tanstack/react-router'
-import {cn} from 'cn'
+import {cva} from 'class-variance-authority'
 import {ArrowDown} from 'lucide-react'
 import type {ComponentType} from 'react'
-import {useEffect, useRef} from 'react'
+import {useRef} from 'react'
 
+import {useExplorerScroll} from '../../-hooks/use-explorer-scroll.ts'
+import {scrollBehavior, scrollToTopEdge} from '../../-utils/scroll.ts'
 import {PanelNavigationProvider} from '../doc-links.tsx'
 import {MicroLabel} from '../doc-ui.tsx'
 import {AbuseProtectionFeature} from './features/abuse-protection-feature.tsx'
@@ -18,7 +20,10 @@ import {
 	RbacFeature,
 } from './features/planned-features.tsx'
 import {DatabaseMigrationsPanel} from './guides/database-migrations-panel.tsx'
+import {HeaderPanel} from './guides/header-panel.tsx'
 import {PageRecipePanel} from './guides/page-recipe-panel.tsx'
+import {UnslopReactPanel} from './guides/unslop-react-panel.tsx'
+import {UpdateDependenciesPanel} from './guides/update-dependencies-panel.tsx'
 import {WorktreesPanel} from './guides/worktrees-panel.tsx'
 import {AbusePanel} from './reference/abuse-panel.tsx'
 import {AgentsOverviewPanel} from './reference/agents-overview-panel.tsx'
@@ -50,8 +55,11 @@ const referencePanels = [
 // Task order, not alphabetical: the order a new project meets them.
 const guidePanels = [
 	{key: 'start-a-new-page', label: 'Start a new page', Panel: PageRecipePanel},
+	{key: 'customize-header', label: 'Customize the header', Panel: HeaderPanel},
 	{key: 'worktrees', label: 'Worktrees', Panel: WorktreesPanel},
 	{key: 'database-migrations', label: 'Database migrations', Panel: DatabaseMigrationsPanel},
+	{key: 'update-dependencies', label: 'Update dependencies', Panel: UpdateDependenciesPanel},
+	{key: 'unslop-react', label: 'Unslop React', Panel: UnslopReactPanel},
 ] as const
 
 // Alphabetical by label; keep sorted.
@@ -118,31 +126,9 @@ function resolveSelection(value: string | undefined): PanelSelection {
 }
 
 function scrollToSection(id: string) {
-	document.getElementById(id)?.scrollIntoView({behavior: 'smooth', block: 'start'})
-}
+	const target = document.getElementById(id)
 
-/**
- * The docs page owns its scroll because `/docs` opts out of router scroll
- * restoration. On arrival, a hash or panel is a deep link; otherwise reset the
- * offset a client navigation kept from the previous page.
- */
-function scrollToDocsTarget(section: HTMLElement | null, behavior: ScrollBehavior) {
-	const hash = window.location.hash.slice(1)
-	const hashTarget = hash ? document.getElementById(hash) : null
-
-	if (hashTarget) {
-		hashTarget.scrollIntoView({behavior, block: 'start'})
-
-		return
-	}
-
-	if (section && new URLSearchParams(window.location.search).has('panel')) {
-		section.scrollIntoView({behavior, block: 'start'})
-
-		return
-	}
-
-	window.scrollTo({top: 0, behavior})
+	if (target) scrollToTopEdge(target, scrollBehavior())
 }
 
 function SectionJump({label, target}: {label: string; target: string}) {
@@ -157,6 +143,19 @@ function SectionJump({label, target}: {label: string; target: string}) {
 		</button>
 	)
 }
+
+const sidebarTabVariants = cva(
+	'rounded-md px-2.5 py-1.5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:w-full md:px-3 md:text-left',
+	{
+		variants: {
+			active: {
+				true: 'bg-foreground text-background',
+				false: 'text-muted-foreground hover:bg-muted hover:text-foreground',
+			},
+		},
+		defaultVariants: {active: false},
+	},
+)
 
 function SidebarTab({
 	active,
@@ -185,12 +184,7 @@ function SidebarTab({
 			aria-controls={controls}
 			tabIndex={active || tabbable ? 0 : -1}
 			onClick={onClick}
-			className={cn(
-				'rounded-md px-2.5 py-1.5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:w-full md:px-3 md:text-left',
-				active
-					? 'bg-foreground text-background'
-					: 'text-muted-foreground hover:bg-muted hover:text-foreground',
-			)}
+			className={sidebarTabVariants({active})}
 		>
 			{label}
 		</button>
@@ -198,7 +192,7 @@ function SidebarTab({
 }
 
 function SectionGroupLabel({children}: {children: React.ReactNode}) {
-	return <MicroLabel className="px-2.5 md:px-3">{children}</MicroLabel>
+	return <MicroLabel className="px-2.5 text-foreground md:px-3">{children}</MicroLabel>
 }
 
 function handleTabKeyDown(
@@ -304,7 +298,7 @@ function PanelTabPanel({
 			id={`${group}-panel-${panel.key}`}
 			aria-labelledby={`${group}-tab-${panel.key}`}
 			hidden={!active}
-			className="mt-6 min-h-[calc(100svh-2rem)] rounded-xl border bg-muted/20 p-4 md:mt-0 md:p-6"
+			className="mt-6 min-h-[calc(100svh-2rem)] rounded-xl bg-card p-5 ring-1 ring-foreground/10 md:mt-0 md:p-8"
 		>
 			{active && <Panel />}
 		</div>
@@ -326,25 +320,8 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 
 	const sectionRef = useRef<HTMLElement>(null)
 	const selectionKey = `${selection.group}.${selection.key}`
-	const previousSelection = useRef(selectionKey)
 
-	useEffect(() => {
-		scrollToDocsTarget(sectionRef.current, 'instant')
-	}, [])
-
-	// Scroll after the panel commit, not in the click handler: swapping panel
-	// content cancels an in-flight smooth scroll.
-	useEffect(() => {
-		if (previousSelection.current === selectionKey) return
-
-		previousSelection.current = selectionKey
-
-		const behavior: ScrollBehavior = new URLSearchParams(window.location.search).has('panel')
-			? 'smooth'
-			: 'instant'
-
-		scrollToDocsTarget(sectionRef.current, behavior)
-	}, [selectionKey])
+	useExplorerScroll(sectionRef, selectionKey)
 
 	function selectPanel(group: PanelSelection['group'], key: string) {
 		void router.navigate({
@@ -391,55 +368,59 @@ export function FeatureExplorer({panel}: {panel?: string}) {
 		<PanelNavigationProvider onSelect={selectPanelTarget}>
 			<section ref={sectionRef} className="w-full max-w-5xl">
 				<div className="flex flex-col md:flex-row md:items-start md:gap-6">
-					<div className="font-mono text-xs md:sticky md:top-4 md:w-60 md:shrink-0 md:pt-4">
-						<SidePanelGroup
-							group="guide"
-							label="Guides"
-							panels={guidePanels}
-							activeKey={activeGuide}
-							onSelect={selectGuidePanel}
-						/>
+					{/* Reserve the md header height instead of following the dock: the scroll area must not resize when the bar reveals. */}
+					<div
+						className="font-mono text-xs md:sticky md:flex md:max-h-[calc(100svh-2rem-4.5rem)] md:w-60 md:shrink-0 md:flex-col md:text-sm md:transition-[top] md:duration-(--header-dock-transition,0ms) md:ease-out"
+						style={{top: 'calc(1rem + var(--header-dock, 0px))'}}
+					>
+						{/* No overscroll containment: before the sidebar pins, its box can extend past the fold, so the page has to take over at the end of the list. */}
+						<div className="scrollbar-thin md:min-h-0 md:flex-1 md:overflow-y-auto md:pt-4">
+							<SidePanelGroup
+								group="guide"
+								label="Guides"
+								panels={guidePanels}
+								activeKey={activeGuide}
+								onSelect={selectGuidePanel}
+							/>
 
-						<div className="mt-5">
-							<SectionGroupLabel>Features</SectionGroupLabel>
-							<div
-								role="tablist"
-								aria-label="Features"
-								tabIndex={-1}
-								onKeyDown={(event) => handleTabKeyDown(event, selectFeature)}
-								className="mt-1.5 flex flex-wrap gap-1 border-b pb-2 md:flex-col md:flex-nowrap md:border-b-0 md:pb-0"
-							>
-								{featurePanels.map((feature, index) => (
-									<SidebarTab
-										key={feature.key}
-										active={index === activeFeature}
-										tabbable={index === tabbableFeature}
-										label={feature.label}
-										ariaLabel={
-											'planned' in feature ? `${feature.label}, coming soon` : feature.label
-										}
-										id={`feature-tab-${feature.key}`}
-										controls={`feature-panel-${feature.key}`}
-										onClick={() => selectFeature(index)}
-									/>
-								))}
+							<div className="mt-5">
+								<SectionGroupLabel>Features</SectionGroupLabel>
+								<div
+									role="tablist"
+									aria-label="Features"
+									tabIndex={-1}
+									onKeyDown={(event) => handleTabKeyDown(event, selectFeature)}
+									className="mt-1.5 flex flex-wrap gap-1 border-b pb-2 md:flex-col md:flex-nowrap md:border-b-0 md:pb-0"
+								>
+									{featurePanels.map((feature, index) => (
+										<SidebarTab
+											key={feature.key}
+											active={index === activeFeature}
+											tabbable={index === tabbableFeature}
+											label={feature.label}
+											ariaLabel={
+												'planned' in feature ? `${feature.label}, coming soon` : feature.label
+											}
+											id={`feature-tab-${feature.key}`}
+											controls={`feature-panel-${feature.key}`}
+											onClick={() => selectFeature(index)}
+										/>
+									))}
+								</div>
 							</div>
+
+							<SidePanelGroup
+								group="reference"
+								label="Reference"
+								panels={referencePanels}
+								activeKey={activeReference}
+								onSelect={selectReferencePanel}
+								className="mt-5"
+							/>
 						</div>
 
-						<SidePanelGroup
-							group="reference"
-							label="Reference"
-							panels={referencePanels}
-							activeKey={activeReference}
-							onSelect={selectReferencePanel}
-							className="mt-5"
-						/>
-
-						<nav aria-label="Stack" className="mt-5 flex flex-col gap-1">
-							<SectionGroupLabel>Stack</SectionGroupLabel>
-							<div className="flex flex-row flex-wrap gap-1 md:flex-col">
-								<SectionJump label="Architectural overview" target="architectural-overview" />
-							</div>
+						<nav aria-label="Stack" className="mt-3 border-t pt-3 md:pt-2">
+							<SectionJump label="Architectural overview" target="architectural-overview" />
 						</nav>
 					</div>
 

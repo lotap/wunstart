@@ -212,7 +212,7 @@ Example prompts for agents:
 
 Committed images are optimized during `vite build` by `vite-imagetools` and `sharp`. AVIF is the only output format; quality defaults to 55 and can be set per image. JPEG, PNG, and WebP work as sources; animated GIFs are flattened to a still frame.
 
-Put shared images in `src/assets/images/` and page- or component-private images in a `-images/` folder beside the owner. Import with the `?responsive` marker:
+Put shared images in `src/assets/images/<domain>/` and page- or component-private images in a `-images/` folder beside the owner. Import with the `?responsive` marker:
 
 ```tsx
 import {StaticImage} from '#/components/global/static-image.tsx'

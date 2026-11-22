@@ -3,6 +3,7 @@ import type {useServerFn} from '@tanstack/react-start'
 
 import type {handleGetUserProfile} from '#/server-fns/handle-get-user-profile.ts'
 
+/** The signed-in user’s profile query. */
 export const userProfileQueryOptions = ({
 	serverFn,
 }: {

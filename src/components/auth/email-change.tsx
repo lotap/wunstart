@@ -67,6 +67,8 @@ function NewEmailForm({onCodeSent}: {onCodeSent: (email: string) => void}) {
 
 				<form
 					className="w-full max-w-sm"
+					aria-label="Change email"
+					noValidate
 					onSubmit={(e) => {
 						e.preventDefault()
 						e.stopPropagation()
@@ -80,12 +82,12 @@ function NewEmailForm({onCodeSent}: {onCodeSent: (email: string) => void}) {
 								name="email"
 								validators={[validateAfterFirstSubmit(Schema.toStandardSchemaV1(Email))]}
 							>
-								{(field) => <field.EmailField />}
+								{(field) => <field.EmailField formId="email-change" />}
 							</form.Field>
 
 							<form.OnSubmitErrors />
 
-							<form.SubmitButton label="Send Code" labelWhileSubmitting="Sending" />
+							<form.SubmitButton label="Send code" labelWhileSubmitting="Sending" />
 						</FieldGroup>
 					</FieldGroup>
 				</form>
@@ -129,7 +131,7 @@ function VerifyNewEmailForm({
 	return (
 		<div className="w-full max-w-sm">
 			<div className="mb-3 text-center">
-				We sent a 6-digit code to <strong>{newEmail}</strong>
+				We sent a 6-digit code to <strong className="dark:font-semibold">{newEmail}</strong>
 			</div>
 
 			<PasscodeForm
@@ -248,7 +250,7 @@ export function ChangeEmailForm({closeEmailChangeDrawer}: {closeEmailChangeDrawe
 		<>
 			{userEmail?.email && (
 				<p className="mb-16 text-center text-muted-foreground">
-					<strong className="text-xl">{userEmail.email}</strong>
+					<strong className="text-xl dark:font-semibold">{userEmail.email}</strong>
 				</p>
 			)}
 			<NewEmailForm onCodeSent={setNewEmail} />
@@ -271,12 +273,12 @@ export function EmailChangeDrawer({triggerClassName}: {triggerClassName?: string
 					/>
 				}
 			>
-				<Edit />
+				<Edit aria-hidden="true" />
 			</DrawerTrigger>
 			<DrawerPrimitive.VirtualKeyboardProvider>
 				<DrawerContent className="min-h-2/3">
 					<DrawerHeader>
-						<DrawerTitle className="text-4xl font-bold">Update Your Email</DrawerTitle>
+						<DrawerTitle className="text-4xl font-bold">Update your email</DrawerTitle>
 						<DrawerDescription>We’ll send a code to verify the new address</DrawerDescription>
 					</DrawerHeader>
 					<div className="flex grow flex-col items-center justify-center p-4">

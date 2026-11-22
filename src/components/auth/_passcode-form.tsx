@@ -89,6 +89,8 @@ export function PasscodeForm({
 		<form.AppForm>
 			<form
 				className="w-full"
+				aria-label="Email verification"
+				noValidate
 				onSubmit={(e) => {
 					e.preventDefault()
 					e.stopPropagation()
@@ -103,7 +105,12 @@ export function PasscodeForm({
 						name="passcode"
 						validators={[validateAfterFirstSubmit(Schema.toStandardSchemaV1(Passcode))]}
 					>
-						{(field) => <field.PasscodeField onComplete={() => form.handleSubmit()} />}
+						{(field) => (
+							<field.PasscodeField
+								formId="email-verification"
+								onComplete={() => form.handleSubmit()}
+							/>
+						)}
 					</form.Field>
 
 					{anonBound && (

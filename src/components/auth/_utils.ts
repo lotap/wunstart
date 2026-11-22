@@ -2,7 +2,7 @@ import {queryOptions} from '@tanstack/react-query'
 import {Result, Schema} from 'effect'
 
 export const LocalStorageEmailSchema = Schema.Struct({
-	email: Schema.String, // Does not use Email schema because it should incomplete addresses
+	email: Schema.String, // Allows incomplete addresses; the email schema is stricter
 	expiresAt: Schema.DateTimeUtcFromString,
 })
 

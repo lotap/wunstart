@@ -4,13 +4,13 @@ export function Hero() {
 	return (
 		<section className="flex w-full max-w-5xl flex-col gap-2 sm:flex-row">
 			<div className="flex grow sm:order-2 sm:items-end md:justify-end">
-				<h2 className="flex flex-col py-12 font-heading text-4xl">
+				<h1 className="flex flex-col py-12 font-heading text-4xl">
 					<span>Build </span>
 					<span>for </span>
 					<span className="font-serif font-bold dark:font-semibold">humans </span>
 					<span className="text-muted-foreground">with </span>
 					<span className="text-muted-foreground">agents</span>
-				</h2>
+				</h1>
 			</div>
 
 			<div

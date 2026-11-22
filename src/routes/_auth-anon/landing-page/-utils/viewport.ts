@@ -1,6 +1,6 @@
 /**
- * Read the viewport height from a 1svh probe so mobile browser chrome changes
- * do not shift scroll-linked thresholds.
+ * Read the viewport height from a probe element so mobile browser chrome
+ * changes do not shift scroll-linked thresholds.
  */
 export function getViewportHeight(probe: HTMLElement | null) {
 	const probeHeight = probe?.getBoundingClientRect().height ?? 0

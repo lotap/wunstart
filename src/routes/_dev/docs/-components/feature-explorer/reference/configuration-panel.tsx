@@ -90,20 +90,20 @@ export function ConfigurationPanel() {
 					<InlineCode>DATABASE_URL</InlineCode> first because production has no files.
 				</Prose>
 				<dl className="grid gap-4 md:grid-cols-2">
-					<div className="flex flex-col gap-2 rounded-xl border bg-muted/20 p-5">
+					<div className="flex flex-col gap-2 rounded-xl border p-5">
 						<dt>
 							<code className="font-mono text-sm text-foreground">.env.development</code>
 						</dt>
-						<dd className="text-sm leading-relaxed text-muted-foreground">
+						<dd className="text-base leading-relaxed text-muted-foreground">
 							Committed defaults shared by every checkout: <InlineCode>DATABASE_URL</InlineCode>,
 							JWT secrets, and the local Hyperdrive URL.
 						</dd>
 					</div>
-					<div className="flex flex-col gap-2 rounded-xl border bg-muted/20 p-5">
+					<div className="flex flex-col gap-2 rounded-xl border p-5">
 						<dt>
 							<code className="font-mono text-sm text-foreground">.env.local</code>
 						</dt>
-						<dd className="text-sm leading-relaxed text-muted-foreground">
+						<dd className="text-base leading-relaxed text-muted-foreground">
 							Gitignored per-checkout values written by <InlineCode>branch-env</InlineCode> — the
 							connection URL, mail URL, dev ports, and the dev cookie suffix. Add your own overrides
 							here; re-running <InlineCode>branch-env</InlineCode> keeps them. Delete the file and

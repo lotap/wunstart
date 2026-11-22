@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react'
 
-/** Shared full-viewport frame for the 404 and route-error pages. */
+/** Shared full-viewport frame for status pages. */
 export function StatusPageFrame({status, children}: {status: '404' | '500'; children: ReactNode}) {
 	return (
 		<section className="relative isolate flex min-h-svh flex-col justify-center pb-16 sm:pb-24">

@@ -53,7 +53,9 @@ function QuickLinkCard({
 							</span>
 						</div>
 					) : (
-						<p className="font-mono text-xs leading-relaxed text-muted-foreground">{detail}</p>
+						<p className="font-mono text-xs leading-relaxed break-all text-muted-foreground">
+							{detail}
+						</p>
 					)}
 				</CardContent>
 			)}
@@ -67,9 +69,9 @@ export function QuickLinksSection() {
 	return (
 		<section aria-labelledby="quick-links-title" className="w-full max-w-5xl">
 			<SlashGrid />
-			<h3 id="quick-links-title" className="px-6 py-3 text-right font-heading text-3xl">
+			<h2 id="quick-links-title" className="px-6 py-3 text-right font-heading text-3xl">
 				Quick links
-			</h3>
+			</h2>
 			<SlashGrid />
 			<div className="flex pt-6">
 				{/* // GUTTER */}

@@ -141,7 +141,7 @@ export function AbusePanel() {
 					<figcaption className="text-sm font-medium text-muted-foreground">
 						Request path
 					</figcaption>
-					<div className="mt-2 rounded-xl border bg-muted/20 p-4">
+					<div className="mt-2 rounded-xl border p-4">
 						<DocDiagram
 							source={guardrailsChart}
 							label="Rate limits and bans request path"

@@ -73,8 +73,8 @@ function ReverifyEmailForm({email}: {email: string}) {
 		return (
 			<div className="flex w-full max-w-sm flex-col items-center gap-3">
 				<p className="text-center">
-					We’ll send a secret code to your registered email address: <strong>{email}</strong> to
-					verify your&nbsp;access.
+					We’ll send a secret code to your registered email address:{' '}
+					<strong className="dark:font-semibold">{email}</strong> to verify your&nbsp;access.
 				</p>
 				<Button
 					className="w-full"
@@ -104,7 +104,7 @@ function ReverifyEmailForm({email}: {email: string}) {
 	return (
 		<div className="w-full max-w-sm">
 			<div className="mb-3 text-center">
-				We sent a 6-digit code to <strong>{email}</strong>
+				We sent a 6-digit code to <strong className="dark:font-semibold">{email}</strong>
 			</div>
 
 			<PasscodeForm
@@ -157,6 +157,8 @@ function ConfirmPasswordForm() {
 
 				<form
 					className="w-full"
+					aria-label="Confirm your password"
+					noValidate
 					onSubmit={(e) => {
 						e.preventDefault()
 						e.stopPropagation()
@@ -170,7 +172,7 @@ function ConfirmPasswordForm() {
 								name="password"
 								validators={[validateAfterFirstSubmit(Schema.toStandardSchemaV1(Password))]}
 							>
-								{(field) => <field.PasswordField />}
+								{(field) => <field.PasswordField formId="reverify" />}
 							</form.Field>
 
 							<form.OnSubmitErrors />
@@ -218,7 +220,7 @@ function ReverifyFormSwitcher({email, hasPassword}: {email: string; hasPassword:
 						selectForm('confirm-password')
 					}}
 				>
-					Confirm Password Instead
+					Confirm password instead
 				</Button>
 			)}
 		</>
@@ -290,7 +292,7 @@ export function ReverifyDrawer({
 			<DrawerPrimitive.VirtualKeyboardProvider>
 				<DrawerContent className="min-h-2/3">
 					<DrawerHeader>
-						<DrawerTitle className="text-4xl font-bold">Reverify Your Account</DrawerTitle>
+						<DrawerTitle className="text-4xl font-bold">Reverify your account</DrawerTitle>
 						<DrawerDescription>We want to make sure it’s really you</DrawerDescription>
 					</DrawerHeader>
 					<div className="flex grow flex-col items-center justify-center p-4">

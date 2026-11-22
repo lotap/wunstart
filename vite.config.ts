@@ -10,6 +10,7 @@ import react, {reactCompilerPreset} from '@vitejs/plugin-react'
 import type {Plugin, PluginOption, ViteDevServer} from 'vite'
 import {defineConfig} from 'vite'
 import {imagetools} from 'vite-imagetools'
+import svgr from 'vite-plugin-svgr'
 
 import {
 	STATIC_IMAGE_PLACEHOLDER_MIN_WIDTH,
@@ -223,6 +224,7 @@ function createPlugins(agentPort?: number, excludeDevRoutes = false): Array<Plug
 
 	return [
 		devtools(),
+		svgr(),
 		cloudflare({viteEnvironment: {name: 'ssr'}, persistState}),
 		tailwindcss(),
 		imagetools({

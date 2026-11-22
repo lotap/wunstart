@@ -9,7 +9,7 @@ import {
 	BOXES_BLOCK_TOP_VH,
 	FEATURES_TEXT_BLOCK_TOP_VH,
 	FEATURES_TEXT_IN_VH,
-	FEATURES_TEXT_STICKY_TOP_VH,
+	FEATURES_TEXT_STICKY_TOP_PX,
 	FIRST_WORD_VH,
 	HEADLINE_FADE_VH,
 	MOBILE_MAX_WIDTH_PX,
@@ -63,10 +63,10 @@ const HEADLINE_EXIT_SHIFT_PX = 24
 const NAV_STICKY_TOP_PX = 16
 
 /**
- * Gap below the pinned subline. Twice the dock offset so the visual gap clears
- * the subline’s descenders, which overflow its line box.
+ * Gap below the pinned subline, in pixels. The line’s descenders overflow its
+ * box, so this reads as the visual gap.
  */
-const NAV_SUBLINE_GAP_PX = NAV_STICKY_TOP_PX * 2
+const NAV_SUBLINE_GAP_PX = 40
 
 /** Viewport top band where the subline counts as pinned for the nav hold. */
 const NAV_SUBLINE_PINNED_VH = 20
@@ -100,6 +100,7 @@ type GrowNextScrollOptions = {
 	promptRef: RefObject<HTMLDivElement | null>
 	navRef: RefObject<HTMLElement | null>
 	navSlotRef: RefObject<HTMLDivElement | null>
+	navDockRef: RefObject<HTMLDivElement | null>
 	sublineRef: RefObject<HTMLParagraphElement | null>
 	sublineWordRefs: RefObject<Array<HTMLSpanElement | null>>
 	boxesBlockRef: RefObject<HTMLDivElement | null>
@@ -125,6 +126,7 @@ export function useGrowNextScroll({
 	promptRef,
 	navRef,
 	navSlotRef,
+	navDockRef,
 	sublineRef,
 	sublineWordRefs,
 	boxesBlockRef,
@@ -160,6 +162,10 @@ export function useGrowNextScroll({
 		let lastNavTop = Number.NaN
 		let navTimeline: Animation | null = null
 
+		/** Scroll range where the nav holds at its docked position. */
+		let navDockStart = Number.POSITIVE_INFINITY
+		let navDockEnd = Number.POSITIVE_INFINITY
+
 		type LayoutMetrics = {
 			blockTop: number
 			cardOffsets: number[]
@@ -171,8 +177,8 @@ export function useGrowNextScroll({
 		let layout: LayoutMetrics | null = null
 
 		/**
-		 * Read the svh reference from a 1svh probe so the section can grow with
-		 * the feature stack without losing the viewport-height scale.
+		 * Read the viewport reference from the shared probe so the section can
+		 * grow with the feature stack without losing the viewport-height scale.
 		 */
 		const getViewport = () => getViewportHeight(svhProbeRef.current)
 
@@ -208,7 +214,7 @@ export function useGrowNextScroll({
 			const textHeightVh = (layout.textHeight / viewport) * 100
 
 			const shaderReleaseStartVh =
-				FEATURES_TEXT_STICKY_TOP_VH + textHeightVh + SHADER_RELEASE_LEAD_VH
+				(FEATURES_TEXT_STICKY_TOP_PX / viewport) * 100 + textHeightVh + SHADER_RELEASE_LEAD_VH
 
 			const shaderParentHeightVh =
 				BOXES_BLOCK_TOP_VH - shaderReleaseStartVh + SHADER_STICKY_TOP_VH + SHADER_STICKY_HEIGHT_VH
@@ -243,8 +249,7 @@ export function useGrowNextScroll({
 			const slotBottom = navSlot.offsetTop + navSlot.offsetHeight
 			const stickyTop = (STICKY_TOP_VH / 100) * viewport
 
-			const holdTop =
-				(FEATURES_TEXT_STICKY_TOP_VH / 100) * viewport + subline.offsetHeight + NAV_SUBLINE_GAP_PX
+			const holdTop = FEATURES_TEXT_STICKY_TOP_PX + subline.offsetHeight + NAV_SUBLINE_GAP_PX
 
 			const releaseStart = holdTop + navHeight + (NAV_RELEASE_LEAD_VH / 100) * viewport
 			const releaseTravel = Math.max(holdTop - NAV_STICKY_TOP_PX, 0)
@@ -299,7 +304,12 @@ export function useGrowNextScroll({
 				transform: `translate3d(0, ${top}px, 0)`,
 			})
 
-			nav.dataset['ready'] = 'true'
+			const dock = navDockRef.current
+
+			if (dock) dock.dataset['ready'] = 'true'
+
+			navDockStart = releaseEnd
+			navDockEnd = navExitStart ?? Number.POSITIVE_INFINITY
 			navTimeline?.cancel()
 
 			const keyframes = [
@@ -361,6 +371,9 @@ export function useGrowNextScroll({
 		const updateScrollStyles = (rect: DOMRect, viewport: number) => {
 			if (!layout) return
 
+			const dock = navDockRef.current
+			const docked = window.scrollY >= navDockStart && window.scrollY < navDockEnd
+
 			const subline = sublineRef.current
 			const sublineRect = subline?.getBoundingClientRect()
 
@@ -368,9 +381,17 @@ export function useGrowNextScroll({
 				? sublineRect.top <= viewport * (NAV_SUBLINE_PINNED_VH / 100)
 				: false
 
-			const sublineTop = sublinePinned
-				? (FEATURES_TEXT_STICKY_TOP_VH / 100) * viewport
-				: (sublineRect?.top ?? 0)
+			/**
+			 * The line and the held nav ride the revealed bar together. The docked
+			 * nav keeps the offset through its top state; the exit drops it.
+			 */
+			if (dock) {
+				const shifted = docked || (sublinePinned && window.scrollY < navDockStart)
+
+				if (dock.dataset['shifted'] !== String(shifted)) dock.dataset['shifted'] = String(shifted)
+			}
+
+			const sublineTop = sublinePinned ? FEATURES_TEXT_STICKY_TOP_PX : (sublineRect?.top ?? 0)
 
 			const sublineBottom = sublineTop + (subline?.offsetHeight ?? 0)
 			const firstCardTopPx = rect.top + layout.blockTop + (layout.cardOffsets[0] ?? 0)
@@ -405,7 +426,16 @@ export function useGrowNextScroll({
 				const navTop = releaseOffset > 0 && holdTop !== null ? holdTop - releaseOffset : heldTop
 
 				/** Tracked with a composited transform so iOS momentum scroll does not jitter. */
-				if (nav.dataset['ready'] !== 'true') nav.dataset['ready'] = 'true'
+				if (dock && dock.dataset['ready'] !== 'true') dock.dataset['ready'] = 'true'
+
+				if (!navTimeline) {
+					/** Same dock edge as the timeline’s `releaseEnd`, in scroll coordinates. */
+					navDockStart =
+						releaseStart === null
+							? Number.POSITIVE_INFINITY
+							: window.scrollY + firstCardTopPx - releaseStart + releaseTravel
+					navDockEnd = Number.POSITIVE_INFINITY
+				}
 
 				/** The scroll-driven animation handles this path where it is supported. */
 				if (!navTimeline && navTop !== lastNavTop) {
@@ -438,7 +468,8 @@ export function useGrowNextScroll({
 				? wordScrollTop(HERO_WORDS.length - 1, rect, viewport)
 				: rect.top +
 					window.scrollY +
-					((FEATURES_TEXT_BLOCK_TOP_VH - FEATURES_TEXT_STICKY_TOP_VH) / 100) * viewport
+					(FEATURES_TEXT_BLOCK_TOP_VH / 100) * viewport -
+					FEATURES_TEXT_STICKY_TOP_PX
 
 			const promptFadeDistance = (PROMPT_FADE_VH / 100) * viewport
 
@@ -664,6 +695,7 @@ export function useGrowNextScroll({
 		headlineTailRef,
 		navRef,
 		navSlotRef,
+		navDockRef,
 		onActiveIndexChange,
 		reduceMotion,
 		scrimRef,

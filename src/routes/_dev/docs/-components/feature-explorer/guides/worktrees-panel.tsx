@@ -104,7 +104,7 @@ export function WorktreesPanel() {
 				<div className="flex flex-col gap-2">
 					<p className="text-sm font-medium">Or set it up manually</p>
 					<CodeBlock code={manualSetupCommands} label="Manual setup commands" language="bash" />
-					<p className="text-sm text-muted-foreground">
+					<p className="text-base leading-relaxed text-muted-foreground">
 						<InlineCode>validate-setup</InlineCode> is the gate. Fix any failures before starting
 						work in the checkout.
 					</p>

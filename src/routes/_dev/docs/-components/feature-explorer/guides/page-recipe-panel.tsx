@@ -53,6 +53,18 @@ const pageFiles = [
 	},
 ]
 
+/** Page metadata and heading shape. */
+const metadataExample = `export const Route = createFileRoute('/_auth-protected/reports')({
+	component: ReportsPage,
+	head: () => ({
+		meta: pageMeta('Reports', 'Every report your team has run.'),
+	}),
+})
+
+export function ReportsPage() {
+	return <h1 className="font-heading text-3xl">Reports</h1>
+}`
+
 /** Existing pages worth reading before writing a new pattern. */
 const exemplars = [
 	{
@@ -95,6 +107,24 @@ export function PageRecipePanel() {
 						</PanelRow>
 					))}
 				</PanelList>
+			</PanelSection>
+
+			<PanelSection id="page-metadata" title="Title, description, and heading">
+				<Prose>
+					Every page owns its <InlineCode>h1</InlineCode> and its metadata. The header wordmark is a{' '}
+					<InlineCode>div</InlineCode>, not a heading, so a new route must supply its own{' '}
+					<InlineCode>h1</InlineCode>. Add <InlineCode>head</InlineCode> to the route for the tab
+					title, description, and Open Graph pair; <InlineCode>pageMeta</InlineCode> from{' '}
+					<InlineCode>lib/page-meta.ts</InlineCode> appends the site name, and the root supplies the
+					fallbacks, the canonical link, and <InlineCode>og:site_name</InlineCode>.
+				</Prose>
+				<CodeBlock code={metadataExample} label="Page metadata" language="tsx" />
+				<Prose>
+					The home route owns the <InlineCode>WebSite</InlineCode> and{' '}
+					<InlineCode>Organization</InlineCode> structured data; it reads the name and description
+					from <InlineCode>appInfo</InlineCode>, so rebranding updates it. Other routes normally
+					need metadata only.
+				</Prose>
 			</PanelSection>
 
 			<PanelSection id="pick-route-group" title="1. Pick the route group">
@@ -155,8 +185,9 @@ export function PageRecipePanel() {
 			<PanelSection id="add-query" title="3. Add the query">
 				<Prose>
 					Reads go through TanStack Query, not ad-hoc fetching in the component. Put shared query
-					options beside the feature, or in{' '}
-					<InlineCode>src/components/&lt;domain&gt;/_utils.ts</InlineCode>.
+					options beside the feature. A query shared within its domain can live in that domain’s{' '}
+					<InlineCode>_utils.ts</InlineCode>; a query used by another domain belongs in an
+					unprefixed module.
 				</Prose>
 				<CodeBlock code={queryExample} label="Query options" language="typescript" />
 

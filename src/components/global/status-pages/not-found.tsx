@@ -46,7 +46,7 @@ export function NotFound() {
 			<h1
 				ref={headingRef}
 				tabIndex={-1}
-				className="max-w-4xl text-4xl font-bold tracking-tight text-pretty outline-none sm:text-5xl lg:text-6xl"
+				className="max-w-4xl font-heading text-4xl font-bold tracking-tight text-pretty outline-none sm:text-5xl lg:text-6xl dark:font-semibold"
 			>
 				{path === '' ? (
 					'This page isn’t here.'

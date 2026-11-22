@@ -1,5 +1,4 @@
 import {Link} from '@tanstack/react-router'
-import {ArrowUpRight} from 'lucide-react'
 
 import {appInfo} from '#/app-info.ts'
 
@@ -27,15 +26,6 @@ export function InternalFooter() {
 								Docs
 							</Link>
 						)}
-						<a
-							href="https://github.com/lotap/wunstart"
-							target="_blank"
-							rel="noreferrer"
-							className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
-						>
-							GitHub
-							<ArrowUpRight aria-hidden="true" className="size-3.5" />
-						</a>
 					</nav>
 				</div>
 

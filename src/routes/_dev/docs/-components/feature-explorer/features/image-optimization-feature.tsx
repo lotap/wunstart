@@ -30,7 +30,7 @@ const blurPrompt =
 	'Replace the build-time gradient placeholder with a blurred LQIP. Generate a 24 px-wide AVIF under 1 KB, inline it on the import, paint it until the image loads, and drop the gradient it replaces. No extra request, no layout shift.'
 
 const sizePrompt =
-	"Add a production image size report. Print each emitted AVIF variant's source, width, and size, plus a total per source. Fail when a variant exceeds 400 KB or total image output exceeds 4 MB."
+	'Add a production image size report. Print each emitted AVIF variant’s source, width, and size, plus a total per source. Fail when a variant exceeds 400 KB or total image output exceeds 4 MB.'
 
 /** Catalog entry for the static image pipeline. Details live in the reference panel. */
 export function ImageOptimizationFeature() {
@@ -39,7 +39,9 @@ export function ImageOptimizationFeature() {
 			<PanelSection id="image-adding" title="Add an image">
 				<Prose>
 					Put private images in an <InlineCode>-images</InlineCode> folder near the page or
-					component that uses them. Shared images go in <InlineCode>src/assets/images</InlineCode>.
+					component that uses them. Shared images go in{' '}
+					<InlineCode>src/assets/images/&lt;domain&gt;</InlineCode>, such as{' '}
+					<InlineCode>brand/</InlineCode>.
 				</Prose>
 				<CodeBlock code={usage} label="Responsive image usage" language="tsx" />
 				<Prose>
@@ -108,9 +110,9 @@ export function ImageOptimizationFeature() {
 				</Prose>
 			</PanelSection>
 
-			<div className="mt-8 border-t pt-5">
-				<p className="text-sm font-medium">Full reference</p>
-				<p className="mt-1 text-sm text-muted-foreground">
+			<div className="mt-10 border-t pt-6">
+				<p className="text-base font-medium">Full reference</p>
+				<p className="mt-2 text-base leading-relaxed text-muted-foreground">
 					See the <PanelLink panel="static-images">Static images reference</PanelLink> for the full{' '}
 					<InlineCode>StaticImage</InlineCode> component and pipeline.
 				</p>

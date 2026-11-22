@@ -14,17 +14,20 @@ import {startPrompt} from '../-content/get-started.ts'
 
 export function StartPrompt({
 	className,
+	containerClassName,
 	action,
 	copyHint,
 	isCopyTooltipPinned = false,
 }: {
 	className?: string
+	/** Layout classes for the wrapper; `className` styles the block itself. */
+	containerClassName?: string
 	action?: ReactNode
 	copyHint?: ReactNode
 	isCopyTooltipPinned?: boolean
 }) {
 	return (
-		<div className="relative">
+		<div className={cn('relative min-w-0', containerClassName)}>
 			<CodeBlock className={cn('bg-background/80 backdrop-blur-md', className)}>
 				<CodeBlockHeader className="border-b pb-2">
 					<CodeBlockTitle className="font-mono text-xs tracking-widest text-muted-foreground uppercase">

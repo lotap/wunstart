@@ -15,6 +15,7 @@ import { Route as AuthGatewayRouteRouteImport } from './routes/_auth-gateway/rou
 import { Route as AuthProtectedRouteRouteImport } from './routes/_auth-protected/route'
 import { Route as DevRouteRouteImport } from './routes/_dev/route'
 import { Route as AuthAnonLandingPageRouteRouteImport } from './routes/_auth-anon/landing-page/route'
+import { Route as AuthAnonPricingRouteRouteImport } from './routes/_auth-anon/pricing/route'
 import { Route as AuthGatewaySignInRouteImport } from './routes/_auth-gateway/sign-in'
 import { Route as AuthGatewaySignUpRouteImport } from './routes/_auth-gateway/sign-up'
 import { Route as AuthProtectedSettingsRouteRouteImport } from './routes/_auth-protected/settings/route'
@@ -51,6 +52,11 @@ const AuthAnonLandingPageRouteRoute =
     path: '/landing-page',
     getParentRoute: () => AuthAnonRouteRoute,
   } as any)
+const AuthAnonPricingRouteRoute = AuthAnonPricingRouteRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => AuthAnonRouteRoute,
+} as any)
 const AuthGatewaySignInRoute = AuthGatewaySignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
@@ -101,6 +107,7 @@ const DevStatusPagesThrowRoute = DevStatusPagesThrowRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AuthDynamichomeIndexRoute
   '/landing-page': typeof AuthAnonLandingPageRouteRoute
+  '/pricing': typeof AuthAnonPricingRouteRoute
   '/settings': typeof AuthProtectedSettingsRouteRoute
   '/docs': typeof DevDocsRouteRoute
   '/status-pages': typeof DevStatusPagesRouteRouteWithChildren
@@ -113,6 +120,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof AuthDynamichomeIndexRoute
   '/landing-page': typeof AuthAnonLandingPageRouteRoute
+  '/pricing': typeof AuthAnonPricingRouteRoute
   '/settings': typeof AuthProtectedSettingsRouteRoute
   '/docs': typeof DevDocsRouteRoute
   '/sign-in': typeof AuthGatewaySignInRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/_auth-protected': typeof AuthProtectedRouteRouteWithChildren
   '/_dev': typeof DevRouteRouteWithChildren
   '/_auth-anon/landing-page': typeof AuthAnonLandingPageRouteRoute
+  '/_auth-anon/pricing': typeof AuthAnonPricingRouteRoute
   '/_auth-protected/settings': typeof AuthProtectedSettingsRouteRoute
   '/_dev/docs': typeof DevDocsRouteRoute
   '/_dev/status-pages': typeof DevStatusPagesRouteRouteWithChildren
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/landing-page'
+    | '/pricing'
     | '/settings'
     | '/docs'
     | '/status-pages'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/landing-page'
+    | '/pricing'
     | '/settings'
     | '/docs'
     | '/sign-in'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/_auth-protected'
     | '/_dev'
     | '/_auth-anon/landing-page'
+    | '/_auth-anon/pricing'
     | '/_auth-protected/settings'
     | '/_dev/docs'
     | '/_dev/status-pages'
@@ -232,6 +244,13 @@ declare module '@tanstack/react-router' {
       path: '/landing-page'
       fullPath: '/landing-page'
       preLoaderRoute: typeof AuthAnonLandingPageRouteRouteImport
+      parentRoute: typeof AuthAnonRouteRoute
+    }
+    '/_auth-anon/pricing': {
+      id: '/_auth-anon/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof AuthAnonPricingRouteRouteImport
       parentRoute: typeof AuthAnonRouteRoute
     }
     '/_auth-gateway/sign-in': {
@@ -302,10 +321,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthAnonRouteRouteChildren {
   AuthAnonLandingPageRouteRoute: typeof AuthAnonLandingPageRouteRoute
+  AuthAnonPricingRouteRoute: typeof AuthAnonPricingRouteRoute
 }
 
 const AuthAnonRouteRouteChildren: AuthAnonRouteRouteChildren = {
   AuthAnonLandingPageRouteRoute: AuthAnonLandingPageRouteRoute,
+  AuthAnonPricingRouteRoute: AuthAnonPricingRouteRoute,
 }
 
 const AuthAnonRouteRouteWithChildren = AuthAnonRouteRoute._addFileChildren(

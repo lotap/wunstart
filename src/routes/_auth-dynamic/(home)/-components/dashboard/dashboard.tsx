@@ -12,7 +12,7 @@ export function Dashboard() {
 
 	return (
 		<div className="mx-auto max-w-5xl p-2">
-			<h2 className="font-heading">dashboard</h2>
+			<h1 className="font-heading">Dashboard</h1>
 			{historyState.welcome && (
 				<AsyncBoundary fallback={null}>
 					<WelcomeDrawerContent />
