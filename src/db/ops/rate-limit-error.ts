@@ -29,3 +29,21 @@ export class RateLimitError extends Schema.TaggedError<
 export const rateLimitFailure = (
 	fields: Omit<OpsFailureFields, 'failureCause' | 'rateAllowance' | 'failedCredential'>,
 ) => createOpsFailure(RateLimitError)({...fields, failureCause: 'RATE_LIMIT', rateAllowance: 1})
+
+/**
+ * Constructs the attempt-ceiling rejection: a presentation beyond the rolling
+ * allowance for its target. It is a {@link RateLimitError} so the boundary
+ * answers the same way as any other denial, but at weight 0: the ceiling bounds
+ * throughput and is audited, while the failure-weighted ban pipeline remains the
+ * lockout and the penalty. It omits `failedCredential` for the same reason as
+ * {@link rateLimitFailure}: a denial must never feed weight back into the
+ * credential grouping set.
+ */
+export const attemptCeilingFailure = (
+	fields: Omit<OpsFailureFields, 'failureCause' | 'rateAllowance' | 'failedCredential'>,
+) =>
+	createOpsFailure(RateLimitError)({
+		...fields,
+		failureCause: 'ATTEMPT_CEILING',
+		rateAllowance: Infinity,
+	})

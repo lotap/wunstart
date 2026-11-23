@@ -34,7 +34,7 @@ How strongly an Activity counts toward a Ban; a wrong password and a rate-limit 
 A temporary block on one scope — IP, credential (the email the attempt claimed), User, or Anon — once weighted Activity crosses the threshold within a window.
 
 **Archive**:
-The app’s no-hard-delete guarantee: removed data leaves the live tables for an archive twin, so it disappears from the product while audit history survives.
+The app’s no-hard-delete guarantee: removed data leaves the live tables for an archive twin, so it disappears from the product while audit history survives. A derived counter records no fact the archive does not already hold, so it is swept instead.
 
 **Email verification**:
 Verify-before-create: a six-digit passcode authorizes User creation, so every User is verified by construction.

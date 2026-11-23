@@ -1,11 +1,14 @@
 import {Effect, Schema} from 'effect'
 
+import {ipNetwork} from '#/db/helpers/ip-network.ts'
 import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
+import {AUTH_ATTEMPT_ALLOWANCE} from '#/db/models/auth-attempts/consts.ts'
 import * as sessionsUsersQueries from '#/db/models/sessions---users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
+import {reserveAttempt, skipsCredentialAttempt} from '#/db/ops/auth/_attempt-counter.ts'
 import {UserAlreadyExistsError} from '#/db/ops/auth/users/_create-user.ts'
-import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
+import {attemptCeilingFailure, rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import type {EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 
 import {EMAIL_VERIFY_GENERIC_FAILURE_MESSAGE} from './_messages.ts'
@@ -84,7 +87,52 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 				meta: {credential: email},
 				anonId: registeredAnonId,
 			})
+	} else if (currentBansAndExcessiveActivities.length) {
+		/**
+		 * Provisioning a new account keeps the blanket check: any remaining
+		 * (FAILED_CREDENTIAL) bans block first-time entry. There is no known-IP
+		 * set to bypass with yet
+		 */
+		return yield* rateLimitFailure({
+			message: EMAIL_VERIFY_GENERIC_FAILURE_MESSAGE,
+			/** Denial payload omits failedCredential, so weight routes to IP scope; meta keeps the email for audit */
+			meta: {credential: email},
+			anonId: registeredAnonId,
+		})
+	}
 
+	/**
+	 * Bound credential presentations per target before hashing. The ban pre-checks
+	 * above are reads, so a concurrent burst can all pass them before any failure
+	 * is logged and a ban exists; this counter is the race-free throughput bound.
+	 * The network counter always counts; the credential counter follows the
+	 * known-network escape, so an attacker elsewhere cannot exhaust the owner’s
+	 * budget
+	 */
+	const networkAttempt = yield* reserveAttempt({
+		scope: 'NETWORK',
+		target: ipNetwork(ipAddress),
+		allowance: AUTH_ATTEMPT_ALLOWANCE.network,
+	})
+
+	/** Undefined when the escape applies: a known network does not spend the credential counter */
+	const credentialAttempt = skipsCredentialAttempt({user, ipAddress})
+		? undefined
+		: yield* reserveAttempt({
+				scope: 'CREDENTIAL',
+				target: email,
+				allowance: AUTH_ATTEMPT_ALLOWANCE.credential,
+			})
+
+	if (!networkAttempt.allowed || credentialAttempt?.allowed === false)
+		return yield* attemptCeilingFailure({
+			message: EMAIL_VERIFY_GENERIC_FAILURE_MESSAGE,
+			/** Ceiling denials carry weight 0; meta keeps the email for audit only */
+			meta: {credential: email},
+			anonId: registeredAnonId,
+		})
+
+	if (user) {
 		/**
 		 * Verify the passcode outside any transaction. The attempt is reserved before the
 		 * hash, so a wrong code is already counted when the failure is raised; a verified
@@ -101,18 +149,6 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 			isNewUser: false as const,
 			...(yield* signInWithVerifiedCode({verification, user, ctx})),
 		}
-	} else if (currentBansAndExcessiveActivities.length) {
-		/**
-		 * Provisioning a new account keeps the blanket check: any remaining
-		 * (FAILED_CREDENTIAL) bans block first-time entry. There is no known-IP
-		 * set to bypass with yet
-		 */
-		return yield* rateLimitFailure({
-			message: EMAIL_VERIFY_GENERIC_FAILURE_MESSAGE,
-			/** Denial payload omits failedCredential, so weight routes to IP scope; meta keeps the email for audit */
-			meta: {credential: email},
-			anonId: registeredAnonId,
-		})
 	}
 
 	/**

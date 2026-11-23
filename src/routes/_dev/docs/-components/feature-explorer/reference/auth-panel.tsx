@@ -130,6 +130,7 @@ const authFlows: FeatureFlow[] = [
 		models: [
 			'anons',
 			'anons_archive',
+			'auth_attempts',
 			'email_verifications',
 			'email_verifications_archive',
 			'users',
@@ -167,6 +168,7 @@ const authFlows: FeatureFlow[] = [
 			'sessions',
 			'anons',
 			'anons_archive',
+			'auth_attempts',
 			'email_verifications',
 			'email_verifications_archive',
 			'activities',

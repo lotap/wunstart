@@ -46,6 +46,8 @@ const guardrailsChart = `flowchart LR
   op -->|"credential ops"| check["checkCurrentBansAndExcessiveActivities"]
   check --> bans[("bans")]
   check --> activities[("activities")]
+  check -->|"passed"| ceiling["attempt ceiling · auth_attempts"]
+  ceiling -->|"spent"| denied
   op -->|"success / failure"| log["logActivityAndHandleBans"]
   log --> activities
   log -->|"extend / create"| bans
@@ -131,11 +133,13 @@ export function AbusePanel() {
 				description="Request limits, weighted activity, and temporary bans."
 			/>
 
-			<PanelSection id="abuse-layers" title="Two layers">
+			<PanelSection id="abuse-layers" title="Layers">
 				<Prose>
-					The first layer is an in-memory request limiter. The second is a database-backed ban
-					system fed by logged op outcomes. The limiter rejects bursts; bans reject a subject over a
-					longer window.
+					An in-memory request limiter rejects bursts, but it lives in one isolate. The
+					database-backed layers are the durable bound: an attempt ceiling caps credential
+					presentations before any hashing, and failure-weighted bans lock a subject out over a
+					longer window. They divide the job — the ceiling bounds throughput, the weight sets the
+					lockout and the penalty.
 				</Prose>
 				<figure>
 					<figcaption className="text-sm font-medium text-muted-foreground">
@@ -149,14 +153,31 @@ export function AbusePanel() {
 						/>
 					</div>
 				</figure>
+				<PanelList>
+					<PanelRow label="request limiter">
+						In-memory and per isolate. Rejects bursts, resets on deploy, and is not shared across
+						instances.
+					</PanelRow>
+					<PanelRow label="attempt ceiling">
+						Rows in <InlineCode>auth_attempts</InlineCode> count credential presentations per client
+						network and per claimed email, reserved before Argon2 or a passcode hash. The
+						reservation is one atomic upsert, so a concurrent burst cannot pass a stale read.
+						Allowances and the window live in{' '}
+						<InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
+					</PanelRow>
+					<PanelRow label="bans">
+						Weighted Activities create and extend a temporary block on one scope. This is the
+						lockout: a ceiling denial carries weight 0 and never reaches it.
+					</PanelRow>
+				</PanelList>
 				<Prose>
 					<InlineCode>src/start.ts</InlineCode> installs{' '}
 					<InlineCode>createRateLimit(150)</InlineCode> on every server function. Auth server
 					functions add the tighter <InlineCode>rateLimit</InlineCode>; sign-out uses its own scoped{' '}
 					<InlineCode>signOutRateLimit</InlineCode>, and fallback refresh attempts consume a
 					separate <InlineCode>refresh</InlineCode> bucket before the refresh op runs. Ops log their
-					outcome through <InlineCode>createOpsFn</InlineCode>, and credential ops pre-check bans
-					before doing any work.
+					outcome through <InlineCode>createOpsFn</InlineCode>, and credential ops pre-check bans,
+					then reserve attempts, before they hash anything.
 				</Prose>
 			</PanelSection>
 
@@ -249,6 +270,10 @@ export function AbusePanel() {
 					<PanelRow label="rate-limit denial">
 						Carries the full {threshold}. A denied attempt is enough to keep the subject banned on
 						its own.
+					</PanelRow>
+					<PanelRow label="attempt ceiling denial">
+						Zero. The ceiling bounds throughput and is audited, but its denial must never create or
+						extend a ban; the failure weights above decide the lockout.
 					</PanelRow>
 					<PanelRow label="defect">
 						Zero. A server-side defect is not user behavior and must not feed a ban.
@@ -343,7 +368,8 @@ export function AbusePanel() {
 					<PanelRow label="FAILED_CREDENTIAL">
 						The email an attempt claimed. Only applied when a User exists and the request comes from
 						a new network; a known network can still sign in, so a third party cannot lock the
-						account out.
+						account out. The credential attempt counter follows the same escape; the network counter
+						never does.
 					</PanelRow>
 					<PanelRow label="USER">The signed-in User.</PanelRow>
 					<PanelRow label="ANON">The anonymous identity.</PanelRow>

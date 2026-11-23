@@ -6,6 +6,12 @@ The HTTP boundary rejects a request it cannot resolve to a client IP, so the ban
 
 The IP scope keys on the client’s network, not the exact address: `IP_NETWORK_PREFIX` (`db/helpers/ip-network.ts`) sets the mask, and `bans.ip_network` / `activities.ip_network` store the result. A client rotating addresses inside its own allocation therefore cannot reset the ban, and the limiter uses the same key. `activities.ip_address` keeps the exact address for display and audit; `bans` carries no address, only the network, and the address behind a ban is recoverable through its `activityIds` / `activitiesArchiveIds`. `checkCurrentBansAndExcessiveActivities` converts the request address once, so ops keep passing `ipAddress`.
 
+## Attempt ceiling vs failure weight
+
+Two layers bound credential abuse, and neither substitutes for the other. `models/auth-attempts/` counts credential presentations per target in a rolling window (values in its `consts.ts`): one atomic upsert per presentation, reserved before any hashing. It is the throughput bound — the ban pre-check is a read, so a concurrent burst can all pass it before any failure is logged and a ban exists. Failure weight remains the lockout and the penalty: crossing `EXCESSIVE_ACTIVITIES_THRESHOLD` sets the ban and its duration.
+
+`attemptCeilingFailure` (`db/ops/rate-limit-error.ts`) is a `RateLimitError` at weight 0, so a ceiling denial is audited and answered like any other denial but never feeds the ban pipeline. Ops reserve the network counter always and the credential counter unless the known-IP escape applies, so a third party on another network cannot exhaust the owner’s budget. The target is the network CIDR or the validated lowercased email; the window resets lazily on the next reservation, and a crash after the reservation consumes the attempt (fail-closed). The daily system op `purgeAuthAttempts` deletes counters past `AUTH_ATTEMPT_RETENTION_WINDOW` (`models/auth-attempts/consts.ts`); the counter has no archive twin, since every presentation it counts is already an activity (see `references/tables-archive.md`).
+
 ## Weight routing
 
 Omit `failedCredential` from the `ActivityError` payload on IP_ADDRESS and FAILED_CREDENTIAL rate-limit denials. This routes weight exclusively to IP scope via the query's per-arm `isNotNull(targetColumn)` filter, so the credential ban expires at the end of `EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL` instead of being extended forever by an attacker cycling IPs.

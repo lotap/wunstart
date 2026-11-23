@@ -52,8 +52,8 @@ export function RuntimePanel() {
 				<Prose>
 					<InlineCode>src/server.ts</InlineCode> is the Wrangler entry point. It re-exports the
 					hasher Durable Object and exports the Start fetch handler plus a scheduled cron. The daily
-					job runs at 06:30 UTC and archives activities past the retention window (
-					<PanelLink panel="abuse">Rate limits & bans</PanelLink>).
+					job runs at 06:30 UTC: it archives activities past the retention window and drops attempt
+					counters whose window closed (<PanelLink panel="abuse">Rate limits & bans</PanelLink>).
 				</Prose>
 				<CodeBlock code={workerEntry} label="src/server.ts" language="typescript" />
 
