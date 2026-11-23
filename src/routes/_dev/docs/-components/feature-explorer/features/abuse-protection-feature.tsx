@@ -28,8 +28,8 @@ export function AbuseProtectionFeature() {
 			<PanelSection id="abuse-protected" title="What is protected">
 				<Prose>
 					Every server function is rate-limited per IP. Auth functions get a tighter limit, and
-					password sign-in and passcode verification check existing bans, then reserve attempt
-					counters, before they do any work.
+					password sign-in and passcode verification check existing bans, look up the account, then
+					reserve attempt counters, all before any hashing.
 				</Prose>
 				<PanelList>
 					<PanelRow label="All server functions">

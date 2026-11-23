@@ -115,9 +115,10 @@ export const insertOrMergeMany = createQueryFn({
 /// UPDATE ///
 
 /**
- * Extends every listed ban in ONE statement: appends the new activity's id and
- * adds its weight to the ban's total_weight accumulator, then pushes expiry
- * out by a penalty derived from each ban's own pre-update total.
+ * Touches every listed ban in ONE statement: appends the new activity's id, adds
+ * its weight to the ban's total_weight accumulator, and pushes the expiry out by
+ * a penalty derived from the ban's own pre-update total when that weight is
+ * positive.
  *
  * A zero delta records the activity and leaves the expiry alone. Weight-0 rows
  * reach here too — ceiling denials, dead sessions, defects — and
