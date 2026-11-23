@@ -220,7 +220,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 			try:
 				/**
 				 * Resolve which email to send. The row is always minted and the response
-				 * is always `{expiresAt}`, so neither timing nor delivery state leaks
+				 * shape is always the same, so neither timing nor delivery state leaks
 				 * whether the address is registered. Only the inbox owner sees the
 				 * flow-aware copy.
 				 *
