@@ -34,7 +34,7 @@ Rejected: `deleted_at` column (dangling FKs), hard delete (loses audit), event s
 - `snakeCase.table` snake_cases COLUMN KEYS ONLY; table name passes through verbatim. No column helper exists — don't invent one. Hand-write `export const tableName = 'email_verifications'` in snake_case. TS access stays camelCase; only SQL is snake_case. Hand-written fragments must spell `EXCLUDED.ip_addresses`.
 - Always `timestamp(TIMESTAMPTZ_CONFIG)`; never inline `{withTimezone: true}`. Archive id always `bigint('archive_id', ...)` via `ARCHIVE_ID_CONFIG` outside `table-fns.ts`; never inline `{mode: 'bigint'}` in schemas (the factory itself spells the full column def).
 - `inet().array()` / `uuid().array()` for ban `activityIds` (PG can't FK arrays — no FK by design, cascade owns integrity).
-- SQL defaults need nowrap `sql'...'` (no params).
+- SQL defaults need nowrap `sql'...'` (no params). A default built from a module constant splices it with ``sql.raw(`now() + '${PASSCODE_TTL}'::interval`)``, because a bound param is illegal there; keep the emitted text identical so `db:generate` reports no schema change.
 - CTE aliases `.as('snake_case')`.
 - Partial index `.where(sql'...')` needs a matching `isNotNull` guard on the same column.
 - Enums live in a `schemas.ts`: the owning model's file for its own closed set, or the shared `---` dir's `schemas.ts` when several models use them (e.g. `banScopes`). No `onDelete` / `onUpdate` / `foreignKey()` anywhere — plain FKs via `.references(() => …)`. Cascades re-point: `set({usersArchiveId: archiveId, userId: null})`.
