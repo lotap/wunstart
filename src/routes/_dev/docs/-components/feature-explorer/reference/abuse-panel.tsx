@@ -46,12 +46,13 @@ const guardrailsChart = `flowchart LR
   op -->|"credential ops"| check["checkCurrentBansAndExcessiveActivities"]
   check --> bans[("bans")]
   check --> activities[("activities")]
-  check -->|"passed"| ceiling["attempt ceiling · auth_attempts"]
+  check -->|"passed"| lookup["account lookup"]
+  lookup -->|"reserve · unauthenticated"| ceiling["attempt ceiling · auth_attempts"]
   ceiling -->|"spent"| denied
   op -->|"success / failure"| log["logActivityAndHandleBans"]
   log --> activities
   log -->|"extend / create"| bans
-  op -->|"RateLimitError"| weight["extra IP weight"] --> denied`
+  op -->|"ban refusal"| weight["extra IP weight"] --> denied`
 
 const references = [
 	{
@@ -159,16 +160,17 @@ export function AbusePanel() {
 						instances.
 					</PanelRow>
 					<PanelRow label="attempt ceiling">
-						Rows in <InlineCode>auth_attempts</InlineCode> count credential presentations per client
-						network and per claimed email, reserved before Argon2 or a passcode hash. The
-						reservation is one atomic upsert, so a concurrent burst cannot pass a stale read.
-						Allowances and the window live in{' '}
-						<InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
+						Rows in <InlineCode>auth_attempts</InlineCode> count unauthenticated credential
+						presentations per client network and per claimed email, reserved before Argon2 or a
+						passcode hash. The reservation is one atomic upsert, so a concurrent burst cannot pass a
+						stale read. A successful presentation spends the network counter just like a failed one,
+						because the bound is hashing work rather than failed guesses. Allowances and the window
+						live in <InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="bans">
 						Weighted Activities create and extend a temporary block on one scope. This is the
-						lockout: a ceiling denial carries weight 0, so it cannot create a ban, raise a total, or
-						extend one.
+						lockout: a ceiling denial carries weight 0, so it adds no weight and cannot raise a
+						total or move an expiry; it can still be the activity that lands an already-earned ban.
 					</PanelRow>
 				</PanelList>
 				<Prose>
@@ -274,11 +276,12 @@ export function AbusePanel() {
 						its own.
 					</PanelRow>
 					<PanelRow label="attempt ceiling denial">
-						Zero. The ceiling bounds throughput and is audited, but its denial must never create or
-						extend a ban; the failure weights above decide the lockout.
+						Zero. The ceiling bounds throughput and is audited; the denial adds no weight, so it
+						cannot raise a total or move an expiry. The failure weights above decide the lockout.
 					</PanelRow>
 					<PanelRow label="defect">
-						Zero. A server-side defect is not user behavior and must not feed a ban.
+						Zero. A server-side defect is not user behavior and adds no weight; it cannot raise a
+						total or move an expiry.
 					</PanelRow>
 				</PanelList>
 				<Prose>
