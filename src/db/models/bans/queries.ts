@@ -121,7 +121,7 @@ export const insertOrMergeMany = createQueryFn({
  * positive.
  *
  * A zero delta records the activity and leaves the expiry alone. Weight-0 rows
- * reach here too — ceiling denials, dead sessions, defects — and
+ * reach here too — allowance-exhausted denials, dead sessions, defects — and
  * `GREATEST(expires_at, now() + penalty)` would re-anchor the ban to a fresh
  * penalty on every one of them, so an unweighted request could keep a ban alive
  * indefinitely. Only weighted activity moves the expiry.

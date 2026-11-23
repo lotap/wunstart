@@ -14,12 +14,13 @@ import {DUMMY_ARGON2_HASH, hashTarget, verifyTarget} from '#/db/ops/auth/_hashin
 import {formatUserAgent} from '#/db/ops/auth/_user-agent.ts'
 import {retireAnon} from '#/db/ops/auth/anons/_retire-anon.ts'
 import {SUDO_EXPIRATION_WINDOW} from '#/db/ops/auth/consts.ts'
+import {AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE} from '#/db/ops/auth/messages.ts'
 import {createSession} from '#/db/ops/auth/sessions/_create-session.ts'
 import {generateAccessToken} from '#/db/ops/auth/tokens/_access-token.ts'
 import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/tokens/_anon-token.ts'
 import {generateNonce} from '#/db/ops/auth/tokens/_refresh-token.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
-import {attemptCeilingFailure, rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
+import {authAttemptAllowanceFailure, rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 import {EmailRenderError, EmailService} from '#/email/service.ts'
 import {renderSignInNotification} from '#/email/templates/sign-in-notification.tsx'
@@ -130,6 +131,20 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 		allowance: AUTH_ATTEMPT_ALLOWANCE.network,
 	})
 
+	const denyWhenAllowanceSpent = () =>
+		authAttemptAllowanceFailure({
+			message: AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE,
+			/** Allowance-exhausted denials carry weight 0; meta keeps the email for audit only */
+			meta: {credential: email},
+			anonId: registeredAnonId,
+		})
+
+	/**
+	 * A spent network returns before the credential reservation: the request never
+	 * hashes, and otherwise a blocked network could drain a claimed email’s allowance
+	 */
+	if (!networkAttempt.allowed) return yield* denyWhenAllowanceSpent()
+
 	/** Undefined when the escape applies: a known network does not spend the credential counter */
 	const credentialAttempt = skipsCredentialAttempt({user, ipAddress})
 		? undefined
@@ -139,13 +154,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 				allowance: AUTH_ATTEMPT_ALLOWANCE.credential,
 			})
 
-	if (!networkAttempt.allowed || credentialAttempt?.allowed === false)
-		return yield* attemptCeilingFailure({
-			message: PASSWORD_SIGN_IN_GENERIC_FAILURE_MESSAGE,
-			/** Ceiling denials carry weight 0; meta keeps the email for audit only */
-			meta: {credential: email},
-			anonId: registeredAnonId,
-		})
+	if (credentialAttempt?.allowed === false) return yield* denyWhenAllowanceSpent()
 
 	/** If no user is found, run dummy verification for timing uniformity, then fail */
 	if (!user) {

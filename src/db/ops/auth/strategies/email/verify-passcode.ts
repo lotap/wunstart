@@ -7,8 +7,9 @@ import * as sessionsUsersQueries from '#/db/models/sessions---users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
 import {reserveAttempt, skipsCredentialAttempt} from '#/db/ops/auth/_attempt-counter.ts'
+import {AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE} from '#/db/ops/auth/messages.ts'
 import {UserAlreadyExistsError} from '#/db/ops/auth/users/_create-user.ts'
-import {attemptCeilingFailure, rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
+import {authAttemptAllowanceFailure, rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import type {EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 
 import {EMAIL_VERIFY_GENERIC_FAILURE_MESSAGE} from './_messages.ts'
@@ -115,6 +116,20 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 		allowance: AUTH_ATTEMPT_ALLOWANCE.network,
 	})
 
+	const denyWhenAllowanceSpent = () =>
+		authAttemptAllowanceFailure({
+			message: AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE,
+			/** Allowance-exhausted denials carry weight 0; meta keeps the email for audit only */
+			meta: {credential: email},
+			anonId: registeredAnonId,
+		})
+
+	/**
+	 * A spent network returns before the credential reservation: the request never
+	 * hashes, and otherwise a blocked network could drain a claimed email’s allowance
+	 */
+	if (!networkAttempt.allowed) return yield* denyWhenAllowanceSpent()
+
 	/** Undefined when the escape applies: a known network does not spend the credential counter */
 	const credentialAttempt = skipsCredentialAttempt({user, ipAddress})
 		? undefined
@@ -124,13 +139,7 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 				allowance: AUTH_ATTEMPT_ALLOWANCE.credential,
 			})
 
-	if (!networkAttempt.allowed || credentialAttempt?.allowed === false)
-		return yield* attemptCeilingFailure({
-			message: EMAIL_VERIFY_GENERIC_FAILURE_MESSAGE,
-			/** Ceiling denials carry weight 0; meta keeps the email for audit only */
-			meta: {credential: email},
-			anonId: registeredAnonId,
-		})
+	if (credentialAttempt?.allowed === false) return yield* denyWhenAllowanceSpent()
 
 	if (user) {
 		/**
