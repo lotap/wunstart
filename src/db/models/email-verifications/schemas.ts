@@ -4,7 +4,7 @@ import {bigint, smallint, text, timestamp, uniqueIndex, uuid, varchar} from 'dri
 import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/column-config.ts'
 import {createActiveTable, createArchiveTable} from '#/db/helpers/table-fns.ts'
 import {activeTable as anons, archiveTable as anonsArchive} from '#/db/models/anons/schemas.ts'
-import {PASSCODE_TTL} from '#/db/models/email-verifications/consts.ts'
+import {PASSCODE_EXPIRATION} from '#/db/models/email-verifications/consts.ts'
 import {activeTable as users, archiveTable as usersArchive} from '#/db/models/users/schemas.ts'
 
 export const tableName = 'email_verifications'
@@ -25,11 +25,11 @@ export const activeTable = createActiveTable(
 		passcodeHash: text().notNull(),
 		/**
 		 * A default cannot bind a param, so the interval is spliced. Safe because
-		 * `PASSCODE_TTL` is a module constant, never request data
+		 * `PASSCODE_EXPIRATION` is a module constant, never request data
 		 */
 		expiresAt: timestamp(TIMESTAMPTZ_CONFIG)
 			.notNull()
-			.default(sql.raw(`now() + '${PASSCODE_TTL}'::interval`)),
+			.default(sql.raw(`now() + '${PASSCODE_EXPIRATION}'::interval`)),
 	},
 	(t) => [
 		uniqueIndex('email_verifications_email_lower_anon_unique').on(sql`lower(${t.email})`, t.anonId),

@@ -5,6 +5,7 @@ import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/column-config.
 import {createActiveTable, createArchiveTable} from '#/db/helpers/table-fns.ts'
 import {banScopes} from '#/db/models/activities---bans/schemas.ts'
 import {activeTable as anons, archiveTable as anonsArchive} from '#/db/models/anons/schemas.ts'
+import {PENALTY_INTERVAL_INITIAL} from '#/db/models/bans/consts.ts'
 import {activeTable as users, archiveTable as usersArchive} from '#/db/models/users/schemas.ts'
 
 export const tableName = 'bans'
@@ -37,7 +38,13 @@ export const activeTable = createActiveTable(
 	tableName,
 	{
 		...baseCols,
-		expiresAt: timestamp(TIMESTAMPTZ_CONFIG).default(sql`now() + '10 minutes'::interval`), // Cannot use INITIAL_PENALTY_INTERVAL directly - drizzle doesn't allow params in default values
+		/**
+		 * A default cannot bind a param, so the interval is spliced. Safe because
+		 * `PENALTY_INTERVAL_INITIAL` is a module constant, never request data
+		 */
+		expiresAt: timestamp(TIMESTAMPTZ_CONFIG).default(
+			sql.raw(`now() + '${PENALTY_INTERVAL_INITIAL}'::interval`),
+		),
 	},
 	(table) => [
 		index().on(table.expiresAt),

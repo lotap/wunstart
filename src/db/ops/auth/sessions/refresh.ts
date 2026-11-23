@@ -1,5 +1,6 @@
 import {DateTime, Effect, Option, Schema} from 'effect'
 
+import {SESSION_EXPIRATION_DAYS} from '#/db/models/sessions/consts.ts'
 import * as sessionsQueries from '#/db/models/sessions/queries.ts'
 import * as usersQueries from '#/db/models/users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
@@ -97,7 +98,7 @@ const attemptRotation = Effect.fn('attemptRotation')(function* ({
 		})
 
 	const now = yield* DateTime.now
-	const newExpiresAt = DateTime.add(now, {days: 30})
+	const newExpiresAt = DateTime.add(now, {days: SESSION_EXPIRATION_DAYS})
 	const graceExpiresAt = DateTime.add(now, {seconds: REFRESH_GRACE_SECONDS})
 
 	const {

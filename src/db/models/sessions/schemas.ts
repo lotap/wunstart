@@ -3,6 +3,7 @@ import {bigint, inet, smallint, text, timestamp, uuid} from 'drizzle-orm/pg-core
 
 import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/column-config.ts'
 import {createActiveTable, createArchiveTable} from '#/db/helpers/table-fns.ts'
+import {SESSION_EXPIRATION_DAYS} from '#/db/models/sessions/consts.ts'
 import {activeTable as users, archiveTable as usersArchive} from '#/db/models/users/schemas.ts'
 
 export const tableName = 'sessions'
@@ -24,9 +25,13 @@ export const activeTable = createActiveTable(tableName, {
 		.notNull()
 		.references(() => users.id),
 	nonceHash: text().notNull(),
+	/**
+	 * A default cannot bind a param, so the interval is spliced. Safe because
+	 * `SESSION_EXPIRATION_DAYS` is a module constant, never request data
+	 */
 	expiresAt: timestamp(TIMESTAMPTZ_CONFIG)
 		.notNull()
-		.default(sql`now() + '30 days'::interval`), // drizzle doesn't allow params in default values
+		.default(sql.raw(`now() + '${SESSION_EXPIRATION_DAYS} days'::interval`)),
 	graceExpiresAt: timestamp(TIMESTAMPTZ_CONFIG),
 	graceToken: text(),
 	revokedAt: timestamp(TIMESTAMPTZ_CONFIG),
