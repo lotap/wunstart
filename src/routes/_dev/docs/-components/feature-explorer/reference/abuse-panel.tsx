@@ -47,8 +47,8 @@ const guardrailsChart = `flowchart LR
   check --> bans[("bans")]
   check --> activities[("activities")]
   check -->|"passed"| lookup["account lookup"]
-  lookup -->|"reserve · unauthenticated"| ceiling["attempt ceiling · auth_attempts"]
-  ceiling -->|"spent"| denied
+  lookup -->|"reserve · unauthenticated"| allowance["auth attempt allowance · auth_attempts"]
+  allowance -->|"spent"| denied
   op -->|"success / failure"| log["logActivityAndHandleBans"]
   log --> activities
   log -->|"extend / create"| bans
@@ -137,10 +137,10 @@ export function AbusePanel() {
 			<PanelSection id="abuse-layers" title="Layers">
 				<Prose>
 					An in-memory request limiter rejects bursts, but it lives in one isolate. The
-					database-backed layers are the durable bound: an attempt ceiling caps credential
+					database-backed layers are the durable bound: an auth attempt allowance caps credential
 					presentations before any hashing, and failure-weighted bans lock a subject out over a
-					longer window. They divide the job — the ceiling bounds throughput, the weight sets the
-					lockout and the penalty.
+					longer window. They divide the job — the allowance bounds pre-hash work, the weight sets
+					the lockout and the penalty.
 				</Prose>
 				<figure>
 					<figcaption className="text-sm font-medium text-muted-foreground">
@@ -159,18 +159,21 @@ export function AbusePanel() {
 						In-memory and per isolate. Rejects bursts, resets on deploy, and is not shared across
 						instances.
 					</PanelRow>
-					<PanelRow label="attempt ceiling">
+					<PanelRow label="auth attempt allowance">
 						Rows in <InlineCode>auth_attempts</InlineCode> count unauthenticated credential
 						presentations per client network and per claimed email, reserved before Argon2 or a
 						passcode hash. The reservation is one atomic upsert, so a concurrent burst cannot pass a
 						stale read. A successful presentation spends the network counter just like a failed one,
-						because the bound is hashing work rather than failed guesses. Allowances and the window
-						live in <InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
+						because the bound is hashing work rather than failed guesses. A denial also charges the
+						isolate’s limiter the full threshold, so the network’s other server functions 429 until
+						the event ages out. Allowances and the window live in{' '}
+						<InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="bans">
 						Weighted Activities create and extend a temporary block on one scope. This is the
-						lockout: a ceiling denial carries weight 0, so it adds no weight and cannot raise a
-						total or move an expiry; it can still be the activity that lands an already-earned ban.
+						lockout: an allowance-exhausted denial carries weight 0, so it adds no weight and cannot
+						raise a total or move an expiry; it can still be the activity that lands an
+						already-earned ban.
 					</PanelRow>
 				</PanelList>
 				<Prose>
@@ -275,9 +278,10 @@ export function AbusePanel() {
 						Carries the full {threshold}. A denied attempt is enough to keep the subject banned on
 						its own.
 					</PanelRow>
-					<PanelRow label="attempt ceiling denial">
-						Zero. The ceiling bounds throughput and is audited; the denial adds no weight, so it
-						cannot raise a total or move an expiry. The failure weights above decide the lockout.
+					<PanelRow label="auth attempt allowance denial">
+						Zero. The auth attempt allowance bounds pre-hash work and is audited; the denial adds no
+						weight, so it cannot raise a total or move an expiry. The failure weights above decide
+						the lockout.
 					</PanelRow>
 					<PanelRow label="defect">
 						Zero. A server-side defect is not user behavior and adds no weight; it cannot raise a

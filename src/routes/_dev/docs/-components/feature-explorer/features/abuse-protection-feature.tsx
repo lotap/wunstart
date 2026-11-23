@@ -28,7 +28,7 @@ const captchaPrompt =
 	'Add a Cloudflare Turnstile challenge after three failed credential attempts. Verify the token server-side before the credential op and store only the verification outcome on the Activity.'
 
 const sharedLimiterPrompt =
-	'Replace the in-memory rate-limit store with a shared, atomic Redis-compatible service such as Redis, Valkey, or Upstash. Keep the 60-second weighted window (WINDOW_MS), the 12,600 threshold (EXCESSIVE_ACTIVITIES_THRESHOLD), the op denial penalty, and the network keying (ipNetwork in src/db/helpers/ip-network.ts); read the connection from environment config and fail open when the store is unavailable. The attempt ceiling and Postgres bans remain the durable bounds; this layer only rejects bursts across instances.'
+	'Replace the in-memory rate-limit store with a shared, atomic Redis-compatible service such as Redis, Valkey, or Upstash. Keep the 60-second weighted window (WINDOW_MS), the 12,600 threshold (EXCESSIVE_ACTIVITIES_THRESHOLD), the op denial penalty, and the network keying (ipNetwork in src/db/helpers/ip-network.ts); read the connection from environment config and fail open when the store is unavailable. The auth attempt allowance and Postgres bans remain the durable bounds; this layer only rejects bursts across instances.'
 
 /** Catalog entry for abuse protection. Details live in the Rate limits & bans reference panel. */
 export function AbuseProtectionFeature() {
@@ -53,13 +53,14 @@ export function AbuseProtectionFeature() {
 						<InlineCode>src/middleware/rate-limit.ts</InlineCode>), on top of the global limit.
 						Attach <InlineCode>rateLimit</InlineCode> to sign-up, sign-in, and passcode functions.
 					</PanelRow>
-					<PanelRow label="Attempt ceiling">
+					<PanelRow label="Auth attempt allowance">
 						Password sign-in and passcode verification are capped in{' '}
 						<InlineCode>auth_attempts</InlineCode> per client network and per claimed email.
-						Reverify and email change are authenticated and skip the ceiling. Everyone behind one
-						network shares the network allowance, so a busy office can reach the ceiling without an
-						attack; a denial does not lengthen a lockout. The allowances live in{' '}
-						<InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
+						Reverify and email change are authenticated and skip the allowance. Everyone behind one
+						network shares the network allowance, so a busy office can spend it without an attack
+						and stays capped until the window rolls; a denial does not lengthen a lockout, but it
+						429s the network’s other server functions on that isolate for the limiter’s window. The
+						allowances live in <InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="Credential ops">
 						Check the IP, the claimed email, the User, and the Anon for active bans and excessive
@@ -112,7 +113,8 @@ export function AbuseProtectionFeature() {
 					<PanelRow label="weight">
 						84 (<InlineCode>ACTIVITIES_BASELINE_WEIGHT</InlineCode>) for a success. Credential
 						failures use the op’s rate allowance, so a wrong password costs far more than a page
-						read. A ban refusal carries the full threshold; an attempt-ceiling denial carries zero.
+						read. A ban refusal carries the full threshold; an allowance-exhausted denial carries
+						zero.
 					</PanelRow>
 					<PanelRow label="known IP">
 						A failed-credential ban rejects a new network but lets the account owner sign in from a
