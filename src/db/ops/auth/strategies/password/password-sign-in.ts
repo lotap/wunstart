@@ -14,7 +14,6 @@ import {DUMMY_ARGON2_HASH, hashTarget, verifyTarget} from '#/db/ops/auth/_hashin
 import {formatUserAgent} from '#/db/ops/auth/_user-agent.ts'
 import {retireAnon} from '#/db/ops/auth/anons/_retire-anon.ts'
 import {SUDO_EXPIRATION_WINDOW} from '#/db/ops/auth/consts.ts'
-import {AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE} from '#/db/ops/auth/messages.ts'
 import {createSession} from '#/db/ops/auth/sessions/_create-session.ts'
 import {generateAccessToken} from '#/db/ops/auth/tokens/_access-token.ts'
 import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/tokens/_anon-token.ts'
@@ -133,7 +132,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 
 	const denyWhenAllowanceSpent = () =>
 		authAttemptAllowanceFailure({
-			message: AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE,
+			message: PASSWORD_SIGN_IN_GENERIC_FAILURE_MESSAGE,
 			/** Allowance-exhausted denials carry weight 0; meta keeps the email for audit only */
 			meta: {credential: email},
 			anonId: registeredAnonId,
