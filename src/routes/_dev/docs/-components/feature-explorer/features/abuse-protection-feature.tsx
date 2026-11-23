@@ -13,6 +13,8 @@ import {PanelLink} from '../../doc-links.tsx'
 import {InlineCode, PanelList, PanelRow, PanelSection, Prose} from '../../doc-ui.tsx'
 import {FeatureShell} from '../feature-blocks.tsx'
 
+const threshold = EXCESSIVE_ACTIVITIES_THRESHOLD.toLocaleString('en-US')
+
 const stricterLimit = `const signInRateLimit = createRateLimit(3)
 
 export const handlePasswordSignIn = createServerFn({method: 'POST'})
@@ -95,9 +97,8 @@ export function AbuseProtectionFeature() {
 				</Prose>
 				<PanelList>
 					<PanelRow label="threshold">
-						{EXCESSIVE_ACTIVITIES_THRESHOLD} weighted Activities within{' '}
-						{EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL} per scope (
-						<InlineCode>EXCESSIVE_ACTIVITIES_THRESHOLD</InlineCode> and{' '}
+						{threshold} weighted Activities within {EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL} per scope
+						(<InlineCode>EXCESSIVE_ACTIVITIES_THRESHOLD</InlineCode> and{' '}
 						<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode> in{' '}
 						<InlineCode>src/db/models/activities/consts.ts</InlineCode>).
 					</PanelRow>
