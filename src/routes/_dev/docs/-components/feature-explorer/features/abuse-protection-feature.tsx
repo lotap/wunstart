@@ -28,8 +28,8 @@ export function AbuseProtectionFeature() {
 			<PanelSection id="abuse-protected" title="What is protected">
 				<Prose>
 					Every server function is rate-limited per IP. Auth functions get a tighter limit, and
-					credential ops check existing bans, then reserve attempt counters, before they do any
-					work.
+					password sign-in and passcode verification check existing bans, then reserve attempt
+					counters, before they do any work.
 				</Prose>
 				<PanelList>
 					<PanelRow label="All server functions">
@@ -42,10 +42,11 @@ export function AbuseProtectionFeature() {
 						Attach <InlineCode>rateLimit</InlineCode> to sign-up, sign-in, and passcode functions.
 					</PanelRow>
 					<PanelRow label="Attempt ceiling">
-						Sign-in and passcode verification count presentations per client network and per claimed
-						email in <InlineCode>auth_attempts</InlineCode>, before any hashing. The allowances live
-						in <InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>. A denial is audited
-						at weight 0, so it caps throughput without adding to a ban.
+						Password sign-in and passcode verification count presentations per client network and
+						per claimed email in <InlineCode>auth_attempts</InlineCode>, before any hashing.
+						Reverify and email change are authenticated and skip the ceiling. The allowances live in{' '}
+						<InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>. A denial is audited at
+						weight 0, so it caps throughput without adding to a ban.
 					</PanelRow>
 					<PanelRow label="Credential ops">
 						Check the IP, the claimed email, the User, and the Anon for active bans and excessive

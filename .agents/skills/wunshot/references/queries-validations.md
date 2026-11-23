@@ -16,7 +16,7 @@ Queries live in `queries.ts`, built with helpers from `db/helpers/query-fns.ts`.
 
 - `getColumns(table)` destructure to whitelist `returning` / omit secrets.
 - Case-insensitive email: `lower(email) = lower(placeholder)` matching `uniqueIndex(lower(email))`.
-- `host(ip)`, `unnest` / `array_agg(DISTINCT host(...))` for IP aggregation.
+- `host(ip)`, `unnest` / `array_agg(DISTINCT host(...))` for displaying IPs. Never for a key: `host()` drops the cidr mask, and ban/activity keys carry it (see `activities---bans/queries.ts`). Aggregate `ip_network` itself when the mask must survive.
 - `appendUniqueBoundedSql(col, incoming, 32)` (`query-fns.ts`) for metadata arrays read back with `.at(-1)` (session device/location): plain `DISTINCT unnest` destroys recency, and re-visiting a value must move it to the end. JS twin `appendUniqueBounded` (`array-fns.ts`) — keep ordering and cap semantics aligned.
 - Match a foreign-key violation by SQLSTATE (`extractPgCode` in `db/ops/_extract-pg-error.ts` returns `23503`); unique violations use the `UniqueViolation` reason tag. Never classify by the generic `ConstraintError` tag alone — NOT NULL (`23502`) and CHECK (`23514`) must stay internal errors. `extractPgErrorMessage` returns the driver’s generic “Query failed”, not the server’s constraint text.
 - `int8` returns string → `BigInt(total ?? 0)`.

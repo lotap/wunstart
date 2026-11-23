@@ -10,7 +10,7 @@ The IP scope keys on the client’s network, not the exact address: `IP_NETWORK_
 
 Two layers bound credential abuse, and neither substitutes for the other. `models/auth-attempts/` counts credential presentations per target in a rolling window (values in its `consts.ts`): one atomic upsert per presentation, reserved before any hashing. It is the throughput bound — the ban pre-check is a read, so a concurrent burst can all pass it before any failure is logged and a ban exists. Failure weight remains the lockout and the penalty: crossing `EXCESSIVE_ACTIVITIES_THRESHOLD` sets the ban and its duration.
 
-`attemptCeilingFailure` (`db/ops/rate-limit-error.ts`) is a `RateLimitError` at weight 0, so a ceiling denial is audited and answered like any other denial but never feeds the ban pipeline. Ops reserve the network counter always and the credential counter unless the known-IP escape applies, so a third party on another network cannot exhaust the owner’s budget. The target is the network CIDR or the validated lowercased email; the window resets lazily on the next reservation, and a crash after the reservation consumes the attempt (fail-closed). The daily system op `purgeAuthAttempts` deletes counters past `AUTH_ATTEMPT_RETENTION_WINDOW` (`models/auth-attempts/consts.ts`); the counter has no archive twin, since every presentation it counts is already an activity (see `references/tables-archive.md`).
+`attemptCeilingFailure` (`db/ops/rate-limit-error.ts`) is a `RateLimitError` at weight 0, so a ceiling denial cannot create a ban or raise a total. It is reached only when the pre-check above saw no non-credential ban, so there is normally none to extend; `extendMany` re-anchors an existing ban's expiry even at zero delta, so it is the ordering, not the weight, that keeps a denial out of the penalty. Ops reserve the network counter always and the credential counter unless the known-IP escape applies, so a third party on another network cannot exhaust the owner’s budget. The target is the network CIDR or the validated lowercased email; the window resets lazily on the next reservation, and a crash after the reservation consumes the attempt (fail-closed). The daily system op `purgeAuthAttempts` deletes counters past `AUTH_ATTEMPT_RETENTION_WINDOW` (`models/auth-attempts/consts.ts`); the counter has no archive twin, since every presentation it counts is already an activity (see `references/tables-archive.md`). In development the boundary resolves every request to loopback, so one worktree shares a single network counter: a QA loop that exhausts the window keeps getting the generic failure until the window rolls, and `delete from auth_attempts` is the reset.
 
 ## Weight routing
 
@@ -32,10 +32,13 @@ if (current.filter((element) => element.scope !== 'FAILED_CREDENTIAL').length)
 
 Filter the scope your op guards (`!==` to enforce non-credential bans, `===` with a known-IP escape to enforce credential bans without locking out legit users on familiar networks). New code copies this shape; never place `failedCredential` in the denial.
 
-The known-IP escape compares networks, not addresses: `selectUserWithKnownIpByEmail` masks both the request and each Session address with the family’s prefix (`IP_NETWORK_PREFIX`) before comparing, so an owner whose IPv6 interface identifier rotated still counts as known.
+The known-IP escape compares networks, not addresses: `selectUserWithKnownIpByEmail` masks both the request and each Session address with the family’s prefix (`IP_NETWORK_PREFIX`) before comparing, so an owner whose IPv6 interface identifier rotated still counts as known. The escape reads `user.hasKnownIp`; never compare addresses yourself.
 
 ```ts
-if (current.filter((element) => element.scope === 'FAILED_CREDENTIAL').length && !ipAddresses.includes(ipAddress))
+if (
+	current.filter((element) => element.scope === 'FAILED_CREDENTIAL').length &&
+	(!user || !isClientIpAddress(ipAddress) || !user.hasKnownIp)
+)
 	return yield* rateLimitFailure({message: genericFailureOutputMessage, meta: {credential: email}, anonId})
 ```
 

@@ -167,7 +167,7 @@ export function AbusePanel() {
 					</PanelRow>
 					<PanelRow label="bans">
 						Weighted Activities create and extend a temporary block on one scope. This is the
-						lockout: a ceiling denial carries weight 0 and never reaches it.
+						lockout: a ceiling denial carries weight 0, so it cannot create a ban or raise a total.
 					</PanelRow>
 				</PanelList>
 				<Prose>

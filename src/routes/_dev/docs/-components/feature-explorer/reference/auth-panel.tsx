@@ -36,10 +36,11 @@ const verifyPasscodeChart = (formPath: string) => `flowchart LR
   form(["${formPath}"]) -->|"email + passcode"| fn["handleEmailVerifyPasscode"]
   fn -->|"rate limit + requireAnonRegistered"| mw["rateLimit · requireAnonRegistered"] -->|"runOp"| op["emailVerifyPasscode"]
   op -->|"pre-check"| logs[("activities · bans")]
+  op -->|"reserve attempt"| attempts[("auth_attempts")]
   op -->|"lookup / create"| account[("users · sessions")]
   op -->|"verify code"| verifications[("email_verifications")]
   op -->|"verify hash"| hash{{"AuthHasher DO"}}
-  op -->|"wrong / expired"| retry["count attempt · archive at max attempts"]
+  op -->|"wrong / expired"| retry["count row attempt · archive at max attempts"]
   op -->|"burn code"| archive[("email_verifications_archive")]
   op -->|"create session"| sessions[("sessions")]
   op -->|"retire anon"| anons[("anons · anons_archive")]
@@ -53,6 +54,7 @@ const passwordSignInChart = `flowchart LR
   form(["/sign-in"]) -->|"email + password"| fn["handlePasswordSignIn"]
   fn -->|"rate limit + requireAnon"| mw["rateLimit · requireAnon"] -->|"runOp"| op["passwordSignIn"]
   op -->|"pre-check"| logs[("activities · bans")]
+  op -->|"reserve attempt"| attempts[("auth_attempts")]
   op -->|"lookup / rehash"| account[("users · sessions")]
   op -->|"verify password"| hash{{"AuthHasher DO"}}
   op -->|"nonce hash"| hash

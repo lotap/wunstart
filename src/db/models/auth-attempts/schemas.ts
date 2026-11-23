@@ -31,7 +31,10 @@ export const activeTable = snakeCase.table(
 	tableName,
 	{
 		scope: attemptScopes().notNull(),
-		/** The network CIDR or the lowercased email, per {@link attemptScopes} */
+		/**
+		 * The network CIDR, or the email the presentation claimed — lowercased by the
+		 * email validator on decode, since the column has no such constraint
+		 */
 		target: varchar({length: 255}).notNull(),
 		windowStart: timestamp(TIMESTAMPTZ_CONFIG).notNull().defaultNow(),
 		count: integer().notNull().default(0),
