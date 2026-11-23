@@ -39,8 +39,8 @@ const verifyPasscodeChart = (formPath: string) => `flowchart LR
   op -->|"lookup / create"| account[("users · sessions")]
   op -->|"reserve attempt"| attempts[("auth_attempts")]
   op -->|"verify code"| verifications[("email_verifications")]
+  op -->|"count attempt"| retry["count row attempt · archive at max attempts"]
   op -->|"verify hash"| hash{{"AuthHasher DO"}}
-  op -->|"wrong / expired"| retry["count row attempt · archive at max attempts"]
   op -->|"burn code"| archive[("email_verifications_archive")]
   op -->|"create session"| sessions[("sessions")]
   op -->|"retire anon"| anons[("anons · anons_archive")]
