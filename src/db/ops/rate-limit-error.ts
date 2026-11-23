@@ -35,9 +35,11 @@ export const rateLimitFailure = (
  * allowance for its target. It is a {@link RateLimitError} so the boundary
  * answers the same way as any other denial, but at weight 0: the ceiling bounds
  * throughput and is audited, while the failure-weighted ban pipeline remains the
- * lockout and the penalty. It omits `failedCredential` for the same reason as
- * {@link rateLimitFailure}: a denial must never feed weight back into the
- * credential grouping set.
+ * lockout and the penalty. Because the class tag carries the forwarding, the
+ * denial still spends the caller's in-memory limiter budget — that is what makes
+ * the response a 429 rather than a generic failure. It omits `failedCredential`
+ * for the same reason as {@link rateLimitFailure}: a denial must never feed
+ * weight back into the credential grouping set.
  */
 export const attemptCeilingFailure = (
 	fields: Omit<OpsFailureFields, 'failureCause' | 'rateAllowance' | 'failedCredential'>,

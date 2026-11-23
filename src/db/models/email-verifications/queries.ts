@@ -18,7 +18,10 @@ const {id, anonId, userId, attempts, email, expiresAt} = nonsensitiveCols
  * How far from expiry a row must be before the requester may ask again: the full
  * lifespan less one minute. One definition serves the reset guard and the
  * timestamp both writes return for the resend countdown, so what the server
- * allows and what the button counts down to cannot disagree
+ * allows and what the button counts down to cannot disagree.
+ *
+ * The parentheses are load-bearing: a fragment interpolated after `-` expands
+ * without them, and `expires_at - a - b` subtracts twice
  */
 const resendFloor = sql`(${PASSCODE_EXPIRATION}::interval - interval '1 minute')`
 
