@@ -3,6 +3,8 @@
  * link. Name the code path behind a behavioral claim.
  * Rules: .agents/skills/wunstart/references/docs.md § Policy prose.
  */
+import {PASSCODE_EXPIRATION} from '#/db/models/email-verifications/consts.ts'
+import {SESSION_EXPIRATION_DAYS} from '#/db/models/sessions/consts.ts'
 import {ANON_COOKIE_WEEKS} from '#/db/ops/auth/anons/consts.ts'
 import {REFRESH_GRACE_SECONDS} from '#/db/ops/auth/sessions/consts.ts'
 import {PASSCODE_MAX_ATTEMPTS} from '#/db/ops/auth/strategies/email/consts.ts'
@@ -268,8 +270,8 @@ export function AuthPanel() {
 						passcode sent to that email is verified.
 					</PanelRow>
 					<PanelRow label="Session">
-						One sign-in. The row stores the refresh generation, device metadata, and a 30-day expiry
-						(the <InlineCode>expiresAt</InlineCode> default in{' '}
+						One sign-in. The row stores the refresh generation, device metadata, and a{' '}
+						{SESSION_EXPIRATION_DAYS}-day expiry (the <InlineCode>expiresAt</InlineCode> default in{' '}
 						<InlineCode>src/db/models/sessions/schemas.ts</InlineCode>). Revoking the session ends
 						that sign-in.
 					</PanelRow>
@@ -302,7 +304,7 @@ export function AuthPanel() {
 				</Prose>
 				<PanelList>
 					<PanelRow label="lifetime">
-						Fifteen minutes (the <InlineCode>expiresAt</InlineCode> default in{' '}
+						{PASSCODE_EXPIRATION} (the <InlineCode>expiresAt</InlineCode> default in{' '}
 						<InlineCode>src/db/models/email-verifications/schemas.ts</InlineCode>). A new request
 						replaces the active row for that email and identity; see{' '}
 						<PanelLink panel="email">Email</PanelLink> for the resend gate.
