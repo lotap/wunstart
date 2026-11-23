@@ -27,4 +27,5 @@ export const Reserve = insertPrimitive.mapFields(Struct.pick(['scope', 'target']
 
 export const ByCutoff = Schema.Struct({
 	cutoff: PGVerboseInterval,
+	limit: PositiveInt,
 })

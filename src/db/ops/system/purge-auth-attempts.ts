@@ -5,12 +5,28 @@ import * as authAttemptsQueries from '#/db/models/auth-attempts/queries.ts'
 import {createSystemOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {retryTransientDb} from '#/db/ops/_retry.ts'
 
-const _purgeAuthAttempts = Effect.fn('purgeAuthAttempts')(function* () {
-	const deletedRows = yield* authAttemptsQueries
-		.deleteByCutoff({cutoff: AUTH_ATTEMPT_RETENTION_WINDOW})
-		.pipe(retryTransientDb)
+/**
+ * Rows deleted per statement. Bounds the transaction and the `RETURNING` buffer,
+ * so a nightly run cannot grow with the backlog; the same convention as the
+ * activity archive.
+ */
+const PURGE_BATCH_SIZE = 500
 
-	return {deletedCount: deletedRows.length}
+const _purgeAuthAttempts = Effect.fn('purgeAuthAttempts')(function* () {
+	let deletedCount = 0
+	let remaining = true
+
+	while (remaining) {
+		const deletedRows = yield* authAttemptsQueries
+			.deleteByCutoff({cutoff: AUTH_ATTEMPT_RETENTION_WINDOW, limit: PURGE_BATCH_SIZE})
+			.pipe(retryTransientDb)
+
+		deletedCount += deletedRows.length
+		/** A short batch means nothing past the cutoff remains */
+		remaining = deletedRows.length === PURGE_BATCH_SIZE
+	}
+
+	return {deletedCount}
 })
 
 /**

@@ -9,7 +9,7 @@ import * as V from './validations.ts'
 
 const labelPrefix = tableName
 
-const {count, windowStart} = getColumns(activeTable)
+const {count, scope, target, windowStart} = getColumns(activeTable)
 
 /// INSERT ///
 
@@ -54,12 +54,26 @@ export const reserve = createPreparedQuery({
 
 /// DELETE ///
 
+/**
+ * Deletes at most `limit` counters whose window closed before the cutoff.
+ *
+ * Bounded like the activity archive: the sweep targets exactly the table a
+ * credential-stuffing run inflates, one row per (scope, target), so an unbounded
+ * DELETE would grow one transaction and its `RETURNING` buffer with the backlog.
+ * The caller loops until a short batch.
+ */
 export const deleteByCutoff = createPreparedQuery({
 	vSchema: V.ByCutoff,
 	stmtFn: (qx) =>
 		qx
 			.delete(activeTable)
-			.where(sql`${windowStart} < now() - ${sql.placeholder('cutoff')}::interval`)
-			.returning({scope: activeTable.scope})
+			.where(
+				sql`(${scope}, ${target}) IN (
+					SELECT ${scope}, ${target} FROM ${activeTable}
+					WHERE ${windowStart} < now() - ${sql.placeholder('cutoff')}::interval
+					LIMIT ${sql.placeholder('limit')}
+				)`,
+			)
+			.returning({scope})
 			.prepare(`${labelPrefix}_delete_by_cutoff`),
 })
