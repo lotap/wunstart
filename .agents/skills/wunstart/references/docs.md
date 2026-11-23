@@ -20,7 +20,7 @@ Not every question applies to every section. Skip the ones the reader does not n
 
 ## Feature tab
 
-A feature tab is a task, not a shortened reference. It must let the reader complete the basic task without opening the reference. Repeat the reference detail the task needs; the reference owns depth, edge cases, rejected options, and internals.
+A feature tab is a task, not a shortened reference. It must let the reader complete the basic task without opening the reference. Repeat the consequence the task needs, and only the mechanism the task cannot act without; the reference owns the detailed mechanism, depth, edge cases, rejected options, and internals.
 
 When a feature has real depth, write the reference panel alongside the tab. The tab carries the first task and links to the reference; the reference owns the internal flow tours, routes, ops, models, and failure matrix. Do not turn the tab into an implementation tour.
 
@@ -54,9 +54,9 @@ When a feature has real depth, write the reference panel alongside the tab. The 
 Policy prose is code-adjacent, not ordinary copy. It earns a read-back against the adjacent table or code path even though it does not earn `bun run check`.
 
 - A rendered table or policy map owns its rows, states, exceptions, and weights. Prose states the invariant and links; it never enumerates the table. If a sentence only restates a row or value and adds no reader-facing decision, replace it with a link; keep the explanation when it changes a decision or explains why — verbosity is fine, duplication is not.
-- A behavioral claim that cannot point to the function, parameter, or branch that makes it true is a guess; delete it.
-- If two panels state the same behavior, one owns it and the other links. A second panel never paraphrases.
-- After a policy change, delete the claims that only restated the old state; update the owner. If a claim stays, check its qualifiers (`all`, `only`, `never`, `same`, `separate`, `shared`, `always`, `cannot`) against the code. A symbol grep will not catch a wrong adjective.
+- A behavioral claim that cannot point to the function, parameter, or branch that makes it true is a guess; delete it. Read it against that code before it ships: naming the owner is not enough, and new prose is a claim too. The owner of a counter or limiter states what it charges, its window type, and when capacity returns.
+- If two panels state the same behavior, one owns it and the other links. Split by kind: a feature tab owns the consequence the reader acts on and only the mechanism the task needs; the reference owns the detailed mechanism; neither paraphrases the other’s half.
+- After a policy change, delete the claims that only restated the old state; update the owner. If a claim stays, check its qualifiers (`all`, `only`, `never`, `same`, `separate`, `shared`, `always`, `cannot`) against the code. A symbol grep will not catch a wrong adjective. When a review finds one wrong claim in a paragraph, re-derive the whole paragraph rather than patching the cited clause.
 
 ## Extend prompts
 
