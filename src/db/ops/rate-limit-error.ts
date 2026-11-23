@@ -31,7 +31,7 @@ export const rateLimitFailure = (
 ) => createOpsFailure(RateLimitError)({...fields, failureCause: 'RATE_LIMIT', rateAllowance: 1})
 
 /**
- * Constructs the attempt-ceiling rejection: a presentation beyond the rolling
+ * Constructs the attempt-ceiling rejection: a presentation beyond the fixed-window
  * allowance for its target. It is a {@link RateLimitError} so the boundary
  * answers the same way as any other denial, but at weight 0: the ceiling bounds
  * throughput and is audited, while the failure-weighted ban pipeline remains the

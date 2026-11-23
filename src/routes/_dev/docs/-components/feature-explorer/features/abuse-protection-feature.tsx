@@ -52,11 +52,12 @@ export function AbuseProtectionFeature() {
 						Attach <InlineCode>rateLimit</InlineCode> to sign-up, sign-in, and passcode functions.
 					</PanelRow>
 					<PanelRow label="Attempt ceiling">
-						Password sign-in and passcode verification count presentations per client network and
-						per claimed email in <InlineCode>auth_attempts</InlineCode>, before any hashing.
-						Reverify and email change are authenticated and skip the ceiling. The allowances live in{' '}
-						<InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>. A denial is audited at
-						weight 0, so it caps throughput without adding to a ban.
+						Password sign-in and passcode verification are capped in{' '}
+						<InlineCode>auth_attempts</InlineCode> per client network and per claimed email.
+						Reverify and email change are authenticated and skip the ceiling. Everyone behind one
+						network shares the network allowance, so a busy office can reach the ceiling without an
+						attack; a denial does not lengthen a lockout. The allowances live in{' '}
+						<InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="Credential ops">
 						Check the IP, the claimed email, the User, and the Anon for active bans and excessive
