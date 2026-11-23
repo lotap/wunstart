@@ -2,9 +2,11 @@
  * Network prefix length per IP family.
  *
  * The single definition for every key that must agree: the in-memory rate
- * limiter, an activity's `ip_network`, and a ban's `ip_network`. Keying by
- * network rather than address means a client rotating addresses inside its own
- * allocation cannot reset its bucket.
+ * limiter, an activity's `ip_network`, and a ban's `ip_network`. IPv6 keys the
+ * `/64`, so a client rotating addresses inside its own allocation cannot reset
+ * its bucket. IPv4 keys the exact address: a `/24` would catch unrelated
+ * neighbours behind the same provider or office egress, trading a real false
+ * positive for a rotation an attacker with a block can do regardless.
  */
 export const IP_NETWORK_PREFIX = {v4: 32, v6: 64} as const
 
@@ -159,4 +161,25 @@ export function ipNetwork(ipAddress: string): string {
 	const masked = hextets.map((value, index) => (index < hostHextets ? value : 0))
 
 	return `${formatIpv6(masked)}/${IP_NETWORK_PREFIX.v6}`
+}
+
+/**
+ * The address in the form every comparison and key derives from: IPv4-mapped,
+ * IPv4-compatible, and IPv4-translated spellings unfold to the plain IPv4
+ * address, and everything else comes back lowercased. The HTTP boundary applies
+ * this once, so a stored address keeps the same family as the network keyed from
+ * it. Throws on unparseable input, like [ipNetwork]{@link ipNetwork}.
+ */
+export function canonicalIp(ipAddress: string): string {
+	const lower = ipAddress.toLowerCase()
+	const octets = parseIpv4(lower)
+
+	if (octets) return lower
+
+	const expanded = lower.includes('.') ? expandIpv4Tail(lower) : lower
+	const hextets = expanded ? toHextets(expanded) : null
+
+	if (!hextets) throw new Error(`canonicalIp: cannot parse IP address "${ipAddress}"`)
+
+	return isEmbeddedIpv4(hextets) && !isUnspecifiedOrLoopback(hextets) ? formatIpv4(hextets) : lower
 }

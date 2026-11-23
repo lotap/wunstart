@@ -2,6 +2,7 @@ import {createMiddleware} from '@tanstack/react-start'
 import {getRequestHeader, getRequestIP} from '@tanstack/react-start/server'
 import {Result, Schema} from 'effect'
 
+import {canonicalIp} from '#/db/helpers/ip-network.ts'
 import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
 import {IpAddress} from '#/db/helpers/validators.ts'
 import {isValidTimeZone} from '#/lib/timezone.ts'
@@ -68,11 +69,14 @@ const resolveValidIp = (raw: string | undefined) => {
 
 export const getRequestInfo = createMiddleware().server(({next}) => {
 	/**
-	 * Preserve the full address for user-facing security displays; every key
-	 * that must agree (the limiter, activities and bans, the known-IP bypass)
-	 * derives its network through `ipNetwork`. Never invent an address: a
-	 * production request that cannot resolve a client IP fails closed, while
-	 * development falls back to loopback so the app stays usable.
+	 * Canonicalised first: an IPv4 client on a dual-stack listener or a proxy
+	 * passthrough arrives as `::ffff:a.b.c.d`, and storing that spelling would
+	 * key differently from the network derived from it. The result is still the
+	 * full address for user-facing displays; every key that must agree (the
+	 * limiter, activities and bans, the known-IP bypass) derives its network
+	 * through `ipNetwork`. Never invent an address: a production request that
+	 * cannot resolve a client IP fails closed, while development falls back to
+	 * loopback so the app stays usable.
 	 */
 	const resolvedIp =
 		resolveValidIp(getRequestHeader(TRUSTED_IP_HEADER)) ??
@@ -83,7 +87,7 @@ export const getRequestInfo = createMiddleware().server(({next}) => {
 		throwKnownServerError(503, SERVICE_UNAVAILABLE_MESSAGE)
 	}
 
-	const ipAddress = resolvedIp
+	const ipAddress = canonicalIp(resolvedIp)
 
 	const userAgent = (getRequestHeader('user-agent') ?? 'unknown').trim().slice(0, 512)
 
