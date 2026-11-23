@@ -4,6 +4,7 @@ import type {SchemaError} from 'effect/Schema'
 
 import * as anonsQueries from '#/db/models/anons/queries.ts'
 import * as emailVerificationsCascades from '#/db/models/email-verifications/cascades.ts'
+import {PASSCODE_EXPIRATION} from '#/db/models/email-verifications/consts.ts'
 import * as emailVerificationsQueries from '#/db/models/email-verifications/queries.ts'
 import * as usersQueries from '#/db/models/users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
@@ -230,12 +231,18 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 				intent === 'sign-in' && !recipientExists
 					? () => renderNoAccountFound(appUrl)
 					: () =>
-							renderVerificationEmail(
+							renderVerificationEmail({
 								code,
 								appUrl,
-								intent === 'sign-up' ? (recipientExists ? 'signup-existing' : 'signup') : 'signin',
+								variant:
+									intent === 'sign-up'
+										? recipientExists
+											? 'signup-existing'
+											: 'signup'
+										: 'signin',
 								anonBound,
-							),
+								expiresIn: PASSCODE_EXPIRATION,
+							}),
 			catch: (cause) =>
 				opsFailure({
 					failureCause: 'EMAIL_RENDER',

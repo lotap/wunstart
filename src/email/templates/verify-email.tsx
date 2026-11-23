@@ -17,6 +17,8 @@ type VerifyEmailProps = {
 	variant?: VerifyEmailVariant
 	/** Anon-keyed rows verify only in the browser that requested the code */
 	anonBound?: boolean
+	/** Rendered into the expiry line; the op passes `PASSCODE_EXPIRATION` */
+	expiresIn: string
 }
 
 const variantCopy = {
@@ -42,6 +44,7 @@ export default function VerifyEmail({
 	appUrl,
 	variant = 'signup',
 	anonBound = false,
+	expiresIn,
 }: VerifyEmailProps) {
 	const copy = variantCopy[variant]
 
@@ -57,7 +60,7 @@ export default function VerifyEmail({
 				</EmailSmallText>
 			)}
 			<EmailSmallText>
-				This code expires in 15 minutes. If you didn’t request it, you can ignore this email. Never
+				This code expires in {expiresIn}. If you didn’t request it, you can ignore this email. Never
 				share this code with anyone.
 			</EmailSmallText>
 		</EmailLayout>
@@ -70,16 +73,24 @@ VerifyEmail.PreviewProps = {
 	...emailPreview,
 	code: '123456',
 	anonBound: true,
+	expiresIn: '15 minutes',
 } as VerifyEmailProps
 
-export async function renderVerificationEmail(
-	code: string,
-	appUrl: string,
-	variant: VerifyEmailVariant = 'signup',
+export async function renderVerificationEmail({
+	code,
+	appUrl,
+	variant = 'signup',
 	anonBound = false,
-) {
+	expiresIn,
+}: VerifyEmailProps) {
 	const component = (
-		<VerifyEmail code={code} appUrl={appUrl} variant={variant} anonBound={anonBound} />
+		<VerifyEmail
+			code={code}
+			appUrl={appUrl}
+			variant={variant}
+			anonBound={anonBound}
+			expiresIn={expiresIn}
+		/>
 	)
 
 	const [html, text] = await Promise.all([render(component), render(component, {plainText: true})])
