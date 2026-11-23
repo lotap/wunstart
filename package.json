@@ -53,6 +53,7 @@
 		"predev": "sh tools/pkg-scripts/install-deps.sh",
 		"prepare": "sh tools/pkg-scripts/setup-git-hooks.sh && effect-tsgo patch --oxlint",
 		"preview": "dotenv -e .env.development -e .env.local --override -- vite preview --mode development",
+		"purge-auth-attempts": "dotenv -e .env.local -e .env -- sh tools/pkg-scripts/run-ts.sh src/scripts/purge-auth-attempts.ts",
 		"setup:hooks": "sh tools/pkg-scripts/setup-git-hooks.sh",
 		"test:lint": "vitest run --config tools/linters/vitest.config.ts",
 		"validate-required-env": "sh tools/pkg-scripts/run-ts.sh tools/pkg-scripts/validate-required-env.ts",

@@ -58,8 +58,9 @@ export function RuntimePanel() {
 				<CodeBlock code={workerEntry} label="src/server.ts" language="typescript" />
 
 				<Prose>
-					<InlineCode>bun run archive-old-activities</InlineCode> is the same archival path for a
-					VPS cron. It reads an exported <InlineCode>DATABASE_URL</InlineCode> first, then{' '}
+					<InlineCode>bun run archive-old-activities</InlineCode> and{' '}
+					<InlineCode>bun run purge-auth-attempts</InlineCode> are the same two jobs for a VPS cron.
+					They read an exported <InlineCode>DATABASE_URL</InlineCode> first, then{' '}
 					<InlineCode>.env.local</InlineCode>, then <InlineCode>.env</InlineCode>, because
 					production may have no env files.
 				</Prose>
