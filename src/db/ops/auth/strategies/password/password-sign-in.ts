@@ -121,7 +121,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 			failureCause: 'USER_NOT_FOUND',
 			failedCredential: email,
 			anonId: registeredAnonId,
-			rateAllowance: 4,
+			rateAllowance: 10,
 			message: PASSWORD_SIGN_IN_GENERIC_FAILURE_MESSAGE,
 		})
 	}
@@ -135,7 +135,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 			failureCause: 'NO_PASSWORD_ON_USER',
 			failedCredential: email,
 			anonId: registeredAnonId,
-			rateAllowance: 4,
+			rateAllowance: 10,
 			message: PASSWORD_SIGN_IN_GENERIC_FAILURE_MESSAGE,
 		})
 	}
@@ -148,7 +148,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 				failureCause: 'WRONG_PASSWORD',
 				failedCredential: email,
 				anonId: registeredAnonId,
-				rateAllowance: 4,
+				rateAllowance: 10,
 				message: PASSWORD_SIGN_IN_GENERIC_FAILURE_MESSAGE,
 			})
 
