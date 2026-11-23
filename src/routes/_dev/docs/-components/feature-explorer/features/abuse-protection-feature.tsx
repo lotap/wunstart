@@ -1,3 +1,13 @@
+import {
+	EXCESSIVE_ACTIVITIES_THRESHOLD,
+	EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL,
+} from '#/db/models/activities/consts.ts'
+import {
+	PENALTY_INTERVAL_INITIAL,
+	PENALTY_INTERVAL_MAX_QTY,
+	PENALTY_INTERVAL_UNIT,
+} from '#/db/models/bans/consts.ts'
+
 import {CodeBlock, PromptBlock} from '../../code-block.tsx'
 import {PanelLink} from '../../doc-links.tsx'
 import {InlineCode, PanelList, PanelRow, PanelSection, Prose} from '../../doc-ui.tsx'
@@ -55,9 +65,10 @@ export function AbuseProtectionFeature() {
 					<PanelRow label="Failures">
 						Ops log an Activity by default; <InlineCode>verifyAccess</InlineCode>,{' '}
 						<InlineCode>verifyAnon</InlineCode>, and <InlineCode>signAnon</InlineCode> skip the
-						success row. Enough weight in 10 minutes (
+						success row. Enough weight within {EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL} (
 						<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode>) creates a temporary ban,
-						which can extend up to 120 minutes (<InlineCode>PENALTY_INTERVAL_MAX_QTY</InlineCode> in{' '}
+						which can extend up to {PENALTY_INTERVAL_MAX_QTY} {PENALTY_INTERVAL_UNIT} (
+						<InlineCode>PENALTY_INTERVAL_MAX_QTY</InlineCode> in{' '}
 						<InlineCode>src/db/models/bans/consts.ts</InlineCode>).
 					</PanelRow>
 				</PanelList>
@@ -83,12 +94,15 @@ export function AbuseProtectionFeature() {
 				</Prose>
 				<PanelList>
 					<PanelRow label="threshold">
-						12,600 (<InlineCode>EXCESSIVE_ACTIVITIES_THRESHOLD</InlineCode>) weighted Activities in
-						a 10-minute window (<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode>) per
-						scope.
+						{EXCESSIVE_ACTIVITIES_THRESHOLD} weighted Activities within{' '}
+						{EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL} per scope (
+						<InlineCode>EXCESSIVE_ACTIVITIES_THRESHOLD</InlineCode> and{' '}
+						<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode> in{' '}
+						<InlineCode>src/db/models/activities/consts.ts</InlineCode>).
 					</PanelRow>
 					<PanelRow label="penalty">
-						10 minutes at the threshold, doubling as weight accumulates, capped at 120 minutes (
+						{PENALTY_INTERVAL_INITIAL} at the threshold, doubling as weight accumulates, capped at{' '}
+						{PENALTY_INTERVAL_MAX_QTY} {PENALTY_INTERVAL_UNIT} (
 						<InlineCode>PENALTY_INTERVAL_INITIAL</InlineCode> and{' '}
 						<InlineCode>PENALTY_INTERVAL_MAX_QTY</InlineCode> in{' '}
 						<InlineCode>src/db/models/bans/consts.ts</InlineCode>).
