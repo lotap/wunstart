@@ -177,8 +177,9 @@ export function AbusePanel() {
 					functions add the tighter <InlineCode>rateLimit</InlineCode>; sign-out uses its own scoped{' '}
 					<InlineCode>signOutRateLimit</InlineCode>, and fallback refresh attempts consume a
 					separate <InlineCode>refresh</InlineCode> bucket before the refresh op runs. Ops log their
-					outcome through <InlineCode>createOpsFn</InlineCode>, and credential ops pre-check bans,
-					then reserve attempts, before they hash anything.
+					outcome through <InlineCode>createOpsFn</InlineCode>, and an unauthenticated credential
+					presentation is reserved in <InlineCode>auth_attempts</InlineCode> before it reaches a
+					hash.
 				</Prose>
 			</PanelSection>
 
