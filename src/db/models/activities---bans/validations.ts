@@ -39,7 +39,7 @@ export const ByManyTargets = activitiesSelectPrimitive
 	)
 	.check(
 		Schema.makeFilter((val) => Object.values(val).some((v) => v !== null), {
-			message: 'ByTargets: at least one field must be non-null',
+			message: 'ByManyTargets: at least one field must be non-null',
 		}),
 	)
 

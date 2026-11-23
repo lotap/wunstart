@@ -63,6 +63,25 @@ Refine db-inferred types via the `overrides` second arg (`inet` needs manual han
 
 ## Naming
 
-Queries are short verbs in a per-model namespace, imported as `* as <model>Queries` (`sessionsQueries`, `sessionsUsersQueries` for `---` dirs): `select` (by id, no suffix), `selectByX` / `archiveSelectByActiveId` for other filters, action verbs otherwise (`insert`, `updatePasswordHash`, `rotate`, `revoke`). No model name in the fn, no `bulk` prefix. Validation exports are statement-named PascalCase matching the query (`Insert`, `Select`, `ByX`, `Update…`). Cascades mirror queries: `archive`, `archiveByUser`, `archiveMany` (via `createArchiveFn` / `createArchiveManyFn`).
+Queries are short verbs in a per-model namespace, imported as `* as <model>Queries` (`sessionsQueries`, `sessionsUsersQueries` for `---` dirs). A name is the verb, then whatever the verb does not already say:
+
+- **`select`** alone is by id, full row. Otherwise add projection, state, and predicate in that order: `selectProfile`, `selectActivityIdsByTarget`, `selectFromUnexpiredUnrevokedByUser`, `selectFromOldByCutoff`, `selectUserWithKnownIpByEmail` (a `---` join).
+- **`insert` / `updateX` / `deleteByX`** for the row operations (`insertOrMergeMany` where the statement upserts), and a domain verb when the point is the effect rather than the row: `rotate`, `revoke`, `reserve`, `extendMany`, `incrementAttempts`.
+- **`archive`** prefixes work on the twin: `archiveInsert`, `archiveSelectByActiveId`, `archiveAddVerified`.
+- No model name in the fn, no `bulk` prefix.
+
+The predicate and state words are the validation vocabulary — `By`, `With`, and `From` mean the same in both files, and a query bounded by an interval is `<verb>ByCutoff`, never `<verb>OlderThan`.
+
+Cascades mirror queries: `archive`, `archiveByUser`, `archiveMany` (via `createArchiveFn` / `createArchiveManyFn`).
+
+Validation exports name the input shape, not the query; the file's `/// INSERT | SELECT | UPDATE | DELETE ///` headers already state the operation.
+
+- **Base shapes.** `Insert`, `Select`, and `Update` are reused by every query whose input is exactly that shape, however many there are — `V.Select` serves every unfiltered select. Naming one per query would copy the schema.
+- **`By`** names the fields that decide which rows: keys, FKs, and range boundaries (`ByEmail`, `ByUser`, `ByEmailAndEntityId`, `ByCutoff`).
+- **`With`** names a field the caller must prove or carry, not one that finds the row. `WithPasscode` finds the row by `id` and guards it with the hash; the hash stays `With` even though it sits in the `WHERE`, because the row is not found by it.
+- **Verbs** stay for a mutation whose remainder is a field rather than a predicate: `Rotate`, `ExtendMany`, `InsertMany`, `UpdatePasswordHash`, `UpdateEmail`, `Reserve`. Test: delete the operation word — if the rest still says which rows these are, drop it; if it is only a column, keep it.
+- **Prefixes and cardinality.** `Archive` marks the twin (`ArchiveInsert`, `ArchiveAddVerified`); `Many`/`Single` separates shapes that differ only in how many values they carry — array length (`InsertMany`, `ExtendMany`) or populated target dimensions (`ByManyTargets` / `BySingleTarget`).
+
+One concept keeps one name across models: a cutoff boundary is `ByCutoff` whether the query selects or deletes.
 
 Model files stay self-contained — per-file import rules live in Module anatomy (`SKILL.md`); naming below.

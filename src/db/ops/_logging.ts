@@ -114,7 +114,7 @@ const toBanInsert = (
 /**
  * Narrows a pre-check row to its single scope-owned target so
  * selectActivityIdsByTarget aggregates exactly that subject's window.
- * ByTargets requires at least one non-null field, and the scope's own column is
+ * ByManyTargets requires at least one non-null field, and the scope's own column is
  * guaranteed populated for excessive rows by the underlying grouping
  */
 const toTargetInput = ({
