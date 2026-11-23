@@ -198,8 +198,9 @@ export type EffectiveEnv = {
  * Effective config: committed `.env.development` overlaid by gitignored
  * `.env.local` (file order mirrors the `--override` scripts: development
  * first, local second, last file winning; exported vars lose to files
- * there — except archive-old-activities, which keeps the old chain for
- * VPS cron). This static parse never sees process.env, so branch-env passes
+ * there — except the VPS cron entries (`archive-old-activities`,
+ * `purge-auth-attempts`), which keep the old chain so an exported
+ * `DATABASE_URL` wins). This static parse never sees process.env, so branch-env passes
  * the overlay explicitly to its children — see `refreshChildEnv`.
  * Per-worktree overrides (branch database, shifted ports) live in
  * `.env.local`, written by `bun run branch-env`.

@@ -359,8 +359,11 @@ export function AbusePanel() {
 				</Prose>
 				<PanelList>
 					<PanelRow label="IP_ADDRESS">
-						The request IP network, so a client rotating addresses inside its own allocation cannot
-						reset the ban. <InlineCode>IP_NETWORK_PREFIX</InlineCode> in{' '}
+						The request IP network: a <InlineCode>/64</InlineCode> for IPv6, so a client rotating
+						addresses inside its own allocation cannot reset the ban, and a{' '}
+						<InlineCode>/32</InlineCode> for IPv4, which keys the exact address instead of catching
+						unrelated neighbours behind the same provider or office egress.{' '}
+						<InlineCode>IP_NETWORK_PREFIX</InlineCode> in{' '}
 						<InlineCode>src/db/helpers/ip-network.ts</InlineCode> owns the mask. Applies to every op
 						that receives an IP address; the boundary rejects a request without a resolvable client
 						IP.
