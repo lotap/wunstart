@@ -2,6 +2,7 @@ import {and, eq, getColumns, isNotNull, or, sql} from 'drizzle-orm'
 
 import {createPreparedQuery} from '#/db/helpers/query-fns.ts'
 
+import {PASSCODE_RESET_FLOOR, PASSCODE_TTL} from './consts.ts'
 import {activeTable, archiveTable, tableName} from './schemas.ts'
 import * as V from './validations.ts'
 
@@ -125,7 +126,7 @@ export const resetFromExpiringByEmail = createPreparedQuery({
 			.update(activeTable)
 			.set({
 				attempts: 0,
-				expiresAt: sql`now() + '15 minutes'::interval`,
+				expiresAt: sql`now() + ${PASSCODE_TTL}::interval`,
 				passcodeHash: sql.placeholder('passcodeHash'),
 			})
 			.where(
@@ -136,9 +137,9 @@ export const resetFromExpiringByEmail = createPreparedQuery({
 						and(isNotNull(userId), eq(userId, sql.placeholder('userId'))),
 					),
 					// Reset window: the row must be at least a minute old. A row minted less
-					// than a minute ago still expires more than 14 minutes out, so it fails
-					// this comparison and the re-request is refused instead of resetting.
-					sql`${expiresAt} < now() + '14 minutes'::interval`,
+					// than a minute ago still expires past the floor, so it fails this
+					// comparison and the re-request is refused instead of resetting.
+					sql`${expiresAt} < now() + ${PASSCODE_RESET_FLOOR}::interval`,
 				),
 			)
 			.returning({id, expiresAt})
