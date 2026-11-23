@@ -12,7 +12,7 @@ import {requireAuth} from '#/middleware/require-auth.ts'
 export const handleEmailRequestPasscodeFromSession = createServerFn({method: 'POST'})
 	.middleware([rateLimit, requireAuth])
 	.handler(async ({context: {ipAddress, auth}}) => {
-		const {expiresAt} = await runOpClearingDeadSession({
+		const {expiresAt, resendAvailableAt} = await runOpClearingDeadSession({
 			op: emailRequestPasscode,
 			data: {
 				input: {intent: 'reverify'},
@@ -24,5 +24,5 @@ export const handleEmailRequestPasscodeFromSession = createServerFn({method: 'PO
 			layers: [authLayer, dbLayer, emailLayer],
 		})
 
-		return {expiresAt}
+		return {expiresAt, resendAvailableAt}
 	})

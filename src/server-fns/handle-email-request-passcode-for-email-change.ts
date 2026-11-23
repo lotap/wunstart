@@ -34,7 +34,7 @@ export const handleEmailRequestPasscodeForEmailChange = createServerFn({method: 
 		if (!sudoExpiresAt || DateTime.isPastUnsafe(sudoExpiresAt))
 			throwKnownServerError(422, VERIFICATION_EXPIRED_MESSAGE)
 
-		const {expiresAt} = await runOpClearingDeadSession({
+		const {expiresAt, resendAvailableAt} = await runOpClearingDeadSession({
 			op: emailRequestPasscode,
 			data: {
 				input: {email, intent: 'reverify'},
@@ -46,5 +46,5 @@ export const handleEmailRequestPasscodeForEmailChange = createServerFn({method: 
 			layers: [authLayer, dbLayer, emailLayer],
 		})
 
-		return {expiresAt}
+		return {expiresAt, resendAvailableAt}
 	})

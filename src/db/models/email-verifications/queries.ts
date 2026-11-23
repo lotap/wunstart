@@ -14,6 +14,14 @@ const {passcodeHash, ...nonsensitiveCols} = getColumns(activeTable)
 
 const {id, anonId, userId, attempts, email, expiresAt} = nonsensitiveCols
 
+/**
+ * How far from expiry a row must be before the requester may ask again: the full
+ * lifespan less one minute. One definition serves the reset guard and the
+ * timestamp both writes return for the resend countdown, so what the server
+ * allows and what the button counts down to cannot disagree
+ */
+const resendFloor = sql`(${PASSCODE_EXPIRATION}::interval - interval '1 minute')`
+
 /// INSERT ///
 
 export const insert = createPreparedQuery({
@@ -27,7 +35,7 @@ export const insert = createPreparedQuery({
 				email: sql.placeholder('email'),
 				passcodeHash: sql.placeholder('passcodeHash'),
 			})
-			.returning({id, expiresAt})
+			.returning({id, expiresAt, resendAvailableAt: sql<Date>`${expiresAt} - ${resendFloor}`})
 			.prepare(`${labelPrefix}_insert`),
 })
 
@@ -139,10 +147,10 @@ export const resetFromExpiringByEmail = createPreparedQuery({
 					// Reset window: the row must be at least a minute old. A row minted less
 					// than a minute ago still expires past this threshold, so it fails the
 					// comparison and the re-request is refused instead of resetting.
-					sql`${expiresAt} < now() + ${PASSCODE_EXPIRATION}::interval - interval '1 minute'`,
+					sql`${expiresAt} < now() + ${resendFloor}`,
 				),
 			)
-			.returning({id, expiresAt})
+			.returning({id, expiresAt, resendAvailableAt: sql<Date>`${expiresAt} - ${resendFloor}`})
 			.prepare(`${labelPrefix}_reset_from_expiring_by_email`),
 })
 

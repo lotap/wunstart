@@ -14,7 +14,7 @@ import {useConfiguredAppForm, validateAfterFirstSubmit} from '#/hooks/use-app-fo
 import {Passcode} from '#/isomorphic/validators.ts'
 
 import {ResetEmailVerificationButton} from './_reset-email-verification-button.tsx'
-import type {PasscodeRequestQueryOptions} from './_utils.ts'
+import type {PasscodeRequestQueryOptions, PasscodeRequestResult} from './_utils.ts'
 
 type PasscodeSubmitCredentials = {passcode: string; email?: string}
 
@@ -76,7 +76,7 @@ export function PasscodeForm({
 	/** Anon-keyed codes verify only in the browser that requested them */
 	anonBound?: boolean
 	passcodeRequestQueryOptions: PasscodeRequestQueryOptions
-	mutatePasscodeRequest: () => Promise<{expiresAt: Date}>
+	mutatePasscodeRequest: () => Promise<PasscodeRequestResult>
 	mutatePasscodeRequestIsPending: boolean
 }) {
 	const form = useConfiguredAppForm({

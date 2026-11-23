@@ -53,9 +53,9 @@ export const handleEmailRequestPasscode = createServerFn({method: 'POST'})
 		}
 
 		try {
-			const {expiresAt} = await requestPasscode(anonTokenPayload)
+			const {expiresAt, resendAvailableAt} = await requestPasscode(anonTokenPayload)
 
-			return {expiresAt}
+			return {expiresAt, resendAvailableAt}
 		} catch (error) {
 			if (!Schema.is(AnonNotFoundError)(error)) throw error
 
@@ -79,9 +79,9 @@ export const handleEmailRequestPasscode = createServerFn({method: 'POST'})
 			setAnonCookie(token)
 
 			try {
-				const {expiresAt} = await requestPasscode(registeredPayload)
+				const {expiresAt, resendAvailableAt} = await requestPasscode(registeredPayload)
 
-				return {expiresAt}
+				return {expiresAt, resendAvailableAt}
 			} catch (retryError) {
 				if (!Schema.is(AnonNotFoundError)(retryError)) throw retryError
 
