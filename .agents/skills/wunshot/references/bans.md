@@ -1,6 +1,6 @@
 # Bans + weight routing
 
-Dimensions tracked per activity: IP, credential, user, anon. The `currentBansAndExcessiveActivities` prepared query (`db/models/activities---bans/queries.ts`, via `checkCurrentBansAndExcessiveActivities`) unions one arm per scope dimension over activities inside `EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL`. Crossing `EXCESSIVE_ACTIVITIES_THRESHOLD` within the window creates a ban for that scope. All three consts live in `db/models/activities/consts.ts`.
+Dimensions tracked per activity: IP, credential, user, anon, plus the archived user and anon forms. The `currentBansAndExcessiveActivities` prepared query (`db/models/activities---bans/queries.ts`, via `checkCurrentBansAndExcessiveActivities`) unions one arm per (source, scope) — active bans and windowed activity weight — so current bans and excessive activity arrive in one read inside `EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL`. Crossing `EXCESSIVE_ACTIVITIES_THRESHOLD` within the window creates a ban for that scope. All three consts live in `db/models/activities/consts.ts`.
 
 The HTTP boundary rejects a request it cannot resolve to a client IP, so the ban pipeline only sees real addresses. `SYSTEM_OPS_IP` (`db/helpers/ip-sentinels.ts`) is the exception for system ops; no user request can carry it. The check compares networks rather than strings, so an IPv4-mapped spelling of the placeholder fails it too.
 
@@ -50,4 +50,4 @@ Rejected: join table (N INSERTs per ban, unjustified for 1–60 rows), JSONB (un
 
 ## Weight math
 
-`rateAllowance → weight` via `allowRatePerWindow(n) = ceil(EXCESSIVE_ACTIVITIES_THRESHOLD / n)` (see `ops-error.ts`); omitted `rateAllowance` → `ACTIVITIES_BASELINE_WEIGHT`. `Infinity → weight 0` records the activity without ever feeding a ban. It is a policy choice, not a default: server faults always take it, while session, token, and stale-claim cases and their charged exceptions are owned by `auth.md`.
+`rateAllowance → weight` via `allowRatePerWindow(n) = ceil(EXCESSIVE_ACTIVITIES_THRESHOLD / n)` (see `ops-error.ts`); omitted `rateAllowance` → `ACTIVITIES_BASELINE_WEIGHT`. `Infinity → weight 0` records the activity without adding weight: it cannot create a ban, raise a total, or move an expiry, though it still links to an existing ban as evidence. It is a policy choice, not a default: server faults always take it, while session, token, and stale-claim cases and their charged exceptions are owned by `auth.md`.
