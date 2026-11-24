@@ -108,6 +108,7 @@ tester.run('wunshot/no-zod-valibot', noZodValibotRule, {
 tester.run('wunshot/no-failed-credential-in-denial', noFailedCredentialInDenialRule, {
 	valid: [
 		'rateLimitFailure({rateAllowance: 1, meta: {credential: email}});',
+		'authAttemptAllowanceFailure({rateAllowance: Infinity, meta: {credential: email}});',
 		'otherFailure({failedCredential: email});',
 	],
 	invalid: [
@@ -121,6 +122,18 @@ tester.run('wunshot/no-failed-credential-in-denial', noFailedCredentialInDenialR
 		},
 		{
 			code: "rateLimitFailure({rateAllowance: 1, 'failedCredential': email});",
+			errors: [{messageId: 'failedCredential'}],
+		},
+		{
+			code: 'authAttemptAllowanceFailure({rateAllowance: Infinity, failedCredential: email});',
+			errors: [{messageId: 'failedCredential'}],
+		},
+		{
+			code: 'authAttemptAllowanceFailure({rateAllowance: Infinity, failedCredential});',
+			errors: [{messageId: 'failedCredential'}],
+		},
+		{
+			code: "authAttemptAllowanceFailure({rateAllowance: Infinity, 'failedCredential': email});",
 			errors: [{messageId: 'failedCredential'}],
 		},
 	],

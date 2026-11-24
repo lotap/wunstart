@@ -10,23 +10,26 @@ function isFailedCredentialKey(property: ESTree.ObjectProperty): boolean {
 	return key.type === 'Literal' && key.value === 'failedCredential'
 }
 
+/** Denial factories whose payload must never carry `failedCredential`. */
+const denialFactories = new Set(['rateLimitFailure', 'authAttemptAllowanceFailure'])
+
 /**
- * Rate-limit denials must never carry failedCredential into a persisted activity:
- * an attacker cycling IPs would extend a credential ban forever, locking the
- * legitimate owner out. Pass the email as meta: {credential} for audit only.
- * Matches the literal `rateLimitFailure` callee and literal object keys only;
- * aliased callees and pre-built/spread option objects bypass it (review is the backstop).
+ * Denials must never carry failedCredential into a persisted activity: an
+ * attacker cycling IPs could extend a credential ban, locking the legitimate
+ * owner out. Pass the email as meta: {credential} for audit only. Matches the
+ * literal denial-factory callees and literal object keys only; aliased callees
+ * and pre-built/spread option objects bypass it (review is the backstop).
  */
 export const noFailedCredentialInDenialRule = defineRule({
 	meta: {
 		type: 'problem',
 		docs: {
 			description:
-				'Disallow failedCredential in rateLimitFailure calls; denial weight must route to IP scope only.',
+				'Disallow failedCredential in denial-factory calls; a denial must never feed credential-scope weight.',
 		},
 		messages: {
 			failedCredential:
-				'Do not pass `failedCredential` to `rateLimitFailure`. Omit it so weight routes to IP scope; pass the email as `meta: {credential}` for audit only.',
+				'Do not pass `failedCredential` to a denial factory. Omit it so a denial cannot feed credential-scope weight; pass the email as `meta: {credential}` for audit only.',
 		},
 	},
 	create(context) {
@@ -39,7 +42,7 @@ export const noFailedCredentialInDenialRule = defineRule({
 							? node.callee.property.name
 							: null
 
-				if (callee !== 'rateLimitFailure') return
+				if (callee === null || !denialFactories.has(callee)) return
 
 				for (const argument of node.arguments) {
 					if (argument.type !== 'ObjectExpression') continue
