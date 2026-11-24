@@ -4,8 +4,9 @@ import {bigint, smallint, text, timestamp, uniqueIndex, uuid, varchar} from 'dri
 import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/column-config.ts'
 import {createActiveTable, createArchiveTable} from '#/db/helpers/table-fns.ts'
 import {activeTable as anons, archiveTable as anonsArchive} from '#/db/models/anons/schemas.ts'
-import {PASSCODE_EXPIRATION} from '#/db/models/email-verifications/consts.ts'
 import {activeTable as users, archiveTable as usersArchive} from '#/db/models/users/schemas.ts'
+
+import {PASSCODE_EXPIRATION} from './consts.ts'
 
 export const tableName = 'email_verifications'
 

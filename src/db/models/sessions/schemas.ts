@@ -3,8 +3,9 @@ import {bigint, inet, smallint, text, timestamp, uuid} from 'drizzle-orm/pg-core
 
 import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/column-config.ts'
 import {createActiveTable, createArchiveTable} from '#/db/helpers/table-fns.ts'
-import {SESSION_EXPIRATION_DAYS} from '#/db/models/sessions/consts.ts'
 import {activeTable as users, archiveTable as usersArchive} from '#/db/models/users/schemas.ts'
+
+import {SESSION_EXPIRATION_DAYS} from './consts.ts'
 
 export const tableName = 'sessions'
 

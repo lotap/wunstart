@@ -57,7 +57,7 @@ Import rules (model files stay self-contained):
 
 | File | Imports from |
 | ---- | ------------ |
-| `schemas.ts` | `drizzle-orm`, `drizzle-orm/pg-core` column builders, `db/helpers/column-config.ts` + `table-fns.ts`, related models' `schemas.ts` |
+| `schemas.ts` | `drizzle-orm`, `drizzle-orm/pg-core` column builders, `db/helpers/column-config.ts` + `table-fns.ts`, `./consts.ts`, related models' `schemas.ts` |
 | `validations.ts` | `drizzle-orm/effect-schema`, `effect`, `RefinementsFor` from `db/helpers/types.ts`, shared refinements from `db/helpers/validators.ts` (+ client-shared shapes from your app's shared validators), `./schemas.ts` |
 | `queries.ts` | `drizzle-orm` operators, `createPreparedQuery` / `createQueryFn` from `db/helpers/query-fns.ts`, `./schemas.ts`, `./validations.ts`, `./views` (when the model has one) (+ connected models' schemas/validations/consts in `---` dirs) |
 | `cascades.ts` | `createArchiveFn` from `db/helpers/archive-fns.ts`, `./queries.ts`, `./schemas.ts` (+ other models' schemas/cascades for re-pointing) |

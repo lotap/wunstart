@@ -5,8 +5,9 @@ import {ARCHIVE_ID_CONFIG, TIMESTAMPTZ_CONFIG} from '#/db/helpers/column-config.
 import {createActiveTable, createArchiveTable} from '#/db/helpers/table-fns.ts'
 import {banScopes} from '#/db/models/activities---bans/schemas.ts'
 import {activeTable as anons, archiveTable as anonsArchive} from '#/db/models/anons/schemas.ts'
-import {PENALTY_INTERVAL_INITIAL} from '#/db/models/bans/consts.ts'
 import {activeTable as users, archiveTable as usersArchive} from '#/db/models/users/schemas.ts'
+
+import {PENALTY_INTERVAL_INITIAL} from './consts.ts'
 
 export const tableName = 'bans'
 
