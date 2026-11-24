@@ -11,7 +11,7 @@ New-module recipe, in order: `schemas.ts` → `validations.ts` → `queries.ts` 
 
 Every domain table that records a fact has an active twin and an archive twin. Deletes never touch the active row in place: `createArchiveFn` (in `db/helpers/archive-fns.ts`) selects → inserts into archive (validate + `extraData`) → runs domain cascades → deletes active rows with `id IN (...)` + optional `deleteWhere` CAS guard → count-checks. Zero rows is `ArchiveNotFoundError`; a concurrent archive can make the delete remove fewer rows than the select found, which rolls back as `ArchiveCountMismatchError`.
 
-The archive pair protects facts, not rows, so the test is whether the row is the only copy of something the product must still be able to explain. `auth-attempts` is the shipped counter-example: it holds a fixed-window count per target, while the presentations it counts are already activities — the signing ops log success, failure, and denial through the one logging path — in a table that is retained and then archived. The counter is a materialized aggregate over that stream, which is exactly why the hot path can be a keyed upsert instead of a windowed sum. A twin would keep the same facts twice, in less detail, forever.
+The archive pair protects facts, not rows, so the test is whether the row is the only copy of something the product must still be able to explain. `auth-attempts` is the shipped exception: it holds one fixed-window count row per target, while the presentations it counts are already activities — the signing ops log success, failure, and denial through the one logging path — in a table that is retained and then archived. The table is a materialized aggregate over that stream, which is exactly why the hot path can be a keyed upsert instead of a windowed sum. A twin would keep the same facts twice, in less detail, forever.
 
 A table that fails the test declares its composite key on `snakeCase.table` directly (no factory: no surrogate `id`, no lifecycle timestamps), keeps no twin, and is swept by age. The shape is also forced mechanically: `createArchiveFn` selects and deletes by `id`, and `createArchiveTable` requires one, so a keyed table has no archive path to run. When the key is an email or a network, a twin would additionally be a permanent PII copy with no FK to scrub on account deletion.
 
@@ -25,7 +25,7 @@ Recovering depends on who owns the transaction. Without a `tx`, the archive call
 - `createArchiveTable(name, cols)`: adds `id` uuid NOT NULL (plain, not PK, no defaults — machinery copies values), `createdAt`/`updatedAt` (no defaults), `archiveId` bigint identity PK, `archivedAt` defaultNow. PII columns go nullable here
 - `createActiveLogTable` / `createArchiveLogTable`: `id` + `timestamp` (log tables); archive adds `archiveId`/`archivedAt`. The activities archive twin drops the active twin's `default(1)` on `weight` (active-only default).
 
-Every factory here contributes default columns. The ephemeral-counter exception above therefore uses none: it calls `snakeCase.table(tableName, cols, (t) => [primaryKey({columns: […]})])` straight from its `schemas.ts`.
+Every factory here contributes default columns. The ephemeral-count-table exception above therefore uses none: it calls `snakeCase.table(tableName, cols, (t) => [primaryKey({columns: […]})])` straight from its `schemas.ts`.
 
 Rejected: `deleted_at` column (dangling FKs), hard delete (loses audit), event sourcing (overkill), JSONB snapshot (unqueryable).
 

@@ -39,14 +39,14 @@ export function AbuseProtectionFeature() {
 		>
 			<PanelSection id="abuse-protected" title="What is protected">
 				<Prose>
-					Every server function is rate-limited per IP. Auth functions get a tighter limit, and
-					password sign-in and passcode verification check existing bans, look up the account, then
-					reserve attempt counters, all before any hashing.
+					Every server function is rate-limited per client network. Auth functions get a tighter
+					limit, and password sign-in and passcode verification check existing bans, look up the
+					account, then upsert the auth attempt rows, all before any hashing.
 				</Prose>
 				<PanelList>
 					<PanelRow label="All server functions">
-						150 requests per minute per IP, set by <InlineCode>createRateLimit(150)</InlineCode> in{' '}
-						<InlineCode>src/start.ts</InlineCode>.
+						150 requests per minute per network, set by{' '}
+						<InlineCode>createRateLimit(150)</InlineCode> in <InlineCode>src/start.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="Auth functions">
 						Defaults to 5 requests per minute (<InlineCode>rateLimit</InlineCode> in{' '}
@@ -55,12 +55,13 @@ export function AbuseProtectionFeature() {
 					</PanelRow>
 					<PanelRow label="Auth attempt allowance">
 						Password sign-in and passcode verification are capped in{' '}
-						<InlineCode>auth_attempts</InlineCode> per client network and per claimed email.
-						Reverify and email change are authenticated and skip the allowance. Everyone behind one
-						network shares the network allowance, so a busy office can spend it without an attack
-						and stays capped until the window rolls; a denial does not lengthen a lockout, but it
-						429s the network’s other server functions on that isolate for the limiter’s window. The
-						allowances live in <InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
+						<InlineCode>auth_attempts</InlineCode> per client network and per claimed email. The
+						credential row is skipped when the user exists and the request comes from a network
+						their Sessions already used; the network row always counts. Reverify and email change
+						are authenticated and skip both. Everyone behind one network shares the network
+						allowance, so a busy office can exhaust it without an attack and stays capped until the
+						window rolls; a denial does not lengthen a lockout. The allowances live in{' '}
+						<InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="Credential ops">
 						Check the IP, the claimed email, the User, and the Anon for active bans and excessive

@@ -30,8 +30,8 @@ const _purgeAuthAttempts = Effect.fn('purgeAuthAttempts')(function* () {
 })
 
 /**
- * Deletes attempt counters past {@link AUTH_ATTEMPT_RETENTION_WINDOW}. The rows
- * reset lazily on their next reservation, so an expired row is dead weight; the
+ * Deletes attempt rows past {@link AUTH_ATTEMPT_RETENTION_WINDOW}. The rows
+ * reset lazily on their next upsert, so an expired row is dead weight; the
  * daily cron keeps the table from accumulating one per (scope, target) ever
  * seen.
  */

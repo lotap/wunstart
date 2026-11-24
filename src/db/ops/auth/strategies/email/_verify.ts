@@ -34,8 +34,8 @@ const archiveWithPasscode = (input: {id: string; passcodeHash: string}) =>
  * Verifies a passcode against the unexpired verification row.
  *
  * Runs outside any caller transaction, and reserves the attempt in the database before
- * hashing: a burst of concurrent guesses must not share one read of the attempt counter and
- * reach the hash together. The counter therefore survives every failure path, including a
+ * hashing: a burst of concurrent guesses must not share one read of the row attempt counter and
+ * reach the hash together. The row counter therefore survives every failure path, including a
  * crash between the reservation and the hash, which consumes the attempt. On success the row
  * data is returned for the caller to burn
  */

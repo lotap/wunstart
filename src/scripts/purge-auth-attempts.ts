@@ -4,7 +4,7 @@ import {dbLayer} from '#/db/index.ts'
 import {purgeAuthAttempts} from '#/db/ops/system/purge-auth-attempts.ts'
 
 /**
- * Standalone runner for the attempt-counter purge.
+ * Standalone runner for the auth attempt row purge.
  *
  * Cloudflare Workers runs this via the `scheduled` handler (src/server.ts).
  * Other platforms (e.g. a VPS system cron) run this file directly:

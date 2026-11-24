@@ -35,7 +35,7 @@ import {
 } from '../../doc-ui.tsx'
 
 const guardrailsChart = `flowchart LR
-  request(["Server fn request"]) -->|"global limit"| mw["rateLimit · per-IP score"]
+  request(["Server fn request"]) -->|"global limit"| mw["rateLimit · per-network score"]
   mw -->|"over limit"| denied["429"]
   mw -->|"server fn"| auth["verifyAuth"]
   auth -->|"fallback refresh"| refresh["refresh lane · refresh|network"]
@@ -47,8 +47,8 @@ const guardrailsChart = `flowchart LR
   check --> bans[("bans")]
   check --> activities[("activities")]
   check -->|"passed"| lookup["account lookup"]
-  lookup -->|"reserve · unauthenticated"| allowance["auth attempt allowance · auth_attempts"]
-  allowance -->|"spent"| denied
+  lookup -->|"upsert · unauthenticated"| allowance["auth attempt allowance · auth_attempts"]
+  allowance -->|"exhausted"| denied
   op -->|"success / failure"| log["logActivityAndHandleBans"]
   log --> activities
   log -->|"extend / create"| bans
@@ -161,12 +161,12 @@ export function AbusePanel() {
 					</PanelRow>
 					<PanelRow label="auth attempt allowance">
 						Rows in <InlineCode>auth_attempts</InlineCode> count unauthenticated credential
-						presentations per client network and per claimed email, reserved before Argon2 or a
-						passcode hash. The reservation is one atomic upsert, so a concurrent burst cannot pass a
-						stale read. A successful presentation spends the network counter just like a failed one,
-						because the bound is hashing work rather than failed guesses. A denial also charges the
-						isolate’s limiter the full threshold, so the network’s other server functions 429 until
-						the event ages out. Allowances and the window live in{' '}
+						presentations per client network and per claimed email, upserted before Argon2 or a
+						passcode hash. The upsert is one atomic statement, so a concurrent burst cannot pass a
+						stale read. A successful presentation upserts the network attempt row just like a failed
+						one, because the bound is hashing work rather than failed guesses. A denial returns a
+						direct 429 from the boundary and does not charge the limiter, so the network’s other
+						requests keep working. Allowances and the window live in{' '}
 						<InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="bans">
@@ -183,7 +183,7 @@ export function AbusePanel() {
 					<InlineCode>signOutRateLimit</InlineCode>, and fallback refresh attempts consume a
 					separate <InlineCode>refresh</InlineCode> bucket before the refresh op runs. Ops log their
 					outcome through <InlineCode>createOpsFn</InlineCode>, and an unauthenticated credential
-					presentation is reserved in <InlineCode>auth_attempts</InlineCode> before it reaches a
+					presentation is counted in <InlineCode>auth_attempts</InlineCode> before it reaches a
 					hash.
 				</Prose>
 			</PanelSection>
@@ -191,7 +191,7 @@ export function AbusePanel() {
 			<PanelSection id="abuse-request-limiter" title="Request limiter">
 				<Prose>
 					<InlineCode>createRateLimit(max)</InlineCode> admits <InlineCode>max</InlineCode> requests
-					per IP in a 60-second window (<InlineCode>WINDOW_MS</InlineCode> in{' '}
+					per network in a 60-second window (<InlineCode>WINDOW_MS</InlineCode> in{' '}
 					<InlineCode>src/middleware/rate-limit.ts</InlineCode>). Each request adds{' '}
 					<InlineCode>ceil({threshold} / max)</InlineCode> to the IP’s score; the request that
 					pushes the score above {threshold} gets a 429. The scoped refresh and sign-out buckets use
@@ -199,28 +199,28 @@ export function AbusePanel() {
 				</Prose>
 				<PanelList>
 					<PanelRow label="createRateLimit(150)">
-						The global limiter: 150 requests per minute per IP, set by{' '}
+						The global limiter: 150 requests per minute per network, set by{' '}
 						<InlineCode>createRateLimit(150)</InlineCode> in <InlineCode>src/start.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="rateLimit">
-						The auth limiter: 5 requests per minute per IP (<InlineCode>rateLimit</InlineCode> in{' '}
-						<InlineCode>src/middleware/rate-limit.ts</InlineCode>). Attach it to sign-up, sign-in,
-						and passcode functions. It shares the global key, so a request that passes both limits
-						consumes both weights from one budget.
+						The auth limiter: 5 requests per minute per network (<InlineCode>rateLimit</InlineCode>{' '}
+						in <InlineCode>src/middleware/rate-limit.ts</InlineCode>). Attach it to sign-up,
+						sign-in, and passcode functions. It shares the global key, so a request that passes both
+						limits consumes both weights from one budget.
 					</PanelRow>
 					<PanelRow label="refresh bucket">
-						30 fallback refresh attempts per minute per IP (
+						30 fallback refresh attempts per minute per network (
 						<InlineCode>REFRESH_ATTEMPTS_PER_MINUTE</InlineCode> in{' '}
 						<InlineCode>src/middleware/verify-auth.ts</InlineCode>). Keyed{' '}
 						<InlineCode>refresh|&lt;network&gt;</InlineCode> so it does not spend the global/auth
 						score. Checked in <InlineCode>verifyAuth</InlineCode> before the refresh op; a normal
-						browser refreshes about once per access-token lifetime. The lane is per-IP and runs
+						browser refreshes about once per access-token lifetime. The lane is per-network and runs
 						before the token is verified, so on a shared egress a dead pair retrying at the global
 						rate can 429 other clients’ refresh fallback for the rest of the window. Per-session
 						keying would need the verification the lane exists to bound.
 					</PanelRow>
 					<PanelRow label="sign-out bucket">
-						30 sign-out requests per minute per IP (
+						30 sign-out requests per minute per network (
 						<InlineCode>SIGN_OUT_ATTEMPTS_PER_MINUTE</InlineCode> in{' '}
 						<InlineCode>src/middleware/rate-limit.ts</InlineCode>), keyed{' '}
 						<InlineCode>sign-out|&lt;network&gt;</InlineCode>. Both sign-out handlers run the
@@ -234,7 +234,7 @@ export function AbusePanel() {
 						limit.
 					</PanelRow>
 					<PanelRow label="stacking">
-						The global and auth limiters feed the same per-IP score (
+						The global and auth limiters feed the same per-network score (
 						<InlineCode>addRateLimitEvent</InlineCode> without a scope), so a request that passes
 						both consumes both weights. The refresh and sign-out buckets pass a{' '}
 						<InlineCode>scope</InlineCode> and use their own keys, so they do not spend that budget.
@@ -380,8 +380,8 @@ export function AbusePanel() {
 					<PanelRow label="FAILED_CREDENTIAL">
 						The email an attempt claimed. Only applied when a User exists and the request comes from
 						a new network; a known network can still sign in, so a third party cannot lock the
-						account out. The credential attempt counter follows the same escape; the network counter
-						never does.
+						account out. The credential attempt row follows the same escape; the network row never
+						does.
 					</PanelRow>
 					<PanelRow label="USER">The signed-in User.</PanelRow>
 					<PanelRow label="ANON">The anonymous identity.</PanelRow>
