@@ -6,6 +6,7 @@ import * as usersQueries from '#/db/models/users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
 import {retryTransientDb, retryTransientOrArchiveRace} from '#/db/ops/_retry.ts'
+import {authAttemptAllowanceFailure} from '#/db/ops/auth-attempt-allowance-error.ts'
 import {
 	enforceAuthAttemptAllowance,
 	skipsCredentialAttempt,
@@ -20,7 +21,7 @@ import {generateAccessToken} from '#/db/ops/auth/tokens/_access-token.ts'
 import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/tokens/_anon-token.ts'
 import {generateNonce} from '#/db/ops/auth/tokens/_refresh-token.ts'
 import {opsFailure} from '#/db/ops/ops-error.ts'
-import {authAttemptAllowanceFailure, rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
+import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import {HashingStub} from '#/db/ops/service-bindings.ts'
 import {EmailRenderError, EmailService} from '#/email/service.ts'
 import {renderSignInNotification} from '#/email/templates/sign-in-notification.tsx'
@@ -117,7 +118,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 			anonId: registeredAnonId,
 		})
 
-	/** Reserve before hashing; a network denial short-circuits the email allowance */
+	/** Upsert before hashing; a network denial short-circuits the email allowance */
 	const {allowed} = yield* enforceAuthAttemptAllowance({
 		ipAddress,
 		email,

@@ -3,13 +3,14 @@ import {Effect, Schema} from 'effect'
 import * as sessionsUsersQueries from '#/db/models/sessions---users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
+import {authAttemptAllowanceFailure} from '#/db/ops/auth-attempt-allowance-error.ts'
 import {
 	enforceAuthAttemptAllowance,
 	skipsCredentialAttempt,
 } from '#/db/ops/auth/_attempt-allowance.ts'
 import {AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE} from '#/db/ops/auth/messages.ts'
 import {UserAlreadyExistsError} from '#/db/ops/auth/users/_create-user.ts'
-import {authAttemptAllowanceFailure, rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
+import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import type {EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
 
 import {EMAIL_VERIFY_GENERIC_FAILURE_MESSAGE} from './_messages.ts'
@@ -102,7 +103,7 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 		})
 	}
 
-	/** Reserve before hashing; a network denial short-circuits the email allowance */
+	/** Upsert before hashing; a network denial short-circuits the email allowance */
 	const {allowed} = yield* enforceAuthAttemptAllowance({
 		ipAddress,
 		email,

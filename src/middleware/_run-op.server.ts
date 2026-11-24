@@ -1,6 +1,7 @@
 import {createServerOnlyFn} from '@tanstack/react-start'
 import {Effect, Layer, Result, Schema} from 'effect'
 
+import {AuthAttemptAllowanceError} from '#/db/ops/auth-attempt-allowance-error.ts'
 import {DeadSessionError} from '#/db/ops/auth/tokens/token-error.ts'
 import type {OpsErrorContract} from '#/db/ops/ops-error.ts'
 import {RateLimitError} from '#/db/ops/rate-limit-error.ts'
@@ -69,8 +70,9 @@ function getOpIpAddress(data: {ipAddress?: unknown}): string | undefined {
  * Convenience function to reduce boilerplate in middleware & server fns
  *
  * - unwraps Effect result into plain value
- * - forwards ban-refusal RateLimitError failures to the middleware rate-limiter
- *   (throws a 429); an attempt-allowance failure is a direct 429 with its message
+ * - answers the two control failures: an `AuthAttemptAllowanceError` becomes a
+ *   direct 429 with its message, and a ban-refusal `RateLimitError` is
+ *   forwarded to the middleware rate-limiter (throws a 429)
  * - any other failure rejects the promise (throws), so callers handle their own
  *   error classification, e.g. the auth middlewares decide the request's
  *   identity state inline (see `verify-auth.ts` / `verify-anon.ts`)
@@ -88,10 +90,11 @@ export const runOp = createServerOnlyFn(
 
 		const effect = Effect.provide(op(data), layers).pipe(
 			Effect.tapError((cause) => {
-				if (!Schema.is(RateLimitError)(cause)) return Effect.void
-
-				if (cause.activity.failureCause === 'AUTH_ATTEMPT_ALLOWANCE')
+				if (Schema.is(AuthAttemptAllowanceError)(cause)) {
 					return Effect.sync(() => throwKnownServerError(429, cause.message))
+				}
+
+				if (!Schema.is(RateLimitError)(cause)) return Effect.void
 
 				return Effect.sync(() => addRateLimitEvent({ipAddress: ip, weight: allowPerWindow(1)}))
 			}),
