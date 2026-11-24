@@ -2,7 +2,7 @@
   "type": "base",
   "version": "9",
   "dialect": "postgres",
-  "id": "57206118-7311-42de-905e-922d8c5944a7",
+  "id": "afb5cbb4-d355-45b5-9974-673b082ea947",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -19,6 +19,23 @@
         "n|enum|public.ban_scopes",
         "e|enum|public.ban_scopes",
         "n|type|public.ban_scopes"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "attempt_scopes"
+      ],
+      "writes": [
+        "s|enum|public.attempt_scopes",
+        "n|enum|public.attempt_scopes",
+        "e|enum|public.attempt_scopes",
+        "n|type|public.attempt_scopes"
       ],
       "reads": [
         "n|sch|public"
@@ -98,6 +115,26 @@
       ],
       "reads": [
         "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "auth_attempts"
+      ],
+      "writes": [
+        "s|tbl|public.auth_attempts",
+        "n|tbl|public.auth_attempts",
+        "e|tbl|public.auth_attempts",
+        "n|rel|public.auth_attempts",
+        "n|type|public.auth_attempts",
+        "n|rel|public.auth_attempts_pkey"
+      ],
+      "reads": [
+        "n|sch|public",
+        "n|enum|public.attempt_scopes"
       ]
     },
     {
@@ -281,18 +318,18 @@
         "index",
         "public",
         "activities",
-        "activities_ip_address_timestamp_index"
+        "activities_ip_network_timestamp_index"
       ],
       "writes": [
-        "s|idx|public.activities_ip_address_timestamp_index",
-        "n|idx|public.activities_ip_address_timestamp_index",
-        "e|idx|public.activities_ip_address_timestamp_index",
-        "n|rel|public.activities_ip_address_timestamp_index"
+        "s|idx|public.activities_ip_network_timestamp_index",
+        "n|idx|public.activities_ip_network_timestamp_index",
+        "e|idx|public.activities_ip_network_timestamp_index",
+        "n|rel|public.activities_ip_network_timestamp_index"
       ],
       "reads": [
         "n|tbl|public.activities",
         "n|sch|public",
-        "n|col|public.activities.ip_address",
+        "n|col|public.activities.ip_network",
         "n|col|public.activities.timestamp"
       ]
     },
@@ -406,6 +443,26 @@
       "statementTarget": [
         "index",
         "public",
+        "auth_attempts",
+        "auth_attempts_window_start_index"
+      ],
+      "writes": [
+        "s|idx|public.auth_attempts_window_start_index",
+        "n|idx|public.auth_attempts_window_start_index",
+        "e|idx|public.auth_attempts_window_start_index",
+        "n|rel|public.auth_attempts_window_start_index"
+      ],
+      "reads": [
+        "n|tbl|public.auth_attempts",
+        "n|sch|public",
+        "n|col|public.auth_attempts.window_start"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
         "bans",
         "bans_expires_at_index"
       ],
@@ -447,18 +504,18 @@
         "index",
         "public",
         "bans",
-        "bans_ip_address_index"
+        "bans_ip_network_index"
       ],
       "writes": [
-        "s|idx|public.bans_ip_address_index",
-        "n|idx|public.bans_ip_address_index",
-        "e|idx|public.bans_ip_address_index",
-        "n|rel|public.bans_ip_address_index"
+        "s|idx|public.bans_ip_network_index",
+        "n|idx|public.bans_ip_network_index",
+        "e|idx|public.bans_ip_network_index",
+        "n|rel|public.bans_ip_network_index"
       ],
       "reads": [
         "n|tbl|public.bans",
         "n|sch|public",
-        "n|col|public.bans.ip_address"
+        "n|col|public.bans.ip_network"
       ]
     },
     {
@@ -1269,6 +1326,12 @@
     },
     {
       "schema": "public",
+      "name": "auth_attempts",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
       "name": "bans",
       "isRlsEnabled": false,
       "entityType": "tables"
@@ -1325,6 +1388,15 @@
         "FAILED_CREDENTIAL",
         "ARCHIVED_USER",
         "ARCHIVED_ANON"
+      ],
+      "entityType": "enums"
+    },
+    {
+      "schema": "public",
+      "name": "attempt_scopes",
+      "values": [
+        "CREDENTIAL",
+        "NETWORK"
       ],
       "entityType": "enums"
     },
@@ -1476,6 +1548,19 @@
       "table": "activities",
       "name": "ip_address",
       "type": "inet",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "activities",
+      "name": "ip_network",
+      "type": "cidr",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
@@ -1691,6 +1776,19 @@
     {
       "schema": "public",
       "table": "activities_archive",
+      "name": "ip_network",
+      "type": "cidr",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "activities_archive",
       "name": "weight",
       "type": "smallint",
       "typeSchema": null,
@@ -1758,6 +1856,58 @@
       "table": "anons",
       "name": "ip_addresses",
       "type": "inet",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "anons",
+      "name": "user_agents",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "anons",
+      "name": "countries",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "anons",
+      "name": "cities",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "anons",
+      "name": "regions",
+      "type": "text",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 1,
@@ -1869,6 +2019,58 @@
     {
       "schema": "public",
       "table": "anons_archive",
+      "name": "user_agents",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "anons_archive",
+      "name": "countries",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "anons_archive",
+      "name": "cities",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "anons_archive",
+      "name": "regions",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "anons_archive",
       "name": "user_id",
       "type": "uuid",
       "typeSchema": null,
@@ -1888,6 +2090,58 @@
       "notNull": false,
       "dimensions": 0,
       "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "auth_attempts",
+      "name": "scope",
+      "type": "attempt_scopes",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "auth_attempts",
+      "name": "target",
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "auth_attempts",
+      "name": "window_start",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "auth_attempts",
+      "name": "count",
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
       "generated": null,
       "identity": null,
       "entityType": "columns"
@@ -1947,8 +2201,8 @@
     {
       "schema": "public",
       "table": "bans",
-      "name": "ip_address",
-      "type": "inet",
+      "name": "ip_network",
+      "type": "cidr",
       "typeSchema": null,
       "notNull": false,
       "dimensions": 0,
@@ -2164,8 +2418,8 @@
     {
       "schema": "public",
       "table": "bans_archive",
-      "name": "ip_address",
-      "type": "inet",
+      "name": "ip_network",
+      "type": "cidr",
       "typeSchema": null,
       "notNull": false,
       "dimensions": 0,
@@ -2628,6 +2882,58 @@
     {
       "schema": "public",
       "table": "sessions",
+      "name": "user_agents",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "countries",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "cities",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "regions",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
       "name": "refresh_generation",
       "type": "smallint",
       "typeSchema": null,
@@ -2795,6 +3101,58 @@
       "table": "sessions_archive",
       "name": "ip_addresses",
       "type": "inet",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "user_agents",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "countries",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "cities",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions_archive",
+      "name": "regions",
+      "type": "text",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 1,
@@ -3031,11 +3389,11 @@
     {
       "schema": "public",
       "table": "activities",
-      "name": "activities_ip_address_timestamp_index",
+      "name": "activities_ip_network_timestamp_index",
       "nameExplicit": false,
       "columns": [
         {
-          "value": "ip_address",
+          "value": "ip_network",
           "isExpression": false,
           "asc": true,
           "nullsFirst": false,
@@ -3198,6 +3556,27 @@
     },
     {
       "schema": "public",
+      "table": "auth_attempts",
+      "name": "auth_attempts_window_start_index",
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "window_start",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
       "table": "bans",
       "name": "bans_expires_at_index",
       "nameExplicit": false,
@@ -3241,11 +3620,11 @@
     {
       "schema": "public",
       "table": "bans",
-      "name": "bans_ip_address_index",
+      "name": "bans_ip_network_index",
       "nameExplicit": false,
       "columns": [
         {
-          "value": "ip_address",
+          "value": "ip_network",
           "isExpression": false,
           "asc": true,
           "nullsFirst": false,
@@ -3253,7 +3632,7 @@
         }
       ],
       "isUnique": false,
-      "where": "\"ip_address\" is not null",
+      "where": "\"ip_network\" is not null",
       "with": "",
       "method": "btree",
       "concurrently": false,
@@ -3902,6 +4281,17 @@
     },
     {
       "schema": "public",
+      "table": "auth_attempts",
+      "name": "auth_attempts_pkey",
+      "columns": [
+        "scope",
+        "target"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
       "table": "activities",
       "name": "activities_pkey",
       "columns": [
@@ -4027,7 +4417,7 @@
       "nameExplicit": true,
       "columns": [
         "scope",
-        "ip_address",
+        "ip_network",
         "failed_credential",
         "user_id",
         "anon_id",
@@ -4041,7 +4431,7 @@
       "schema": "public",
       "table": "bans",
       "name": "bans_single_target_check",
-      "value": "num_nonnulls(\"ip_address\", \"failed_credential\", \"user_id\", \"anon_id\", \"users_archive_id\", \"anons_archive_id\") = 1",
+      "value": "num_nonnulls(\"ip_network\", \"failed_credential\", \"user_id\", \"anon_id\", \"users_archive_id\", \"anons_archive_id\") = 1",
       "entityType": "checks"
     }
   ]

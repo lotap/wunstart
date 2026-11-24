@@ -11,8 +11,11 @@ export const LocalStorageAuthFormStateSchema = Schema.Struct({
 	expiresAt: Schema.DateTimeUtcFromString,
 })
 
+/** What a passcode request returns: the row's expiry and the moment a resend is allowed */
+export type PasscodeRequestResult = {expiresAt: Date; resendAvailableAt: Date}
+
 /** The server function that requests a code email. Closed over its inputs, so callers invoke it with no arguments */
-export type RequestEmailPasscodeServerFn = () => Promise<{expiresAt: Date}>
+export type RequestEmailPasscodeServerFn = () => Promise<PasscodeRequestResult>
 
 export const passcodeRequestQueryOptions = ({
 	serverFn,
@@ -28,7 +31,12 @@ export const passcodeRequestQueryOptions = ({
 		queryFn: () => serverFn(),
 		select: (data) =>
 			Result.getOrThrow(
-				Schema.decodeResult(Schema.Struct({expiresAt: Schema.DateTimeUtcFromDate}))(data),
+				Schema.decodeResult(
+					Schema.Struct({
+						expiresAt: Schema.DateTimeUtcFromDate,
+						resendAvailableAt: Schema.DateTimeUtcFromDate,
+					}),
+				)(data),
 			),
 		staleTime: ({state: {data}}) => (data ? data.expiresAt.getTime() - Date.now() : 60 * 1000),
 		gcTime: 15 * 60 * 1000,

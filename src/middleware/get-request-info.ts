@@ -2,6 +2,7 @@ import {createMiddleware} from '@tanstack/react-start'
 import {getRequestHeader, getRequestIP} from '@tanstack/react-start/server'
 import {Result, Schema} from 'effect'
 
+import {canonicalIp} from '#/db/helpers/ip-network.ts'
 import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
 import {IpAddress} from '#/db/helpers/validators.ts'
 import {isValidTimeZone} from '#/lib/timezone.ts'
@@ -68,11 +69,15 @@ const resolveValidIp = (raw: string | undefined) => {
 
 export const getRequestInfo = createMiddleware().server(({next}) => {
 	/**
-	 * Preserve the full address for user-facing security displays; IPv6 /64
-	 * normalization belongs to the in-memory rate limiter. The address feeds
-	 * rate limits, bans, and the known-IP bypass, so never invent one: a
-	 * production request that cannot resolve a client IP fails closed, while
-	 * development falls back to loopback so the app stays usable.
+	 * Canonicalised first: an IPv4 client on a dual-stack listener or a proxy
+	 * passthrough arrives as `::ffff:a.b.c.d`, and Postgres reads that spelling
+	 * as IPv6, so the SQL known-IP mask would take its `/64` branch and collapse
+	 * every IPv4 client into one network. The result is still the full address
+	 * for user-facing displays; the limiter, activities, and bans derive their
+	 * network through `ipNetwork`, and the known-IP check masks in SQL from the
+	 * same `IP_NETWORK_PREFIX`. Never invent an address: a production request
+	 * that cannot resolve a client IP fails closed, while development falls back
+	 * to loopback so the app stays usable.
 	 */
 	const resolvedIp =
 		resolveValidIp(getRequestHeader(TRUSTED_IP_HEADER)) ??
@@ -83,7 +88,7 @@ export const getRequestInfo = createMiddleware().server(({next}) => {
 		throwKnownServerError(503, SERVICE_UNAVAILABLE_MESSAGE)
 	}
 
-	const ipAddress = resolvedIp
+	const ipAddress = canonicalIp(resolvedIp)
 
 	const userAgent = (getRequestHeader('user-agent') ?? 'unknown').trim().slice(0, 512)
 

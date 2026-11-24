@@ -17,6 +17,10 @@
  */
 export const GENERIC_AUTH_FAILURE_MESSAGE = 'Something went wrong. Please try again.'
 
+/** The durable auth attempt allowance denied an unauthenticated credential presentation. */
+export const AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE =
+	'Too many attempts. Give it a few minutes and try again.'
+
 /** The sudo lease behind a protected action has lapsed. */
 export const VERIFICATION_EXPIRED_MESSAGE =
 	'Your verification has expired. Re-verify, then try again.'

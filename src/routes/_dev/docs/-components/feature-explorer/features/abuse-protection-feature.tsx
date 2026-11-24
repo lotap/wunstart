@@ -1,7 +1,19 @@
+import {
+	EXCESSIVE_ACTIVITIES_THRESHOLD,
+	EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL,
+} from '#/db/models/activities/consts.ts'
+import {
+	PENALTY_INTERVAL_INITIAL,
+	PENALTY_INTERVAL_MAX_QTY,
+	PENALTY_INTERVAL_UNIT,
+} from '#/db/models/bans/consts.ts'
+
 import {CodeBlock, PromptBlock} from '../../code-block.tsx'
 import {PanelLink} from '../../doc-links.tsx'
 import {InlineCode, PanelList, PanelRow, PanelSection, Prose} from '../../doc-ui.tsx'
 import {FeatureShell} from '../feature-blocks.tsx'
+
+const threshold = EXCESSIVE_ACTIVITIES_THRESHOLD.toLocaleString('en-US')
 
 const stricterLimit = `const signInRateLimit = createRateLimit(3)
 
@@ -16,7 +28,7 @@ const captchaPrompt =
 	'Add a Cloudflare Turnstile challenge after three failed credential attempts. Verify the token server-side before the credential op and store only the verification outcome on the Activity.'
 
 const sharedLimiterPrompt =
-	'Replace the in-memory rate-limit store with a shared, atomic Redis-compatible service such as Redis, Valkey, or Upstash. Keep the 60-second weighted window (WINDOW_MS), the 12,600 threshold (EXCESSIVE_ACTIVITIES_THRESHOLD), the op denial penalty, and the IPv6 /64 keying; read the connection from environment config and fail open when the store is unavailable. Postgres bans remain the durable ceiling; this layer only rejects bursts across instances.'
+	'Replace the in-memory rate-limit store with a shared, atomic Redis-compatible service such as Redis, Valkey, or Upstash. Keep the 60-second weighted window (WINDOW_MS), the 12,600 threshold (EXCESSIVE_ACTIVITIES_THRESHOLD), the op denial penalty, and the network keying (ipNetwork in src/db/helpers/ip-network.ts); read the connection from environment config and fail open when the store is unavailable. The auth attempt allowance and Postgres bans remain the durable bounds; this layer only rejects bursts across instances.'
 
 /** Catalog entry for abuse protection. Details live in the Rate limits & bans reference panel. */
 export function AbuseProtectionFeature() {
@@ -27,18 +39,26 @@ export function AbuseProtectionFeature() {
 		>
 			<PanelSection id="abuse-protected" title="What is protected">
 				<Prose>
-					Every server function is rate-limited per IP. Auth functions get a tighter limit, and
-					credential ops check existing bans before they do any work.
+					Every server function is rate-limited per client network. Auth functions get a tighter
+					limit, and password sign-in and passcode verification check existing bans, look up the
+					account, then upsert the auth attempt rows, all before any hashing.
 				</Prose>
 				<PanelList>
 					<PanelRow label="All server functions">
-						150 requests per minute per IP, set by <InlineCode>createRateLimit(150)</InlineCode> in{' '}
-						<InlineCode>src/start.ts</InlineCode>.
+						150 requests per minute per network, set by{' '}
+						<InlineCode>createRateLimit(150)</InlineCode> in <InlineCode>src/start.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="Auth functions">
 						Defaults to 5 requests per minute (<InlineCode>rateLimit</InlineCode> in{' '}
 						<InlineCode>src/middleware/rate-limit.ts</InlineCode>), on top of the global limit.
 						Attach <InlineCode>rateLimit</InlineCode> to sign-up, sign-in, and passcode functions.
+					</PanelRow>
+					<PanelRow label="Auth attempt allowance">
+						Password sign-in and passcode verification are capped before any hashing, so a busy
+						office can exhaust the shared network allowance without an attack and stays capped until
+						the window rolls; a denial does not lengthen a lockout. The{' '}
+						<PanelLink panel="abuse">Rate limits & bans reference</PanelLink> owns the per-target
+						counters, the known-network escape, and the window.
 					</PanelRow>
 					<PanelRow label="Credential ops">
 						Check the IP, the claimed email, the User, and the Anon for active bans and excessive
@@ -47,9 +67,10 @@ export function AbuseProtectionFeature() {
 					<PanelRow label="Failures">
 						Ops log an Activity by default; <InlineCode>verifyAccess</InlineCode>,{' '}
 						<InlineCode>verifyAnon</InlineCode>, and <InlineCode>signAnon</InlineCode> skip the
-						success row. Enough weight in 10 minutes (
+						success row. Enough weight within {EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL} (
 						<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode>) creates a temporary ban,
-						which can extend up to 120 minutes (<InlineCode>PENALTY_INTERVAL_MAX_QTY</InlineCode> in{' '}
+						which can extend up to {PENALTY_INTERVAL_MAX_QTY} {PENALTY_INTERVAL_UNIT} (
+						<InlineCode>PENALTY_INTERVAL_MAX_QTY</InlineCode> in{' '}
 						<InlineCode>src/db/models/bans/consts.ts</InlineCode>).
 					</PanelRow>
 				</PanelList>
@@ -75,12 +96,14 @@ export function AbuseProtectionFeature() {
 				</Prose>
 				<PanelList>
 					<PanelRow label="threshold">
-						12,600 (<InlineCode>EXCESSIVE_ACTIVITIES_THRESHOLD</InlineCode>) weighted Activities in
-						a 10-minute window (<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode>) per
-						scope.
+						{threshold} weighted Activities within {EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL} per scope
+						(<InlineCode>EXCESSIVE_ACTIVITIES_THRESHOLD</InlineCode> and{' '}
+						<InlineCode>EXCESSIVE_ACTIVITIES_WINDOW_INTERVAL</InlineCode> in{' '}
+						<InlineCode>src/db/models/activities/consts.ts</InlineCode>).
 					</PanelRow>
 					<PanelRow label="penalty">
-						10 minutes at the threshold, doubling as weight accumulates, capped at 120 minutes (
+						{PENALTY_INTERVAL_INITIAL} at the threshold, doubling as weight accumulates, capped at{' '}
+						{PENALTY_INTERVAL_MAX_QTY} {PENALTY_INTERVAL_UNIT} (
 						<InlineCode>PENALTY_INTERVAL_INITIAL</InlineCode> and{' '}
 						<InlineCode>PENALTY_INTERVAL_MAX_QTY</InlineCode> in{' '}
 						<InlineCode>src/db/models/bans/consts.ts</InlineCode>).
@@ -88,11 +111,12 @@ export function AbuseProtectionFeature() {
 					<PanelRow label="weight">
 						84 (<InlineCode>ACTIVITIES_BASELINE_WEIGHT</InlineCode>) for a success. Credential
 						failures use the op’s rate allowance, so a wrong password costs far more than a page
-						read. A denial carries the full threshold.
+						read. A ban refusal carries the full threshold; an allowance-exhausted denial carries
+						zero.
 					</PanelRow>
 					<PanelRow label="known IP">
-						A failed-credential ban rejects a new IP but lets the account owner sign in from an IP
-						already on the User. A third party cannot lock the account out.
+						A failed-credential ban rejects a new network but lets the account owner sign in from a
+						network already on the User. A third party cannot lock the account out.
 					</PanelRow>
 				</PanelList>
 			</PanelSection>

@@ -4,9 +4,10 @@ import {createOpsFailure, OpsErrorSchema, type OpsFailureFields} from '#/db/ops/
 
 /**
  * Framework control error: the caller was rejected by ban/rate-limit logic.
- * The class tag is the control signal (`runOp` forwards it to the rate
- * limiter); the persisted audit row keeps `failureCause: 'RATE_LIMIT'` by
- * convention. Construct via {@link rateLimitFailure} to keep them aligned.
+ * The class is the control signal: `runOp` forwards a refusal to the
+ * rate limiter, which answers with a 429. The persisted audit row keeps its
+ * `failureCause` by convention. Construct via {@link rateLimitFailure}; the
+ * auth attempt allowance has its own class, so this stays single-meaning.
  */
 export class RateLimitError extends Schema.TaggedError<
 	RateLimitError,

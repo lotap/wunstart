@@ -1,7 +1,7 @@
 ---
 name: wunshot
 description: |
-  Portable Drizzle + Postgres + Effect database-module system. Use when finding/installing wunshot core modules (via Shadcn) or writing custom modules: tables, queries, validations, cascades, archive pairs, ban/activity references, auth module contract, Effect ops with activity logging, or comment voice for module and op files. Applies to any host project, regardless of frontend, runtime, or tree layout. Routing, middleware, cookies, and transport wiring belong to your app — this skill covers only the portable DB modules.
+  Portable Drizzle + Postgres + Effect database-module system. Use when finding/installing wunshot core modules (via Shadcn) or writing custom modules: tables, queries, validations, cascades, archive pairs, ban/activity references, auth attempt allowance and denial policy, auth module contract, Effect ops with activity logging, or comment voice for module and op files. Applies to any host project, regardless of frontend, runtime, or tree layout. Routing, middleware, cookies, and transport wiring belong to your app — this skill covers only the portable DB modules.
 ---
 
 # Wunshot
@@ -19,7 +19,7 @@ Read only what the task needs:
 - Prepared queries, query fns, validations, naming, drizzle gotchas: `references/queries-validations.md`
 - Op skeleton, `opsFailure`, labels, retry, hashing order, error contract: `references/ops-contract.md`
 - Auth module composition + db-side invariants (eviction, email service, sudo, denial weight): `references/auth.md`
-- Weight routing, ban scopes, array references: `references/bans.md`
+- Weight routing, ban scopes, auth attempt allowance, denial classes, network-keyed IP scope, array references: `references/bans.md`
 - Comment voice, policy-map comments, IDE-hover docs: § Philosophy below
 
 New module: start at `references/module-walkthrough.md`, then tables-archive → queries-validations → ops-contract as needed.
@@ -28,7 +28,7 @@ New module: start at `references/module-walkthrough.md`, then tables-archive →
 
 - **Never `pgTable` directly.** Use factories in `db/helpers/table-fns.ts` (all wrap `snakeCase.table`). Linted by `wunshot/no-pgtable-direct`.
 - **Effect Schema only.** No zod, no valibot. Bridge via `drizzle-orm/effect-schema`. Linted by `wunshot/no-zod-valibot`.
-- **Every table has an active + archive pair.** Deletes move rows, never hard-delete audit data. Append-only event streams use the log factories (`createActiveLogTable`, e.g. `activities`); entities use the regular ones. See `references/tables-archive.md`.
+- **Every table that records a fact has an active + archive pair.** Deletes move rows, never hard-delete audit data. Append-only event streams use the log factories (`createActiveLogTable`, e.g. `activities`); entities use the regular ones. A derived count table — no fact of its own; its presentations are already Activities — is the exception: it calls `snakeCase.table` directly with its own composite key, is swept by age, and keeps no twin (see `references/tables-archive.md`).
 - **Never catch `ArchiveCountMismatchError` inside a transaction or cascade body.** It means a concurrent archive won the delete; catching it commits the loser’s duplicate archive insert. Let it roll back and retry (`retryTransientOrArchiveRace`); catch it only outside an archive call that owns its transaction. Linted by `wunshot/no-catch-archive-count-mismatch-in-tx`; see `references/tables-archive.md`.
 - **Denials never carry `failedCredential`.** Pass email as `meta: {credential}` for audit only. Linted by `wunshot/no-failed-credential-in-denial`.
 - **`failureCause` and activity `label` stay free-form text.** Deliberate maintenance decision; do not “fix” into enums. Control flow uses the tagged error class, never the cause string: a caller that recovers from a specific failure declares an outcome class and catches it by tag or `Schema.is`.
@@ -57,7 +57,7 @@ Import rules (model files stay self-contained):
 
 | File | Imports from |
 | ---- | ------------ |
-| `schemas.ts` | `drizzle-orm`, `drizzle-orm/pg-core` column builders, `db/helpers/column-config.ts` + `table-fns.ts`, related models' `schemas.ts` |
+| `schemas.ts` | `drizzle-orm`, `drizzle-orm/pg-core` column builders, `db/helpers/column-config.ts` + `table-fns.ts`, `./consts.ts`, related models' `schemas.ts` |
 | `validations.ts` | `drizzle-orm/effect-schema`, `effect`, `RefinementsFor` from `db/helpers/types.ts`, shared refinements from `db/helpers/validators.ts` (+ client-shared shapes from your app's shared validators), `./schemas.ts` |
 | `queries.ts` | `drizzle-orm` operators, `createPreparedQuery` / `createQueryFn` from `db/helpers/query-fns.ts`, `./schemas.ts`, `./validations.ts`, `./views` (when the model has one) (+ connected models' schemas/validations/consts in `---` dirs) |
 | `cascades.ts` | `createArchiveFn` from `db/helpers/archive-fns.ts`, `./queries.ts`, `./schemas.ts` (+ other models' schemas/cascades for re-pointing) |
@@ -67,7 +67,7 @@ Cross-domain joins use `---` dirs, alphabetical (`activities---bans`): queries +
 
 Top-level `db/helpers/` serves all models: `table-fns.ts` (table factories), `query-fns.ts` (`createPreparedQuery` / `createQueryFn` + query SQL fragment helpers), `archive-fns.ts` (`createArchiveFn` / `createArchiveManyFn` + archive errors), `column-config.ts` (shared Drizzle column options: `TIMESTAMPTZ_CONFIG`, `ARCHIVE_ID_CONFIG`), `types.ts` (cross-module type aliases: `Tx`, `QueryExecutor`, …), `validators.ts` (shared Effect refinements: `IpAddress`, `Argon2Hash`, …), `array-fns.ts` (pure array helpers: `appendUniqueBounded`).
 
-**Constants placement:** choose by ownership, not by whether the value is a constant. Shared schema/column options (Drizzle `mode`, `withTimezone`, …) live in the shared column-config module (`db/helpers/column-config.ts`). Domain constants live in the nearest `consts.ts` scope containing every consumer (`models/<domain>/`, `ops/<domain>/`, or a subscope such as `ops/auth/<subscope>/`); a cross-scope constant stays at the domain root. For example, `SUDO_EXPIRATION_WINDOW` stays at the auth root, passcode policy lives in `strategies/email/consts.ts`, and token lifetime lives in `tokens/consts.ts`. A value that is a cross-layer contract or carries behavior gets its own named helper (e.g., `ip-sentinels.ts`), never `consts.ts`.
+**Constants placement:** choose by ownership, not by whether the value is a constant. Shared schema/column options (Drizzle `mode`, `withTimezone`, …) live in the shared column-config module (`db/helpers/column-config.ts`). Domain constants live in the nearest `consts.ts` scope containing every consumer (`models/<domain>/`, `ops/<domain>/`, or a subscope such as `ops/auth/<subscope>/`); a cross-scope constant stays at the domain root. The type follows the consumer: a value JS date math consumes is a number with the unit in the name (`REFRESH_GRACE_SECONDS`, `SESSION_EXPIRATION_DAYS`); a value only SQL consumes is a Postgres interval string named for its role (`AUTH_ATTEMPT_WINDOW`, `PASSCODE_EXPIRATION`), so the unit travels with the value and a threshold derived from it stays unit-agnostic; a value both consume carries both forms (`PENALTY_INTERVAL_INITIAL_QTY` + `PENALTY_INTERVAL_INITIAL`). For example, `SUDO_EXPIRATION_WINDOW` stays at the auth root, the passcode attempt and send limits live in `strategies/email/consts.ts` while the passcode lifespan lives in `models/email-verifications/consts.ts` (a column default reads it, and a model never imports from `ops/`), and token lifetime lives in `tokens/consts.ts`. A value that is a cross-layer contract or carries behavior gets its own named helper (e.g., `ip-sentinels.ts`), never `consts.ts`.
 
 **Messages placement:** a reader-facing message lives in the narrowest messages file that contains every module that emits it. The shared file is `messages.ts` (`db/ops/<domain>/messages.ts`; `isomorphic/<domain>-messages.ts` for client-imported copy); a scope-internal file is `_messages.ts` (`db/ops/auth/strategies/email/_messages.ts`, `db/ops/auth/strategies/password/_messages.ts`, `db/ops/auth/tokens/_messages.ts`, `middleware/_messages.ts`). `_` is a boundary directive, not a statement about current importers: only same-directory modules may import it. If a consumer outside the directory needs a message, promote that message to the nearest shared `messages.ts` instead of reaching in. Copy emitted across subfolders or by a domain-root module lives in the root `messages.ts`. Promote to the common parent when a second scope needs the message; the first message in a scope creates its file. Audit causes, parameter guards, internal state-error text, and log text are diagnostics and stay at the branch. Strings the client imports for recognition or display live in the host’s `isomorphic/<domain>-messages.ts`; no cross-domain or top-level `messages.ts`.
 

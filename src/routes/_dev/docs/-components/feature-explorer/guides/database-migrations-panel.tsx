@@ -7,7 +7,7 @@ const steps = [
 		description: (
 			<>
 				Edit the module in <InlineCode>src/db/models/&lt;domain&gt;/</InlineCode>. Every active
-				table keeps an archive twin.
+				table keeps an archive twin, except a derived counter, which is swept.
 			</>
 		),
 	},

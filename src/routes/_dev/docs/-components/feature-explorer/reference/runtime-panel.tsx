@@ -52,14 +52,16 @@ export function RuntimePanel() {
 				<Prose>
 					<InlineCode>src/server.ts</InlineCode> is the Wrangler entry point. It re-exports the
 					hasher Durable Object and exports the Start fetch handler plus a scheduled cron. The daily
-					job runs at 06:30 UTC and archives activities past the retention window (
-					<PanelLink panel="abuse">Rate limits & bans</PanelLink>).
+					job runs at 06:30 UTC: it archives activities past the retention window and deletes
+					attempt rows past their retention window. See{' '}
+					<PanelLink panel="abuse">Rate limits & bans</PanelLink>.
 				</Prose>
 				<CodeBlock code={workerEntry} label="src/server.ts" language="typescript" />
 
 				<Prose>
-					<InlineCode>bun run archive-old-activities</InlineCode> is the same archival path for a
-					VPS cron. It reads an exported <InlineCode>DATABASE_URL</InlineCode> first, then{' '}
+					<InlineCode>bun run archive-old-activities</InlineCode> and{' '}
+					<InlineCode>bun run purge-auth-attempts</InlineCode> are the same two jobs for a VPS cron.
+					They read an exported <InlineCode>DATABASE_URL</InlineCode> first, then{' '}
 					<InlineCode>.env.local</InlineCode>, then <InlineCode>.env</InlineCode>, because
 					production may have no env files.
 				</Prose>

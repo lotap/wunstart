@@ -4,6 +4,7 @@ import type {SchemaError} from 'effect/Schema'
 
 import * as anonsQueries from '#/db/models/anons/queries.ts'
 import * as emailVerificationsCascades from '#/db/models/email-verifications/cascades.ts'
+import {PASSCODE_EXPIRATION} from '#/db/models/email-verifications/consts.ts'
 import * as emailVerificationsQueries from '#/db/models/email-verifications/queries.ts'
 import * as usersQueries from '#/db/models/users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
@@ -219,7 +220,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 			try:
 				/**
 				 * Resolve which email to send. The row is always minted and the response
-				 * is always `{expiresAt}`, so neither timing nor delivery state leaks
+				 * shape is always the same, so neither timing nor delivery state leaks
 				 * whether the address is registered. Only the inbox owner sees the
 				 * flow-aware copy.
 				 *
@@ -230,12 +231,18 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 				intent === 'sign-in' && !recipientExists
 					? () => renderNoAccountFound(appUrl)
 					: () =>
-							renderVerificationEmail(
+							renderVerificationEmail({
 								code,
 								appUrl,
-								intent === 'sign-up' ? (recipientExists ? 'signup-existing' : 'signup') : 'signin',
+								variant:
+									intent === 'sign-up'
+										? recipientExists
+											? 'signup-existing'
+											: 'signup'
+										: 'signin',
 								anonBound,
-							),
+								expiresIn: PASSCODE_EXPIRATION,
+							}),
 			catch: (cause) =>
 				opsFailure({
 					failureCause: 'EMAIL_RENDER',
@@ -286,7 +293,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 		 * younger than the reset window, nothing was mailed, and the message tells
 		 * the caller to wait. Charge no ban weight — a burst of clicks in a stale
 		 * tab must not ban the account — and leave request-rate limiting to the
-		 * per-IP middleware. The insert above is the authoritative throttle, so a
+		 * per-network middleware. The insert above is the authoritative throttle, so a
 		 * concurrent re-request still hashes and lands here.
 		 */
 		if (!data)
@@ -342,11 +349,11 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 		return {
 			...data,
 			/**
-			 * `PASSCODE_SENDS_PER_WINDOW` sends per activity window per IP and
+			 * `PASSCODE_SENDS_PER_WINDOW` sends per activity window per network and
 			 * identity, enforced by the ban pipeline: the next pre-check denies and
 			 * creates the bans. An Anon send weighs on IP + Anon; a session send
 			 * weighs on IP + User, so a shared NAT can lose sign-in and refresh, and
-			 * the account can lose refresh until the ban lifts. The per-IP middleware
+			 * the account can lose refresh until the ban lifts. The per-network middleware
 			 * is burst defense; this durable cap is the only per-account email-send
 			 * bound.
 			 */

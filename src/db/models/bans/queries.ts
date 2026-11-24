@@ -22,7 +22,7 @@ export const insert = createPreparedQuery({
 			.insert(activeTable)
 			.values({
 				scope: sql.placeholder('scope'),
-				ipAddress: sql.placeholder('ipAddress'),
+				ipNetwork: sql.placeholder('ipNetwork'),
 				userId: sql.placeholder('userId'),
 				anonId: sql.placeholder('anonId'),
 				failedCredential: sql.placeholder('failedCredential'),
@@ -55,7 +55,7 @@ export const insert = createPreparedQuery({
 export const insertOrMergeMany = createQueryFn({
 	vSchema: V.InsertMany,
 	query: (qx, inputs) => {
-		const {scope, ipAddress, failedCredential, userId, anonId, usersArchiveId, anonsArchiveId} =
+		const {scope, ipNetwork, failedCredential, userId, anonId, usersArchiveId, anonsArchiveId} =
 			getColumns(activeTable)
 
 		return qx
@@ -73,7 +73,7 @@ export const insertOrMergeMany = createQueryFn({
 			.onConflictDoUpdate({
 				target: [
 					scope,
-					ipAddress,
+					ipNetwork,
 					failedCredential,
 					userId,
 					anonId,
@@ -115,9 +115,16 @@ export const insertOrMergeMany = createQueryFn({
 /// UPDATE ///
 
 /**
- * Extends every listed ban in ONE statement: appends the new activity's id and
- * adds its weight to the ban's total_weight accumulator, then pushes expiry
- * out by a penalty derived from each ban's own pre-update total.
+ * Touches every listed ban in ONE statement: appends the new activity's id, adds
+ * its weight to the ban's total_weight accumulator, and pushes the expiry out by
+ * a penalty derived from the ban's own pre-update total when that weight is
+ * positive.
+ *
+ * A zero delta records the activity and leaves the expiry alone. Weight-0 rows
+ * reach here too — allowance-exhausted denials, dead sessions, defects — and
+ * `GREATEST(expires_at, now() + penalty)` would re-anchor the ban to a fresh
+ * penalty on every one of them, so an unweighted request could keep a ban alive
+ * indefinitely. Only weighted activity moves the expiry.
  *
  * The per-ban interval is computed inside SQL from `total_weight`. An
  * UPDATE's SET clause sees pre-update values, which matches
@@ -135,19 +142,22 @@ export const extendMany = createPreparedQuery({
 			.set({
 				activityIds: sql`${activeTable.activityIds} || ${sql.placeholder('activityId')}::uuid`,
 				totalWeight: sql`${activeTable.totalWeight} + ${sql.placeholder('weightDelta')}::bigint`,
-				expiresAt: sql`GREATEST(
-					${activeTable.expiresAt},
-					now() + make_interval(mins => LEAST(
-						ceil(${PENALTY_INTERVAL_INITIAL_QTY}::double precision * power(
-							2::double precision,
-							LEAST(
-								${activeTable.totalWeight}::double precision / ${EXCESSIVE_ACTIVITIES_THRESHOLD}::double precision - 1,
-								5::double precision
-							)
-						))::int,
-						${PENALTY_INTERVAL_MAX_QTY}
-					))
-				)`,
+				expiresAt: sql`CASE
+					WHEN ${sql.placeholder('weightDelta')}::bigint > 0 THEN GREATEST(
+						${activeTable.expiresAt},
+						now() + make_interval(mins => LEAST(
+							ceil(${PENALTY_INTERVAL_INITIAL_QTY}::double precision * power(
+								2::double precision,
+								LEAST(
+									${activeTable.totalWeight}::double precision / ${EXCESSIVE_ACTIVITIES_THRESHOLD}::double precision - 1,
+									5::double precision
+								)
+							))::int,
+							${PENALTY_INTERVAL_MAX_QTY}
+						))
+					)
+					ELSE ${activeTable.expiresAt}
+				END`,
 			})
 			.where(
 				sql`${activeTable.id} = ANY(${sql.placeholder('ids')}::uuid[]) AND ${activeTable.expiresAt} >= now()`,

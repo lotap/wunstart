@@ -2,6 +2,7 @@ import {and, eq, getColumns, isNotNull, or, sql} from 'drizzle-orm'
 
 import {createPreparedQuery} from '#/db/helpers/query-fns.ts'
 
+import {PASSCODE_EXPIRATION} from './consts.ts'
 import {activeTable, archiveTable, tableName} from './schemas.ts'
 import * as V from './validations.ts'
 
@@ -12,6 +13,17 @@ const labelPrefix = tableName
 const {passcodeHash, ...nonsensitiveCols} = getColumns(activeTable)
 
 const {id, anonId, userId, attempts, email, expiresAt} = nonsensitiveCols
+
+/**
+ * How far from expiry a row must be before the requester may ask again: the full
+ * lifespan less one minute. One definition serves the reset guard and the
+ * timestamp both writes return for the resend countdown, so what the server
+ * allows and what the button counts down to cannot disagree.
+ *
+ * The parentheses are load-bearing: a fragment interpolated after `-` expands
+ * without them, and `expires_at - a - b` subtracts twice
+ */
+const resendFloor = sql`(${PASSCODE_EXPIRATION}::interval - interval '1 minute')`
 
 /// INSERT ///
 
@@ -26,7 +38,7 @@ export const insert = createPreparedQuery({
 				email: sql.placeholder('email'),
 				passcodeHash: sql.placeholder('passcodeHash'),
 			})
-			.returning({id, expiresAt})
+			.returning({id, expiresAt, resendAvailableAt: sql<Date>`${expiresAt} - ${resendFloor}`})
 			.prepare(`${labelPrefix}_insert`),
 })
 
@@ -125,7 +137,7 @@ export const resetFromExpiringByEmail = createPreparedQuery({
 			.update(activeTable)
 			.set({
 				attempts: 0,
-				expiresAt: sql`now() + '15 minutes'::interval`,
+				expiresAt: sql`now() + ${PASSCODE_EXPIRATION}::interval`,
 				passcodeHash: sql.placeholder('passcodeHash'),
 			})
 			.where(
@@ -136,12 +148,12 @@ export const resetFromExpiringByEmail = createPreparedQuery({
 						and(isNotNull(userId), eq(userId, sql.placeholder('userId'))),
 					),
 					// Reset window: the row must be at least a minute old. A row minted less
-					// than a minute ago still expires more than 14 minutes out, so it fails
-					// this comparison and the re-request is refused instead of resetting.
-					sql`${expiresAt} < now() + '14 minutes'::interval`,
+					// than a minute ago still expires past this threshold, so it fails the
+					// comparison and the re-request is refused instead of resetting.
+					sql`${expiresAt} < now() + ${resendFloor}`,
 				),
 			)
-			.returning({id, expiresAt})
+			.returning({id, expiresAt, resendAvailableAt: sql<Date>`${expiresAt} - ${resendFloor}`})
 			.prepare(`${labelPrefix}_reset_from_expiring_by_email`),
 })
 

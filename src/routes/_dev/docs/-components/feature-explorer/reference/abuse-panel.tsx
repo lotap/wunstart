@@ -35,21 +35,24 @@ import {
 } from '../../doc-ui.tsx'
 
 const guardrailsChart = `flowchart LR
-  request(["Server fn request"]) -->|"global limit"| mw["rateLimit · per-IP score"]
+  request(["Server fn request"]) -->|"global limit"| mw["rateLimit · per-network score"]
   mw -->|"over limit"| denied["429"]
   mw -->|"server fn"| auth["verifyAuth"]
-  auth -->|"fallback refresh"| refresh["refresh lane · refresh:IP"]
+  auth -->|"fallback refresh"| refresh["refresh lane · refresh|network"]
   refresh -->|"over limit"| denied
-  auth -->|"sign-out"| sout["sign-out lane · sign-out:IP"]
+  auth -->|"sign-out"| sout["sign-out lane · sign-out|network"]
   sout -->|"over limit"| denied
   auth -->|"server fn"| op["runOp · createOpsFn"]
   op -->|"credential ops"| check["checkCurrentBansAndExcessiveActivities"]
   check --> bans[("bans")]
   check --> activities[("activities")]
+  check -->|"passed"| lookup["account lookup"]
+  lookup -->|"upsert · unauthenticated"| allowance["auth attempt allowance · auth_attempts"]
+  allowance -->|"exhausted"| denied
   op -->|"success / failure"| log["logActivityAndHandleBans"]
   log --> activities
   log -->|"extend / create"| bans
-  op -->|"RateLimitError"| weight["extra IP weight"] --> denied`
+  op -->|"ban refusal"| weight["extra IP weight"] --> denied`
 
 const references = [
 	{
@@ -131,11 +134,13 @@ export function AbusePanel() {
 				description="Request limits, weighted activity, and temporary bans."
 			/>
 
-			<PanelSection id="abuse-layers" title="Two layers">
+			<PanelSection id="abuse-layers" title="Layers">
 				<Prose>
-					The first layer is an in-memory request limiter. The second is a database-backed ban
-					system fed by logged op outcomes. The limiter rejects bursts; bans reject a subject over a
-					longer window.
+					An in-memory request limiter rejects bursts, but it lives in one isolate. The
+					database-backed layers are the durable bound: an auth attempt allowance caps credential
+					presentations before any hashing, and failure-weighted bans lock a subject out over a
+					longer window. They divide the job — the allowance bounds pre-hash work, the weight sets
+					the lockout and the penalty.
 				</Prose>
 				<figure>
 					<figcaption className="text-sm font-medium text-muted-foreground">
@@ -149,56 +154,79 @@ export function AbusePanel() {
 						/>
 					</div>
 				</figure>
+				<PanelList>
+					<PanelRow label="request limiter">
+						In-memory and per isolate. Rejects bursts, resets on deploy, and is not shared across
+						instances.
+					</PanelRow>
+					<PanelRow label="auth attempt allowance">
+						Rows in <InlineCode>auth_attempts</InlineCode> count unauthenticated credential
+						presentations per client network and claimed email, upserted before Argon2 or a passcode
+						hash. The upsert is one atomic statement, so a concurrent burst cannot pass a stale
+						read. Successes count like failures; the claimed-email row follows the known-IP escape,
+						and the network row always counts. A denial returns a direct 429 from the boundary and
+						adds no limiter weight of its own, but the request was already counted when it entered,
+						so a retry loop still spends the network’s limiter budget. Allowances and the window
+						live in <InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
+					</PanelRow>
+					<PanelRow label="bans">
+						Weighted Activities create and extend a temporary block on one scope. This is the
+						lockout: an allowance-exhausted denial carries weight 0, so it adds no weight and cannot
+						raise a total or move an expiry; it can still be the activity that lands an
+						already-earned ban.
+					</PanelRow>
+				</PanelList>
 				<Prose>
 					<InlineCode>src/start.ts</InlineCode> installs{' '}
 					<InlineCode>createRateLimit(150)</InlineCode> on every server function. Auth server
 					functions add the tighter <InlineCode>rateLimit</InlineCode>; sign-out uses its own scoped{' '}
 					<InlineCode>signOutRateLimit</InlineCode>, and fallback refresh attempts consume a
 					separate <InlineCode>refresh</InlineCode> bucket before the refresh op runs. Ops log their
-					outcome through <InlineCode>createOpsFn</InlineCode>, and credential ops pre-check bans
-					before doing any work.
+					outcome through <InlineCode>createOpsFn</InlineCode>, and an unauthenticated credential
+					presentation is counted in <InlineCode>auth_attempts</InlineCode> before it reaches a
+					hash.
 				</Prose>
 			</PanelSection>
 
 			<PanelSection id="abuse-request-limiter" title="Request limiter">
 				<Prose>
 					<InlineCode>createRateLimit(max)</InlineCode> admits <InlineCode>max</InlineCode> requests
-					per IP in a 60-second window (<InlineCode>WINDOW_MS</InlineCode> in{' '}
+					per network in a 60-second window (<InlineCode>WINDOW_MS</InlineCode> in{' '}
 					<InlineCode>src/middleware/rate-limit.ts</InlineCode>). Each request adds{' '}
-					<InlineCode>ceil({threshold} / max)</InlineCode> to the IP’s score; the request that
+					<InlineCode>ceil({threshold} / max)</InlineCode> to the network’s score; the request that
 					pushes the score above {threshold} gets a 429. The scoped refresh and sign-out buckets use
 					the same formula in their own keys.
 				</Prose>
 				<PanelList>
 					<PanelRow label="createRateLimit(150)">
-						The global limiter: 150 requests per minute per IP, set by{' '}
+						The global limiter: 150 requests per minute per network, set by{' '}
 						<InlineCode>createRateLimit(150)</InlineCode> in <InlineCode>src/start.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="rateLimit">
-						The auth limiter: 5 requests per minute per IP (<InlineCode>rateLimit</InlineCode> in{' '}
-						<InlineCode>src/middleware/rate-limit.ts</InlineCode>). Attach it to sign-up, sign-in,
-						and passcode functions. It shares the global key, so a request that passes both limits
-						consumes both weights from one budget.
+						The auth limiter: 5 requests per minute per network (<InlineCode>rateLimit</InlineCode>{' '}
+						in <InlineCode>src/middleware/rate-limit.ts</InlineCode>). Attach it to sign-up,
+						sign-in, and passcode functions. It shares the global key, so a request that passes both
+						limits consumes both weights from one budget.
 					</PanelRow>
 					<PanelRow label="refresh bucket">
-						30 fallback refresh attempts per minute per IP (
+						30 fallback refresh attempts per minute per network (
 						<InlineCode>REFRESH_ATTEMPTS_PER_MINUTE</InlineCode> in{' '}
 						<InlineCode>src/middleware/verify-auth.ts</InlineCode>). Keyed{' '}
-						<InlineCode>refresh:&lt;ip&gt;</InlineCode> so it does not spend the global/auth score.
-						Checked in <InlineCode>verifyAuth</InlineCode> before the refresh op; a normal browser
-						refreshes about once per access-token lifetime. The lane is per-IP and runs before the
-						token is verified, so on a shared egress a dead pair retrying at the global rate can 429
-						other clients’ refresh fallback for the rest of the window. Per-session keying would
-						need the verification the lane exists to bound.
+						<InlineCode>refresh|&lt;network&gt;</InlineCode> so it does not spend the global/auth
+						score. Checked in <InlineCode>verifyAuth</InlineCode> before the refresh op; a normal
+						browser refreshes about once per access-token lifetime. The lane is per-network and runs
+						before the token is verified, so on a shared egress a dead pair retrying at the global
+						rate can 429 other clients’ refresh fallback for the rest of the window. Per-session
+						keying would need the verification the lane exists to bound.
 					</PanelRow>
 					<PanelRow label="sign-out bucket">
-						30 sign-out requests per minute per IP (
+						30 sign-out requests per minute per network (
 						<InlineCode>SIGN_OUT_ATTEMPTS_PER_MINUTE</InlineCode> in{' '}
 						<InlineCode>src/middleware/rate-limit.ts</InlineCode>), keyed{' '}
-						<InlineCode>sign-out:&lt;ip&gt;</InlineCode>. Both sign-out handlers run the refresh
-						nonce check, but sign-out cannot guess a credential and a shared egress can sign out
-						several devices at once, so the lane bounds the Argon2 work without spending the auth
-						budget. The global limiter remains the outer bound.
+						<InlineCode>sign-out|&lt;network&gt;</InlineCode>. Both sign-out handlers run the
+						refresh nonce check, but sign-out cannot guess a credential and a shared egress can sign
+						out several devices at once, so the lane bounds the Argon2 work without spending the
+						auth budget. The global limiter remains the outer bound.
 					</PanelRow>
 					<PanelRow label="storage">
 						An in-memory <InlineCode>Map</InlineCode> in the Worker. It is per isolate, not shared
@@ -206,7 +234,7 @@ export function AbusePanel() {
 						limit.
 					</PanelRow>
 					<PanelRow label="stacking">
-						The global and auth limiters feed the same per-IP score (
+						The global and auth limiters feed the same per-network score (
 						<InlineCode>addRateLimitEvent</InlineCode> without a scope), so a request that passes
 						both consumes both weights. The refresh and sign-out buckets pass a{' '}
 						<InlineCode>scope</InlineCode> and use their own keys, so they do not spend that budget.
@@ -250,8 +278,14 @@ export function AbusePanel() {
 						Carries the full {threshold}. A denied attempt is enough to keep the subject banned on
 						its own.
 					</PanelRow>
+					<PanelRow label="auth attempt allowance denial">
+						Zero. The auth attempt allowance bounds pre-hash work and is audited; the denial adds no
+						weight, so it cannot raise a total or move an expiry. The failure weights above decide
+						the lockout.
+					</PanelRow>
 					<PanelRow label="defect">
-						Zero. A server-side defect is not user behavior and must not feed a ban.
+						Zero. A server-side defect is not user behavior and adds no weight; it cannot raise a
+						total or move an expiry.
 					</PanelRow>
 				</PanelList>
 				<Prose>
@@ -286,7 +320,7 @@ export function AbusePanel() {
 									Weight
 								</PanelTableHeader>
 								<PanelTableHeader scope="col" className="px-5 py-3">
-									Allowance
+									Rate allowance
 								</PanelTableHeader>
 							</tr>
 						</thead>
@@ -318,10 +352,10 @@ export function AbusePanel() {
 					</table>
 				</div>
 				<Prose>
-					Allowance is failures per ban window; weight is the threshold divided by allowance,
-					rounded up. Anon and grace expired rows are unreachable today and omitted; the policy maps
-					still define them. Terminal refresh-token handling never feeds the ban threshold; its
-					behavior lives in <PanelLink panel="auth">Auth</PanelLink>.
+					Rate allowance is failures per ban window; weight is the threshold divided by rate
+					allowance, rounded up. Anon and grace expired rows are unreachable today and omitted; the
+					policy maps still define them. Terminal refresh-token handling never feeds the ban
+					threshold; its behavior lives in <PanelLink panel="auth">Auth</PanelLink>.
 				</Prose>
 			</PanelSection>
 
@@ -329,16 +363,25 @@ export function AbusePanel() {
 				<Prose>
 					A ban is one temporary block on one scope. Credential ops check the current bans and the
 					recent weighted activity before they do any work. An IP, User, or Anon match rejects
-					immediately; a failed-credential match follows the known-IP rule below.
+					immediately; a failed-credential match follows the known-IP rule below, compared by
+					network.
 				</Prose>
 				<PanelList>
 					<PanelRow label="IP_ADDRESS">
-						The request IP. Applies to every op that receives an IP address; the boundary rejects a
-						request without a resolvable client IP.
+						The request IP network: a <InlineCode>/64</InlineCode> for IPv6, so a client rotating
+						addresses inside its own allocation cannot reset the ban, and a{' '}
+						<InlineCode>/32</InlineCode> for IPv4, which keys the exact address instead of catching
+						unrelated neighbours behind the same provider or office egress.{' '}
+						<InlineCode>IP_NETWORK_PREFIX</InlineCode> in{' '}
+						<InlineCode>src/db/helpers/ip-network.ts</InlineCode> owns the mask. Applies to every op
+						that receives an IP address; the boundary rejects a request without a resolvable client
+						IP.
 					</PanelRow>
 					<PanelRow label="FAILED_CREDENTIAL">
-						The email an attempt claimed. Only applied when a User exists and the request comes from
-						a new IP; a known IP can still sign in, so a third party cannot lock the account out.
+						The email an attempt claimed. Applied only when a User exists and the request comes from
+						a new network; a known network can still sign in, so a third party cannot lock the
+						account out. The escape is per network — an IPv6 `/64` is one known network — and the
+						credential attempt row follows it; the network row never does.
 					</PanelRow>
 					<PanelRow label="USER">The signed-in User.</PanelRow>
 					<PanelRow label="ANON">The anonymous identity.</PanelRow>
@@ -366,8 +409,8 @@ export function AbusePanel() {
 						function.
 					</PanelRow>
 					<PanelRow label="Ops rejection" labelVariant="text">
-						HTTP 429. <InlineCode>runOp</InlineCode> adds the denial weight before the response
-						leaves.
+						HTTP 429. <InlineCode>runOp</InlineCode> forwards a ban refusal to the limiter; an
+						allowance denial is answered directly (see the allowance row above).
 					</PanelRow>
 					<PanelRow label="Anticipated failure" labelVariant="text">
 						HTTP 422 with the op’s client-safe message. Credential failures deliberately share one

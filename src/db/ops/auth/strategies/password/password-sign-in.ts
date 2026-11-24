@@ -1,16 +1,21 @@
 import {DateTime, Effect} from 'effect'
 
-import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
 import {DB} from '#/db/index.ts'
 import * as sessionsUsersQueries from '#/db/models/sessions---users/queries.ts'
 import * as usersQueries from '#/db/models/users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
 import {retryTransientDb, retryTransientOrArchiveRace} from '#/db/ops/_retry.ts'
+import {authAttemptAllowanceFailure} from '#/db/ops/auth-attempt-allowance-error.ts'
+import {
+	enforceAuthAttemptAllowance,
+	skipsCredentialAttempt,
+} from '#/db/ops/auth/_attempt-allowance.ts'
 import {DUMMY_ARGON2_HASH, hashTarget, verifyTarget} from '#/db/ops/auth/_hashing.ts'
 import {formatUserAgent} from '#/db/ops/auth/_user-agent.ts'
 import {retireAnon} from '#/db/ops/auth/anons/_retire-anon.ts'
 import {SUDO_EXPIRATION_WINDOW} from '#/db/ops/auth/consts.ts'
+import {AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE} from '#/db/ops/auth/messages.ts'
 import {createSession} from '#/db/ops/auth/sessions/_create-session.ts'
 import {generateAccessToken} from '#/db/ops/auth/tokens/_access-token.ts'
 import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/tokens/_anon-token.ts'
@@ -94,20 +99,36 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 	const [user] = yield* sessionsUsersQueries.selectUserWithKnownIpByEmail({email, ipAddress})
 
 	/**
-	 * If the credential has bans or excessive activities AND this is not a known IP
-	 * for an existing user, reject with rateLimitFailure before running Argon2id.
-	 * This allows a legitimate user on a known IP to sign in during a brute-force attack,
-	 * while routing unknown-IP denial weight to IP_ADDRESS scope without extending the
-	 * credential ban or burning AuthHasher DO CPU.
+	 * If the credential has bans or excessive activities AND this is not a known
+	 * network for an existing user, reject with rateLimitFailure before running
+	 * Argon2id. This allows a legitimate user on a known network to sign in during
+	 * a brute-force attack, while routing unknown-network denial weight to
+	 * IP_ADDRESS scope without extending the credential ban or burning AuthHasher
+	 * DO CPU.
 	 */
 	if (
 		currentBansAndExcessiveActivities.filter((element) => element.scope === 'FAILED_CREDENTIAL')
 			.length &&
-		(!user || !isClientIpAddress(ipAddress) || !user.hasKnownIp)
+		!skipsCredentialAttempt({user, ipAddress})
 	)
 		return yield* rateLimitFailure({
 			message: PASSWORD_SIGN_IN_GENERIC_FAILURE_MESSAGE,
 			/** Denial payload omits failedCredential, so weight routes to IP scope; meta keeps the email for audit */
+			meta: {credential: email},
+			anonId: registeredAnonId,
+		})
+
+	/** Upsert before hashing; a network denial short-circuits the email allowance */
+	const {allowed} = yield* enforceAuthAttemptAllowance({
+		ipAddress,
+		email,
+		user,
+	})
+
+	if (!allowed)
+		return yield* authAttemptAllowanceFailure({
+			message: AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE,
+			/** Allowance-exhausted denials carry weight 0; meta keeps the email for audit only */
 			meta: {credential: email},
 			anonId: registeredAnonId,
 		})
@@ -120,7 +141,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 			failureCause: 'USER_NOT_FOUND',
 			failedCredential: email,
 			anonId: registeredAnonId,
-			rateAllowance: 4,
+			rateAllowance: 10,
 			message: PASSWORD_SIGN_IN_GENERIC_FAILURE_MESSAGE,
 		})
 	}
@@ -134,7 +155,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 			failureCause: 'NO_PASSWORD_ON_USER',
 			failedCredential: email,
 			anonId: registeredAnonId,
-			rateAllowance: 4,
+			rateAllowance: 10,
 			message: PASSWORD_SIGN_IN_GENERIC_FAILURE_MESSAGE,
 		})
 	}
@@ -147,7 +168,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 				failureCause: 'WRONG_PASSWORD',
 				failedCredential: email,
 				anonId: registeredAnonId,
-				rateAllowance: 4,
+				rateAllowance: 10,
 				message: PASSWORD_SIGN_IN_GENERIC_FAILURE_MESSAGE,
 			})
 

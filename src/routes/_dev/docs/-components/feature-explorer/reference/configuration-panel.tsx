@@ -86,7 +86,8 @@ export function ConfigurationPanel() {
 			<PanelSection id="environment-files" title="Environment files">
 				<Prose>
 					For the dev server and db scripts, file values win over exported shell variables. The
-					exception is <InlineCode>archive-old-activities</InlineCode>, which reads an exported{' '}
+					exceptions are the VPS cron jobs — <InlineCode>archive-old-activities</InlineCode> and{' '}
+					<InlineCode>purge-auth-attempts</InlineCode> — which read an exported{' '}
 					<InlineCode>DATABASE_URL</InlineCode> first because production has no files.
 				</Prose>
 				<dl className="grid gap-4 md:grid-cols-2">

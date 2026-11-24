@@ -97,7 +97,7 @@ const flowGroups = [
 					{
 						name: 'Tables',
 						where: 'schemas.ts',
-						job: 'Active and archive twins built through the table factories. Deletes move rows, never hard-delete audit data.',
+						job: 'Active and archive twins built through the table factories. Deletes move rows, never hard-delete audit data; a derived counter is swept instead.',
 					},
 					{
 						name: 'Validations',

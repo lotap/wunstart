@@ -1,21 +1,16 @@
 import {createInsertSchema, createSelectSchema} from 'drizzle-orm/effect-schema'
 import {Effect, Schema, Struct} from 'effect'
 
-import type {RefinementsFor} from '#/db/helpers/types.ts'
-import {IpAddress, PGVerboseInterval, UUID, withNullDefault} from '#/db/helpers/validators.ts'
+import {PGVerboseInterval, UUID, withNullDefault} from '#/db/helpers/validators.ts'
 
 import {PENALTY_INTERVAL_INITIAL} from './consts.ts'
 import {activeTable} from './schemas.ts'
 
 /// PRIMITIVES ///
 
-const overrides = {
-	ipAddress: Schema.optional(Schema.NullishOr(IpAddress)),
-} satisfies RefinementsFor<typeof activeTable>
+const insertPrimitive = createInsertSchema(activeTable)
 
-const insertPrimitive = createInsertSchema(activeTable, overrides)
-
-const selectPrimitive = createSelectSchema(activeTable, overrides)
+const selectPrimitive = createSelectSchema(activeTable)
 
 const PenaltyInterval = Schema.optional(PGVerboseInterval).pipe(
 	Schema.withDecodingDefault(Effect.succeed(PENALTY_INTERVAL_INITIAL)),
@@ -34,7 +29,7 @@ const insertBaseVariant = insertPrimitive
 			anonId: (field) => field.pipe(withNullDefault),
 			anonsArchiveId: (field) => field.pipe(withNullDefault),
 			failedCredential: (field) => field.pipe(withNullDefault),
-			ipAddress: (field) => field.pipe(withNullDefault),
+			ipNetwork: (field) => field.pipe(withNullDefault),
 			userId: (field) => field.pipe(withNullDefault),
 			usersArchiveId: (field) => field.pipe(withNullDefault),
 			totalWeight: (field) => field.pipe(Schema.withDecodingDefault(Effect.succeed(BigInt(0)))),
@@ -64,7 +59,8 @@ export const Insert = Schema.Union([
 	insertBaseVariant.mapFields(
 		Struct.evolve({
 			scope: () => Schema.Literal('IP_ADDRESS'),
-			ipAddress: () => IpAddress,
+			/** The network is the target and the only IP value a ban carries */
+			ipNetwork: () => Schema.String,
 		}),
 	),
 	insertBaseVariant.mapFields(

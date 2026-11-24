@@ -6,6 +6,8 @@ import {createActiveTable, createArchiveTable} from '#/db/helpers/table-fns.ts'
 import {activeTable as anons, archiveTable as anonsArchive} from '#/db/models/anons/schemas.ts'
 import {activeTable as users, archiveTable as usersArchive} from '#/db/models/users/schemas.ts'
 
+import {PASSCODE_EXPIRATION} from './consts.ts'
+
 export const tableName = 'email_verifications'
 
 /** Columns with identical definitions in the active and archive tables */
@@ -22,9 +24,13 @@ export const activeTable = createActiveTable(
 	{
 		...baseCols,
 		passcodeHash: text().notNull(),
+		/**
+		 * A default cannot bind a param, so the interval is spliced. Safe because
+		 * `PASSCODE_EXPIRATION` is a module constant, never request data
+		 */
 		expiresAt: timestamp(TIMESTAMPTZ_CONFIG)
 			.notNull()
-			.default(sql`now() + '15 minutes'::interval`),
+			.default(sql.raw(`now() + '${PASSCODE_EXPIRATION}'::interval`)),
 	},
 	(t) => [
 		uniqueIndex('email_verifications_email_lower_anon_unique').on(sql`lower(${t.email})`, t.anonId),

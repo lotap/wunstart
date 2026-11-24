@@ -19,7 +19,7 @@ const {
 	anonId: activityAnonId,
 	anonsArchiveId: activityAnonsArchiveId,
 	id: activityId,
-	ipAddress: activityIpAddress,
+	ipNetwork: activityIpNetwork,
 	timestamp: activityTimestamp,
 	userId: activityUserId,
 	usersArchiveId: activityUsersArchiveId,
@@ -28,7 +28,7 @@ const {
 
 const {
 	id: banId,
-	ipAddress: banIpAddress,
+	ipNetwork: banIpNetwork,
 	failedCredential: banFailedCredential,
 	userId: banUserId,
 	anonId: banAnonId,
@@ -60,7 +60,7 @@ const excessiveArm = (
 	targetColumn: PgColumn,
 	placeholderName: string,
 	keySelection: {
-		ipAddress?: ReturnType<typeof sql<string | null>>
+		ipNetwork?: ReturnType<typeof sql<string | null>>
 		failedCredential?: ReturnType<typeof sql<string | null>>
 		userId?: ReturnType<typeof sql<string | null>>
 		anonId?: ReturnType<typeof sql<string | null>>
@@ -71,7 +71,7 @@ const excessiveArm = (
 	qx
 		.select({
 			id: sql<string | null>`null`.as('id'),
-			ipAddress: (keySelection.ipAddress ?? sql<string | null>`null`).as('ip_address'),
+			ipNetwork: (keySelection.ipNetwork ?? sql<string | null>`null`).as('ip_network'),
 			failedCredential: (keySelection.failedCredential ?? sql<string | null>`null`).as(
 				'failed_credential',
 			),
@@ -110,7 +110,8 @@ const bansArm = (qx: QueryExecutor, targetColumn: PgColumn, placeholderName: str
 	qx
 		.select({
 			id: sql<string | null>`${banId}`.as('id'),
-			ipAddress: sql<string | null>`host(${banIpAddress})`.as('ip_address'),
+			/** `text`, not `host`: the mask is part of the key and must survive */
+			ipNetwork: sql<string | null>`${banIpNetwork}::text`.as('ip_network'),
 			failedCredential: sql<string | null>`${banFailedCredential}`.as('failed_credential'),
 			userId: sql<string | null>`${banUserId}`.as('user_id'),
 			anonId: sql<string | null>`${banAnonId}`.as('anon_id'),
@@ -145,15 +146,15 @@ const bansArm = (qx: QueryExecutor, targetColumn: PgColumn, placeholderName: str
 export const selectCurrentAndExcessiveByTargets = createPreparedQuery({
 	vSchema: V.ByManyTargets,
 	stmtFn: (qx) =>
-		bansArm(qx, banIpAddress, 'ipAddress')
+		bansArm(qx, banIpNetwork, 'ipNetwork')
 			.unionAll(bansArm(qx, banUserId, 'userId'))
 			.unionAll(bansArm(qx, banAnonId, 'anonId'))
 			.unionAll(bansArm(qx, banFailedCredential, 'failedCredential'))
 			.unionAll(bansArm(qx, banUsersArchiveId, 'usersArchiveId'))
 			.unionAll(bansArm(qx, banAnonsArchiveId, 'anonsArchiveId'))
 			.unionAll(
-				excessiveArm(qx, 'IP_ADDRESS', activityIpAddress, 'ipAddress', {
-					ipAddress: sql<string | null>`host(${activityIpAddress})`,
+				excessiveArm(qx, 'IP_ADDRESS', activityIpNetwork, 'ipNetwork', {
+					ipNetwork: sql<string | null>`${activityIpNetwork}::text`,
 				}),
 			)
 			.unionAll(
@@ -197,7 +198,7 @@ export const selectActivityIdsByTarget = createQueryFn({
 	vSchema: V.BySingleTarget,
 	query: (qx, targets) => {
 		const targetColumns = {
-			ipAddress: activityIpAddress,
+			ipNetwork: activityIpNetwork,
 			failedCredential: activityFailedCredential,
 			userId: activityUserId,
 			anonId: activityAnonId,

@@ -61,8 +61,9 @@ const _emailReverify = Effect.fn('emailReverify')(function* ({
 		})
 
 	/**
-	 * Verify the passcode outside any transaction. Wrong codes persist their attempt
-	 * and fail here; only a verified code proceeds to the authoritative transaction
+	 * Verify the passcode outside any transaction. The attempt is reserved before the
+	 * hash, so a wrong code is already counted when the failure is raised; a verified
+	 * code proceeds to the authoritative transaction, which burns the row
 	 */
 	const verification = yield* verify({email: user.email, passcode, userId})
 

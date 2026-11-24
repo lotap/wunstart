@@ -1,9 +1,14 @@
 import {Effect, Schema} from 'effect'
 
-import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
 import * as sessionsUsersQueries from '#/db/models/sessions---users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
+import {authAttemptAllowanceFailure} from '#/db/ops/auth-attempt-allowance-error.ts'
+import {
+	enforceAuthAttemptAllowance,
+	skipsCredentialAttempt,
+} from '#/db/ops/auth/_attempt-allowance.ts'
+import {AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE} from '#/db/ops/auth/messages.ts'
 import {UserAlreadyExistsError} from '#/db/ops/auth/users/_create-user.ts'
 import {rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import type {EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
@@ -69,14 +74,14 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 	if (user) {
 		/**
 		 * If the credential used to find the user has bans or excessive activities
-		 * AND this is a new ip address for the user throw an error.
-		 * This will allow a user to log in with a known ip address if a bad actor is trying to brute-force lock them out
-		 * it will also prevent brute-force attacks where a bad actor switches ip addresses for several attempts at guessing a password
+		 * AND this is a new network for the user throw an error.
+		 * This will allow a user to log in from a known network if a bad actor is trying to brute-force lock them out.
+		 * It will also prevent brute-force attacks where a bad actor moves to other networks for several attempts at guessing a password
 		 */
 		if (
 			currentBansAndExcessiveActivities.filter((element) => element.scope === 'FAILED_CREDENTIAL')
 				.length &&
-			(!isClientIpAddress(ipAddress) || !user.hasKnownIp)
+			!skipsCredentialAttempt({user, ipAddress})
 		)
 			return yield* rateLimitFailure({
 				message: EMAIL_VERIFY_GENERIC_FAILURE_MESSAGE,
@@ -84,22 +89,6 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 				meta: {credential: email},
 				anonId: registeredAnonId,
 			})
-
-		/**
-		 * Verify the passcode outside any transaction. Wrong codes persist their attempt
-		 * and fail here; only a verified code proceeds to the authoritative transaction
-		 */
-		const verification = yield* verify({
-			email,
-			passcode,
-			anonId,
-			anonRegistered: anonTokenPayload.registered,
-		})
-
-		return {
-			isNewUser: false as const,
-			...(yield* signInWithVerifiedCode({verification, user, ctx})),
-		}
 	} else if (currentBansAndExcessiveActivities.length) {
 		/**
 		 * Provisioning a new account keeps the blanket check: any remaining
@@ -112,6 +101,40 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 			meta: {credential: email},
 			anonId: registeredAnonId,
 		})
+	}
+
+	/** Upsert before hashing; a network denial short-circuits the email allowance */
+	const {allowed} = yield* enforceAuthAttemptAllowance({
+		ipAddress,
+		email,
+		user,
+	})
+
+	if (!allowed)
+		return yield* authAttemptAllowanceFailure({
+			message: AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE,
+			/** Allowance-exhausted denials carry weight 0; meta keeps the email for audit only */
+			meta: {credential: email},
+			anonId: registeredAnonId,
+		})
+
+	if (user) {
+		/**
+		 * Verify the passcode outside any transaction. The attempt is reserved before the
+		 * hash, so a wrong code is already counted when the failure is raised; a verified
+		 * code proceeds to the authoritative transaction, which burns the row
+		 */
+		const verification = yield* verify({
+			email,
+			passcode,
+			anonId,
+			anonRegistered: anonTokenPayload.registered,
+		})
+
+		return {
+			isNewUser: false as const,
+			...(yield* signInWithVerifiedCode({verification, user, ctx})),
+		}
 	}
 
 	/**

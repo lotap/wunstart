@@ -8,7 +8,7 @@ import {Button} from '#/components/ui/button.tsx'
 import {toast} from '#/components/ui/toast.tsx'
 
 import {useDeadSessionRecovery} from './_hooks.ts'
-import type {PasscodeRequestQueryOptions} from './_utils.ts'
+import type {PasscodeRequestQueryOptions, PasscodeRequestResult} from './_utils.ts'
 
 const resetPasscodeIconVariants = cva('', {
 	variants: {
@@ -17,8 +17,6 @@ const resetPasscodeIconVariants = cva('', {
 		},
 	},
 })
-
-const calcEnabledAt = (expiresAt: DateTime.Utc) => expiresAt.pipe(DateTime.subtract({minutes: 14}))
 
 const calcTimeUntilEnabled = (enabledAt: DateTime.Utc) =>
 	DateTime.distance(DateTime.nowUnsafe(), enabledAt)
@@ -32,7 +30,7 @@ export function ResetEmailVerificationButton({
 }: {
 	email: string
 	queryOptions: PasscodeRequestQueryOptions
-	mutateAsync: () => Promise<{expiresAt: Date}>
+	mutateAsync: () => Promise<PasscodeRequestResult>
 	mutationIsPending: boolean
 	onRequestNewCode?: () => void
 }) {
@@ -40,17 +38,14 @@ export function ResetEmailVerificationButton({
 
 	const recoverDeadSession = useDeadSessionRecovery()
 
-	const expiresAt = passcodeRequestData?.expiresAt ?? DateTime.nowUnsafe()
+	/** The server owns the resend gate; this only counts down to the moment it returns */
+	const enabledAt = passcodeRequestData?.resendAvailableAt ?? DateTime.nowUnsafe()
 
-	const [timeUntilEnabled, setTimeUntilEnabled] = useState(() =>
-		calcTimeUntilEnabled(calcEnabledAt(expiresAt)),
-	)
+	const [timeUntilEnabled, setTimeUntilEnabled] = useState(() => calcTimeUntilEnabled(enabledAt))
 
 	const isDisabled = Duration.isPositive(timeUntilEnabled)
 
 	useEffect(() => {
-		const enabledAt = calcEnabledAt(expiresAt)
-
 		let intervalId: ReturnType<typeof setInterval> | undefined
 
 		const handleTimer = () => {
@@ -66,7 +61,7 @@ export function ResetEmailVerificationButton({
 		intervalId = setInterval(handleTimer, 1000)
 
 		return () => clearInterval(intervalId)
-	}, [expiresAt])
+	}, [enabledAt])
 
 	return (
 		<Button

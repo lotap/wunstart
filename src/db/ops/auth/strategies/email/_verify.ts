@@ -33,9 +33,11 @@ const archiveWithPasscode = (input: {id: string; passcodeHash: string}) =>
 /**
  * Verifies a passcode against the unexpired verification row.
  *
- * Runs outside any caller transaction. On a wrong code the failed attempt is persisted
- * (attempt counters must survive the logical failure) before the {@link OpsError} is raised.
- * On success the row data is returned for the caller to burn
+ * Runs outside any caller transaction, and reserves the attempt in the database before
+ * hashing: a burst of concurrent guesses must not share one read of the row attempt counter and
+ * reach the hash together. The row counter therefore survives every failure path, including a
+ * crash between the reservation and the hash, which consumes the attempt. On success the row
+ * data is returned for the caller to burn
  */
 export const verify = Effect.fn('emailVerify')(function* (
 	input: {email: string; passcode: string} & (
@@ -89,42 +91,50 @@ export const verify = Effect.fn('emailVerify')(function* (
 		})
 	}
 
+	/**
+	 * Reserve the attempt before hashing. The update is the concurrency gate: Postgres
+	 * evaluates its `attempts < maxAttempts` guard against the current row, so concurrent
+	 * guesses each consume a slot instead of all reading the same count and reaching the
+	 * hash. The remaining guards restrict it to the same, still-unexpired code generation
+	 * and entity, so a concurrent new-code reset or burn cannot be overwritten. A crash
+	 * between this statement and the hash consumes the reserved attempt (fail-closed)
+	 */
+	const [incrementedRow] = yield* emailVerificationsQueries
+		.incrementAttempts({
+			...input,
+			id,
+			passcodeHash,
+			maxAttempts: PASSCODE_MAX_ATTEMPTS,
+		})
+		.pipe(retryRollbackSafeDb)
+
+	if (!incrementedRow)
+		/**
+		 * The reservation was refused: the row was exhausted, burned, reset, or expired
+		 * between the select and the update. No attempt was reserved, so nothing is hashed
+		 */
+		return yield* opsFailure({
+			...entityIds,
+			failedCredential: email,
+			failureCause: 'RESERVATION_REFUSED',
+			meta: {id},
+			rateAllowance: 4,
+			message: INVALID_PASSCODE_MESSAGE,
+		})
+
 	return yield* Effect.gen(function* () {
-		/** Verify the passcode against the stored hash */
+		/** Compare the passcode with the hash read by the select; the reservation above already counts this attempt */
 		const isValid = yield* verifyTarget(passcodeHash, passcode)
 
 		if (!isValid) {
 			/**
-			 * Wrong passcode. Increment attempts
-			 *
-			 * Only applies to the same, still-unexpired code generation and never past
-			 * `PASSCODE_MAX_ATTEMPTS`, so a new-code reset or a concurrent burn cannot
-			 * be overwritten.
+			 * The cap applies only to a mismatch: a correct submission succeeds even
+			 * when its reservation consumed the last allowed attempt
 			 */
-			const [incrementedRow] = yield* emailVerificationsQueries
-				.incrementAttempts({
-					...input,
-					id,
-					passcodeHash,
-					maxAttempts: PASSCODE_MAX_ATTEMPTS,
-				})
-				.pipe(retryRollbackSafeDb)
-
-			if (!incrementedRow)
-				/** A concurrent burn or new-code reset invalidated the row before the increment applied */
-				return yield* opsFailure({
-					...entityIds,
-					failedCredential: email,
-					failureCause: 'NOT_FOUND_ON_INCREMENT',
-					meta: {id},
-					rateAllowance: 4,
-					message: INVALID_PASSCODE_MESSAGE,
-				})
-
 			if (incrementedRow.attempts >= PASSCODE_MAX_ATTEMPTS) {
 				/**
-				 * Max reached. Retire the dead row, guarded by its passcode hash so a
-				 * concurrent reset cannot be clobbered. A concurrent correct submission
+				 * Last allowed attempt used. Retire the dead row, guarded by its passcode hash
+				 * so a concurrent reset cannot be clobbered. A concurrent correct submission
 				 * may have burned it first, so its absence is not an error
 				 */
 				yield* archiveWithPasscode({id, passcodeHash})

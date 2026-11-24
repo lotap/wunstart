@@ -1,5 +1,7 @@
 import {createMiddleware, createServerOnlyFn} from '@tanstack/react-start'
 
+import {ipNetwork} from '#/db/helpers/ip-network.ts'
+
 import {RATE_LIMITED_MESSAGE} from './_messages.ts'
 import {getRequestInfo} from './get-request-info.ts'
 import {throwKnownServerError} from './known-server-error.ts'
@@ -27,74 +29,25 @@ const store = new Map<
 	}[]
 >()
 
-const IPV4_TAIL = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
-
-/** Rewrite a dotted IPv4 tail into two hexadecimal hextets, or null if absent */
-const expandIpv4Tail = (ipAddress: string) => {
-	const separator = ipAddress.lastIndexOf(':'),
-		match = IPV4_TAIL.exec(ipAddress.slice(separator + 1))
-
-	if (separator < 0 || !match) return null
-
-	const [a = 0, b = 0, c = 0, d = 0] = match.slice(1).map(Number)
-
-	return `${ipAddress.slice(0, separator + 1)}${((a << 8) | b).toString(16)}:${((c << 8) | d).toString(16)}`
-}
-
 /**
- * Normalizes IPv6 addresses to their /64 prefix so a client rotating interface
- * identifiers within a single /64 allocation shares one rate-limit bucket.
+ * The limiter's key is the client's network, the same key the ban pipeline
+ * stores, so the request limit and a ban can never disagree about a subject.
  *
- * A dotted tail is valid IPv6 notation, not proof of IPv4: expand it to hextets
- * before taking the prefix, otherwise every interface identifier in a routed
- * /64 becomes its own bucket. An IPv4-mapped address collapses to the wrapped
- * IPv4 key, so the same client is not counted under mapped and plain forms
- * separately, and mapped clients do not all share the zero /64.
+ * Malformed input falls back to the raw lowercase value: the limiter must not
+ * fail a request over an address it cannot parse, while the ban path throws
+ * because it only sees validated addresses.
  */
 const toRateLimitKey = (ipAddress: string) => {
-	const lower = ipAddress.toLowerCase()
-
-	if (!lower.includes(':')) return lower
-
-	const expanded = lower.includes('.') ? expandIpv4Tail(lower) : lower
-
-	if (!expanded) return lower
-
-	const [head = '', tail = ''] = expanded.split('::')
-	const headParts = head ? head.split(':') : []
-	const tailParts = tail ? tail.split(':') : []
-	const missing = 8 - headParts.length - tailParts.length
-
-	if (missing < 0) return lower
-
-	const full = [...headParts, ...Array.from({length: missing}, () => '0'), ...tailParts]
-
-	const [first, second, third, fourth, fifth, sixth, seventh, eighth] = full.map((hextet) =>
-		Number.parseInt(hextet, 16),
-	)
-
-	if (
-		first === 0 &&
-		second === 0 &&
-		third === 0 &&
-		fourth === 0 &&
-		((fifth === 0 && sixth === 0xffff) || (fifth === 0xffff && sixth === 0))
-	) {
-		const high = seventh ?? 0
-		const low = eighth ?? 0
-
-		return `${high >> 8}.${high & 0xff}.${low >> 8}.${low & 0xff}`
+	try {
+		return ipNetwork(ipAddress)
+	} catch {
+		return ipAddress.toLowerCase()
 	}
-
-	return `${full
-		.slice(0, 4)
-		.map((hextet) => hextet.padStart(4, '0'))
-		.join(':')}::/64`
 }
 
 let cleanCounter = 0
 
-/** Cleans up store by removing expired events and ip addresses without active events */
+/** Cleans up store by removing expired events and network keys without active events */
 const cleanup = () => {
 	for (const [ip, events] of store) {
 		const filteredEvents = events.filter((event) => event.timestamp > Date.now() - WINDOW_MS)
@@ -136,7 +89,7 @@ const rejectRateLimited = createServerOnlyFn(() => {
  * within a request context (middleware or server function).
  *
  * `scope` namespaces the key so a tighter lane can count a subset of requests
- * without spending the global per-IP budget.
+ * without spending the global per-network budget.
  *
  * @throws {KnownServerError} with HTTP 429 when threshold is breached.
  */
@@ -151,7 +104,12 @@ export function addRateLimitEvent({
 }) {
 	const now = Date.now()
 	const normalizedIp = toRateLimitKey(ipAddress)
-	const key = scope ? `${scope}:${normalizedIp}` : normalizedIp
+	/**
+	 * `|` as the separator because the key now carries a network: `:` already
+	 * appears inside IPv6 addresses and `/` inside CIDR, so neither is safe.
+	 * Scopes are fixed constants and `|` cannot appear in either component.
+	 */
+	const key = scope ? `${scope}|${normalizedIp}` : normalizedIp
 
 	if (!store.has(key) && store.size >= MAX_STORE_ENTRIES) {
 		/**
@@ -188,7 +146,7 @@ export function addRateLimitEvent({
 }
 
 /**
- * Sign-out attempts allowed per IP per minute. Sign-out runs the Argon2 nonce
+ * Sign-out attempts allowed per network per minute. Sign-out runs the Argon2 nonce
  * check but cannot guess a credential, and one shared egress can legitimately
  * produce several sign-outs at once. Its own lane keeps a sign-out burst from
  * spending the 5/min credential budget; the global limiter stays the outer
@@ -197,15 +155,15 @@ export function addRateLimitEvent({
 const SIGN_OUT_ATTEMPTS_PER_MINUTE = 30
 
 /**
- * Per-IP rate limiting middleware. Not shared across clusters/instances/isolates.
+ * Per-network rate limiting middleware. Not shared across clusters/instances/isolates.
  * Defense in depth only; pair with a real edge rate limit + a real redis/db solution
- * Each request adds ({@link THRESHOLD} / max) weight to the ip's score with a timestamp; events older than {@link WINDOW_MS} are ignored.
+ * Each request adds ({@link THRESHOLD} / max) weight to the network's score with a timestamp; events older than {@link WINDOW_MS} are ignored.
  * Requests over the limit are rejected with HTTP 429.
  *
  * Expired events are purged every 10_000 requests as a safeguard.
  *
- * @argument max The number of requests allowed by an ip within {@link WINDOW_MS}. Must be a positive integer to function as intended
- * @argument scope Optional namespace for a dedicated bucket; omit to spend the shared per-IP score
+ * @argument max The number of requests allowed by a network within {@link WINDOW_MS}. Must be a positive integer to function as intended
+ * @argument scope Optional namespace for a dedicated bucket; omit to spend the shared per-network score
  */
 export function createRateLimit(max: number, scope?: string) {
 	return createMiddleware({type: 'function'})
@@ -221,11 +179,16 @@ export function createRateLimit(max: number, scope?: string) {
 		})
 }
 
-/** Default: 5 requests per minute per ip */
+/**
+ * Default: 5 requests per minute per network. This is the first bound on an
+ * auth burst; the durable auth attempt allowance
+ * (`db/models/auth-attempts/consts.ts`) must stay above it, so the lane caps a
+ * burst and the allowance remains the backstop rather than the first cap.
+ */
 export const rateLimit = createRateLimit(5)
 
 /**
- * Sign-out lane: 30 requests per minute per IP, keyed `sign-out:<ip>`.
+ * Sign-out lane: 30 requests per minute per network, keyed `sign-out|<network>`.
  * Both sign-out handlers run the refresh nonce check, so the lane bounds the
  * Argon2 work without charging it to the shared auth budget.
  */

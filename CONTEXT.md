@@ -33,8 +33,12 @@ How strongly an Activity counts toward a Ban; a wrong password and a rate-limit 
 **Ban**:
 A temporary block on one scope — IP, credential (the email the attempt claimed), User, or Anon — once weighted Activity crosses the threshold within a window.
 
+**Auth attempt allowance**:
+The fixed number of unauthenticated credential presentations one target — a client network or a claimed email — may make per window. It bounds the hashing work an attacker can force; it is not a Ban, which failure Weight still decides. The network allowance is the durable backstop. When the allowance is exhausted, the request is denied before any hash.
+_Avoid_: Attempt ceiling, attempt cap
+
 **Archive**:
-The app’s no-hard-delete guarantee: removed data leaves the live tables for an archive twin, so it disappears from the product while audit history survives.
+The app’s no-hard-delete guarantee: removed data leaves the live tables for an archive twin, so it disappears from the product while audit history survives. A derived counter records no fact the archive does not already hold, so it is swept instead.
 
 **Email verification**:
 Verify-before-create: a six-digit passcode authorizes User creation, so every User is verified by construction.

@@ -38,7 +38,7 @@ export type AuthContext = {
 }
 
 /**
- * Fallback refresh attempts allowed per IP per minute. A browser refreshes about
+ * Fallback refresh attempts allowed per network per minute. A browser refreshes about
  * once per 15 minutes, so this leaves headroom for a shared NAT while rejecting
  * a dead-pair loop before it runs the refresh op and writes an activity.
  */
@@ -86,7 +86,7 @@ export const verifyAuth = createMiddleware()
 		if (refreshToken) {
 			/**
 			 * A failed access check falls back to the refresh cookie. Count the
-			 * attempt in its own per-IP bucket so a dead or forged pair cannot turn
+			 * attempt in its own per-network bucket so a dead or forged pair cannot turn
 			 * a request stream into an unbounded run of refresh ops and activity
 			 * rows. The global 150/min function limit remains the outer bound. Both
 			 * are in-memory per isolate; production still needs an edge rate limit.

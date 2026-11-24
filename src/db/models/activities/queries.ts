@@ -28,6 +28,7 @@ export const insert = createPreparedQuery({
 				failureCause: sql.placeholder('failureCause'),
 				meta: sql.placeholder('meta'),
 				ipAddress: sql.placeholder('ipAddress'),
+				ipNetwork: sql.placeholder('ipNetwork'),
 				failedCredential: sql.placeholder('failedCredential'),
 				weight: sql.placeholder('weight'),
 			})

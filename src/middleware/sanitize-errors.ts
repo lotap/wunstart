@@ -12,9 +12,9 @@ export const sanitizeErrors = createMiddleware().server(async ({next}) => {
 	} catch (error) {
 		/**
 		 * Ops errors conform to the ops-error contract: their message is
-		 * client-safe and their cause is retained for diagnostics.
-		 * `OpsError` and `RateLimitError` instances satisfy the same shape, so
-		 * this single branch covers them too.
+		 * client-safe and their cause is retained for diagnostics. The branch
+		 * tests that contract with `isOpsError`, not a class roster, so every
+		 * conformer is covered.
 		 */
 		if (isOpsError(error)) {
 			setResponseStatus(422)

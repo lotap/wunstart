@@ -65,7 +65,8 @@ export function usePasscodeRequestMutation({
 	const {mutateAsync: mutatePasscodeRequest, isPending: passcodeRequestIsPending} = useMutation({
 		mutationFn: serverFn,
 		gcTime: 15 * 60 * 1000,
-		onSuccess: ({expiresAt}) => queryClient.setQueryData(invalidationKey, {expiresAt}),
+		onSuccess: ({expiresAt, resendAvailableAt}) =>
+			queryClient.setQueryData(invalidationKey, {expiresAt, resendAvailableAt}),
 	})
 
 	return {mutatePasscodeRequest, passcodeRequestIsPending}

@@ -1,12 +1,13 @@
 import {EffectDrizzleQueryError} from 'drizzle-orm/effect-core'
 import {Cause, Effect, Exit, Option, Ref, Schema} from 'effect'
 
+import {ipNetwork} from '#/db/helpers/ip-network.ts'
 import {DB} from '#/db/index.ts'
 import * as activitiesBansQueries from '#/db/models/activities---bans/queries.ts'
 import {type BanScope, ByManyTargets} from '#/db/models/activities---bans/validations.ts'
 import {ACTIVITIES_BASELINE_WEIGHT} from '#/db/models/activities/consts.ts'
 import * as activitiesQueries from '#/db/models/activities/queries.ts'
-import type {Insert as ActivitiesInsert} from '#/db/models/activities/validations.ts'
+import type {InsertPayload as ActivitiesInsert} from '#/db/models/activities/validations.ts'
 import * as anonsQueries from '#/db/models/anons/queries.ts'
 import * as bansQueries from '#/db/models/bans/queries.ts'
 import type {InsertMany as BansInsertMany} from '#/db/models/bans/validations.ts'
@@ -79,7 +80,7 @@ type CurrentBansAndExcessiveActivitiesRow = CurrentBansAndExcessiveActivitiesRow
 const toBanInsert = (
 	{
 		scope,
-		ipAddress,
+		ipNetwork: targetIpNetwork,
 		failedCredential,
 		userId,
 		anonId,
@@ -99,7 +100,7 @@ const toBanInsert = (
 
 	return {
 		scope,
-		ipAddress,
+		ipNetwork: targetIpNetwork,
 		failedCredential,
 		userId,
 		anonId,
@@ -113,12 +114,12 @@ const toBanInsert = (
 /**
  * Narrows a pre-check row to its single scope-owned target so
  * selectActivityIdsByTarget aggregates exactly that subject's window.
- * ByTargets requires at least one non-null field, and the scope's own column is
+ * ByManyTargets requires at least one non-null field, and the scope's own column is
  * guaranteed populated for excessive rows by the underlying grouping
  */
 const toTargetInput = ({
 	scope,
-	ipAddress,
+	ipNetwork: targetIpNetwork,
 	failedCredential,
 	userId,
 	anonId,
@@ -129,7 +130,7 @@ const toTargetInput = ({
 	 * The validation's Encoded form is optional-field/undefined (nulls are its
 	 * decoded default), so non-chosen scopes are omitted rather than nulled
 	 */
-	ipAddress: scope === 'IP_ADDRESS' ? (ipAddress ?? undefined) : undefined,
+	ipNetwork: scope === 'IP_ADDRESS' ? (targetIpNetwork ?? undefined) : undefined,
 	failedCredential: scope === 'FAILED_CREDENTIAL' ? (failedCredential ?? undefined) : undefined,
 	userId: scope === 'USER' ? (userId ?? undefined) : undefined,
 	anonId: scope === 'ANON' ? (anonId ?? undefined) : undefined,
@@ -171,7 +172,13 @@ const logActivityAndHandleBans = Effect.fn('logActivityAndHandleBans')(
 			const attempt = (resolvedInput: (typeof ActivitiesInsert)['Encoded']) =>
 				db.transaction((tx) =>
 					Effect.gen(function* () {
-						const [rowData] = yield* activitiesQueries.insert(resolvedInput, tx)
+						/** The one derived key: the row and every ban from it share it */
+						const activityIpNetwork = ipNetwork(resolvedInput.ipAddress)
+
+						const [rowData] = yield* activitiesQueries.insert(
+							{...resolvedInput, ipNetwork: activityIpNetwork},
+							tx,
+						)
 
 						// should be unreachable, drizzle throws on failed insert but it makes the linter happy
 						if (!rowData) return yield* Effect.die(new Error('Problem inserting activity'))
@@ -179,13 +186,19 @@ const logActivityAndHandleBans = Effect.fn('logActivityAndHandleBans')(
 						const {id: activityId, weight} = rowData
 						const weightDelta = BigInt(weight)
 
-						const {ipAddress, failedCredential, userId, anonId, anonsArchiveId, usersArchiveId} =
-							resolvedInput
+						const {failedCredential, userId, anonId, anonsArchiveId, usersArchiveId} = resolvedInput
 
 						const currentBansAndExcessiveActivities =
 							prefetchedCurrentBansAndExcessiveActivities ??
 							(yield* activitiesBansQueries.selectCurrentAndExcessiveByTargets(
-								{ipAddress, failedCredential, userId, anonId, anonsArchiveId, usersArchiveId},
+								{
+									ipNetwork: activityIpNetwork,
+									failedCredential,
+									userId,
+									anonId,
+									anonsArchiveId,
+									usersArchiveId,
+								},
 								tx,
 							))
 
@@ -203,7 +216,7 @@ const logActivityAndHandleBans = Effect.fn('logActivityAndHandleBans')(
 						 * unrelated ban's penalty indefinitely
 						 */
 						const implicatesScope = {
-							IP_ADDRESS: Boolean(ipAddress),
+							IP_ADDRESS: Boolean(activityIpNetwork),
 							USER: Boolean(userId),
 							ANON: Boolean(anonId),
 							FAILED_CREDENTIAL: Boolean(failedCredential),

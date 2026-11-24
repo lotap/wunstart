@@ -157,9 +157,8 @@ export type TokenFailurePolicy = {
  * Ops failure for HKDF infra errors. Weight 0 so it never feeds ban thresholds.
  *
  * Uses generic `opsFailure` (not `createOpsFailure`) because no caller discriminates
- * by tag; the ops-error contract's dedicated classes are for `catchTag` classifiers
- * (`AuthTokenError`/`RateLimitError` in `verify-auth`/`verify-anon`), and this is
- * intentionally erased to `INTERNAL_ERROR`.
+ * by type; the contract's dedicated classes exist for the boundaries that classify
+ * (`verify-auth`, `runOp`), and this is intentionally erased to `INTERNAL_ERROR`.
  */
 export const hkdfFailure = (error: JwtHandlerError) =>
 	opsFailure({

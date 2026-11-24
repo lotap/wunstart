@@ -36,7 +36,7 @@ const middlewareLayers = [
 			{
 				name: 'createRateLimit(150)',
 				description:
-					'In-memory per-IP limit. The global limiter is installed in src/start.ts; the auth, refresh, and sign-out lanes and their scoring are in Rate limits & bans.',
+					'In-memory per-network limit. The global limiter is installed in src/start.ts; the auth, refresh, and sign-out lanes and their scoring are in Rate limits & bans.',
 			},
 			{
 				name: 'verifyAnon',
@@ -208,9 +208,10 @@ export function MiddlewarePanel() {
 						placeholder.
 					</PanelRow>
 					<PanelRow label="stored address">
-						The full address is stored and shown in Settings and security emails. IPv6{' '}
-						<InlineCode>/64</InlineCode> normalization applies only inside the in-memory limiter, so
-						displayed history stays exact.
+						The full address is stored and shown in Settings and security emails. Bans, activities,
+						and the limiter key its network through <InlineCode>ipNetwork</InlineCode>; the known-IP
+						check masks in SQL from the same <InlineCode>IP_NETWORK_PREFIX</InlineCode> in{' '}
+						<InlineCode>src/db/helpers/ip-network.ts</InlineCode>, so displayed history stays exact.
 					</PanelRow>
 					<PanelRow label="system ops">
 						<InlineCode>0.0.0.0</InlineCode> marks a system operation with no client. It never
