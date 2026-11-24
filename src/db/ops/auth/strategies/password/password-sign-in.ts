@@ -1,19 +1,20 @@
 import {DateTime, Effect} from 'effect'
 
-import {ipNetwork} from '#/db/helpers/ip-network.ts'
-import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
 import {DB} from '#/db/index.ts'
-import {AUTH_ATTEMPT_ALLOWANCE} from '#/db/models/auth-attempts/consts.ts'
 import * as sessionsUsersQueries from '#/db/models/sessions---users/queries.ts'
 import * as usersQueries from '#/db/models/users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
 import {retryTransientDb, retryTransientOrArchiveRace} from '#/db/ops/_retry.ts'
-import {reserveAttempt, skipsCredentialAttempt} from '#/db/ops/auth/_attempt-counter.ts'
+import {
+	enforceAuthAttemptAllowance,
+	skipsCredentialAttempt,
+} from '#/db/ops/auth/_attempt-allowance.ts'
 import {DUMMY_ARGON2_HASH, hashTarget, verifyTarget} from '#/db/ops/auth/_hashing.ts'
 import {formatUserAgent} from '#/db/ops/auth/_user-agent.ts'
 import {retireAnon} from '#/db/ops/auth/anons/_retire-anon.ts'
 import {SUDO_EXPIRATION_WINDOW} from '#/db/ops/auth/consts.ts'
+import {AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE} from '#/db/ops/auth/messages.ts'
 import {createSession} from '#/db/ops/auth/sessions/_create-session.ts'
 import {generateAccessToken} from '#/db/ops/auth/tokens/_access-token.ts'
 import type {AnonTokenPayloadCustomClaims} from '#/db/ops/auth/tokens/_anon-token.ts'
@@ -107,7 +108,7 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 	if (
 		currentBansAndExcessiveActivities.filter((element) => element.scope === 'FAILED_CREDENTIAL')
 			.length &&
-		(!user || !isClientIpAddress(ipAddress) || !user.hasKnownIp)
+		!skipsCredentialAttempt({user, ipAddress})
 	)
 		return yield* rateLimitFailure({
 			message: PASSWORD_SIGN_IN_GENERIC_FAILURE_MESSAGE,
@@ -116,44 +117,20 @@ const _passwordSignIn = Effect.fn('passwordSignIn')(function* ({
 			anonId: registeredAnonId,
 		})
 
-	/**
-	 * Bound credential presentations per target before any hashing. The ban
-	 * pre-check above is a read, so a concurrent burst can all pass it before any
-	 * failure is logged and a ban exists; this counter is the race-free throughput
-	 * bound. The network counter always counts; the credential counter follows the
-	 * known-network escape above, so an attacker elsewhere cannot exhaust the
-	 * owner’s budget
-	 */
-	const networkAttempt = yield* reserveAttempt({
-		scope: 'NETWORK',
-		target: ipNetwork(ipAddress),
-		allowance: AUTH_ATTEMPT_ALLOWANCE.network,
+	/** Reserve before hashing; a network denial short-circuits the email allowance */
+	const {allowed} = yield* enforceAuthAttemptAllowance({
+		ipAddress,
+		email,
+		user,
 	})
 
-	const denyWhenAllowanceSpent = () =>
-		authAttemptAllowanceFailure({
-			message: PASSWORD_SIGN_IN_GENERIC_FAILURE_MESSAGE,
+	if (!allowed)
+		return yield* authAttemptAllowanceFailure({
+			message: AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE,
 			/** Allowance-exhausted denials carry weight 0; meta keeps the email for audit only */
 			meta: {credential: email},
 			anonId: registeredAnonId,
 		})
-
-	/**
-	 * A spent network returns before the credential reservation: the request never
-	 * hashes, and otherwise a blocked network could drain a claimed email’s allowance
-	 */
-	if (!networkAttempt.allowed) return yield* denyWhenAllowanceSpent()
-
-	/** Undefined when the escape applies: a known network does not spend the credential counter */
-	const credentialAttempt = skipsCredentialAttempt({user, ipAddress})
-		? undefined
-		: yield* reserveAttempt({
-				scope: 'CREDENTIAL',
-				target: email,
-				allowance: AUTH_ATTEMPT_ALLOWANCE.credential,
-			})
-
-	if (credentialAttempt?.allowed === false) return yield* denyWhenAllowanceSpent()
 
 	/** If no user is found, run dummy verification for timing uniformity, then fail */
 	if (!user) {

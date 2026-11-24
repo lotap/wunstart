@@ -14,7 +14,7 @@ const {count, scope, target, windowStart} = getColumns(activeTable)
 /// INSERT ///
 
 /**
- * Reserves one presentation for `target`, or reports the allowance as spent.
+ * Upserts the auth attempt row for `target` while under the allowance, or reports the allowance as exhausted.
  *
  * The allowance guard lives in the upsert's own WHERE, so the increment and the
  * decision are one statement: Postgres serializes the conflicting writers and
@@ -23,8 +23,8 @@ const {count, scope, target, windowStart} = getColumns(activeTable)
  * together. No returned row means denied; a row older than the window restarts
  * at one in the same statement.
  */
-export const reserve = createPreparedQuery({
-	vSchema: V.Reserve,
+export const upsert = createPreparedQuery({
+	vSchema: V.Upsert,
 	stmtFn: (qx) =>
 		qx
 			.insert(activeTable)
@@ -49,13 +49,13 @@ export const reserve = createPreparedQuery({
 						OR ${count} < ${sql.placeholder('allowance')}`,
 			})
 			.returning({count})
-			.prepare(`${labelPrefix}_reserve`),
+			.prepare(`${labelPrefix}_upsert`),
 })
 
 /// DELETE ///
 
 /**
- * Deletes at most `limit` counters whose window closed before the cutoff.
+ * Deletes at most `limit` rows whose window closed before the cutoff.
  *
  * Bounded like the activity archive: the sweep targets exactly the table a
  * credential-stuffing run inflates, one row per (scope, target), so an unbounded

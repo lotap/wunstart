@@ -1,12 +1,13 @@
 import {Effect, Schema} from 'effect'
 
-import {ipNetwork} from '#/db/helpers/ip-network.ts'
-import {isClientIpAddress} from '#/db/helpers/ip-sentinels.ts'
-import {AUTH_ATTEMPT_ALLOWANCE} from '#/db/models/auth-attempts/consts.ts'
 import * as sessionsUsersQueries from '#/db/models/sessions---users/queries.ts'
 import {createOpsFn} from '#/db/ops/_create-ops-fn.ts'
 import {checkCurrentBansAndExcessiveActivities} from '#/db/ops/_current-bans-and-excessive-activities.ts'
-import {reserveAttempt, skipsCredentialAttempt} from '#/db/ops/auth/_attempt-counter.ts'
+import {
+	enforceAuthAttemptAllowance,
+	skipsCredentialAttempt,
+} from '#/db/ops/auth/_attempt-allowance.ts'
+import {AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE} from '#/db/ops/auth/messages.ts'
 import {UserAlreadyExistsError} from '#/db/ops/auth/users/_create-user.ts'
 import {authAttemptAllowanceFailure, rateLimitFailure} from '#/db/ops/rate-limit-error.ts'
 import type {EmailPasscodeCredentials} from '#/isomorphic/validations/auth.ts'
@@ -79,7 +80,7 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 		if (
 			currentBansAndExcessiveActivities.filter((element) => element.scope === 'FAILED_CREDENTIAL')
 				.length &&
-			(!isClientIpAddress(ipAddress) || !user.hasKnownIp)
+			!skipsCredentialAttempt({user, ipAddress})
 		)
 			return yield* rateLimitFailure({
 				message: EMAIL_VERIFY_GENERIC_FAILURE_MESSAGE,
@@ -101,44 +102,20 @@ const _emailVerifyPasscode = Effect.fn('emailVerifyPasscode')(function* ({
 		})
 	}
 
-	/**
-	 * Bound credential presentations per target before hashing. The ban pre-checks
-	 * above are reads, so a concurrent burst can all pass them before any failure
-	 * is logged and a ban exists; this counter is the race-free throughput bound.
-	 * The network counter always counts; the credential counter follows the
-	 * known-network escape, so an attacker elsewhere cannot exhaust the owner’s
-	 * budget
-	 */
-	const networkAttempt = yield* reserveAttempt({
-		scope: 'NETWORK',
-		target: ipNetwork(ipAddress),
-		allowance: AUTH_ATTEMPT_ALLOWANCE.network,
+	/** Reserve before hashing; a network denial short-circuits the email allowance */
+	const {allowed} = yield* enforceAuthAttemptAllowance({
+		ipAddress,
+		email,
+		user,
 	})
 
-	const denyWhenAllowanceSpent = () =>
-		authAttemptAllowanceFailure({
-			message: EMAIL_VERIFY_GENERIC_FAILURE_MESSAGE,
+	if (!allowed)
+		return yield* authAttemptAllowanceFailure({
+			message: AUTH_ATTEMPT_ALLOWANCE_EXHAUSTED_MESSAGE,
 			/** Allowance-exhausted denials carry weight 0; meta keeps the email for audit only */
 			meta: {credential: email},
 			anonId: registeredAnonId,
 		})
-
-	/**
-	 * A spent network returns before the credential reservation: the request never
-	 * hashes, and otherwise a blocked network could drain a claimed email’s allowance
-	 */
-	if (!networkAttempt.allowed) return yield* denyWhenAllowanceSpent()
-
-	/** Undefined when the escape applies: a known network does not spend the credential counter */
-	const credentialAttempt = skipsCredentialAttempt({user, ipAddress})
-		? undefined
-		: yield* reserveAttempt({
-				scope: 'CREDENTIAL',
-				target: email,
-				allowance: AUTH_ATTEMPT_ALLOWANCE.credential,
-			})
-
-	if (credentialAttempt?.allowed === false) return yield* denyWhenAllowanceSpent()
 
 	if (user) {
 		/**

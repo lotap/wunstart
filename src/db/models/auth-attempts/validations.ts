@@ -16,7 +16,7 @@ export type AttemptScope = (typeof attemptScopesSelectPrimitive)['Type']
 
 /// INSERT ///
 
-export const Reserve = insertPrimitive.mapFields(Struct.pick(['scope', 'target'])).mapFields(
+export const Upsert = insertPrimitive.mapFields(Struct.pick(['scope', 'target'])).mapFields(
 	Struct.assign({
 		window: PGVerboseInterval,
 		allowance: PositiveInt,

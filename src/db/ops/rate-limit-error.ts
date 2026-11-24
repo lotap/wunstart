@@ -4,9 +4,10 @@ import {createOpsFailure, OpsErrorSchema, type OpsFailureFields} from '#/db/ops/
 
 /**
  * Framework control error: the caller was rejected by ban/rate-limit logic.
- * The class tag is the control signal (`runOp` forwards it to the rate
- * limiter); the persisted audit row keeps `failureCause: 'RATE_LIMIT'` by
- * convention. Construct via {@link rateLimitFailure} to keep them aligned.
+ * The class tag is the control signal: `runOp` forwards a ban refusal to the
+ * rate limiter and returns an attempt-allowance failure as a direct 429. The
+ * persisted audit row keeps its `failureCause` by convention. Construct via
+ * {@link rateLimitFailure} or {@link authAttemptAllowanceFailure}.
  */
 export class RateLimitError extends Schema.TaggedError<
 	RateLimitError,
@@ -35,11 +36,12 @@ export const rateLimitFailure = (
  * fixed-window allowance for its target. It is a {@link RateLimitError} so the
  * boundary answers the same way as any other denial, but at weight 0: the
  * allowance bounds pre-hash work and is audited, while the failure-weighted ban
- * pipeline remains the lockout and the penalty. Because the class tag carries the
- * forwarding, the denial still spends the caller's in-memory limiter budget —
- * that is what makes the response a 429 rather than a generic failure. It omits
- * `failedCredential` for the same reason as {@link rateLimitFailure}: a denial
- * must never feed weight back into the credential grouping set.
+ * pipeline remains the lockout and the penalty. It is a {@link RateLimitError}
+ * so `runOp` returns it as a direct 429 with this message; unlike a ban refusal,
+ * it does not charge the in-memory limiter, so the network's other requests keep
+ * working. It omits `failedCredential` for the same reason as
+ * {@link rateLimitFailure}: a denial must never feed weight back into the
+ * credential grouping set.
  */
 export const authAttemptAllowanceFailure = (
 	fields: Omit<OpsFailureFields, 'failureCause' | 'rateAllowance' | 'failedCredential'>,

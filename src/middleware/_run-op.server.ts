@@ -6,6 +6,7 @@ import type {OpsErrorContract} from '#/db/ops/ops-error.ts'
 import {RateLimitError} from '#/db/ops/rate-limit-error.ts'
 
 import {clearAuthCookies} from './_set-auth-cookies.ts'
+import {throwKnownServerError} from './known-server-error.ts'
 import {allowPerWindow, addRateLimitEvent} from './rate-limit.ts'
 
 /**
@@ -68,14 +69,15 @@ function getOpIpAddress(data: {ipAddress?: unknown}): string | undefined {
  * Convenience function to reduce boilerplate in middleware & server fns
  *
  * - unwraps Effect result into plain value
- * - forwards RateLimitError failures to the middleware rate-limiter (throws a 429)
+ * - forwards ban-refusal RateLimitError failures to the middleware rate-limiter
+ *   (throws a 429); an attempt-allowance failure is a direct 429 with its message
  * - any other failure rejects the promise (throws), so callers handle their own
  *   error classification, e.g. the auth middlewares decide the request's
  *   identity state inline (see `verify-auth.ts` / `verify-anon.ts`)
  * - wraps entire op in createServerOnlyFn to prevent client-side leakage
  *
  * @returns The op's success value; or rejects with the op's failure, or
- *          throws a 429 if the rate limiter threshold is breached
+ *          throws a 429 for a rate-limit denial
  */
 export const runOp = createServerOnlyFn(
 	async <T extends Op<L>, const L extends Layers>(args: RunArgs<L, T>): Promise<OpResult<T>> => {
@@ -85,11 +87,14 @@ export const runOp = createServerOnlyFn(
 		if (ip === undefined) throw new Error('runOp: op params must include a string ipAddress')
 
 		const effect = Effect.provide(op(data), layers).pipe(
-			Effect.tapError((cause) =>
-				Schema.is(RateLimitError)(cause)
-					? Effect.sync(() => addRateLimitEvent({ipAddress: ip, weight: allowPerWindow(1)}))
-					: Effect.void,
-			),
+			Effect.tapError((cause) => {
+				if (!Schema.is(RateLimitError)(cause)) return Effect.void
+
+				if (cause.activity.failureCause === 'AUTH_ATTEMPT_ALLOWANCE')
+					return Effect.sync(() => throwKnownServerError(429, cause.message))
+
+				return Effect.sync(() => addRateLimitEvent({ipAddress: ip, weight: allowPerWindow(1)}))
+			}),
 		)
 
 		// SAFETY: `Op<L>` erases the concrete op's success type to `unknown`, and this cast
