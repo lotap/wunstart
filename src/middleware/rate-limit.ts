@@ -155,14 +155,14 @@ export function addRateLimitEvent({
 const SIGN_OUT_ATTEMPTS_PER_MINUTE = 30
 
 /**
- * Per-IP rate limiting middleware. Not shared across clusters/instances/isolates.
+ * Per-network rate limiting middleware. Not shared across clusters/instances/isolates.
  * Defense in depth only; pair with a real edge rate limit + a real redis/db solution
- * Each request adds ({@link THRESHOLD} / max) weight to the ip's score with a timestamp; events older than {@link WINDOW_MS} are ignored.
+ * Each request adds ({@link THRESHOLD} / max) weight to the network's score with a timestamp; events older than {@link WINDOW_MS} are ignored.
  * Requests over the limit are rejected with HTTP 429.
  *
  * Expired events are purged every 10_000 requests as a safeguard.
  *
- * @argument max The number of requests allowed by an ip within {@link WINDOW_MS}. Must be a positive integer to function as intended
+ * @argument max The number of requests allowed by a network within {@link WINDOW_MS}. Must be a positive integer to function as intended
  * @argument scope Optional namespace for a dedicated bucket; omit to spend the shared per-network score
  */
 export function createRateLimit(max: number, scope?: string) {
@@ -179,7 +179,12 @@ export function createRateLimit(max: number, scope?: string) {
 		})
 }
 
-/** Default: 5 requests per minute per ip */
+/**
+ * Default: 5 requests per minute per network. This is the first bound on an
+ * auth burst; the durable auth attempt allowance
+ * (`db/models/auth-attempts/consts.ts`) must stay above it, so the lane caps a
+ * burst and the allowance remains the backstop rather than the first cap.
+ */
 export const rateLimit = createRateLimit(5)
 
 /**

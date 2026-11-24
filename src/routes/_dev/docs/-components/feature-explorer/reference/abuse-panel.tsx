@@ -193,7 +193,7 @@ export function AbusePanel() {
 					<InlineCode>createRateLimit(max)</InlineCode> admits <InlineCode>max</InlineCode> requests
 					per network in a 60-second window (<InlineCode>WINDOW_MS</InlineCode> in{' '}
 					<InlineCode>src/middleware/rate-limit.ts</InlineCode>). Each request adds{' '}
-					<InlineCode>ceil({threshold} / max)</InlineCode> to the IP’s score; the request that
+					<InlineCode>ceil({threshold} / max)</InlineCode> to the network’s score; the request that
 					pushes the score above {threshold} gets a 429. The scoped refresh and sign-out buckets use
 					the same formula in their own keys.
 				</Prose>
@@ -409,8 +409,8 @@ export function AbusePanel() {
 						function.
 					</PanelRow>
 					<PanelRow label="Ops rejection" labelVariant="text">
-						HTTP 429. <InlineCode>runOp</InlineCode> adds the denial weight before the response
-						leaves.
+						HTTP 429. <InlineCode>runOp</InlineCode> forwards a ban refusal to the limiter; an
+						allowance denial is answered directly (see the allowance row above).
 					</PanelRow>
 					<PanelRow label="Anticipated failure" labelVariant="text">
 						HTTP 422 with the op’s client-safe message. Credential failures deliberately share one
