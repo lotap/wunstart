@@ -161,13 +161,12 @@ export function AbusePanel() {
 					</PanelRow>
 					<PanelRow label="auth attempt allowance">
 						Rows in <InlineCode>auth_attempts</InlineCode> count unauthenticated credential
-						presentations per client network and per claimed email, upserted before Argon2 or a
-						passcode hash. The upsert is one atomic statement, so a concurrent burst cannot pass a
-						stale read. A successful presentation upserts the network attempt row just like a failed
-						one, because the bound is hashing work rather than failed guesses. A denial returns a
-						direct 429 from the boundary and does not charge the limiter, so the network’s other
-						requests keep working. Allowances and the window live in{' '}
-						<InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
+						presentations per client network and claimed email, upserted before Argon2 or a passcode
+						hash. The upsert is one atomic statement, so a concurrent burst cannot pass a stale
+						read. Successes count like failures; the claimed-email row follows the known-IP escape,
+						and the network row always counts. A denial returns a direct 429 from the boundary and
+						does not charge the limiter, so the network’s other requests keep working. Allowances
+						and the window live in <InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="bans">
 						Weighted Activities create and extend a temporary block on one scope. This is the
@@ -320,7 +319,7 @@ export function AbusePanel() {
 									Weight
 								</PanelTableHeader>
 								<PanelTableHeader scope="col" className="px-5 py-3">
-									Allowance
+									Rate allowance
 								</PanelTableHeader>
 							</tr>
 						</thead>
@@ -352,10 +351,10 @@ export function AbusePanel() {
 					</table>
 				</div>
 				<Prose>
-					Allowance is failures per ban window; weight is the threshold divided by allowance,
-					rounded up. Anon and grace expired rows are unreachable today and omitted; the policy maps
-					still define them. Terminal refresh-token handling never feeds the ban threshold; its
-					behavior lives in <PanelLink panel="auth">Auth</PanelLink>.
+					Rate allowance is failures per ban window; weight is the threshold divided by rate
+					allowance, rounded up. Anon and grace expired rows are unreachable today and omitted; the
+					policy maps still define them. Terminal refresh-token handling never feeds the ban
+					threshold; its behavior lives in <PanelLink panel="auth">Auth</PanelLink>.
 				</Prose>
 			</PanelSection>
 

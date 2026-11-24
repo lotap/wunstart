@@ -51,7 +51,7 @@ const getSessionRow = Effect.fn('getSessionRow')(function* (sessionId: string) {
 	 * The token verified before rotation began, so the caller held a genuine
 	 * credential; the row was archived, revoked, or expired between the two
 	 * reads. Charge no ban weight: this is the dead-session state, and a
-	 * concurrent revoke must not ban the IP.
+	 * concurrent revoke must not ban the network.
 	 */
 	if (!rowData)
 		return yield* authTokenFailure({

@@ -70,13 +70,14 @@ const resolveValidIp = (raw: string | undefined) => {
 export const getRequestInfo = createMiddleware().server(({next}) => {
 	/**
 	 * Canonicalised first: an IPv4 client on a dual-stack listener or a proxy
-	 * passthrough arrives as `::ffff:a.b.c.d`, and storing that spelling would
-	 * key differently from the network derived from it. The result is still the
-	 * full address for user-facing displays; every key that must agree (the
-	 * limiter, activities and bans, the known-IP bypass) derives its network
-	 * through `ipNetwork`. Never invent an address: a production request that
-	 * cannot resolve a client IP fails closed, while development falls back to
-	 * loopback so the app stays usable.
+	 * passthrough arrives as `::ffff:a.b.c.d`, and Postgres reads that spelling
+	 * as IPv6, so the SQL known-IP mask would take its `/64` branch and collapse
+	 * every IPv4 client into one network. The result is still the full address
+	 * for user-facing displays; the limiter, activities, and bans derive their
+	 * network through `ipNetwork`, and the known-IP check masks in SQL from the
+	 * same `IP_NETWORK_PREFIX`. Never invent an address: a production request
+	 * that cannot resolve a client IP fails closed, while development falls back
+	 * to loopback so the app stays usable.
 	 */
 	const resolvedIp =
 		resolveValidIp(getRequestHeader(TRUSTED_IP_HEADER)) ??

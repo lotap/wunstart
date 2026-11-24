@@ -19,7 +19,7 @@ const captureFailure = <A, E, R>(job: Effect.Effect<A, E, R>) =>
 
 /**
  * Daily cron (06:30 UTC): archives activities past the retention window and
- * drops attempt counters whose window closed.
+ * deletes attempt rows past their retention window.
  *
  * The jobs are independent — unrelated tables, and separate entries on a VPS —
  * so each runs to completion even when the other fails. The run still reports

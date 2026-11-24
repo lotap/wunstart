@@ -20,12 +20,12 @@ export const tableName = 'auth_attempts'
 export const attemptScopes = pgEnum('attempt_scopes', ['CREDENTIAL', 'NETWORK'])
 
 /**
- * Rolling auth attempt rows, upserted before any hashing.
+ * Fixed-window auth attempt rows, upserted before any hashing.
  *
  * The row is the whole state: a caller-declared composite key and a mutable
- * count, so there is no surrogate `id`, no lifecycle timestamps, and no archive
- * twin. Rows are replaced lazily by the window and swept by the daily cron, so
- * a delete path would have nothing to audit.
+ * count, so there is no surrogate `id`, no created/updated timestamps, and no
+ * archive twin. Rows reset lazily when their window expires and are swept by
+ * the daily cron, so a delete path would have nothing to audit.
  */
 export const activeTable = snakeCase.table(
 	tableName,

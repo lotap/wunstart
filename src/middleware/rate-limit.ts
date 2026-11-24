@@ -47,7 +47,7 @@ const toRateLimitKey = (ipAddress: string) => {
 
 let cleanCounter = 0
 
-/** Cleans up store by removing expired events and ip addresses without active events */
+/** Cleans up store by removing expired events and network keys without active events */
 const cleanup = () => {
 	for (const [ip, events] of store) {
 		const filteredEvents = events.filter((event) => event.timestamp > Date.now() - WINDOW_MS)
