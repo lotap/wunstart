@@ -165,8 +165,9 @@ export function AbusePanel() {
 						hash. The upsert is one atomic statement, so a concurrent burst cannot pass a stale
 						read. Successes count like failures; the claimed-email row follows the known-IP escape,
 						and the network row always counts. A denial returns a direct 429 from the boundary and
-						does not charge the limiter, so the network’s other requests keep working. Allowances
-						and the window live in <InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
+						adds no limiter weight of its own, but the request was already counted when it entered,
+						so a retry loop still spends the network’s limiter budget. Allowances and the window
+						live in <InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
 					</PanelRow>
 					<PanelRow label="bans">
 						Weighted Activities create and extend a temporary block on one scope. This is the
@@ -377,10 +378,10 @@ export function AbusePanel() {
 						IP.
 					</PanelRow>
 					<PanelRow label="FAILED_CREDENTIAL">
-						The email an attempt claimed. Only applied when a User exists and the request comes from
+						The email an attempt claimed. Applied only when a User exists and the request comes from
 						a new network; a known network can still sign in, so a third party cannot lock the
-						account out. The credential attempt row follows the same escape; the network row never
-						does.
+						account out. The escape is per network — an IPv6 `/64` is one known network — and the
+						credential attempt row follows it; the network row never does.
 					</PanelRow>
 					<PanelRow label="USER">The signed-in User.</PanelRow>
 					<PanelRow label="ANON">The anonymous identity.</PanelRow>

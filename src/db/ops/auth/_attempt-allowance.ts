@@ -45,6 +45,9 @@ const upsertAuthAttemptAndGetAllowed = Effect.fn('upsertAuthAttemptAndGetAllowed
  * attacker elsewhere fills the credential allowance; a presentation from a new
  * network still shares that allowance and can be denied until the window rolls.
  * The network allowance never takes this escape.
+ *
+ * The network is the same key the ban uses, so an IPv6 `/64` counts as one known
+ * network: every host in it shares the exemption and the ban.
  */
 export const skipsCredentialAttempt = ({
 	user,
@@ -60,8 +63,11 @@ export const skipsCredentialAttempt = ({
  * known-network escape applies, the claimed email.
  *
  * The network denial short-circuits: the request never hashes, so it must not
- * upsert the email's row. Returns `allowed: false` when either target is
- * at its allowance; the calling op owns the denial and the audit row.
+ * upsert the email's row. The network row is charged first, so a credential
+ * denial has already spent a network slot; reversing the order would let a
+ * blocked network drain a claimed email's allowance. Returns `allowed: false`
+ * when either target is at its allowance; the calling op owns the denial and
+ * the audit row.
  */
 export const enforceAuthAttemptAllowance = Effect.fn('enforceAuthAttemptAllowance')(function* ({
 	ipAddress,
