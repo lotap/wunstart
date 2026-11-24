@@ -54,14 +54,11 @@ export function AbuseProtectionFeature() {
 						Attach <InlineCode>rateLimit</InlineCode> to sign-up, sign-in, and passcode functions.
 					</PanelRow>
 					<PanelRow label="Auth attempt allowance">
-						Password sign-in and passcode verification are capped in{' '}
-						<InlineCode>auth_attempts</InlineCode> per client network and per claimed email. The
-						credential row is skipped when the user exists and the request comes from a network
-						their Sessions already used; the network row always counts. Reverify and email change
-						are authenticated and skip both. Everyone behind one network shares the network
-						allowance, so a busy office can exhaust it without an attack and stays capped until the
-						window rolls; a denial does not lengthen a lockout. The allowances live in{' '}
-						<InlineCode>src/db/models/auth-attempts/consts.ts</InlineCode>.
+						Password sign-in and passcode verification are capped before any hashing, so a busy
+						office can exhaust the shared network allowance without an attack and stays capped until
+						the window rolls; a denial does not lengthen a lockout. The{' '}
+						<PanelLink panel="abuse">Rate limits & bans reference</PanelLink> owns the per-target
+						counters, the known-network escape, and the window.
 					</PanelRow>
 					<PanelRow label="Credential ops">
 						Check the IP, the claimed email, the User, and the Anon for active bans and excessive

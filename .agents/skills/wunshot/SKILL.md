@@ -1,7 +1,7 @@
 ---
 name: wunshot
 description: |
-  Portable Drizzle + Postgres + Effect database-module system. Use when finding/installing wunshot core modules (via Shadcn) or writing custom modules: tables, queries, validations, cascades, archive pairs, ban/activity references, auth module contract, Effect ops with activity logging, or comment voice for module and op files. Applies to any host project, regardless of frontend, runtime, or tree layout. Routing, middleware, cookies, and transport wiring belong to your app — this skill covers only the portable DB modules.
+  Portable Drizzle + Postgres + Effect database-module system. Use when finding/installing wunshot core modules (via Shadcn) or writing custom modules: tables, queries, validations, cascades, archive pairs, ban/activity references, auth attempt allowance and denial policy, auth module contract, Effect ops with activity logging, or comment voice for module and op files. Applies to any host project, regardless of frontend, runtime, or tree layout. Routing, middleware, cookies, and transport wiring belong to your app — this skill covers only the portable DB modules.
 ---
 
 # Wunshot
@@ -19,7 +19,7 @@ Read only what the task needs:
 - Prepared queries, query fns, validations, naming, drizzle gotchas: `references/queries-validations.md`
 - Op skeleton, `opsFailure`, labels, retry, hashing order, error contract: `references/ops-contract.md`
 - Auth module composition + db-side invariants (eviction, email service, sudo, denial weight): `references/auth.md`
-- Weight routing, ban scopes, array references: `references/bans.md`
+- Weight routing, ban scopes, auth attempt allowance, denial classes, network-keyed IP scope, array references: `references/bans.md`
 - Comment voice, policy-map comments, IDE-hover docs: § Philosophy below
 
 New module: start at `references/module-walkthrough.md`, then tables-archive → queries-validations → ops-contract as needed.
