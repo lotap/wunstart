@@ -37,7 +37,7 @@ const verifyPasscodeChart = (formPath: string) => `flowchart LR
   fn -->|"rate limit + requireAnonRegistered"| mw["rateLimit · requireAnonRegistered"] -->|"runOp"| op["emailVerifyPasscode"]
   op -->|"pre-check"| logs[("activities · bans")]
   op -->|"lookup / create"| account[("users · sessions")]
-  op -->|"reserve attempt"| attempts[("auth_attempts")]
+  op -->|"upsert row"| attempts[("auth_attempts")]
   op -->|"verify code"| verifications[("email_verifications")]
   op -->|"count attempt"| retry["count row attempt · archive at max attempts"]
   op -->|"verify hash"| hash{{"AuthHasher DO"}}
@@ -55,7 +55,7 @@ const passwordSignInChart = `flowchart LR
   fn -->|"rate limit + requireAnon"| mw["rateLimit · requireAnon"] -->|"runOp"| op["passwordSignIn"]
   op -->|"pre-check"| logs[("activities · bans")]
   op -->|"lookup / rehash"| account[("users · sessions")]
-  op -->|"reserve attempt"| attempts[("auth_attempts")]
+  op -->|"upsert row"| attempts[("auth_attempts")]
   op -->|"verify password"| hash{{"AuthHasher DO"}}
   op -->|"nonce hash"| hash
   op -->|"access JWE"| secrets{{"authLayer secrets"}}
@@ -482,8 +482,8 @@ export function AuthPanel() {
 					</PanelRow>
 					<PanelRow label="passcode limits">
 						No cross-identity per-email cooldown — an attacker could exhaust it and lock the owner
-						out. The per-IP limits, send ceiling, and ban scopes — including the accepted shared-NAT
-						cost — live in <PanelLink panel="abuse">Rate limits & bans</PanelLink>.
+						out. The per-network limits, send ceiling, and ban scopes — including the accepted
+						shared-NAT cost — live in <PanelLink panel="abuse">Rate limits & bans</PanelLink>.
 					</PanelRow>
 				</PanelList>
 			</PanelSection>

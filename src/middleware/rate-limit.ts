@@ -89,7 +89,7 @@ const rejectRateLimited = createServerOnlyFn(() => {
  * within a request context (middleware or server function).
  *
  * `scope` namespaces the key so a tighter lane can count a subset of requests
- * without spending the global per-IP budget.
+ * without spending the global per-network budget.
  *
  * @throws {KnownServerError} with HTTP 429 when threshold is breached.
  */
@@ -146,7 +146,7 @@ export function addRateLimitEvent({
 }
 
 /**
- * Sign-out attempts allowed per IP per minute. Sign-out runs the Argon2 nonce
+ * Sign-out attempts allowed per network per minute. Sign-out runs the Argon2 nonce
  * check but cannot guess a credential, and one shared egress can legitimately
  * produce several sign-outs at once. Its own lane keeps a sign-out burst from
  * spending the 5/min credential budget; the global limiter stays the outer
@@ -163,7 +163,7 @@ const SIGN_OUT_ATTEMPTS_PER_MINUTE = 30
  * Expired events are purged every 10_000 requests as a safeguard.
  *
  * @argument max The number of requests allowed by an ip within {@link WINDOW_MS}. Must be a positive integer to function as intended
- * @argument scope Optional namespace for a dedicated bucket; omit to spend the shared per-IP score
+ * @argument scope Optional namespace for a dedicated bucket; omit to spend the shared per-network score
  */
 export function createRateLimit(max: number, scope?: string) {
 	return createMiddleware({type: 'function'})
@@ -183,7 +183,7 @@ export function createRateLimit(max: number, scope?: string) {
 export const rateLimit = createRateLimit(5)
 
 /**
- * Sign-out lane: 30 requests per minute per IP, keyed `sign-out|<network>`.
+ * Sign-out lane: 30 requests per minute per network, keyed `sign-out|<network>`.
  * Both sign-out handlers run the refresh nonce check, so the lane bounds the
  * Argon2 work without charging it to the shared auth budget.
  */

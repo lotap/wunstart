@@ -36,7 +36,7 @@ const middlewareLayers = [
 			{
 				name: 'createRateLimit(150)',
 				description:
-					'In-memory per-IP limit. The global limiter is installed in src/start.ts; the auth, refresh, and sign-out lanes and their scoring are in Rate limits & bans.',
+					'In-memory per-network limit. The global limiter is installed in src/start.ts; the auth, refresh, and sign-out lanes and their scoring are in Rate limits & bans.',
 			},
 			{
 				name: 'verifyAnon',

@@ -293,7 +293,7 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 		 * younger than the reset window, nothing was mailed, and the message tells
 		 * the caller to wait. Charge no ban weight — a burst of clicks in a stale
 		 * tab must not ban the account — and leave request-rate limiting to the
-		 * per-IP middleware. The insert above is the authoritative throttle, so a
+		 * per-network middleware. The insert above is the authoritative throttle, so a
 		 * concurrent re-request still hashes and lands here.
 		 */
 		if (!data)
@@ -349,11 +349,11 @@ const _emailRequestPasscode = Effect.fn('emailRequestPasscode')(function* ({
 		return {
 			...data,
 			/**
-			 * `PASSCODE_SENDS_PER_WINDOW` sends per activity window per IP and
+			 * `PASSCODE_SENDS_PER_WINDOW` sends per activity window per network and
 			 * identity, enforced by the ban pipeline: the next pre-check denies and
 			 * creates the bans. An Anon send weighs on IP + Anon; a session send
 			 * weighs on IP + User, so a shared NAT can lose sign-in and refresh, and
-			 * the account can lose refresh until the ban lifts. The per-IP middleware
+			 * the account can lose refresh until the ban lifts. The per-network middleware
 			 * is burst defense; this durable cap is the only per-account email-send
 			 * bound.
 			 */

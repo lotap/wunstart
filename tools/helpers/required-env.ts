@@ -200,7 +200,7 @@ export type EffectiveEnv = {
  * first, local second, last file winning; exported vars lose to files
  * there — except the VPS cron entries (`archive-old-activities`,
  * `purge-auth-attempts`), which keep the old chain so an exported
- * `DATABASE_URL` wins). This static parse never sees process.env, so branch-env passes
+ * `DATABASE_URL` wins. This static parse never sees process.env, so branch-env passes
  * the overlay explicitly to its children — see `refreshChildEnv`.
  * Per-worktree overrides (branch database, shifted ports) live in
  * `.env.local`, written by `bun run branch-env`.
