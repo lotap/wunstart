@@ -3,6 +3,7 @@
 import {render} from 'react-email'
 
 import {appInfo} from '#/app-info.ts'
+import {PASSCODE_EXPIRATION} from '#/db/models/email-verifications/consts.ts'
 
 import {EmailCode} from '../components/email-code.tsx'
 import {EmailLayout} from '../components/email-layout.tsx'
@@ -73,7 +74,7 @@ VerifyEmail.PreviewProps = {
 	...emailPreview,
 	code: '123456',
 	anonBound: true,
-	expiresIn: '15 minutes',
+	expiresIn: PASSCODE_EXPIRATION,
 } as VerifyEmailProps
 
 export async function renderVerificationEmail({
